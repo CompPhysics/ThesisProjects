@@ -1,0 +1,176 @@
+\subsection{IM-SRG(2) for two-body Hamiltonians}
+\label{sub:imsrg2}
+
+In the case of quantum dots, we look at a Hamiltonian
+\begin{equation}
+\hat{H} = \sum\limits_{pq}\left\langle p \right| \hat{h}^{(0)} \left| q \right\rangle a_p\da a_q + \frac{1}{4}\sum\limits_{pqrs}\lla pq \right|\left| r s \rra a_p\da a_q\da a_s a_r.
+\label{eq:imsrg1}
+\end{equation} 
+Normal-orderding the creation and annihilation operators, Eq.(\ref{eq:imsrg1}) is equivalent to
+
+\begin{equation}
+\hat{H} = E_0 + 
+ \sum\limits_{pq}f_{pq}\lbrace a_p\da a_q\rbrace + \frac{1}{4}\sum\limits_{pqrs}v_{pqrs} \lbrace a_p\da a_q\da a_s a_r \rbrace ,
+\end{equation}
+with ground state energy
+\be
+E_0 = \sum\limits_i \lla i \right| \hat{h}^{(0)} \left| i \rra + \frac{1}{2}\sum\limits_{ij}\lla ij\right|  \left| ij\rra,
+\label{eq:gs2}
+\ee
+and where $v_{pqrs} = \langle pq||rs\rangle$.
+The amplitudes for the one-body operator are in this case defined by
+\be
+f_{pq} = \lla p \right|\hat{h}^{(0)}\left| q \rra + \sum\limits_i \lla pi \right| \left| qi\rra.
+\label{eq:felems}
+\ee
+Truncating flow-equations (\ref{eq:flow0})-(\ref{eq:flow3}) to normal-ordered two-body operators, we obtain the following simplified set of ordinary differential equations:
+\begin{align}
+\frac{d E_0}{ds} &=  \sum_{ia}\left( \eta_{ia}^{(1)}f_{ai} - \eta_{ai}^{(1)}f_{ia}\right) + \frac{1}{2}\sum_{ijab}\eta_{ijab}^{(2)}v_{abij} 
+\label{eq:flow2order1}\\
+\frac{d f_{pq}}{ds}&= \sum_r \lb \eta_{pr}^{(1)}f_{rq} + \eta_{qr}^{(1)}f_{rp}\right) 
++ \sum_{ia}\lb 1-\hat{P}_{ia}\rb \lb \eta_{ia}^{(1)}v_{apiq} - f_{ia}\eta_{apiq}^{(2)} \rb \notag \\
+& +\frac{1}{2} \sum_{aij} \lb 1+\hat{P}_{pq}\rb \eta_{apij}^{(2)}v_{ijaq} + \frac{1}{2}\sum_{abi}\lb 1+\hat{P}_{pq}\rb \eta_{ipab}^{(2)}v_{abiq}
+\label{eq:flow2order2}\\
+\frac{d v_{pqrs}}{ds} &= \sum_t \lb 1-\hat{P}_{pq} \rb \lb \eta_{pt}^{(1)}v_{tqrs}-f_{pt}\eta_{tqrs}^{(2)}\rb 
+-\sum_t \lb 1-\hat{P}_{rs} \rb \lb \eta_{tr}^{(1)} v_{pqts} - f_{tr} \eta_{pqts}^{(2)}\rb \notag \\
+& +\frac{1}{2}\sum_{ab} \lb\eta_{pqab}^{(2)} v_{abrs} - v_{pqab}\eta_{abrs}^{(2)}\rb - 
+\frac{1}{2}\sum_{ij} \lb\eta_{pqij}^{(2)} v_{ijrs} - v_{pqij}\eta_{ijrs}^{(2)}\rb \notag \\
+& -\sum_{ia} \lb 1- \hat{P}_{ia} \rb \lb 1-\hat{P}_{pq}\rb \lb 1-\hat{P}_{rs} \rb \eta_{aqis}^{(2)}v_{ipar}.
+\label{eq:flow2order}
+\end{align}
+Compared to the third-order flow equations (\ref{eq:flow0})-(\ref{eq:flow3}), not only the number of terms is considerably reduced, but also number of indices to be summed over reaches maximally four instead of six, a very important fact considering computational efficiency.
+
+\subsubsection{IM-SRG(2) with Wegner's canonical generator}
+To determine the specific form of the equations, one needs to specify the concrete \mbox{generator $\hat{\eta}$}. 
+As introduced in section \ref{sec:ChoiceEta}, one possibility is Wegner's generator
+\be
+\hat{\eta} = \left[ \Hd, \Ho \right] = \left[ \Hd, \hat{H} \right].
+\ee
+In second quantization, we thereby have to compute
+\[
+\\hat{\eta} = \left[
+ \sum\limits_{pq}f_{pq}^d \llb a_p\da a_q\rrb + \frac{1}{4}\sum\limits_{pqrs}v_{pqrs}^d \llb a_p\da a_q\da a_s a_r \rrb,
+  \sum\limits_{pq}f_{pq}\llb a_p\da a_q\rrb + \frac{1}{4}\sum\limits_{pqrs}v_{pqrs} \llb a_p\da a_q\da a_s a_r \rrb
+\right],
+\]
+where the amplitudes of the diagonal Hamiltonian are defined as
+\be
+f_{pq}^d = f_{pq}\delta_{pq}, \qquad v_{pqrs}^d = v_{pqrs}\lb \delta_{pr}\delta_{qs} + \delta_{ps}\delta_{qr} \rb.
+\label{eq:diag}
+\ee
+Using the commutation relations of Appendix \ref{App:AppendixB}, we get terms of first, second and third order, that can be collected in $\hat{\eta}^{(1)}, \hat{\eta}^{(2)}$ and $\hat{\eta}^{(3)}$, respectively. 
+
+In IM-SRG(2), however, we truncate the generator $\hat{\eta}$ to 
+\be
+\hat{\eta} = \sum\limits_{pq} \llb a_p\da a_q\rrb \eta_{pq}^{(1)} + \sum\limits_{pqrs}\llb a_p\da a_q\da a_s a_r\rrb \eta_{pqrs}^{(2)},
+\ee
+which means that we only consider contributions of $\hat{\eta}^{(1)}$ and $\hat{\eta}^{(2)}$.\\
+Using the standard notation
+\[
+n_p = \begin{cases} 
+1,   & \mbox{if } p< \epsilon_F \quad(p\;\mbox{is hole state})\\
+0,  &\mbox{if } p> \epsilon_F \quad(p\;\mbox{is particle state}),\\
+\end{cases}
+\]
+the corresponding matrix elements are 
+\begin{align}
+\eta_{pq}^{(1)} = & \sum_{r}\lb f_{pr}^d f_{rq} - f_{pr} f_{rq}^d \rb + f_{pq} v_{qppq}^d \lb n_q - n_p \rb \\
+\eta_{pqrs}^{(2)} = & - \sum_t \llb \lb 1-\hat{P}_{pq} \rb f_{pt} v_{tqrs}^d - \lb 1 - \hat{P}_{rs} \rb f_{tr} v_{pqts}^d \rrb \notag \\
+& + \sum_t \llb \lb 1 - \hat{P}_{pq} \rb f_{pt}^d v_{tqrs} - \lb 1 - \hat{P}_{rs} \rb f_{tr}^d v_{pqts} \rrb \notag \\
+& +  \frac{1}{2} \sum_{tu} (1 - n_t - n_u) \lb v_{pqtu}^d v_{turs} - v_{pqtu} v_{turs}^d \rb \notag \\
+& + \sum_{tu}  \lb n_t - n_u \rb \lb 1 - \hat{P}_{pq} \rb \lb 1 - \hat{P}_{rs} \rb v_{tpur}^d v_{uqts}
+\end{align}
+Considering relations (\ref{eq:diag}), the sums can be simplified to
+\begin{align}
+\eta_{pq}^{(1)} = & \lb f_{pp}f_{pq} - f_{pq}f_{qq}\rb + f_{pq}v_{qppq}\lb n_q - n_p \rb 
+\label{eq:etaWegner1}\\
+\eta_{pqrs}^{(2)} = &  f_{ps}v_{sqsq}^d\delta_{qr} + f_{qr}v_{rprp}^d\delta_{pr} -f_{pr}v_{rqrq}^d\delta_{qs} - f_{qs}v_{spsp}^d\delta_{pr}\notag \\
+& -\lb  f_{qr}\delta_{ps} + f_{ps}\delta_{qr} -f_{pr}\delta_{qs} -  f_{qs}\delta_{pr}\rb  v_{pqpq}^d\notag \\
+&+ \lb f_{pp}^d+f_{qq}^d-f_{rr}^d-f_{ss}^d \rb  v_{pqrs} \notag \\
+&+ \lb v_{pqpq}^d(1-n_p-n_q) - v_{rsrs}^d(1-n_r-n_s) - v_{rprp}^d(n_r -n_p)\right.\notag \\
+&- \left. v_{rqrq}^d(n_r-n_q) - v_{spsp}^d(n_s-n_p) - v_{sqsq}^d(n_s-n_q) \rb  v_{pqrs}.
+\label{eq:etaWegner2}
+\end{align}
+With this simplification, matrix elements $\eta_{pq}^{(1)}$ and $\eta_{pqrs}^{(2)}$ contain no sums over indices, which is of great importance regarding computational efficiency.
+
+It should again be mentioned that in general, the initial generator $\hat{\eta}$ also includes terms of higher order, even if the Hamiltonian itself is only on a two-body level. These terms $\eta_{pqrstu}^{(3)}$ then induce higher order interaction terms in the Hamiltonian, making the Hamiltonian more and more complex.
+However, in the SRG(2) approach, both, the generator $\hat{\eta}$ and the flow equations are truncated to terms with maximal two creation and two annihilation operators.
+
+\subsubsection{IM-SRG(2) with White's generator}
+In \cite{Koshi}, White's generator for the in-medium approach is explicitly derived for nuclear systems, an expression that we also can apply to our system of quantum dots.\\
+In Eq.~(\ref{eq:White4}), White's generator has been given as
+\be
+\hat{\eta}(s) = \sum_{\alpha} \eta_{\alpha}(s)h_{\alpha},
+\label{eq:White4_2}
+\ee
+with 
+\[
+\eta_{\alpha}(s) = b_{\alpha}a_{\alpha}(s), \quad b_{\alpha} = (E_l^{\alpha}-E_r^{\alpha})^{-1}.
+\]
+Since the goal is to rotate those elements to zero that are connected to the reference state $\left|\Phi_0\right\rangle$, we want to eliminate the coefficients $a_{\alpha}(s)$ of the following sets of creation and annihilation operators:
+\be
+h_{\alpha} \in \left\lbrace \lbrace a_p\da a_h \rbrace, \lbrace a_h\da a_p\rbrace, \lbrace a_{p_1}\da a_{p_2}\da a_{h_2} a_{h_1}\rbrace, \lbrace a_{h_1}\da a_{h_2}\da a_{p_2} a_{p_1}\rbrace \right\rbrace.
+\label{eq:White5}
+\ee
+Here, indices $h$ denote hole states, whereas indices $p$ denote particle states. The terms in (\ref{eq:White5}) can be divided into two types: The expressions $ \lbrace a_p\da a_h \rbrace$ and $\lbrace a_{p_1}\da a_{p_2}\da a_{h_2} a_{h_1}\rbrace$ contain only operators of $d\da$-type (see section \ref{subsec:White}) when applied to $\left|\Phi_0\right\rangle$. Therefore, they are assigned to the left state. On the other hand, $\lbrace a_h\da a_p\rbrace$ and $\lbrace a_{h_1}\da a_{h_2}\da a_{p_2} a_{p_1}\rbrace$ correspond to $d$-operators when applied to $\left|\Phi_0\right\rangle$ and are therefore assigned to the right state. 
+
+Since IM-SRG(2) is restricted to one-particle-one-hole and two-particle-two-hole excitations, 
+White's generator has only two types of non-zero elements:\\
+The non-zero one-body elements are limited to combinations of one particle and one hole: $\eta_{ph}^{(1)}$. \\
+Due to anti-hermiticity of the generator $\hat{\eta}$, $\eta_{hp}^{(1)}$ is obtained by the relation $\eta_{hp}^{(1)} = - \eta_{ph}^{(1)}$. \\
+For the non-zero two-body elements, corresponding to operators $h_{\alpha} = \lbrace a_{p_1}\da a_{p_2}\da a_{h_2} a_{h_1}\rbrace$ and $h_{\alpha} = \lbrace a_{h_1}\da a_{h_2}\da a_{p_2} a_{p_1}\rbrace$, we need a combination of two particles and two holes. Anti-hermiticity again limits this to one relevant term, since $\eta^{(2)}_{p_1p_2h_1h_2} = -\eta^{(2)}_{h_1h_2p_1p_2}$. To derive the expressions, we will follow \cite{Koshi}. 
+
+For the one-body elements $\eta_{ph}^{(1)}$, we need the left and right states defined as
+\begin{align*}
+| R^{(1)} \rangle &= \left|\Phi_0 \right\rangle \\
+| L^{(1)} \rangle &= \lbrace a_p\da a_h \rangle \left| \Phi_0 \right\rangle, \qquad \langle L^{(1)}| = \left\langle \Phi_0 \right| \lbrace a_h\da a_p\rangle.
+\end{align*}
+
+This yields for the corresponding energies
+\begin{align*}
+E_r^{(1)}(s) &= \langle R^{(1)} | \hat{H} | R^{(1)} \rangle = E_0\\
+E_l^{(1)}(s) &= \langle L^{(1)} | \hat{H} | L^{(1)} \rangle \\
+&= E_0 + \sum_{ij}f_{ij}\left\langle \Phi_0 \right| \lbrace a_k\da a_a\rbrace \lbrace a_i\da a_j \rbrace \lbrace a_a\da a_k \rbrace \left| \Phi_0 \right\rbrace \\
+&+ \frac{1}{4} \sum_{ijkl}v_{ijkl} \left\langle \Phi_0 \right| \lbrace a_m\da a_a \rbrace \lbrace a_i\da a_j\da a_l a_k \rbrace \lbrace a_a\da a_m\rbrace \left| \Phi_0 \right\rbrace \\
+&= E_0 + f_{aa} - f_{kk} - v_{amam}, 
+\end{align*}
+where we suppress the $s$-dependence on the right-hand side for simplicity. Note that in his original article \cite{White:cond-mat0201346}, White even suggests just to take the initial values of $E_r^{\alpha}$ and $E_l^{\alpha}$ and mentions the $s$-dependent values only as a further possibility. In \cite{Koshi}, however, $E_r^{\alpha}(s)$ and $E_l^{\alpha}(s)$ are not set to constants, but evolved during the whole flow. 
+
+With $b_{\alpha}(s) = \lb E_l^{\alpha}(s) - E_r^{\alpha}(s) \rb^{-1} = f_{aa}(s) - f_{mm}(s) - v_{amam}(s)$, we obtain for the one-body elements of the generator
+\be
+\eta_{ph}^{(1)}(s) = \frac{1}{f_{pp}(s)-f_{hh}(s)-v_{phph}(s)}f_{ph}(s),
+\label{eq:White6}
+\ee
+where we have renamed the indices appropriately. 
+For the two-body elements $\eta^{(2)}_{p_1p_2h_1h_2}$, we need the left and right states
+\begin{align*}
+| R^{(2)} \rangle &= 0 \\
+| L^{(2)} \rangle &= \lbrace a_{p_1}\da a_{p_2}\da a_{h_2} a_{h_1} \rbrace \left| \Phi_0 \right\rangle, \qquad \langle L^{(2)}| = \left\langle \Phi_0 \right| \lbrace a_{h_1}\da a_{h_2}\da a_{p_2} a_{p_1} \rbrace.
+\end{align*}
+This yields the following left and right energies:
+\begin{align*}
+E_r^{(2)}(s) &= \langle R^{(2)} | \hat{H} | R^{(2)} \rangle = E_0 \\
+E_l^{(2)}(s) &= \langle L^{(2)} | \hat{H} | L^{(2)} \rangle \\
+&= E_0 + \sum_{ij} f_{ij} \lla \Phi_0 \right| \lbrace a_k\da a_l\da a_b a_a \rbrace \lbrace a_i\da a_j \rbrace \lbrace a_a\da a_b\da a_l a_k \rbrace \left| \Phi_0 \rra \\
+&+ \frac{1}{4}\sum_{ijkl} v_{ijkl} \lla \Phi_0 \right| \lbrace a_m\da a_n\da a_b a_a \rbrace \lbrace a_i\da a_j\da a_l a_k \rbrace \lbrace a_a\da a_b\da a_n a_m \rbrace \left| \Phi_0 \rra \\
+&= E_0 + f_{aa} + f_{bb} - f_{mm} - f_{nn} \\
+&\quad + v_{abab} + v_{mnmn} - v_{amam} - v_{anan} - v_{bmbm} - v_{bnbn} \\
+&\equiv E_0 + f_{aa} + f_{bb} - f_{mm} - f_{nn} + A_{abmn}
+\end{align*}
+where we again skipped the $s$-dependence for better readability and introduced
+\be
+A_{abmn} = v_{abab} + v_{mnmn} - v_{amam} - v_{anan} - v_{bmbm} - v_{bnbn}
+\label{eq:White7}
+\ee
+Renaming the indices appropriately, the non-zero two-body elements become
+\be
+\eta^{(2)}_{p_1p_2h_1h_2}(s) = \frac{1}{f_{p_1p_1}(s) + f_{p_2p_2}(s) - f_{h_1h_1}(s) - f_{h_2h_2}(s) + A_{p_1p_2h_1h_2}(s)} \;v_{p_1p_2h_1h_2}(s)
+\label{eq:White8}
+\ee
+Inserting Eqs. (\ref{eq:White6}) and (\ref{eq:White8}) in Eq.~(\ref{eq:White4_2}) , White's generator truncated to second order can in total be written as
+\be
+\hat{\eta} = \sum_{ai} \frac{f_{ai}}{f_a-f_i-v_{aiai}}\lbrace a_a\da a_i\rbrace -\text{hc} + \sum_{abij} \frac{v_{abij}}{f_a+f_b-f_i-f_j+A_{abij}}\lbrace a_a\da a_b\da a_j a_i\rbrace - \text{hc} ,
+\label{eq:WhiteFull}
+\ee
+with the common notation $f_p \equiv f_{pp}$, ''hc'' denoting the hermitian conjugate and a suppressed $s$-dependence for better readability. When summing over indices, we use as before $\lbrace a,b\rbrace$ for particle and $\lbrace i,j\rbrace$ for hole states.
+

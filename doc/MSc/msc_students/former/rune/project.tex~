@@ -1,0 +1,206 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Thesis title: Monte-Carlo simulations of quantum dots}
+
+{\bf The aim of this thesis is to study numerically systems consisting of several
+interacting electrons in two dimensions and three dimensions}, confined to small regions
+between layers of semiconductors. 
+These electron systems
+are dubbed quantum dots in the literature. 
+
+In this thesis,
+the study of such a system of two-dimensional and three-dimensional electrons 
+entails more specifically the use of many-body techniques through the 
+development of variational Monte Carlo (VMC)
+and diffusion Monte Carlo  (DMC) programs to solve Schr\"odinger's equation, in order to obtain various expectation values of interest, such as the energy
+of the ground state, magnetization etc. 
+The DMC approach allows, in principle, for a numerically
+exact solution of Schr\"odinger's equation. However, it needs a reasonable
+starting point. It is here where a variational Monte Carlo calculation
+of the same system provides a variationally optimal trial wave function
+of a many-body system.
+
+In the next section we give a 
+brief description of the physics behind quantum dots and their
+potential for constructing quantum gates. Thereafter, 
+we sketch the ideas behind both the VMC and DMC approaches to be used.
+
+A progress plan for this thesis project is given at the end.
+
+
+\subsection*{Introduction to quantum dots}
+
+Quantum computing has attracted much interest 
+recently as it opens up the possibility of outperforming 
+classical computation through new and more powerful quantum algorithms
+such as the ones discovered by Shor and by Grover. 
+There is now a growing list of quantum tasks 
+such as cryptography, error correcting schemes, quantum
+teleportation, etc. that have indicated even more the desirability 
+of experimental implementations of quantum computing. 
+In a quantum computer each quantum bit (qubit) is allowed
+to be in any state of a quantum two-level system. 
+All quantum algorithms can be implemented by 
+concatenating one- and two-qubit gates. There is a growing number of proposed
+physical implementations of qubits and quantum gates. 
+A few examples are: Trapped ions, cavity QED, nuclear spins, 
+superconducting devices, and
+our qubit proposal 
+based on the spin of the electron in quantum-confined nanostructures. 
+
+Coupled quantum dots provide a powerful source of 
+deterministic entanglement between qubits of localized 
+but also of delocalized electrons. E.g., with such quantum gates it is
+possible to create a singlet state out of two electrons 
+and subsequently separate (by electronic transport) 
+the two electrons spatially with the spins of the two electrons still being
+entangled--the prototype of an EPR pair. 
+This opens up the possibility to study a new class 
+of quantum phenomena in electronic nanostructures 
+such as the entanglement and
+non-locality of electronic EPR pairs, tests of Bell inequalities, 
+quantum teleportation, and quantum cryptography 
+which promises secure information transmission. 
+
+
+Semiconductor quantum dots are structures where
+charge carriers are confined in all three spatial dimensions, 
+the dot size being of the order of the Fermi wavelength 
+in the host material, typically between  10 nm and  1 $\mu$m.
+The confinement is usually achieved by electrical gating of a 
+two-dimensional electron gas (2DEG), 
+possibly combined with etching techniques. Precise control of the
+number of electrons in the conduction band of a quantum dot 
+(starting from zero) has been achieved in GaAs heterostructures. 
+The electronic spectrum of typical quantum dots
+can vary strongly when an external magnetic field is applied, 
+since the magnetic length corresponding to typical 
+laboratory fields  is comparable to typical dot sizes.
+In coupled quantum dots Coulomb blockade effects, 
+tunneling between neighboring dots, and magnetization 
+have been observed as well as the formation of a
+delocalized single-particle state. 
+
+
+Quantum mechanical studies of such many-body systems are also
+interesting per se. 
+This thesis deals with a numerical {\em ab initio}  solution of  
+Schr\"odinger's equation for quantum dots, from few electrons to many.
+A critical understanding of our ability 
+to solve such many-body systems through Monte Carlo methods is one 
+of the aims
+of this thesis project. Presently, Monte Carlo methods are
+the only ones which allow us to solve, in principle exactly, 
+systems with many interacting particles. These techniques are briefly sketched 
+in the next two sections.
+
+
+\subsection*{Aims of this thesis with Variational Monte Carlo}
+The variational quantum Monte Carlo (VMC) has been widely applied 
+to studies of quantal systems. 
+The recipe consists in choosing 
+a trial wave function
+$\psi_T({\bf R})$ which we assume to be as realistic as possible. 
+The variable ${\bf R}$ stands for the spatial coordinates, in total 
+$dN$ if we have $N$ particles present. The variable $d$ is the dimension
+of the system. 
+The trial wave function serves then as
+a mean to define the quantal probability distribution 
+\be
+   P({\bf R})= \frac{\left|\psi_T({\bf R})\right|^2}{\int \left|\psi_T({\bf R})\right|^2d{\bf R}}.
+\ee
+This is our new probability distribution function  (PDF). 
+
+The expectation value of the energy $E$
+is given by
+\be
+   \langle E \rangle =
+   \frac{\int d{\bf R}\Psi^{\ast}({\bf R})H({\bf R})\Psi({\bf R})}
+        {\int d{\bf R}\Psi^{\ast}({\bf R})\Psi({\bf R})},
+\ee
+where $\Psi$ is the exact eigenfunction. Using our trial
+wave function we define a new operator, 
+the so-called  
+local energy, 
+\be
+   E_L({\bf R})=\frac{1}{\psi_T({\bf R})}H\psi_T({\bf R}),
+   \label{eq:locale1}
+\ee
+which, together with our trial PDF allows us to rewrite the 
+expression for the energy as
+\be
+  \langle H \rangle =\int P({\bf R})E_L({\bf R}) d{\bf R}.
+  \label{eq:vmc1}
+\ee
+This equation expresses the variational Monte Carlo approach.
+For most hamiltonians, $H$ is a sum of kinetic energy, involving 
+a second derivative, and a momentum independent potential. 
+The contribution from the potential term is hence just the 
+numerical value of the potential.
+
+Using the Metropolis algorithm and the Monte Carlo 
+evaluation of Eq.~(\ref{eq:vmc1}), a detailed algorithm is   
+as follows
+       \begin{itemize}
+          \item Initialisation: Fix the number of Monte Carlo steps and 
+                thermalization steps. Choose an initial ${\bf R}$ and
+                variational parameters $\alpha$ and 
+                calculate
+                $\left|\psi_T^{\alpha}({\bf R})\right|^2$. 
+                Define also the value 
+                of the stepsize to be used when moving from one value of 
+                ${\bf R}$ to a new one.
+          \item Initialise the energy and the variance.
+          \item Start the Monte Carlo calculation 
+                \begin{enumerate}
+                  \item Thermalise first.
+                  \item Thereafter start your Monte carlo sampling.
+                  \item Calculate  a trial position  ${\bf R}_p={\bf R}+r*step$
+                        where $r$ is a random variable $r \in [0,1]$.
+                  \item Use then the Metropolis algorithm to accept
+                        or reject this move by calculating the ratio
+                        \[
+                           w = P({\bf R}_p)/P({\bf R}).
+                        \]
+                        If $w \ge s$, where $s$ is a random number
+                          $s \in [0,1]$, 
+                          the new position is accepted, else we 
+                          stay at the same place.
+                  \item If the step is accepted, then we set 
+                        ${\bf R}={\bf R}_p$. 
+                  \item Update the local energy and the variance.
+                 \end{enumerate}
+          \item When the Monte Carlo sampling is finished, 
+we calculate the mean energy and the standard deviation.
+      \end{itemize}
+
+
+
+The aims of this thesis are as follows
+
+\begin{itemize}
+\item Implement importance sampling in the VMC codes and parallelize the codes.
+\item Study the three-dimensional quantum dots  with broken spherical symmetry.
+Compare these results with those obtained with a pure two-dimensional quantum dot in order to
+test the validity of the two-dimensional approximation.
+\item Provide benchmarks and input for the Hartree-Fock (HF) calculations and density-functional (DFT) calculations
+(the DFT and HF calculations are done aby another Master of Science student, Patrick Merlot).
+\item Perform VMC calculations with double-oscillator wells.
+\end{itemize}
+
+
+
+The thesis is expected to be finished towards the end  of the fall 
+semester of 2008.
+
+
+\end{document}

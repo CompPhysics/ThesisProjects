@@ -1,0 +1,405 @@
+\section{Implementation of Diffusion Monte Carlo}
+\begin{figure}
+\begin{framed}
+\begin{enumerate}
+\item Initialize the system
+\item Loop over the MC cycles and particles.
+\begin{enumerate}
+\item Find new trial position $\mathbf{R}'$.
+\item Calculate acceptance ratio $R$.
+\item If $R<Y$, $Y\in[0,1]$ $\rightarrow$ Accept the move. Else reject.
+\item Update the expectation values.
+\end{enumerate}
+\end{enumerate}
+\end{framed}
+\caption{The main algorithm of Variational Monte Carlo calculations.}
+\label{fig:VMCalgo}
+\end{figure}
+We developed the Diffusion Monte Carlo code independently of the SRG code, as part of the project in \cite{FYS4411}.  The complete code is  written object-oriented in C{}\verb!++! and kept as general as possible. That way, it is on the one hand easy to switch between different methods, e.g. brute-force or importance sampling; on the other hand the code can easily be extended, for example with another potential than the harmonic oscillator one.
+
+\subsection{The Variational Monte Carlo part}
+
+Prior to each DMC calculation, the VMC algorithm has to be run in order to determine the optimal parameters $\lbrace\alpha, \beta\rbrace$ for the trial wave function. Since the VMC part serves as input for the subsequent DMC calculation and the main procedure, calculating the average of the local energy, is the same, we have designed \textit{DMC} and \textit{VMC} as two classes of the same code, and they use the same classes for Hamiltonian, wave function etc. Therefore the explanations for the latter classes hold for the DMC part, too, and will not be repeated there.
+
+
+\subsubsection{VMC algorithm}
+The  VMC algorithm is implemented in a class called $VMC$. This one has to subclasses, which makes it easy to switch between the two methods: $Metropolis$ and $Metropolis\_Hastings$.
+
+
+The main algorithm is the same for both methods and summarized in figure \ref{fig:VMCalgo}. The main difference lies only in the determination of the trial position $\mathbf{R}'$ and the acceptance ratio $R$. Table \ref{tab:algos} compares those two functions of our code for both subclasses. Note that for the DMC calculations later on, we will only employ the more effective Metropolis-Hastings sampling. However, our program includes both algorithms, which is also a practical feature for debugging the code.
+% The functions $trial\_pos()$ and $ratio()$ in the class $VMC$ are therefore only virtual and then properly implemented in the corresponding subclass.
+\begin{table}
+\begin{center}
+\begin{tabular}{ l | l| l }
+\hline\hline  & Metropolis & Metropolis\_Hastings \\
+\hline Trial position & $\chi \in [-1,1]$ & $\chi \in gaussian()$  \\
+ & & $\mathbf{F}(\mathbf{R}_i) = 2 \frac{1}{\Psi_T}\nabla_i \Psi_T$ \\
+ & $\mathbf{R}' = \mathbf{R} +  \chi\delta$ &  $\mathbf{R}' = \mathbf{R} + D \Delta t\mathbf{F}\left(\mathbf{R}\right) + \chi$\\
+\hline Acc. ratio & & $G\left(\rf,\rf';\Delta t\right) = e^{-\frac{\rf '-\rf - D\Delta t \mathbf{F}(\rf))^ 2}{4 D \Delta t}}$\\
+& R = $\left|\frac{\psi_i}{\psi_j}\right|^2$ & $ R = \frac{G\left(\rf',\rf;\Delta t\right)}{G\left(\rf,\rf';\Delta t\right)}\left|\frac{\psi_i}{\psi_j}\right|^2 $\\
+\hline\hline
+\end{tabular}
+\caption{The technical differences between the Metropolis and Metropolis-Hastings algorithm lie only in the determination of the trial position and computation of the acceptance ratio.}
+\label{tab:algos}
+\end{center}
+\end{table}
+
+\subsubsection{Hamiltonian and local energy}
+All computations related to the Hamiltonian of the system are implemented in a separate class, $Hamiltonian$, which, to make it easily adjustable, is composed of three components: 
+
+The class \textit{Kinetic} is responsible for computing the kinetic part of the local energy, the classes \textit{Potential} and \textit{Interaction} for each its part of the potential energy. \\
+To make it easy to switch between an interacting and a non-interacting system, the unperturbed and interaction part of the Hamiltonian are computed separately. If the interaction is switched on, one uses both contributions to compute the local energy, otherwise one simply leaves out the one from the interaction part. 
+
+Moreover, in the class \textit{Kinetic}, one can choose whether the Laplacian in the term $\left(-\frac{1}{2}\nabla^2 \right)$ shall be computed analytically or numerically.\\
+The numerical version uses a simple form of the discretized second derivative
+\[
+f''(x) = \frac{f(x+h)+f(x-h)-2 f(x)}{h^ 2},
+\]
+leading to
+\[
+\frac{1}{ \Psi_T}\nabla_i^2\Psi_T = \frac{\Psi_T\left(\mathbf{r}_i+h\right)+\Psi_T\left(\mathbf{r}_i-h\right)-2\Psi_T\left(\mathbf{r}_i\right)}{h^2 \Psi_T\left(\mathbf{r}_i\right)},
+\]
+where $\mathbf{r}_i$ is the position vector of the $i$th particle.
+
+The analytical expression involves some more mathematics. First of all,
+\begin{align*}
+\frac{\nabla_i^ 2\Psi_T}{\Psi_T} &= \frac{\nabla_i^ 2 \left(\du \dd  J\right)}{\du \dd  J}\\
+&= \frac{\nabla_i^ 2 \du}{\du} + \frac{\nabla_i^ 2 \dd}{\dd} + \frac{\nabla_i^2 J}{J} + 2 \frac{\left(\nabla_i \du\right) \left(\nabla_i \dd\right)}{\du \dd}\\
+& \qquad + 2\frac{\left(\nabla_i \du\right) \left(\nabla_i J\right)}{\du J} + 2\frac{\left(\nabla_i \dd\right) \left(\nabla_i J\right)}{\dd J}.
+\end{align*}
+Since only one of the determinants contains particle $i$, the gradient of the other determinant vanishes and the above equation reduces to
+\[
+\frac{\nabla_i^ 2\Psi_T}{\Psi_T} = \frac{\nabla_i^ 2 |D|}{|D|} + \frac{\nabla_i J}{J} + 2 \frac{\nabla_i^ 2 |D|}{|D|} \frac{\nabla_i J}{J},
+\]
+where $|D|$ is the determinant with particle $i$.
+The needed ratios are taken from \cite{SkriptMorten}. For the Slater determinant, we have
+\begin{equation}
+\frac{\nabla_i |D|}{|D|} = \sum_{j=1}^N \left(\nabla_i \phi_j\left(\mathbf{r}_i\right)\right)D_{ji}^{-1},
+\end{equation}
+where the gradient of the single particle orbital $\phi_j\left(\mathbf{r}_i\right)$ is 
+\begin{equation*}
+\nabla \phi_{n_x,n_y} =  \left\lbrace\left(2n_x\sqrt{\omega\alpha}\frac{H_{n_x-1}}{H_{n_x}} - x\omega\alpha \right)\vec{e}_x 
++ \left(2n_x\sqrt{\omega\alpha}\frac{H_{n_x-1}}{H_{n_x}} - x\omega\alpha \right)\vec{e}_y\right\rbrace \phi_{n_x,n_y}.
+\end{equation*}
+The gradient of the Jastrow factor is straightforward,
+\begin{equation}
+\frac{1}{J}\frac{\partial J}{\partial x_i} = \sum\limits_{k=1,k\neq i}^{N}\frac{a_{ki}(x_i-x_k)}{r_{ki}(1+\beta r_{ki})^ 2}.
+\end{equation}
+Note that $a_{ki}$ is written as matrix element. Since calculating the matrix $a$ for every run in the loop would request a lot of CPU time, the elements are specified only in the beginning and stored in a matrix once and for all.\\
+The Laplacians are as follows:
+\begin{equation}
+\frac{\nabla_i^2|D|}{|D|} = \sum_{j=1}^{N} \left(\nabla_i^2 \phi_j\left(\mathbf{r}_i\right)\right)D_{ji}^{-1},
+\end{equation}
+where the Laplacian of the single-particle orbitals is
+
+\begin{align*}
+\nabla ^ 2 \phi_{n_x,n_y}  =  &\omega\alpha  \phi_{n_x,n_y} \left(  4n_x(n_x-1)\frac{H_{n_x-2}}{H_{n_x}}\right.\\
+& \left.+ 4n_y(n_y-1)\frac{H_{n_y-2}}{H_{n_y}} + \omega\alpha \left(x^ 2+y^ 2\right)\right. \\
+& \left.- 4 \sqrt{\omega\alpha}n_x x \frac{H_{n_x-1}}{H_{n_x}} -  4 \sqrt{\omega\alpha}n_y y \frac{H_{n_y-1}}{H_{n_y}} -2   \right).
+\end{align*}
+
+For the Jastrow factor, we have
+\begin{equation}
+\frac{\nabla_i^2 J}{J} = \left(\frac{\nabla_i J}{J}\right)^2 + \sum\limits_{k=1,k\neq i}^{N}\frac{a_{ki}(1-\beta r_{ik})}{r_{ki}(1+\beta r_{ki})^ 2},
+\end{equation}
+\
+with the already stated expression for the gradient.
+
+\subsubsection{Implementation of the wave function}
+As stated before, our wave function has the structure
+\begin{equation}
+\Psi_T(\alpha, \beta ) = \left| D_{\uparrow}(\alpha)\right| \left| D_{\downarrow}(\alpha)\right| J(\beta).
+\end{equation}
+%Since each component of the Slater determinant is a single-particle wavefunction of the form
+%\[
+%\phi_{n_x,n_y}\left(x,y;\alpha \right) = H_{n_x}\left(\sqrt{\omega\alpha}x\right) H_{n_y}\left(\sqrt{\omega\alpha}y\right) e^{-\frac{\omega\alpha}{2}\left(x^2+y^2\right)}
+%\]
+%it is more structured and computationally efficient to extract the exponential factor of the determinant. Therefore I redefine
+%\[
+%\du \rightarrow \du \cdot \exp\left(\sum\limits_{i=1}^{N/2}-\frac{\omega\alpha}{2}r_i^ 2\right),
+%\]
+%such that the components $\phi'$ of the determinant $\du$ are simply the product of two Hermite polynomials:
+%\[
+%\phi'_{n_x,n_y}\left(x,y;\alpha \right) = H_{n_x}\left(\sqrt{\omega\alpha}x\right) H_{n_y}\left(\sqrt{\omega\alpha}y\right).
+%\]
+In order to easily switch between wave functions with and without correlation, it is favourably that each instance of the class \textit{Wavefunction} is composed of two objects: 
+A Slater determinant containing the single-particle orbitals  and a Jastrow factor. If one is interested in how good the pure Slater determinant without correlation factor approximates the true wave function, one simply leaves out the Jastrow object. On the other hand, this procedure opens up the possibility to create several subclasses with different forms of the correlation factor that can be studied.
+
+Running the VMC algorithm, we are actually not interested in the values of the wave function itself, but only in ratios between new and old wave function. With only one particle $i$ moved at a time, this ratio is computationally efficient given by \cite{SkriptMorten}
+\[
+R_D = \frac{|D^{new}|}{|D^{old}|} = \sum\limits_{j=1}^n \phi_j\left(\mathbf{r}_{i, new}\right) \left(D_{ji}^{old}\right)^{-1}.
+\]
+The index $j$ denotes the indices of the single-particle states and runs to $n= N/2$, the position vector $\mathbf{r}_i$ is of particle $i$ .\\
+Since we have two Slater determinants (spin up and down), we also need two inverses. An efficient way to avoid all if-tests on whether or not to access spin up or down, is to merge the two Slater matrices and inverses into one,
+\[
+D = \left[ D_{\uparrow} D_{\downarrow} \right] \qquad D^{-1} = \left[ D_{\uparrow}^{-1} D_{\downarrow}^{-1} \right].
+\]
+That way, the correct matrix is accessed automatically.\\
+To update the inverse of the Slater matrix after particle $i$ has been moved, we use the following relation,
+\[
+\left(D_{jk}^{new}\right)^{-1} = \begin{cases}
+\left(D_{jk}^{old}\right)^{-1} - \frac{S_k \left(D_{jk}^{old}\right)^{-1}}{R_D} & \text{if}\quad k \neq i \\
+\frac{\left(D_{ji}^{old}\right)^{-1}}{R_D} & \text{if}\quad k = i, 
+\end{cases}
+\]
+where 
+\[
+S_k = \sum\limits_{l=1}^ n \phi_l\left(\mathbf{r}_{i, new}\right)\left(D_{lk}^{old}\right)^{-1}.
+\]
+The ratio between new and old Jastrow factor after movement of particle $i$ is
+\[
+R_J = \frac{J^{new}}{J^{old}} = \exp\left[\sum\limits_{j=1, j\neq i}^ N \left(g_{ji}^{new} - g_{ji}^{old}\right) \right].
+\]
+The final ratio is then simply the product of the two components,
+\[
+\frac{\Psi_{new}}{\Psi_{old}} = R_D R_J.
+\]
+
+One additional remark should be made concerning our implementation of Slater determinants. In this thesis, only closed shell systems are considered, which means systems where all single-particle states up to a given energy are occupied. 
+To compute the Slater determinant, the single-particle states depicted in Fig. \ref{fig:shellstructure} have to be accessed and therefore brought into a specific order. Tables \ref{tab:sub1} and \ref{tab:allpartcodes} show how we implemented this: \\
+Each single-particle state is assigned an index $j$, which basically is the single-particle level without considering spin.
+ Now the first half of the particles is assumed to have spin up, such that each of these particles is mapped to one of the levels $j$. When half of the particles is used, the other half is assigned the same indices $j$ again, because each level $j$ can additionally be occupied by a particle with spin down.\\
+That way, the number of particles can easily be varied from run to run: One simply divides the particles in two halves and this determines how many levels $j$ are needed.
+
+\begin{table}
+      \begin{center}
+         \begin{tabular}{c| c c c}
+		\hline $j$ & $n_x$ & $n_y$ & $\epsilon$ \\
+		\hline 1 & 0 & 0 & $\omega$\\
+		2 & 1 & 0 &2$\omega$\\
+		3 & 0 &1 &2$\omega$\\
+		4 &2 &0 &3$\omega$\\
+		5 & 1&1 &3$\omega$\\
+		6 & 0&2 &3$\omega$ \\
+		\hline
+		\end{tabular}
+		\end{center}
+      \caption{Assignment of single-particle levels.}
+      \label{tab:sub1}
+\end{table}   
+
+\begin{table}
+	\begin{center}
+      \begin{tabular}{|c| c c |c c |c c| }
+		\hline 
+		$j$ & \multicolumn{2}{c|}{ 2 particles} & \multicolumn{2}{c|}{6 particles} & \multicolumn{2}{c|}{12 particles}\\ \hline
+		 1 &1 & 2& 1& 4& 1 & 7 \\
+		  2 & & & 2&5 & 2 & 8 \\
+		   3 & & &3 &6 & 3 & 9 \\
+		   4 & & & & & 4 & 10 \\ 
+		   5 & & & & & 5 & 11 \\ 
+		   6 & & & & & 6 & 12 \\  	   
+		\hline
+		\end{tabular}
+\end{center}
+\caption{Assignment of the particles to the single-particle levels for different values of $N$.}
+\label{tab:allpartcodes}
+\end{table}
+
+\subsubsection{Quantum Force}
+As derived above, the expression for the quantum force is
+\[
+\mathbf{F}(\mathbf{R}_i) = 2 \frac{1}{\Psi_T}\nabla_i \Psi_T.
+\]
+To split it up into Slater and Jastrow part, we rewrite
+\begin{align*}
+\mathbf{F}(\mathbf{R}_i) &= 2  \frac{\nabla_i \left( \du \dd J \right)}{\du \dd J}\\
+&= 2 \left(\frac{\nabla_i \du}{\du} + \frac{\nabla_i \dd}{\dd} + \frac{\nabla_i J}{J}\right).
+\end{align*}
+Since particle $i$ is only contained in one of the Slater determinants (spin up or spin down), the expression simplifies to
+\[
+\mathbf{F}(\mathbf{R}_i) = 2 \left(\frac{\nabla_i |D|}{|D|} + \frac{\nabla_i J}{J}\right),
+\]
+where $|D|$  is the determinant with the considered spin.
+
+\subsubsection{Optimization: Storing positions and distances}
+Since a lot of the calculations involve the radial positions and relative distances between the particles, it would be a waste of CPU time to compute them again and again. We save much time by calculating and storing them once after each change of position.\\
+The radial positions of the particles $r_i = \sqrt{x_i^2 + y_i^ 2}$ are simply stored in a vector, or, to be more accurate, it is the square $r_i^2$ which we save, since
+that one is much more often used and thus yields a better efficiency.\\
+The relative differences between all particles are stored in a symmetric matrix
+\[ \mathbf{r}_{int} = 
+ \left( \begin{array}{ccccc}
+0 & r_{12} & r_{13} & \cdots & r_{1N} \\
+ & 0 & r_{23} &\cdots & r_{2N} \\
+ & & \ddots & \ddots & \vdots\\
+ & \cdots& &0  & r_{(N-1)N}\\
+ & & & & 0
+ \end{array}
+\right). 
+\]
+The efficient feature of this matrix is that when moving one particle at a time, we have to update only parts of the matrix (one row and one column). This means that we can reuse those elements not containing the particle from the previous update of the matrix.
+
+
+\subsubsection{DFP algorithm}
+To implement the DFP algorithm, we use the function \textit{dfpmin} from \cite{vetterling2002numerical}, which is a function that utilizes the DFP algorithm to find the minimum of a function $f$.
+
+As discussed above, the algorithm does not only require the function to be minimized, but also the gradient of this function.
+The partial derivative with respect to one of the parameters is given by
+\begin{align}
+\frac{\partial \langle E \rangle}{\partial \alpha_i} &= \left\langle \frac{\Psi_i}{\Psi}E_L + \frac{H \Psi_i}{\Psi} - 2 \bar{E} \frac{\Psi_i}{\Psi}  \right\rangle \\
+& = 2 \left\langle \frac{\Psi_i}{\Psi}(E_L - \bar{E}\right\rangle \qquad \text{(by Hermiticity)} \\
+&=  2\left\langle \frac{\Psi_{T,i}}{\Psi_T} E_L \right\rangle -2 \left\langle   \frac{\Psi_{T,i}}{\Psi_T} \right\rangle \langle E \rangle,
+\label{eq:CGM2}
+\end{align}
+with the definition $\Psi_{T,i} = \partial \Psi_T /\partial \alpha_i$. \\
+Not to run the VMC machinery two times, one time to get the energy and another time to get the gradients of Eq. (\ref{eq:CGM2}), we compute and store the latter ones at the same time the energy is computed.
+
+For computing the derivative of the wave function 
+with respect to the variational parameters numerically, we use the standard approximation for the first derivative
+\[
+\frac{1}{\Psi_T}\frac{\partial \Psi_T}{\partial \alpha} = \frac{\Psi_T(\alpha+h, \beta) - \Psi_T(\alpha-h, \beta)}{2 h \Psi_T} + \mathcal{O}(h^ 2),
+\]
+and an analogous expression for $\beta$,
+\[
+\frac{1}{\Psi_T}\frac{\partial \Psi_T}{\partial \beta} = \frac{\Psi_T(\alpha, \beta +h) - \Psi_T(\alpha, \beta-h)}{2 h \Psi_T} + \mathcal{O}(h^ 2),
+\]
+where $h$ is a small step length, here chosen $h = 0.002$.\\
+However, this function has a very bad efficiency since for each iteration, the complete wave function has to be evaluated four times, including the very time consuming Slater determinant.\\
+Therefore our second alternative uses  an analytical approach, which is not only more exact, but also way more efficient.\\
+The derivative with respect to $\beta$ is straightforward
+\[
+\frac{1}{\Psi_T}\frac{\partial \Psi_T}{\partial \beta} = \sum\limits_{i<j} \frac{-a_{ij}r_{ij}^2}{\left(1+\beta r_{ij}\right)^2}.
+\]
+To compute the derivative of the Slater determinant with respect to $\alpha$, we follow \cite{SkriptMorten} and use for both parts, spin up and down,
+\[
+\frac{1}{|D|}\frac{\partial |D|}{\partial \alpha} = \text{tr}\left(D^{-1}\frac{\partial D}{\partial \alpha}\right) = \sum\limits_{i,j = 1}^n D_{ij}^{-1}\frac{\partial D_{ji}}{\partial \alpha}.
+\]
+This means that we only have to take the derivative of each single-particle wave function of the Slater matrix with respect to its variational parameter and finally take the trace of $D^{-1}(\alpha)\dot{D}(\alpha)$.\\
+The derivatives of the single-particle orbitals are
+\begin{align*}
+\frac{\partial}{\partial \alpha} \phi_{n_x,n_y}(x,y;\alpha) &= \left(\frac{\partial H_{n_x}}{\partial \alpha} H_{n_y} + H_{n_x}\frac{\partial H_{n_y}}{\partial \alpha} \right.\\
+ &\left.-\frac{\omega}{2}\left(x^ 2+y^ 2\right)H_{n_x}H_{n_y}\right)e^{-\frac{\omega}{2}\alpha(x^2+y^2)},
+\end{align*}
+where the derivatives of the Hermite polynomials are given by
+\[
+\frac{\partial H_{n_x}}{\partial \alpha}\left(\sqrt{\omega\alpha}x\right) = \frac{1}{2}\sqrt{\frac{\omega}{\alpha}}x \dot{H}_{n_x}\left(\sqrt{\omega\alpha}x\right)
+\]
+for $H_{n_x}$ and analogous for $H_{n_y}$.
+
+To get a better convergence of the algorithm, we performed two changes in the provided functions \textit{dfpmin} and \textit{lnsrhc}:\\
+ First of all, we noticed that sometimes it happened that during the search for minima, one of the variational parameters got negative, which caused the whole algorithm to diverge.  We therefore check each new computed variational parameter and in case it gets negative, we reset it to the starting guess, which should already be quite a good choice.
+
+Second, we recognized that after the gradient has been computed the first time, the first new trial parameters are often quite a lot away from the good starting parameters. This slows the algorithm down, making it require more iterations then are actually necessary. Therefore, we normalize the first computed gradient to a norm equal 1. That way, the trial parameters stay close to the starting guess and we observed less iterations for convergence and better and more stable final results.
+
+\subsubsection{Parallelizing the code}
+
+To reduce the needed time for the MC runs, the whole VMC algorithm is parallelized using MPI (Message Passing Interface).
+Since in the Monte Carlo algorithm only averages have to be computed, the different jobs do not need to communicate, which makes it really easy:\\
+The number of MC cycles is equally distributed among the processors and each processor calculates separately its contribution to the local energy and variance. At the end of the MC sampling, the master node collects the local sums using \textit{MPI\_Reduce}, adds them up and computes the final integral.
+
+\subsection{The Diffusion Monte Carlo part}
+In order to explain most efficiently how we implemented the DMC algorithm, we will first summarize the basic procedure and afterwards take up those parts that require special attention to secure correct convergence.\\
+After initializing and thermalizing all walkers, we proceed for each sample as demonstrated in figure \ref{fig:DMCalgo}. During the sampling phase, the reference energy $E_T$ is updated after the loop over all cycles, i.e. one time per sample.\\
+The following subsections will explain important parts of the algorithm in more detail.
+
+\begin{figure}
+\begin{framed}
+\begin{enumerate}
+\item Loop over all cycles:
+\begin{enumerate}
+\item \textbf{WALK:} Loop over all walkers:
+\begin{enumerate}
+\item Loop over all particles
+\begin{enumerate}
+\item Calculate new trial position $x = y + DF(y)\tau + \chi$.
+\item Compute acceptance ratio $R$ according to Eq. (\ref{eq:acceptr})
+\item Make Metropolis test: If $R<\epsilon, \epsilon\in(0,1) \rightarrow$ Metropolis-test=\textit{true}.
+\item Check that no node has been crossed: If $\frac{\Psi_{\text{new}}}{\Psi_{\text{old}}}>0 \rightarrow $ Node-test = \textit{true}.
+\item If both tests are positive, accept the move. Else reject.
+\end{enumerate}
+\item Compute $E_{\text{local}}$
+\end{enumerate}
+\item \textbf{BRANCH} 
+\begin{enumerate} 
+\item Compute branching factor $G_B$ according to Eq. (\ref{eq:branching}).
+\item Decide which walkers will be killed and which ones will be cloned. Number in the next generation is $n_{\text{next}} = \text{int}(G_B + \epsilon)$, with $\epsilon$ random number $\epsilon\in(0,1)$.
+\item Perform the killing/cloning.
+\end{enumerate}
+\end{enumerate}
+\item During equilibration phase: Update the reference energy $E_T$.
+\item Update statistics 
+\end{enumerate}
+\end{framed}
+\caption{Our DMC algorithm. We follow this procedure for each of the samples.}
+\label{fig:DMCalgo}
+\end{figure}
+
+\subsubsection{Equilibration versus sampling phase}
+First of all, it is very important to differentiate between an equilibration and a sampling phase: At the beginning, all walkers are distributed randomly in configuration space. Therefore, before sampling, a steady state has to be reached, such that the distribution of the walkers really represents the desired distribution. At this stage there is a steady flow: Walkers are created in regions with low local energy and killed in the ones with higher local energy.\\
+ However, if the walkers are initially distributed far away from the real distribution, there might occur unwanted population explosions or implosions. To retain the total weight of all walkers approximately stationary, we adjust the reference energy $E_T$ after each cycle as in \cite{PhysRev991}:
+\[
+E_T(t+\Delta t) = E_{\text{est}}(t) - \frac{1}{g\Delta t}\log\frac{W_t}{W_0}.
+\]
+Here $E_{\text{est}}(t)$ is an estimate of the energy at time $t$, which we have chosen as average of the mixed estimator of the previous sample (see next paragraph for the mixed estimator). The second term attempts to reset the current number of walkers $W_t$ to the target number $W_0$ after a number of $g$ generations. As in \cite{PhysRev991}, we choose $g = 1/\Delta t$, which is of the order of the correlation time of $e^{-\hat{H}t}$. \\
+The main goal of this energy adjustment is not to obtain the correct estimate for the energy, as desired in the sampling phase, but above all to stabilize the number of walkers and obtain the right steady-state distribution.\\
+Later, in the sampling phase where the walkers are in a more or less stationary state, the trial energy can be updated less frequently and is set to the average of the previous sample $E_T = E_{\text{old}}$. 
+
+\subsubsection*{Updating the energy: Mixed estimator}
+As stated in section \ref{sec:DMC0}, the wave function of fermionic systems exhibits nodes and in the vicinity of these nodes, the local energy  shows a non-analytic behaviour. However, as shown explicitly in \cite{PhysRev991}, the order of the error is not altered if the so-called \textit{mixed estimator} is used in connection with an energy cut-off. The mixed estimator is defined as
+\begin{align*}
+E_{\text{mix}} &= \frac{\int \Psi \hat{H} \Psi_T dR}{\int \Psi \Psi_T dR} = \frac{\int \Psi_T \Psi \frac{1}{\Psi_T} \hat{H} \Psi_T dR}{\int \Psi \Psi_T dR}\\
+&= \frac{\int E_L f(\mathbf{R},t) dR}{\int f(\mathbf{R},t) dR}.
+\end{align*}
+In our case
+\[
+f(\mathbf{R},t) = \sum\limits_{i=1}^N w_i \delta(\mathbf{R}-\mathbf{R_i}),
+\]
+where $w_i$ is the weight associated with the walkers in the branching phase. That way, the energy contribution for each step is weighted with the branching factor and in the limit $t \rightarrow\infty$, where $\Psi\rightarrow \Phi_0$, we have that $E = E_{\text{mix}}$. \\
+We combine this mixed estimator  with an energy cut-off, accounting for divergencies in the vicinity of nodes. It is commonly chosen as
+\[
+E_L(\mathbf{R}) \rightarrow E_{\text{var}} + \frac{2}{\sqrt{\Delta t}} \text{sgn}\lbrace E_L(\mathbf{R}) - E_{\text{var}}\rbrace,
+\]
+for $|E_L(\mathbf{R}) - E_{\text{var}}| > 2/\sqrt{\Delta t}$, where $E_{\text{var}}$ is the variational energy associated with $\Psi_T$. In the $\Delta t \rightarrow 0$ limit, the cut-off has no effect, such that the results for small time steps $\Delta t$, especially if extrapolated, are correct.
+
+\subsubsection*{Modifications to classical importance sampling}
+Utilizing the fixed-node approximation, we require that the walkers do not move across nodal surfaces of the trial wave function. To implement this requirement,  we set $G\left(\rf',\rf;\Delta t\right)$ to zero if $\rf'$ and $\rf$ are on different sides of the nodal surface, meaning that moves  attempting to cross nodes will always be rejected. In contrast to the common practice of killing all walkers straying across nodes, that way detailed balance is preserved.
+
+Since DMC uses a statistical average of the local energy, there are always fluctuations resulting in energies that are lower than the true fixed-node energy. The problem is that, because the whole DMC algorithm is based on the selection of configurations with low energies, the number of walkers with those configurations will increase, until the trial energy $E_T$ adjusts to stabilize the total population. Those \textit{persistent configurations} result in a negatively biased energy. They may disappear due to fluctuations, but unfortunately it is more likely that they are replaced by other configurations that are even more strongly persistent, which produces a cascade of ever decreasing energies. This problem occurs most likely in the vicinity to nodes and has been observed by several authors \cite{persconf1, persconf2}, who solved the problem by choosing very small time steps. If $\Delta t$ is small, the acceptance ratio is always close to one, leading away from the persistent configurations. Using a small time step is also our strategy, in addition to moving only one electron at a time, which makes the acceptance probability greater, too. The disadvantage is that small time steps make subsequent configurations more correlated and therefore increase the statistical error. For solving the problem of persistent configurations using larger time steps, we refer to the solution methods discussed in \cite{PhysRev991}.\\
+An additional suggestion of \cite{PhysRev991} is to replace the time step $\Delta t$ by an effective time step $\Delta t_{\text{eff}} = A_r \Delta t$, where $A_r$ is the acceptance ratio. The motivation is that each time a move is rejected, one makes a small error in the time evolution, since time goes on without a diffusion step happening. However, since in our calculations the acceptance rate is always close to one, there is no observable difference.
+
+\subsection{Validation of code}
+In order to validate that our DMC code is working properly, we run the code first without interaction between the particles. This means that we exclude the interaction potential from the local energy, and include only the Slater determinant part in our ansatz for the trial wave function,
+\[
+\Psi_T(\alpha, \beta ) = \left| D_{\uparrow}(\alpha)\right| \left| D_{\downarrow}(\alpha)\right|.
+\]
+Moreover, we set $\alpha=1.0$, since this Slater determinant is known to represent the analytically correct wave function. Without interaction, we expect the ground state energy $E_0$ to be simply the sum of the single-particle energies. Table \ref{tab:nonint} confirms our expectations, which suggests that the tested parts of our program are working correctly.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c c c c}
+\hline\hline $N$ & $\omega$ & $E_{\text{analytical}}$ & $E_{\text{DMC}}$ \\
+\hline  2 & 1.0 & 2 & 2.00000000(0)\\
+  2 & 0.28 & 0.56 & 0.56000000(0)\\
+  \hline
+  6 & 1.0 & 10 & 10.0000000(0) \\
+  6 & 0.28 & 2.8 & 2.80000000(0)\\
+  \hline
+ 12 & 1.0 & 28 & 28.0000000(0)\\
+ 12 & 0.28 & 7.84 &7.84000000(0) \\
+\hline\hline
+\end{tabular}
+\caption{Results of the ground state energy $E_0$ (in $[E_H]$) for  systems  without interaction. The second column shows the analytical results (no rounding).}
+\label{tab:nonint}
+\end{center}
+\end{table}
+
+For the final DMC program, we compare our results with \cite{PhysRevB.84.115302}, where exactly the same systems, two-dimensional parabolic quantum dots, have been studied with DMC and the Coupled-Cluster method. Table \ref{tab:nonint} compares those of our results that are listed in \cite{PhysRevB.84.115302}, too. All our results are in excellent agreement with the reference, suggesting that our DMC code  produces correct results with reasonable precision. Hence it can be used as reliable reference for our SRG code.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{c c c c}
+\hline\hline $N$ & $\omega$ & $E_{DMC}$ & $E_{DMC}$ in \cite{PhysRevB.84.115302} \\
+\hline  2 & 1.0 & 3.00000(3) & 3.00000(3) \\
+6&0.28 & 7.6001(2) & 7.6001(1)\\
+6&1.0 &20.1598(4) & 20.1597(2) \\
+12& 0.28&25.636(1) & 25.6356(1) \\
+12& 1.0&65.699(3) & 65.700(1) \\
+\hline\hline
+\end{tabular}
+\caption{Comparison of our DMC results with the ones of Lohne, Hagen, Hjorth-Jensen, Kvaal and Pederiva \cite{PhysRevB.84.115302}. }
+\label{tab:nonint}
+\end{center}
+\end{table}
+
+\nocite{kosztin:633}
+

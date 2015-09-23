@@ -1,0 +1,58 @@
+\chapter{Conclusions}
+In this master's thesis we aimed towards a more flexible and faster coupled-cluster code.
+The main goal was to study the use of alternative methods for matrix-multiplication, especially accelerated by the use of graphics cards, GPUs.
+Initially a previous C++ code~(\cite{marte,ymwang}) was considered to be extended, but the decision fell on a complete redesign and rewrite of the program.
+This was partially to fit a different coding style, but also to redesign parts that were bottlenecks.
+In fact, most of the speedup acquired here was due to a simplification of the problem, rewriting all large matrices on a block-diagonal form, not by the accelerated multiplications.
+
+Over now three master's projects, the boundary has been pushed from 20 particles in 110 basis functions~\cite{mplohne}, first increasing the basis size to up to 420 functions~\cite{marte}, and now up to 56 particles in 930 basis functions.
+The current limit is now the memory requirements of up to $100$ gigabytes and not the long run times anymore.
+A consequence of the current state is that the next area of focus should no longer be aimed at a pure speed up.
+Further work on the program could include triples, leading to either perturbative triples correction, CCSD(T), or full inclusion of $\hat{T}_3$, CCSDT.
+In order to move to larger systems it is also needed to either distribute matrix elements across different nodes, or calculate them on the fly, in order to reduce memory usage.
+
+
+\paragraph{}
+When it comes to results, we have managed to expand the range of frequencies, $\omega$, toward less bound systems, using a step-by-step approach where the initial guess is now based on a previous calculation.
+Although this technique opens up a new area of convergence, it is not sufficient for larger systems.
+We are for instance not able to break the barrier of $\omega = 1.0$ for 56 particles.
+From the more physical point of view, it is of great interest to study more difficult systems such as a double well quantum dot, along the lines of Wang's studies~\cite{ymwang}.
+In our opinion it should not be hard to extend the developed library to include such a system.
+A reduction in the wall time used for simulations of a double dot would then most likely be seen as well, if the symmetries of the new Hamiltonian is successfully described in the `Basis' class.
+
+Another interesting topic to investigate is simulating the time-dependent Schrödinger equation.
+A time-dependent coupled-cluster framework is already tried to some extent.
+See for example~\cite{kvaal:194109}.
+Including a variable magnetic field in the calculations, if possible, one could simulate spin-flipping and other phenomena.
+Such simulations are not done previously, and would probably require a rethinking of the approach.
+
+
+\paragraph{}
+We are well satisfied with the work done on implementing the coupled cluster equations.
+To the best of our knowledge, coupled-cluster calculations using GPU programming have not been studied before.
+Although only a speedup of 2-4 times was seen compared to a quad core for the matrix-multiplications itself, the impact on the full program was not dramatic for such a small system.
+We predict that GPUs could be more effective if we could circumvent the memory transfer between the host and the GPU.
+Perhaps could GPUs play a more important role if elements were calculated on the fly, and these calculations were parallelized.
+Seen from a cost-effective perspective, the use of multiple GPUs is worth a try, as multiple GPUs can be attached to the same node.
+
+Developing this library was time consuming as the project rapidly grew in size.
+The current code base consists of more than 6000 lines of code along with 2000 lines of comments.
+We therefore hope that sometime someone will continue along the path we have partly paved here, by creating creating a library that breaks the barriers we met.
+
+
+\paragraph{}
+\begin{itemize}
+\item Efficiency gain for HFsys
+\item Efficiency due to channel/conf
+\item Thin vs. square matrices
+\item Strassen not optimal (no or little gain)
+\item Scaling is now better than previous program.
+\item Mappings are too slow
+\item Effective 24 shells conv $< 5\cdot 10^{-5}$.
+\item Correlations dominate for many particles and low frequencies.
+\item Beyond HF important for few particles and low frequencies.
+\item Compares well to DMC.
+\item FCI excitations vs. shells?
+\end{itemize}
+
+

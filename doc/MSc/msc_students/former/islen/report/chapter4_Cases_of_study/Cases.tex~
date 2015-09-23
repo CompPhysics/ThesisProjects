@@ -1,0 +1,611 @@
+%\setlength{\parindent}{0pt}   % Set no indentation in the beginning of each paragraph.
+%\setlength{\parskip}{2ex}     % Separate lines each paragraph.
+
+\chapter{Cases of study: atoms, non-interacting electrons trapped in an harmonic oscillator potential and quantum dots}\label{cases}
+
+
+Here we aim to describe some quantum mechanical systems in terms of the theory presented in chapter \ref{QM}. First, we consider the physics of the Helium and Berilium atoms. They will be use as a starting point for designing an implementation in C++/Python. Later, the physics of non-interacting electrons trapped in an harmonic oscillator potential will be summarized and it will be useful in testing the flexibility of our implementation and in being able to handle other kinds of quantum mechanical problems. Finally, we consider the case of quantum dots modelled as interacting electrons trapped in an harmonic oscillator potential. 
+
+\section{Case 1: He and Be atoms}
+The substitution of Eqs.~(\ref{totalAtomicKE}) and (\ref{totalAtomicPE}) in Eq.~(\ref{generalHamiltonian}) yields a general  Hamiltonian for atomic systems\footnote{The time dependence has been omitted since it does not apply in this thesis.
+} given in atomic units (see table \ref{atomicUnits}) as 
+
+\begin{equation}\label{HamiltonianAtoms}
+\boxed{\Op{H} = \underbrace{-\sum_{i=1}^{N}\frac{\hbar^2}{2m}\nabla^{2}_{i}}_{\text{Kinetic energy}} 
+  - \overbrace{\underbrace{Z \sum_{i=1}^{N} \frac{e^2}{r_i}}_{\begin{smallmatrix} \text{Nucleus-electron} \\ \text{potential (attraction)} \end{smallmatrix}}
+  + \underbrace{\sum_{i=1,i<j}^{N} \frac{e^2}{r_{ij}},}_{\begin{smallmatrix} \text{Electron-electron} \\ \text{potential (repulsion)} \end{smallmatrix}}}^{\text{Potential energy}}}
+\end{equation}
+with $r_i = \sqrt{x_{i}^2 + y_{i}^2 + z_{i}^2}$ and $r_{ij} = \sqrt{(x_{i} - x_{j})^2 + (y_{i} - y_{j})^2 + (z_{i} - z_{j})^2}$ being the nucleus-electron and electron-electron distances, and where $i,j = 1, \ldots, N$.\\
+\\
+\noindent
+The particular form of Eq.~(\ref{HamiltonianAtoms}) yielding to the respective Hamiltonians of He and Be atoms can be easily obtained after substitution of columns two and three of table \ref{HeBeData} in Eq.~(\ref{HamiltonianAtoms}). 
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{ccc}
+\hline
+ Atom & \# electrons ($N$) & Nuclear charge ($Z$) \\
+\hline
+He & 2  &  2.0 \\
+Be & 4 & 4.0 \\
+\hline
+\end{tabular}
+\caption{Parameters associated to the Hamiltonian of He and Be atoms.}
+\label{HeBeData}
+\end{center}
+\end{table}
+
+
+\subsection{Setting a trial wave function for atoms}
+
+Because of the electron-nucleus (one-body) and electron-electron (two-body) interactions throught the Coulomb potential, a trial wave function for He and Be atoms should fulfill the cusp conditions discussed in section \ref{cuspConditions}. Moreover, due to the Pauli principle, the total wave function should be antisymmetrized with respect to the interchange of particles which is elegantly represented by the so-called Slater determinant. Therefore we start looking at Eqs.~(\ref{enCups}) and (\ref{enCups2}) for a Slater determinant. Because each row of the Slater matrix involves only the coordinates of a single electron, the derivative of the determinant equals the determinant in which row $i$ is replaced by $\partial \phi_k/\partial r_{iA}$.  Also, these two cusp conditions requires that the derivative of the determinant divided by the determinant be a constant, despite the position of the other electrons. Therefore, we must require, as discussed in \cite{Hammond}, that each orbital satisfy:
+\begin{equation}\label{orbitalCuspConditions}
+\frac{1}{\phi_k} \frac{\partial \phi_k}{\partial r_{iA}} =
+\begin{cases}
+  -Z_A             & \text{if } l = 0 \\
+  
+  -\frac{Z_A}{l+1} & \text{if } l > 0,
+\end{cases}
+\end{equation}
+where the subindexes $k$ and $iA$ represent a set of quantum numbers ($n,l,m_l$) and the label of the particle considered, respectively.\\
+\\
+\noindent
+The radial equation can also be solved analytically resulting in the quantum numbers $n$ in addition to $(l,m_l)$. The solution $R_{nl}$ to the radial equation is expressed as a function of the Laguerre polynomials. The analytic solutions are given by 
+\be
+\psi_{nlm_l}(r,\theta,\phi)=\psi_{nlm_l}=R_{nl}(r)Y_{lm_l}(\theta,\phi)=
+         R_{nl}Y_{lm_l}.
+\ee
+The ground state is defined by $n l m_l=100$ and reads 
+\be
+\psi_{100}=\frac{1}{a_0^{3/2}\sqrt{\pi}}e^{-r/a_0},
+\ee
+where we have defined the Bohr radius $a_0=0.05$ nm
+\be
+  a_0 = \frac{\hbar^2}{mke^2}.
+\ee
+The first excited state with  $l=0$ is
+\be
+   \psi_{200}=\frac{1}{4a_0^{3/2}\sqrt{2\pi}}
+   \left(2-\frac{r}{a_0}\right)e^{-r/2a_0}.
+\ee
+For states from $l=1$ and $n=2$, the spherical harmonics can have imaginary components.
+% % % % % % we can have the following combinations with
+% % % % % % $m_l=0$
+% % % % % % \be
+% % % % % %    \psi_{210}=\frac{1}{4a_0^{3/2}\sqrt{2\pi}}
+% % % % % %    \left(\frac{r}{a_0}\right)e^{-r/2a_0}cos(\theta), 
+% % % % % % \ee
+% % % % % % and $m_l=\pm 1$
+% % % % % % \be
+% % % % % %    \psi_{21\pm 1}=\frac{1}{8a_0^{3/2}\sqrt{\pi}}
+% % % % % %    \left(\frac{r}{a_0}\right)e^{-r/2a_0}sin(\theta)e^{\pm i\phi}.
+% % % % % % \ee
+% % % % % % % The first few non-normalized radial solutions of equation are listed in Table
+% % % % % % % \ref{tab:hydrogenRadialFunctions}.
+% % % % % % % \begin{table}[hbtp]
+% % % % % % % \begin{center} {\large \bf Hydrogen-Like Atomic Radial Functions} \\ 
+% % % % % % % $\phantom{a}$ \\
+% % % % % % % \begin{tabular}{cccc}
+% % % % % % % \hline\\ 
+% % % % % % % $l\backslash n$ & \phantom{AA}1\phantom{AA}
+% % % % % % % & \phantom{AA}2\phantom{AA} & \phantom{AA}3\phantom{AA}  \\ 
+% % % % % % % \hline\\ 
+% % % % % % % 0 & $e^{-Zr}$ & $(2-r)e^{-Zr/2}$ & $(27-18r+2r^2)e^{-Zr/3}$ \\[7pt]
+% % % % % % % 1 & & $re^{-Zr/2}$ & $r(6-r)e^{-Zr/3}$\\[7pt]
+% % % % % % % 2 & & & $r^2e^{-Zr/3}$ \\[7pt]
+% % % % % % % \hline
+% % % % % % % \end{tabular} 
+% % % % % % % \end{center}
+% % % % % % % \caption{The first few radial functions of the hydrogen-like atoms.} 
+% % % % % % % \label{tab:hydrogenRadialFunctions}
+% % % % % % % \end{table}
+% % % % % % % A problem with the spherical harmonics of table
+% % % % % % % \ref{tab:sphericalHaromical} is that they are complex. 
+Fortunately, the introduction of \emph{solid harmonics} allows the use
+of real orbital wave-functions for a wide range of applications. This, however, is out of the scope of this thesis.
+% % % % % % % % % % The
+% % % % % % % % % % complex solid harmonics ${\cal Y}_{lm_l}(\mathbf{r})$ are related to
+% % % % % % % % % % the spherical harmonics  $Y_{lm_L}(\mathbf{r})$ through
+% % % % % % % % % % \begin{equation*}
+% % % % % % % % % %   {\cal Y}_{lm_l}(\mathbf{r}) = r^l Y_{lm_l}(\mathbf{r}).
+% % % % % % % % % % \end{equation*}
+% % % % % % % % % % By factoring out the leading $r$-dependency of the radial-function
+% % % % % % % % % % \begin{equation*}
+% % % % % % % % % %   {\cal R}_{nl}(\mathbf{r}) = r^{-l} R_{nl}(\mathbf{r}),
+% % % % % % % % % % \end{equation*}
+% % % % % % % % % % we obtain 
+% % % % % % % % % % \begin{equation*}
+% % % % % % % % % %   \Psi_{nlm_l}(r,\theta, \phi) %=R_{nl}(r) \cdot Y_{lm_l}(\theta,\phi)
+% % % % % % % % % %   = {\cal R}_{nl}(\mathbf{r})\cdot{\cal Y}_{lm_l}(\mathbf{r}).
+% % % % % % % % % % %\label{totalSolidHydrogenWavefunction}
+% % % % % % % % % % \end{equation*}
+% % % % % % % % % % For the theoretical development of the \emph{real solid harmonics} see
+% % % % % % % % % % Ref. \cite{helgaker}. Here Helgaker \emph{et al} first 
+% % % % % % % % % % express the complex solid harmonics, $C_{lm_l}$, by (complex) Cartesian
+% % % % % % % % % % coordinates, and arrive at the real solid harmonics, $S_{lm_l}$, through
+% % % % % % % % % % the unitary transformation
+% % % % % % % % % % \begin{equation*}
+% % % % % % % % % %   \left( \begin{split} &\phantom{i} S_{lm_l} \\ 
+% % % % % % % % % %     &S_{l,-m_l} \end{split} \right) 
+% % % % % % % % % %   = \frac{1}{\sqrt{2}} \left(        \begin{split}
+% % % % % % % % % %     (-1)^m_l \phantom{a} & \phantom{aa} 1 \\ 
+% % % % % % % % % %     -(-1)^m_l i & \phantom{aa} i       \end{split} \right)  
+% % % % % % % % % %   \left( \begin{split} &\phantom{i} C_{lm_l} \\ 
+% % % % % % % % % %     &C_{l,-m_l} \end{split} \right).
+% % % % % % % % % % \end{equation*}
+% % % % % % % % % % This transformation will not alter any physical quantities that are
+% % % % % % % % % % degenerate in the subspace consisting of opposite magnetic quantum
+% % % % % % % % % % numbers (the angular momentum $l$ is equal for both these cases). This
+% % % % % % % % % % means for example that the above transformation does not alter the
+% % % % % % % % % % energies, unless an external magnetic field is applied to the
+% % % % % % % % % % system. Henceforth, we will use the solid harmonics, and note that
+% % % % % % % % % % changing the spherical potential beyond the Coulomb potential will not
+% % % % % % % % % % alter the solid harmonics. The lowest-order real solid harmonics are
+% % % % % % % % % % listed in table \ref{tab:solidHarmonics}.
+% % % % % % % % % % \begin{table}[hbtp]
+% % % % % % % % % % \begin{center} {\large \bf Real Solid Harmonics} \\ 
+% % % % % % % % % % $\phantom{a}$ \\
+% % % % % % % % % % \begin{tabular}{ccccc}
+% % % % % % % % % % \hline\\ 
+% % % % % % % % % % $m_l\backslash l$ & \phantom{AA}0\phantom{AA}
+% % % % % % % % % % & \phantom{AA}1\phantom{AA} & \phantom{AA}2\phantom{AA} &
+% % % % % % % % % % \phantom{AA}3\phantom{AA} \\ 
+% % % % % % % % % % \hline\\ 
+% % % % % % % % % % +3& & &
+% % % % % % % % % % &$\frac{1}{2}\sqrt{\frac{5}{2}}(x^2-3y^2)x$ \\ [7pt] 
+% % % % % % % % % % +2& & &$\frac{1}{2}\sqrt{3}(x^2-y^2)$&$\frac{1}{2}\sqrt{15}(x^2-y^2)z$
+% % % % % % % % % % \\ [7pt] 
+% % % % % % % % % % +1& &x&$\sqrt{3}xz$
+% % % % % % % % % % &$\frac{1}{2}\sqrt{\frac{3}{2}}(5z^2-r^2)x$ \\ [7pt] 
+% % % % % % % % % % 0&1&y&$\frac{1}{2}(3z^2-r^2)$       &$\frac{1}{2}(5z^2-3r^2)x$ \\
+% % % % % % % % % %  [7pt] 
+% % % % % % % % % % -1& &z&$\sqrt{3}yz$
+% % % % % % % % % % &$\frac{1}{2}\sqrt{\frac{3}{2}}(5z^2-r^2)y$ \\ [7pt] 
+% % % % % % % % % % -2& & &$\sqrt{3}xy$                  &$\sqrt{15}xyz$ \\ [7pt] 
+% % % % % % % % % % -3& & &
+% % % % % % % % % % &$\frac{1}{2}\sqrt{\frac{5}{2}}(3x^2-y^2)y$ \\ [7pt] 
+% % % % % % % % % % \hline
+% % % % % % % % % % \end{tabular} 
+% % % % % % % % % % \end{center}
+% % % % % % % % % % \caption{The first-order real solid harmonics ${\cal Y}_{lm_l}$.} 
+% % % % % % % % % % \label{tab:solidHarmonics}
+% % % % % % % % % % \end{table}
+
+\subsubsection{Trial wave function for the Helium atom}
+The electron-nucleus cusp condition given above suggests a trial wave function such that  
+$$\phi_T(\bfv{r}_i) \propto e^{-\frac{Z}{l+1} r_i}.$$ 
+For atomic systems described by a central symmetric potential a choice would be to use hydrogen-like wave functions. In an He atom we have two electrons filling the single state $1s$, i.e., $n=1$, $l=0$, one with spin up and the other one with spin down. In this case we set 
+\begin{equation}\label{trial1s}
+ \phi_{1s}(\bfv{r}_i) = e^{-\alpha r_i}, \quad i = 1, 2,
+\end{equation}
+with $\bfv{r}_i = x_i \bfv{e}_1 + y_i \bfv{e}_2 + z_i \bfv{e}_3$ and $r_i = \sqrt{x_{i}^2 + y_{i}^2 + z_{i}^2}$.\\
+\\
+\noindent
+A trial wave function\footnote{The wave function is not properly normalized as in this thesis we are concerned only with ratios and therefore the normalization factors cancel each other. Moreover, the spin part of the wave-function is here antisymmetric. This has no
+effect when calculating physical observables because the sign of the
+wave function is squared in all expectation values.}  for the He atom is therefore
+\begin{equation}\label{trialHe}
+\Psi_T = e^{\alpha(r_1 + r_2)}e^{\frac{a_{12} r_{12}}{(1 + \beta_{12} r_{12})}},
+\end{equation}
+where the first exponential function is a Slater determinant\footnote{In general, the orbitals conforming a Slater determinant are orthonormal.} and the second is the linear Pad\'e-Jastrow correlation function. The (set of) parameter(s) $\alpha$ has the interpretation of charge and together with $\beta$ can be used to optimize the total trial wave function, while $a_{12} = 0.5$ as deduced from Eq.~(\ref{cusp3D}).\\
+\\
+\noindent
+For the helium atom we assumed that
+the two electrons were both in the $1s$ state. This fulfills the Pauli
+exclusion principle as the two electrons in the ground state have
+different intrinsic spin. However, the wave function we discussed above  
+was not antisymmetric with
+respect to an interchange of the different electrons. This is not totally 
+true as we only included the spatial part of the wave function.
+For the helium ground state the spatial part of the wave function is
+symmetric and the spin part is antisymmetric. The product is
+therefore antisymmetric as well. The Slater-determinant consists of
+single-particle \emph{spin-orbital}s.
+
+
+\subsubsection{Trial wave function for the Beryllium atom}
+
+For the Be atom, we have four electrons, two of which occupy the single quantum state $1s$. As in the He case, the orbital corresponding orbital is given by Eq.~(\ref{trial1s}). The other two electrons, in turn, complete the $2s$ state (shell $n=2$, orbital $l=0$), one having spin up and the other one spin down. The trial single particle wave function is in this case 
+\begin{equation}\label{trial2s}
+ \phi_{2s}(\bfv{r_i}) = \left(1 - \frac{\alpha}{2}\right) e^{-\alpha/2}{r_i}, \quad \text{for} \quad i=1,2,
+\end{equation}
+and the total trial wave function takes the form,
+\begin{equation}
+\Psi_T(\bfv{r}) = \frac{1}{\sqrt{4!}}
+  \begin{vmatrix}
+  \phi_{1s}(\bfv{r_1}) & \phi_{2s}(\bfv{r_1})\\
+  \phi_{1s}(\bfv{r_2}) & \phi_{2s}(\bfv{r_2}) \\
+\end{vmatrix}_{\uparrow} 
+  \begin{vmatrix}
+  \phi_{1s}(\bfv{r_3}) & \phi_{2s}(\bfv{r_3})\\
+  \phi_{1s}(\bfv{r_4}) & \phi_{2s}(\bfv{r_4}) \\
+\end{vmatrix}_{\downarrow} \exp\left(\sum_{i<j}\frac{a_{ij} r_{ij}}{1 + \beta_{ij} r_{ij}}\right),
+\end{equation}
+where we have omitted the set of parameters $\alpha$  for the orbitals.
+
+\subsubsection{Energy levels in atoms and degeneracy}
+The energy, with no external magnetic field, is determined by the radial Schr\"ondinger equation, which 
+% % % We can then think of the  
+% % % radial Schr\"odinger equation to be equivalent to a one-dimensional
+% % % movement conditioned by an effective potential
+% % % \be
+% % % V_{\mathrm{eff}}(r)=-\frac{ke^2}{r}+\frac{\hbar^2l(l+1)}{2mr^2}.
+% % % \ee
+can also be solved analytically resulting in the quantum numbers 
+$n$ in addition to $(l,m_l)$. The solution $R_{nl}$ is expressed in terms of Laguerre polynomials. Its derivation can be carried out using a series method. This, also, gives rise to the following expression for the quantized energy levels \cite{Hammond}:
+\begin{equation}\label{atomsEnergy}
+\boxed{E_n = -\frac{\hbar^ 2}{2 m a_{0}^{2}} \frac{Z^2}{n^2},}
+\end{equation}
+where the \emph{principal quantum number} $n = 1, 2, \ldots$ decides the energy levels, and it is related to the quantum number of the orbital angular momentum by $l = 0, 1, 2, \ldots, n - 1$.\\
+\\
+\noindent
+For each value of $n$ we can have $(n-1)$ values of $l$. Furthemore, for each value of $l$, there are $(2l + 1)$-values for the magnetic quantum number $m_l$. Therefore, for a given energy level $E_n$ we have a spatial degeneracy of 
+\begin{equation}
+\boxed{g_n = \sum_{l=0}^{n-1}(2 l + 1) = n^2.}
+\end{equation}
+Including the two spin degrees of freedom we get 
+\begin{equation}
+ \boxed{G_n = 2 n^2.}
+\end{equation}
+
+
+
+\section{Case 2: Non-interacting particles trapped in an harmonic oscillator potential}
+The harmonic oscillator provides a useful model for vibrational phenomena encountered in several branches of physics. It can also be seen as a fiest approximation to quantum dots for which we neglect the interactions between the charge-carriers.
+The Hamiltonian (in one dimension) for a particle of mass $m$ oscillating with a frequency $\omega$ is
+\begin{equation}
+H=-\frac{\hbar^2}{2m}\frac{d^2}{dx^2}+\frac{1}{2}kx^2 = -\frac{\hbar^2}{2m}\frac{d^2}{dx^2}+\frac{1}{2}m \omega x^2,
+\end{equation}
+where $k$ is the force constant, e.g., the spring tension for a classical oscillator. The time-independent Schr\"ondinger equation (\ref{manyBodyTISE}) takes the form 
+\begin{equation}
+ \boxed{-\frac{\hbar^2}{2 m} \frac{d^2 \Psi}{dx^2} + \frac{1}{2} m \omega^2 x^2 \Psi = E \Psi.}
+\end{equation}
+The introduction of the natural scales
+\begin{equation}\label{scalesHO}
+\bar{x} = \sqrt{\frac{m \omega}{\hbar}} x, \quad \text{and} \quad \epsilon = \frac{2E}{\hbar \omega}
+\end{equation}
+leads to the dimensionless Schr\"odinger equation
+\begin{equation}\label{dimensionlessSEHO}
+ \frac{d^2 \Psi}{dx^2} + (\epsilon - x) \Psi = 0,
+\end{equation}
+with $\Psi = \Psi(x)$ and where we have dropped the bar in the dimensionless variable for simplicity in the notation.\\
+\\
+\noindent
+Solutions to Eq.~(\ref{dimensionlessSEHO}) can be obtained using the series method\cite{Boas2006, McMahon2006}. They are the product of an exponential and an Hermite polynomial. The last has the following Rodrigues formula:
+\begin{equation}\label{HermitianPol}
+ H_n(x) = (-1)^n e^{x^2} \frac{d^n}{dx^n} e^{-x^2},
+\end{equation}
+from which we find that
+$$\Psi_n(x) = H_n(x) e^{-\frac{x^2}{2}},$$ 
+or in terms of the position, the solution (in the original coordinates) takes the form:
+\begin{equation}
+\boxed{\Psi_n(x) = A_n H_n\left(\sqrt{\frac{m\omega}{\hbar}} x \right) e^{-\frac{m\omega x^2}{2 \hbar}},}
+\end{equation}
+where $A_n = \frac{1}{\sqrt{2^n n!}} \left(\frac{m \omega}{\pi \hbar}\right)^{\frac{1}{4}}$ is a normalization constant.\\
+
+
+% % % % % % % % % % % The first single wave functions with their respective probability distribution are shown in figure ({\color{red}{CITAR EL PLOT}}).\\
+% % % % , which can be obtained by using the orthogonality property of the Hermite polynomials $\int_{-\infty}^{\infty} H_m(x) H_n(x) e^{-x^2} dx = \sqrt{\pi} 2^n n\! \delta_{mn}$ and integrating with the normalization constant to get
+% % % % \begin{equation}
+% % % %  \Psi_n(x) = \frac{1}{\sqrt{2^n n\!}} \left(\frac{m \omega}{\pi \hbar}\right)^{\frac{1}{4}} H_n\left(\sqrt{\frac{m\omega}{\hbar}} x \right) e^{-\frac{m\omega x^2}{2 \hbar}},
+% % % % \end{equation}
+
+\noindent
+Higher-order Hermite polynomials can be derived by using the following recursive relations:
+\begin{equation}\label{HermitianRecursion}
+ H_{n+1}(x) = 2 x H_n(x) - 2 x H_{n-1}(x), \quad \text{and} \quad \frac{d H_n}{d x} = 2 x H_{n-1}(x).
+\end{equation}
+% The first polynomials are:
+% \begin{align*}
+%     H_0(x)&=1\\
+%     H_1(x)&=2x\\
+%     H_2(x)&=4x^2-2\\
+%     H_3(x)&=8x^3-12x\\
+%     H_4(x)&=16x^4-48x^2+12\\
+%     H_5(x)&=32x^5-160x^3+120x
+% \end{align*}
+
+\noindent
+The energy is found from the series solution applied to the the Schr\"odinger equation (\ref{dimensionlessSEHO}). The termination condition restrictes the dimensionless variable of energy to the quantized values $\epsilon_n = 2n + 1, \quad n = 0, 1, 2, \ldots$. This expression substituted in the right hand side member of Eq.~(\ref{scalesHO}) leads to the form of the energy of state $n$ given by
+$$
+E_n = \left(n + \frac{1}{2}\right) \hbar \omega, \quad n=0,1,2,\ldots,
+$$
+with the ground state $E_0 = \frac{1}{2}\hbar \omega$. The energy is both discrete and non-degenerate.\\
+\\
+\noindent
+For the multi-dimensional case\footnote{An example of a tridimensional harmonic oscillator is an atom in a crystal, which has an equilibrium position in the lattice, about which it executes single harmonic motion when it experiments a small perturbation\cite{Bohm}.}, say 3D, assuming a central potential given by
+\begin{equation}\label{centralPotentialNoSymmetric}
+V(r) = \frac{1}{2} m \omega^2 r^2 = \frac{1}{2} m (\omega_{x}^2 x^2 + \omega_{y}^2 y^2 + \omega_{z}^2 z^2)
+\end{equation}
+we have the following Hamiltonian:
+\begin{align}\label{3DHamiltonianHO}
+H &=\frac{p^2}{2m} + \frac{1}{2} m \omega^2 r^2\label{3DmomentumHamiltonian}\\ 
+  & = \left(\frac{p_{x}^2}{2m} + \frac{1}{2} m \omega_{x}^2 x^2\right) + \left(\frac{p_{y}^2}{2m} + \frac{1}{2} m \omega_{y}^2 y^2\right) + \left(\frac{p_{z}^2}{2m} + \frac{1}{2} m \omega_{z} z^2\right)\nonumber\\
+  & = \left(-\frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2}+\frac{1}{2}m \omega_{x} x^2\right) + \left(-\frac{\hbar^2}{2m}\frac{\partial^2}{\partial y^2}+\frac{1}{2}m \omega_{y} y^2\right) + \left(-\frac{\hbar^2}{2m}\frac{\partial^2}{\partial z^2}+\frac{1}{2}m \omega_{z} z^2\right) \nonumber\\
+  & = H_x + H_y + Hz\label{splitteHamiltonian3DHO}
+\end{align}
+This problem can be solved analytically by separation of variables. Introducing 
+\begin{equation}
+ \Psi_n(x,y,z) = \psi_{nx}(x) \psi_{ny}(y) \psi_{nz}(z)
+\end{equation}
+with the splitted Hamiltonian given above into the time-independent Schr\"odinger equation, we get three independent harmonic oscillators. The total energy of the system equals therefore the sum of energies of each of them along respective cartesian coordinates, i.e.,
+\begin{equation}\label{3DHOEnergy}
+ E_n = \left(n_x + \frac{1}{2}\right) \hbar \omega_x + \left(n_y + + \frac{1}{2}\right) \hbar \omega_y + \left(nz + \frac{1}{2} \right) \hbar \omega_z.
+\end{equation}
+A generalization of equations (\ref{splitteHamiltonian3DHO}) to (\ref{3DHOEnergy}) for the $d-$dimensional is easy to obtain\cite{Zettili2001}. Starting with $H = \sum_{i=1}^{d} H_i$, for $d$ running over the number of spatial dimensions, one notes that $\Psi_n(x_1, \ldots, x_d) = \prod_{i=1}^{d} \psi_{n_i}(x_i)$, or more precisely,
+\begin{equation}\label{dDimensionalHOWF}
+ \boxed{\Psi_n(x) = \prod_{i=1}^{d} \frac{1}{\sqrt{2^{n_i} n_i!}} \left(\frac{m \omega_i}{\pi \hbar}\right)^{\frac{1}{4}} H_n\left(\sqrt{\frac{m\omega_i}{\hbar}} x_i \right) e^{-\frac{m\omega x_{i}^2}{2 \hbar}},}
+\end{equation}
+where the trial wave function needed by the VMC algorithm is obtained by setting $\omega \rightarrow \alpha \omega$.\\
+\\
+Equation above implies that $E_n =  \sum_{i=1}^{d} E_i$. Hence, 
+\begin{equation}\label{generalEHO}
+\boxed{E_n = \sum_{i=1}^{d}\left(n_i + \frac{1}{2}\right)\hbar \omega_i = \left(n_1 + \frac{1}{2}\right)\hbar \omega_1 + \ldots + \left(n_{d} + \frac{1}{2}\right)\hbar \omega_d.}
+\end{equation}
+Under isotropy, the angular frequency is the same in all the directions and $\omega_i = \omega$.
+% % % % % yielding:
+% % % % % \begin{equation}
+% % % % % \boxed{E_n = \left(n + \frac{d}{2}\right)\hbar \omega, \quad \text{for} \quad n = \sum_{i=1}^{d} n_i}.
+% % % % % \end{equation}
+With exception of the ground state $n_i = 0, \,\text{i=1,2,..,d} $, it is clear from Eq.~(\ref{3DHOEnergy}) that different combination of quantum numbers yields the same energy. Therefore we say that the excited states are degenerate.\\
+\\
+\noindent
+\textbf{Degeneracy}\\
+\noindent
+The degeneracy can be calculated by noting that all the states with the same $n$ will have the same energy. The eigenenergies in an anisotropic case are not degenerate because the corresponding potential is not symmetric. 
+% % % In the two dimensional case the energy is $E_n = (n_x + n_y +1) \hbar \omega$, with $n = n_x + n_y = n_1 + n_2$. For a particular value of $n_y$, $n_x = 0, 1, 2, \ldots, n$, meaning that $n_x$ can take $n+1$ different values, given a spatial degeneracy $g_2(n) = (n+1)$. For the 3D-case (without taking into account for the spin part), defining $n = n_1 + n_2 + n_3$, and setting a value for $n_1$ we get that $n_2 + n_3 = n - n_1$. This means that there are $n - n_1 + 1$ possible groups of $\{n_2, n_3\}$. Then, $g_n = \sum_{n_1 = 0}^{n}(n -n_1 + 1) = \sum_{n_1 = 0}^{n}(n + 1) - \sum_{n_1 = 0}^{n}(n_1) = (n+1)(n+1) - \frac{1}{2}n(n+1)$ or $g_n  = \frac{1}{2}(n+1)(n+2)$.
+In general, the \emph{degree of spatial degeneracy of a energy level} equals the number of ways $n$ can be written as the sum of $d$ non-negative numbers, where $d$ equals the number of spatial dimensions\cite{Baker1956}. That is,
+\begin{equation}\label{gn}
+\boxed{g_n  = \binom{d + n -1}{n} = \frac{(d + n - 1)!}{n!(d - 1)!}.}
+\end{equation}
+Then, for the 3D harmonic oscillator we have $g_n  = \frac{1}{2}(n+1)(n+2)$, while the 2D-case yields $g_n  = \frac{1}{2}(n+1)(n+2)$. Including the spin degrees of freedom, the total degeneracy becomes:
+\begin{equation}\label{Gn3D}
+ \boxed{G_n = 2(n+1)}
+\end{equation}
+and
+\begin{equation}\label{Gn2D}
+\boxed{G_n = (n+1)(n+2),}
+\end{equation}
+for the 3D- and 2D- cases, respectively.
+
+
+\section{Case 3: Quantum dots}
+
+Semiconductor quantum dots are structures where
+charge carriers are confined in all three spatial dimensions, 
+the dot size being of the order of the Fermi wavelength 
+in the host material, typically between  10 nm and  1 $\mu$m.
+The confinement is usually achieved by electrical gating of a 
+two-dimensional electron gas (2DEG), 
+possibly combined with etching techniques. Precise control of the
+number of electrons in the conduction band of a quantum dot 
+(starting from zero) has been achieved in GaAs heterostructures. 
+The electronic spectrum of typical quantum dots
+can vary strongly when an external magnetic field is applied, 
+since the magnetic length corresponding to typical 
+laboratory fields  is comparable to typical dot sizes.
+In coupled quantum dots Coulomb blockade effects, 
+tunneling between neighboring dots, and magnetization 
+have been observed as well as the formation of a
+delocalized single-particle state. \\
+\\
+In the following we look at a single two-dimensional quantum dot confined modelled by interacting electrons trapped by an harmonic oscillator potential. The classical Hamiltonian for an electron  moving in a central potential\footnote{Note that this potential is not of electromagnetic origen.} $V(r)$ besides being subject to a uniform magnetic field $\bfv{B}$ is given by\cite{Zettili2001,Ferry2001}
+\begin{equation*}
+\Op{H} = \frac{1}{2m^*}\left(\Op{p} - e \bfv{A}\right)^2 + e\phi + V(r),
+\end{equation*}
+with $\bfv{p}$ being the classical momentum, $e$ the charge and $m^*$ the effective mass\footnote{The effective mass can be determined as long as we have the full energy of the system.} of the electron in the host material, respectively. Furthemore, $\bfv{A}$ and $e\phi$ denote the external magnetic (vector) and electric (scalar) potentials per charge unit.  Setting $e\phi = 0$ and remembering that in quantum mechanics $\bfv{p} \rightarrow \Op{p} = - i \hbar \nabla$ we get
+\begin{align}
+\Op{H} &=  \frac{1}{2m^*}\left(-i \hbar\bfv{\nabla} - e\bfv{A}\right) \cdot \left(-i \hbar\bfv{\nabla} - e \bfv{A}\right) +  \frac{1}{2} m^* \omega_{0}^{2}(x^2 + y^2)\nonumber\\
+ &= \underbrace{-\frac{\hbar^2}{2m^*}\nabla^2 + \frac{1}{2} m^* \omega_{0}^{2}(x^2 + y^2)}_{\Op{H}_0} - \frac{e}{2m^*}(\Op{p}\bfv{A}+\bfv{A}\Op{p}) + \frac{e^2}{2m^*}\bfv{A}^2\label{HMwithoutS},
+\end{align}
+where $\omega_0$ represents the frequency of oscillation of the electron. In the cross terms we get, in general, 
+$$\Op{p}(\bfv{A}\Psi)-\bfv{A}(\Op{p}\Psi)=-i\hbar[(\bfv{\nabla} \cdot\bfv{A})\Psi + \bfv{A} (\bfv{\nabla} \Psi) - \bfv{A} \bfv{\nabla} \Psi] \neq 0,$$ 
+i.e, the operators $\Op{p}$ and $\Op{A}$ do not commute. An exception is made when we set the constraint $\bfv{\nabla}\cdot \bfv{A} = 0$ (Coulomb gauge). From classical electrodynamics, the magnetic field can be written as $\bfv{B} = \bfv{\nabla} \times \bfv{A}$. For a magnetic field oriented in the $z-$direction, normal to the two-dimensional $xy$-plane of the motion (where the electrons is supposed to be confined), we can write $\bfv{B}=(0,0,B_z)$ chosing $\bfv{A}~=~\frac{1}{2}(-B_y, B_x, 0)~=~\frac{1}{2}(\bfv{B}\times\bfv{r})$, for the Coulomb gauge to be fulfilled. Hence, 
+\begin{equation*}
+ \bfv{A}\cdot\bfv{p} = \frac{1}{2}(\bfv{B}\times\bfv{r})\cdot\bfv{p} = \frac{1}{2}\bfv{B}\cdot(\bfv{r}\times\bfv{p}) = \frac{1}{2}\bfv{B}\cdot\bfv{L} = \frac{1}{2}B L_z,
+\end{equation*}
+where $\Op{L}_z = \Op{x}\Op{p}_y - \Op{y}\Op{p}_x$ is the $z-$component fo the angular momentum. Thus Eq.~(\ref{HMwithoutS}) becomes,
+$$
+\Op{H} =  \Op{H}_0 - \frac{e}{2m^*}BL_z + \frac{e^2 B^2}{8 m^*}(x^2 + y^2),
+$$
+If a particle with charge $q$ has an intrisic spin $\bfv{S}$, its spinning motion gives rise to a magnetic dipole moment $\bfv{\mu_S} = \frac{q\bfv{S}}{2m^* c}$ that when interacting with an external magnetic field generates an energy $-\bfv{\mu_S}\cdot \bfv{B}$ that must be added to the Hamiltonian\cite{Zettili2001}. We get therefore,
+\begin{align*}
+\Op{H} & =  \Op{H}_0 - \frac{e}{2m^*}BL_z + \frac{e^2 B^2}{8 m^*}(x^2 + y^2) - \bfv{\mu_S}\cdot \bfv{B}\\
+       & =  \Op{H}_0 - \frac{e}{2m^*}BL_z + \frac{e^2 B^2}{8 m^*}(x^2 + y^2) + g_s \frac{e}{2 m^*}B \Op{S}_z\\
+			  & =  \Op{H}_0 - \frac{\omega_c}{2} L_z + \frac{1}{2} m^* \left(\frac{\omega_c}{2}\right)^2 (x^2 + y^2) + \frac{1}{2}g_s \omega_c \Op{S}_z,
+\end{align*}
+where $\Op{S}$ and $g_s$ are the spin operator and the effective spin gyromagnetic ratio of the electron, respectively. Moreover $\omega_c = eB/m^*$ is known as the cyclotron frequency.\\
+\\
+For several particles trapped in the same quantum dot, the electron-electron Coulomb interaction should be included, yielding the general Hamiltonian:
+\begin{align}
+\Op{H} &= \sum_{i=1}^{N} \left[-\frac{\hbar^2}{2m^*}\nabla^{2}_{i} + \overbrace{\frac{1}{2} m^* \omega_{0}^{2}(x_{i}^{2} + y_{i}^{2})}^{\begin{smallmatrix}\text{Harmonic oscillator}\\ \text{potential}\end{smallmatrix}}\right] + \overbrace{\frac{e^2}{4 \pi \epsilon_0 \epsilon_r} \sum_{i=1}^{N} \sum_{j=i+1}^{N} \frac{1}{|\bfv{r}_i - \bfv{r}_j|}}^{\begin{smallmatrix}\text{Electron-electron}\\ \text{interaction} \end{smallmatrix}}\\ \nonumber
+&  + \underbrace{\sum_{i=1}^{N} \left[\underbrace{\frac{1}{2} m^* \left(\frac{\omega_c}{2}\right)^2 (x_{i}^2 + y_{i}^2)}_{\text{"Squeeze" term}} - \underbrace{\frac{\omega_c}{2} \Op{L}_{z}^{(i)}}_{\text{Rotation term}} + \frac{1}{2}g_s \omega_c \Op{S}_{z}^{(i)}\right].}_{\begin{smallmatrix} \text{electron-magnetic field}\\ \text{interaction}\end{smallmatrix}}
+\end{align}
+Setting $\omega_B = \left(\frac{\omega_c}{2}\right)^2$ and combining the magnetic confinement and the external potential we get the new oscillator frequency $\omega^2 = \omega_{0}^{2} + \omega_{B}^2$, leading to
+\begin{equation}
+\Op{H} = \sum_{i=1}^{N} \left[-\frac{\hbar^2}{2m^*}\nabla^{2}_{i} + \frac{1}{2} m^* \omega^{2}(x_{i}^{2} + y_{i}^{2})\right] + \frac{e^2}{4 \pi \epsilon_0 \epsilon_r} \sum_{i=1}^{N} \sum_{j=i+1}^{N} \frac{1}{|\bfv{r}_i - \bfv{r}_j|}  + \sum_{i=1}^{N} \left[- \frac{\omega_c}{2} \Op{L}_{z}^{(i)} + \frac{1}{2}g_s \omega_c \Op{S}_{z}^{(i)}\right].
+\end{equation}
+Using scaled atomic units\footnote{The "scaled" term derives from the fact that we are equaling to one the dielectric constant and reduced mass (nor the mass).}, $\hbar = m^* = \epsilon = e = 1$
+\begin{equation}
+\Op{H} = \sum_{i=1}^{N} \left[-\frac{1}{2}\nabla^{2}_{i} + \frac{1}{2} \omega^{2}(x_{i}^{2} + y_{i}^{2})\right] + \sum_{i=1}^{N} \sum_{j=i+1}^{N} \frac{1}{r_{ij}}  + \sum_{i=1}^{N} \left[- \frac{\omega_c}{2} \Op{L}_{z}^{(i)} + \frac{1}{2}g_s \omega_c \Op{S}_{z}^{(i)}\right].
+\end{equation}
+Because the operators $\Op{L}_z$ and $\Op{S}_z$ commutes with the Hamiltonian, i.e., $[\Op{H}, \Op{L}_z] = [\Op{H}, \Op{S}_z] = 0$, the solution of the Schr\"odinger equation will be an eigenfunction of $\Op{L}_z$ and $\Op{S}_z$. Therefore, the contributions to the total energy due to these operators can be evaluated separately. Finally the Hamiltonian we implement has the simple form
+\begin{equation}
+\boxed{\Op{H} = \sum_{i=1}^{N} \left[-\frac{1}{2}\nabla^{2}_{i} + \frac{1}{2} \omega^{2}(x_{i}^{2} + y_{i}^{2})\right] + \sum_{i=1}^{N} \sum_{j=i+1}^{N} \frac{1}{r_{ij}},}
+\end{equation}
+where we can just add the contributions of the other terms to the resulting energy.
+
+
+\section{Verifying and validating the implementation}\label{verification}
+Verification and validation of code are two important aspects in the design of a software. The former refers to assessment of the accuracy of the solution to a computational model, the latter is the assessment of the accuracy of a computational model by comparison with experimental/analytical data. Both of them indicate when an algorithm is working as expected, and they are important for debugging while developing the implementation. With this aim in mind, some analytical results concerning He and Be atoms, as well as the case of non-interacting particles trapped in an harmonic oscillator potential in one to three dimensions are exposed in the following.
+
+\subsection{Analytical results for the He and Be atoms}
+\subsubsection{The Slater determinant of the He and Be atoms}
+Analytical expressions can be obtained for the Slater determinant of the atoms studied. For He it is just 
+\begin{equation}
+ \boxed{\Psi_{SD} = e^{\alpha(r_1 + r_2}).}
+\end{equation}
+For Be we compute it in the standard way leading to 
+\begin{equation}
+\boxed{\Psi_{SD} = [\phi_{1s}(\bfv{r_1})\phi_{2s}(\bfv{r_2}) - \phi_{1s}(\bfv{r_2}) \phi_{2s}(\bfv{r_1})]
+	    [\phi_{1s}(\bfv{r_3})\phi_{2s}(\bfv{r_4}) - \phi_{1s}(\bfv{r_4}) \phi_{2s}(\bfv{r_3})].}
+ \end{equation}
+The derivatives needed in the quantum force and the kinetic energy can be computed numerically using central difference schemes. 
+
+\subsubsection*{Ground state energies of He and Be without including the correlation part}
+A first approach to derivate the value of the ground state energy for He and Be analytically consists in omitting the correlation part of the potential and in the trial wave functions. The Hamiltonian in Eq.~(\ref{HamiltonianSum}) expressed in atomic units then reads
+\begin{equation}\label{uncorrelatedAtomsHamiltonian}
+\boxed{\Op{H} = -\frac{1}{2}\sum_{i=1}^{N}\nabla^{2}_{i}
+  - Z \sum_{i=1}^{N} \frac{1}{r_i},}
+\end{equation}
+and similarly, for the energy Eq.~(\ref{atomsEnergy}) of the eigenstate with quantum numbers $nlm_l$ we get
+\begin{equation}\label{atomsEnergyAU}
+ \boxed{E_n = -\frac{1}{2}\frac{Z^2}{n^2}.}
+\end{equation}
+From Eqs.~(\ref{totalHUncorrelatedPart}) and (\ref{sumEnergies}), the total energy of the system equals the sum of eigenenergies of each single state. Then, the ground states energies\footnote{In order to convert from atomic to SI units multiply by $2E_0$, where $E_0=13.6 \, eV$ is the binding energy of the H atom.} of He and Be atoms when no correlation part is included are \begin{equation}
+\boxed{E = E_{1} + E_{1} = -\frac{1}{2}(2)^2 \left(\frac{1}{1} +  \frac{1}{1}\right) = - 4 \quad \text{au},}
+\end{equation}
+and 
+\begin{equation}
+ \boxed{E = (E_1 + E_2) + (E_1 + E_2) = -\frac{1}{2}(4)^2 \left(\frac{1}{1} +  \frac{1}{2^2} + \frac{1}{1} +  \frac{1}{2^2}\right) = - 20 \quad \text{au}.}
+\end{equation}
+In order to reproduce these ground states energies, parameter $\alpha$ in the trial wave functions (or better in the single state wave functions) of He and Be should be set equal to $2.0$ and $4.0$, respectively. This comes from the fact that, in atoms, the $\alpha$ parameter has the interpretation of a nuclear charge.
+% % % % % % % % % % %\ref{enCusp2}
+
+\subsubsection{Analytical gradient and Laplacian of 1s and 2s orbitals}
+The gradient and Laplacian of the single state wave functions are needed in the evaluation of the quantum force and the kinetic energy terms. The gradients for this two orbitals are given by
+\begin{equation}
+ \boxed{\Grad{\phi_{1s}} = -\alpha \left(\frac{x}{r}\uvec{e}_1 + \frac{y}{r}\uvec{e}_2 + \frac{z}{r}\uvec{e}_3 \right) e^{-\alpha r} = -\alpha \frac{\bfv{r}}{r}e^{-\alpha r},}
+\end{equation}
+and 
+\begin{equation}
+ \boxed{\Grad{\phi_{2s}} = -\frac{\alpha}{2}\left(2 - \frac{\alpha}{2} r\right)\left(\frac{x}{r}\uvec{e}_1 + \frac{y}{r}\uvec{e}_2 + \frac{z}{r}\uvec{e}_3 \right)e^{-\frac{\alpha}{2}r} = -\frac{\alpha}{2}\left(2 - \frac{\alpha}{2} r\right)\frac{\bfv{r}}{r} e^{-\frac{\alpha}{2}r}.}
+\end{equation}
+The laplacians yields
+\begin{equation}\label{lapPhi1s}
+\boxed{\nabla^2 \phi_{1s} =  \left(\alpha^2 - \frac{2 \alpha}{r}\right) e^{- \alpha r},}
+\end{equation}
+and 
+\begin{equation}
+ \boxed{\nabla^2 \phi_{2s} = - \frac{2}{\alpha r}\left[4 - 5\left(\frac{\alpha r}{2}\right) + \left(\frac{\alpha r}{2}\right)^2\right]e^{-\frac{\alpha}{2}r}.}
+\end{equation}
+
+
+\subsubsection*{Analytical expressions for the local energy of He}
+The local energy operator reads 
+$$\Op{E}_L = \frac{1}{\Psi_T}\Op{H} \Psi_T.$$
+At a first glance, we consider the case when the correlation part of the trial wave function is omitted. Then, the Hamiltonian is
+\begin{equation}\label{HeHaNoCor}
+ \Op{H} = -\frac{1}{2}\bfv{\nabla}_{1}^{2} -\frac{1}{2}\bfv{\nabla}_{2}^{2} - \frac{Z}{r_1} - \frac{Z}{r_2} + \frac{1}{r_{12}}.
+\end{equation}
+Noting that the quantity contributed by the potential to the local energy operator is the potential self and after substitution of Eq.~(\ref{lapPhi1s}) we get 
+\begin{equation}
+ \boxed{\Op{E}_{L_1} = (\alpha - Z)\left(\frac{1}{r_1} + \frac{1}{r_2}\right) + \frac{1}{r_{12}} - \alpha^2,}
+ \end{equation}
+ which has the expectation value 
+ \begin{equation}
+  \boxed{\langle E_{L_1} \rangle = \alpha^2 - 2 \alpha \left(Z - \frac{5}{16} \right).}
+ \end{equation}
+The last result is useful when testing the derivatives of the local energy during parameter optimization of the trial wave function. Observe, also, that setting $Z=2$ the above expression gives a minimum for $\alpha = 1.6875$.\\
+\\
+\noindent
+The local energy of the He atom with the Pad\'e-Jastrow trial wave function given in Eq.~(\ref{trialHe}) can be derived analytically. 
+\begin{equation}
+ \boxed{\Op{E}_L \!=\! -4 \!+\! \frac{\beta}{1 \!+\! \beta r_{12}} \!+\! \frac{\beta}{(1 1\!+\! \beta r_{12})^2} \!+\! \frac{\beta}{(1 \!+\! \beta r_{12})^3} \!-\! \frac{1}{4(1 \!+\! \beta r_{12})^4} \!+\! \frac{\bfv{r}_{12}\cdot(\bfv{r}_1 \!-\! \bfv{r}_2)}{(1 \!+\! \beta r_{12})^2}.}
+\end{equation}
+An alternative expression is
+\begin{equation}
+ \boxed{\Op{E}_L \!= \!E_{L_1} \!+ \!\frac{1}{2(1\! +\!\beta r_{12})^2}\!\left[\!\frac{\alpha(r_1 \!- \!r_2)}{r_{12}} \left(\!1 \!-\! \frac{\bfv{r}_1\!\cdot \!\bfv{r}_2}{r_1 r_2}\!\right) \!-\! \frac{1}{2(1 \!+\!\beta r_{12})^2} \!-\! \frac{2}{r_{12}} \!+\! \frac{2\beta}{1 \!+\! \beta r_{12}}\!\right].}
+\end{equation}
+The computation of the energy for the Be atom can be done similarly. It will however involve more work, because the Hamiltonian is defined by eleven terms, more than twice the number of terms in the case of the He atom.
+
+\subsection{Analytical expressions for the two- and three-dimensional harmonic oscillator}
+\subsubsection{Energy levels and degeneracy of the 2D and 3D cases}
+Equations (\ref{generalEHO}) and (\ref{gn}) to (\ref{Gn3D}) express the energy levels and degeneracies for the harmonic oscillator. Results concerning the ground-state and the two first excited states are summarized in tables \ref{2DHOEnergyLevels} and \ref{3DHOEnergyLevels} for the two- and three-dimensional cases, respectively. Column five (filled shell) shows the number of electrons in the system neccessary to occupy (fill) completely up to a given level of energy. Moreover, column six refers to the energy of the respective level. Then, the total energy of the system equals the sum of the energies of all the filled levels. For the first excited state we have values of $10$ and $18$ in two and three dimensions, respectively. These energies as well as the ground states should be reproduced by the simulator after setting $\omega = 1$ and $\alpha = 1$ in the trial wave functions.
+\begin{table}%[hbtp]
+\begin{center} 
+\begin{tabular}{clcccc}
+\toprule[1pt]
+$n$  & $(n_x,n_y)$  & $g_n$  & $G_n\! = \!2g_n$ & Filled shell & $G_n E_n/(\hbar \omega)$ 	\\
+\midrule[1pt]	
+0		& $(00)$ 	&   1    & 2            &       2  	            	& 2\\
+1		& $(10), (01)$  &   2	 & 4            &       6  	               	& 8\\
+2               & $(20), (02)$  &   3    & 6            &       12  	          	& 18\\ 
+		& $(11)$     	&        &              &                      		& \\
+\bottomrule[1pt]
+\end{tabular} 
+\end{center}
+\caption{Energy levels and their degeneracy for a two-dimensional isotropic harmonic oscillator. Filled shell refers to have all the energy levels occupied.}
+\label{2DHOEnergyLevels}
+\end{table}
+
+\begin{table}%[hbtp]
+\begin{center} 
+\begin{tabular}{cclccc}
+\toprule[1pt]
+$n$\!  &\! $(n_x,n_y,n_z)$ \! &\! $g_n$\!  &\! $G_n\! = \!2g_n$  &\! Filled shell \!& $G_n E_n/(\hbar \omega)$\\
+\midrule[1pt]	
+0				   & \!$(000)$ \!		    &   1    & 2                 &  	 2 & 3\\
+1				   &\! $(100), (010), (001)$ \! &   3    & 6                 &  	 8 & 15\\
+2                       	   &\! $(200), (020), (002)$ \! &   6    & 12                &  	 20 & 42\\ 
+				   &\! $(110), (101), (011)$ \! &        &                   &          & \\
+\bottomrule[1pt]
+\end{tabular} 
+\end{center}
+\caption{Energy levels and their degeneracy for a tri-dimensional isotropic harmonic oscillator. Filled shell refers to have all the energy levels occupied.}
+\label{3DHOEnergyLevels}
+\end{table}
+
+\subsubsection{Trial wave functions, gradients and Laplacians}
+The trial wave functions corresponding to the set of quantum numbers (eigenstates) listed in columns two of tables \ref{2DHOEnergyLevels} and \ref{3DHOEnergyLevels} can be constructed from Eq.~(\ref{dDimensionalHOWF}). The Hermitian polynomials needed for the ground-state and the first excited states can be derived from Eq.~(\ref{HermitianPol}) and Eq.~(\ref{HermitianRecursion}) yielding
+\begin{equation}
+H_0(\sqrt{\alpha \omega} \xi) = 1 \qquad H_1(\sqrt{\alpha \omega} \xi) = 2 \sqrt{\alpha \omega} \xi, 
+\end{equation}
+where $\xi$ represents one of the three spatial components $x$, $y$ or $z$.\\
+\\
+For two dimensions we have
+\begin{align}
+ \phi_{00}(\bfv{r}) &= e^{-\frac{1}{2}\alpha\omega(x^2 + y^2)}\\
+ \phi_{10}(\bfv{r}) &= 2\sqrt{\alpha \omega} x e^{-\frac{1}{2}\alpha\omega(x^2 + y^2)} \\
+ \phi_{01}(\bfv{r}) &= 2\sqrt{\alpha \omega} y e^{-\frac{1}{2}\alpha\omega(x^2 + y^2)},
+\end{align}
+with the corresponding gradients 
+\begin{align}
+ \bfv{\nabla}\phi_{00}(\bfv{r}) &= -\alpha \omega (x \uvec{e}_1 + y \uvec{e}_2) \phi_{00}(\bfv{r})\\
+ \bfv{\nabla}\phi_{10}(\bfv{r}) &= \frac{1 - \alpha \omega x^2}{x} \phi_{10}(\bfv{r}) \uvec{e}_1 - \alpha \omega y \phi_{10}(\bfv{r}) \uvec{e}_2\\
+ \bfv{\nabla}\phi_{01}(\bfv{r}) &= - \alpha \omega x \phi_{01}(\bfv{r}) \uvec{e}_1 + \frac{1 - \alpha \omega y^2}{y} \phi_{01}(\bfv{r}) \uvec{e}_2,
+\end{align}
+and Laplacians
+\begin{align}
+ \nabla^2 \phi_{00}(\bfv{r}) &= -\alpha \omega[2 - \alpha\omega(x^2 + y^2)] \phi_{00}(\bfv{r})\\
+ \nabla^2 \phi_{10}(\bfv{r}) &= [-4 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2)] \phi_{10}(\bfv{r}) \\
+ \nabla^2 \phi_{01}(\bfv{r}) &= [-4 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2)] \phi_{01}(\bfv{r}).
+\end{align}
+For three dimensions, it reads
+\begin{align}
+ \phi_{000}(\bfv{r}) &= e^{-\frac{1}{2}\alpha\omega(x^2 + y^2 + z^2)}\\
+ \phi_{100}(\bfv{r}) &= 2\sqrt{\alpha \omega} x e^{-\frac{1}{2}\alpha\omega(x^2 + y^2 + z^2)} \\
+ \phi_{010}(\bfv{r}) &= 2\sqrt{\alpha \omega} y e^{-\frac{1}{2}\alpha\omega(x^2 + y^2 + z^2)} \\
+ \phi_{001}(\bfv{r}) &= 2\sqrt{\alpha \omega} z e^{-\frac{1}{2}\alpha\omega(x^2 + y^2 + z^2)},
+\end{align}
+with gradients
+\begin{align}
+ \bfv{\nabla}\phi_{000}(\bfv{r}) &= -\alpha \omega (x \uvec{e}_1 + y \uvec{e}_2 + zy \uvec{e}_3) \phi_{000}(\bfv{r})\\
+ \bfv{\nabla}\phi_{100}(\bfv{r}) &= \frac{1 - \alpha \omega x^2}{x} \phi_{100}(\bfv{r}) \uvec{e}_1 - \alpha \omega y \phi_{100}(\bfv{r}) \uvec{e}_2 - \alpha \omega z \phi_{100}(\bfv{r}) \uvec{e}_3\\
+ \bfv{\nabla}\phi_{010}(\bfv{r}) &= - \alpha \omega x \phi_{010}(\bfv{r}) \uvec{e}_1 + \frac{1 - \alpha \omega y^2}{y} \phi_{010}(\bfv{r}) \uvec{e}_2 - \alpha \omega z \phi_{010}(\bfv{r}) \uvec{e}_3\\
+ \bfv{\nabla}\phi_{001}(\bfv{r}) &= - \alpha \omega x \phi_{001}(\bfv{r}) \uvec{e}_1 - \alpha \omega y \phi_{001}(\bfv{r}) \uvec{e}_2 + \frac{1 - \alpha \omega z^2}{z} \phi_{001}(\bfv{r}) \uvec{e}_3,
+\end{align}
+and Laplacians
+\begin{align}
+\nabla^2 \phi_{000}(\bfv{r}) &= [-3 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2 + z^2)] \phi_{000}(\bfv{r})\\
+\nabla^2 \phi_{100}(\bfv{r}) &= [-5 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2 + z^2)] \phi_{100}(\bfv{r}) \\
+\nabla^2 \phi_{010}(\bfv{r}) &= [-5 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2 + z^2)] \phi_{010}(\bfv{r}) \\
+\nabla^2 \phi_{001}(\bfv{r}) &= [-5 \alpha \omega + (\alpha \omega)^2 (x^2 + y^2 + z^2)] \phi_{001}(\bfv{r}).
+\end{align}
+
+
+\section{The zero variance property of the VMC method}\label{zeroVariancePrinciple}
+Because a Slater determinant is an exact eigenfunction of the Hamiltonian when no correlation is included, the variance of the local energy computed ignoring the Jastrow and the two-body potential should be zero, according to the zero variance property discussed under Eq.~(\ref{zeroVarianceProperty}).
+
+
+\clearemptydoublepage

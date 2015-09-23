@@ -1,0 +1,153 @@
+\chapter{Introduction}
+\label{introduction}
+
+The formulation and development of quantum theory in the first half of
+the $20^{\mathrm{th}}$ century has led to a revolution in our
+understanding of fundamental physics. Quantum theory has demonstrated
+surprising accuracy and predictive power, and the importance of
+quantum theory is unchallenged. The Schr\"odinger equation, which is
+the fundamental equation of quantum mechanics, cannot be solved
+analytically for any but the most trivial of systems. Numerical
+many-body approaches provide powerful tools for solving this
+equation.
+\newline
+%
+\newline
+In electronic structure calculations the treatment of
+electron-electron interactions is the main source of
+difficulty. These interactions cannot easily be separated out or
+treated without approximation. Quantum Monte Carlo (QMC) methods treat
+electron-electron interactions almost without approximation. The
+accuracy of the QMC methods enables a great deal of confidence to be
+placed in the results obtained.
+\newline
+%
+\newline
+In this thesis the basics of a Variation Monte Carlo (VMC) algorithm
+are implemented and applied to several atoms. The VMC method forms the
+basis of the QMC machinery. VMC used together with Diffusion Monte
+Carlo (DMC) provides a powerful tool for incorporating correlation
+effects into the many-body wave-function, and by means of Monte Carlo
+(MC) integration the expectation values of different physical
+observables can be obtained.
+\newline
+%
+\newline
+Before formulating the VMC algorithm several concepts
+must be understood. In chapter \ref{AtomicPhysics} the atomic problem
+is formulated, and then approximated to a form suited for numerical
+calculations. The solutions to the one-electron hydrogen atom are
+presented, before we introduce the variational and perturbative
+methods to the helium atom.
+\newline
+%
+\newline
+In chapter \ref{NumericalApproaches}, different numerical approaches
+are studied in greater detail. Both Hartree-Fock (HF) and Density
+Functional Theory (DFT) are commonly used methods. Hartree-Fock will be
+studied thoroughly, both because HF-solutions are used as a basis for
+our VMC calculations and because understanding the HF method provides
+useful insights to the other many-body approaches. DFT is particularly
+interesting for larger system (100 particles or more), and will only
+be mentioned briefly. 
+\newline
+%
+\newline
+The Configuration Interaction (CI) method is a natural extension of the
+HF method, and the principles behind it are easy to understand.
+The principal shortcoming of the CI
+method is that it does not provide a compact description of the electron
+correlation, and has a large growth in the number of configurations
+needed for large systems, see ref. \cite{helgaker2002}. Among the
+different many-body methods, Coupled-Cluster (CC) represents the most
+effective method for atomic systems. Although computationally very
+fast for small systems, it is practically impossible to carry out for
+large systems due to the power six (or higher) scaling with the number
+of particles involved. M\o ller-Plesset Many-Body Perturbation Theory
+(MPPT) provides a different route to the solution of the Schr\"odinger
+equation allowing us to approach the exact solution in a systematic
+fashion based on an order-by-order expansion of the wave-function and
+the energy. For systems where several important configurations are
+present, the Multiconfiguration Self-Consistent Field method (MCSCF)
+is well suited, but a problem with this method is that it shows no
+clear sign of convergence.
+\newline
+%
+\newline
+A completely different approach to the many-body problem is realized
+through Monte Carlo integration. Monte Carlo methods make
+the evaluation of high dimensional integration possible. In the
+Variational Monte Carlo (VMC) approach \emph{any} trial wave-function
+may be optimized with respect to either energy or variance
+minimization. This method therefore allows flexibility beyond the
+orbital representation. Furthermore, accurate results are obtained for
+several systems. A particularly interesting extension to
+the VMC method is to combine VMC with the Diffusion Monte Carlo (DMC)
+method. DMC yields in principle an exact solution to the many-body
+problem. In practice, however, the DMC method requires a guiding
+function, that accurately represents the basic features of the
+eigenfunction, as input. Commonly, 
+a variational trial wave-function is optimized by VMC, and the
+optimized function provides the guiding function for DMC
+calculations. The accuracy of DMC is limited only by this guiding
+function. Therefore, development of the VMC method should be seen in
+this context, and together with DMC it provides a highly efficient
+tool for solving quantum mechanical problems with many
+particles. Furthermore, the VMC and DMC methods share 
+several similarities, and in developing the VMC method the foundation of
+the DMC method is established. Nevertheless, VMC is also an efficient
+tool on its own, and for smaller systems much of the 
+electronic correlations, approximated in for example a HF
+calculations, are regained.
+\newline
+%
+\newline
+In chapter \ref{Implementation} the program code developed through this
+thesis is outlined. The program is coded in C++, and consists of
+about 7 000 lines. A detailed description of the code has therefore
+been omitted. Instead we focus on the theoretical principles regarding
+the numerical optimization of the key building blocks of the
+program. The main effort of this thesis has been developing the
+code, and a few examples are provided to help clarify some of the
+underlying technicalities regarding its implementation.
+\newline
+%
+\newline
+In chapter \ref{Results} results produced by the code are
+presented. Tests regarding consistency with known solutions are
+presented, as well as stability tests regarding wave-function
+optimization schemes. Such tests are essential in the development of
+any numerical tool, and have therefore been given special
+attention. Step-by-step improvement of trial wave-functions are
+also outlined, and results including electron-electron correlations
+are presented for several atoms; from helium with its two electrons to
+argon with a total of eighteen electrons. The results indicate the
+efficiency of the numerical implementation presented here. The results
+also indicate that electron-electron correlations become
+less important as the number of electrons
+increases. Therefore, inclusion of additional correlation effects is
+needed in making accurate calculations also for larger systems. A
+further development is the sophistication of the trial wave-functions.
+\newline
+%
+\newline
+To be able to effectively optimize more complicated trial
+wave-functions the efficiency of the VMC algorithm needs further
+development. In particular, we will study auto-correlation effects
+which are one of the key limiting factors of the QMC methods. After
+investigation of these effects we suggest ways to decrease them.
+%We also look at possible extensions to larger systems such as
+%molecules.
+\newline
+%
+\newline
+Finally, the insights gained through the development of this
+thesis will be presented, together with suggestions of further
+development of the program code.
+\newline
+%
+\newline
+Note that in this thesis it is assumed that the reader is familiar
+with the basics of quantum mechanics. For introductory quantum
+mechanics consult for example
+refs. \cite{shankar1994,hemmer1980,atkins2003,bransden1983}. 

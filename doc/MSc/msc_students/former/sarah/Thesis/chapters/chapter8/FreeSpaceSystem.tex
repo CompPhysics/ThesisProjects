@@ -1,0 +1,336 @@
+\section{Implementation specific for free-space SRG}
+
+As mentioned above, there are fundamental differences in the implementation of the free-space and in-medium SRG method. This section serves to describe how we implemented the free-space case, which algorithms we used and which computationally challenges  we met in order to make the code as effective as possible.
+
+\subsection{Classes for the free-space case}
+Of the above mentioned classes of our code, we have so far described the classes \textit{System} and \textit{SPstate} as general classes. In the following, we will come to the classes \textit{Hamiltonian}, \textit{Basis} and \textit{SRG}, that are different for the free-space and in-medium implementation. First, we will give an overview of the structure of the classes \textit{Hamiltonian} and \textit{Basis}. To demonstrate the data flow and how the classes work together, we will give a detailed description of how the system is set up. Afterwards, we will demonstrate how the solver, in our case the SRG method, is applied to the system. In the course of this, we will describe the class \textit{SRG}, which as solver is independent of the previous classes.
+
+\subsubsection{Class \textit{Hamiltonian}}
+The main purpose of the class \textit{Hamiltonian} is to set up the Hamiltonian matrix in a given basis and store it. When an instance of this class is created, memory for two arrays is allocated, one called \textit{HO} for the elements computed from the non-interacting part of the Hamiltonian, and one called \textit{HI} for the ones arising from the interaction part. Apart from an organized structure, the main reason for this subdivision is that during the flow of the Hamiltonian, only the interaction elements are changed, suggesting that the \textit{HO}-array can be stored permanently.\\
+The contained functions can be subdivided into two classes: One group of functions serves to read in the one-particle and two-particle elements from file, which must be provided in the form
+\begin{align}
+a \quad b \quad &\kappa \qquad \text{and} \label{eq:elements1} \\
+a \quad b \quad c \quad d \quad &\kappa,
+\label{eq:elements}
+\end{align}
+respectively. In this notation, $a,b,c,d$ are integers denoting the single-particle states as illustrated in figure \ref{fig:shellstructure}, whereas $\kappa$ is a floating-point number with the value of the corresponding element.\\
+After the elements have been read in, the task of the second class of functions is to use those elements to compute the initial Hamiltonian matrix. With the Hamiltonian operator given in second quantization, those functions mainly handle the action of creation and annihilation operators, including various bit operations. A detailed description will be given at a later stage, when we explain how the system is set up.
+
+\subsubsection{Class \textit{Basis}}
+The class \textit{Basis} handles everything concerning the basis in which the Hamiltonian matrix is set up. The two main data structures are an array with the Slater determinant basis for the Hamiltonian, and an array containing all considered single-particle states until the made cut-off. This array contains objects of the type \textit{SPstate}, which themselves contain all quantum numbers, single-particle energy etc. The single-particle states are in our case the ones of a harmonic oscillator basis, but our implementation also takes care of a Hartree-Fock basis, which then is based on the previous harmonic oscillator basis. The only difference with a Hartree-Fock basis is that the one-body and two-body elements (\ref{eq:elements1}) and (\ref{eq:elements}) are this time not directly obtained from the OpenFCI library [ref!], but from a preceding Hartree-Fock calculation.\\
+Since the \textit{Basis}-class is responsible to hold the Slater determinant basis, the contained functions involve several routines for setting up this basis, transforming it to binary representation, choosing the right states for a given channel etc. All this methods will be explained in the following, when we explain how a specific system is set up.
+
+\subsection{Setting up the system}
+
+Setting up the system in free space involves two steps: First, the basis of Slater determinants is established, then the Hamiltonian matrix is set up in this basis.
+
+\subsubsection{Slater determinant basis}
+In principle, our Slater determinant basis consists of all possibilities to place a number of $N$ particles in $n_{sp}$ single-particle states (sp-states). For two particles and four sp-states, one obtains for example the basis states
+\[
+|0,1\rangle, |0,2\rangle, |0,3\rangle, |1,2\rangle, |1,3\rangle, |2,3\rangle,
+\]
+where $|i,j\rangle$ denotes a state where single-particle state $i$ and $j$ are occupied by a particle and the remaining ones are unoccupied.\\
+In general, there are $\binom{n_{sp}}{N}$ possible Slater determinants and one needs an algorithm to systematically create all combinations. In this thesis, we use the so-called \textit{odometer} algorithm, which works as follows:
+
+\begin{framed}
+\center{\textbf{Odometer algorithm}}
+\begin{enumerate}
+\item Start with the first $N$ states occupied. ($N$= number of particles)
+\item Repeat the following recursively until all $N$ particles occupy the last $N$ sp-states
+\begin{enumerate}
+\item Loop with the last particle over all remaining sp-states.
+\item Increase the position of the second last particle by 1.
+\item ... Repeat steps (a) and (b) until end reached ...
+\item Increase the position of the third last particle by 1.
+\item ...
+\end{enumerate}
+\end{enumerate}
+\end{framed}
+
+Following this procedure, one makes sure to include all possibilities. For 3 particles and 5 sp-states, for example, the Slater determinants are produced in the following order:
+\[
+|0,1,2\rangle, |0,1,3\rangle, |0,1,4\rangle, |0,2,3\rangle, |0,2,4\rangle, |0,3,4\rangle.
+\]
+
+To obtain this series, we use the function \textit{odometer}, which is part of the \textit{Basis}-class. Given an initial occupation scheme, it is used to move the "odometer" one step further.
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray},caption={The function \textit{odometer} accepts the $N$-dimensional array \textit{occ} with the current occupation scheme of the $N$ particles and returns the next one, using the odometer algorithm.}, label=lst:odometer]
+void Basis::odometer(ivec& occ, int numpart) {
+    int l;
+    // Loop over all partices, beginning with the last one
+    for (int j = numpart - 1; j >= 0; j--) {
+        if (occ(j) < sp_states - numpart + j) {
+            l = occ(j);
+            for (int k = j; k < numpart; k++) {
+                occ(k) = l + 1 + k - j;
+            }
+            break;
+        }
+    }
+}
+\end{lstlisting}
+
+In order to set up the whole Hamiltonian matrix, one theoretically has to store all possible Slater determinants in order to compute the matrix elements. However, the size of this matrix increases rapidly with the number of particles and sp-states, which requires large amounts of memory and CPU time in the subsequent diagonalization. \\
+Moreover, in the case of quantum dots, this matrix would be very sparse. Since the encountered Hamiltonian operator preserves spin and angular momentum, the matrix is block diagonal in these two quantities from the beginning on. Defining 
+\[
+M = \sum_i^N m(i), \qquad M_s = \sum_i^N m_s(i)
+\]
+as the total angular momentum and total spin, respectively, the Hamiltonian does only link states $|\alpha\rangle$ and $|\beta\rangle$ with the same value for $M$ and $M_s$. Hence, if one is only interested in the ground state energy, it would be an enormous overkill to diagonalize the whole Hamiltonian matrix. In the case of closed-shell systems, that are studied in this thesis, one can assume that the ground state fulfils $M = M_s = 0$ and therefore one has to diagonalize solely that block of the Hamiltonian matrix that fulfils these two requirements. \\
+This simplification reduces the dimensionality of the problem significantly and makes it possibly to treat larger systems within the restrictions set by the limited memory of a given machine. For the case of $N = 6$ 
+particles and $R = 4$ shells, for example, there exist $\binom{20}{6} = 38760$ possible Slater 
+determinants. With double precision, the whole Hamiltonian matrix would require $8\times 38760^2 \approx 12$GB of RAM. For ordinary computers having four nodes, each with 2GB of RAM, already this system with 
+$R=4$ shells would exceed the available memory. Restricting us to the states with $M = M_s = 0$, however, 
+the Slater determinant basis is decreased to $n =1490$ states and the required memory to about $17$MB. Thus the memory requirement has been drastically reduced and the computation is even possible on ordinary laptops.
+
+We implemented the setup of the Slater determinant basis as follows: Using the odometer algorithm, all possible Slater determinants are created. Each time a new occupation is computed, we check if that one satisfies the requirements on $M$ and $M_s$. Only if these ones are fulfilled, the Slater determinant is added to the array which saves the basis states.
+
+In order to make the code as general as possible, the function checking $M$ and $M_s$ is not restricted to only those two quantities, but could also check for further ones. In a more general context, one can have system with $q$ relevant quantum numbers, out of which $q_{\lambda}$ define a block of the Hamiltonian matrix. Then there exists a mapping
+\[
+(q_1,q_2,\dots,q_n) \leftrightarrow (\lambda, \pi),
+\]
+where $\lambda$ is a transition channel, consisting of a specific set of preserved quantum numbers, and $\pi$ the configuration with specific values of the remaining quantum numbers. That way, for two general states $|\alpha\rangle$ and  $|\beta\rangle$, the following relation holds
+\[
+ _{\lambda', \pi'}\lla \alpha \right| \hat{H} \left| \beta \rra_{\lambda,\pi} = 0, \qquad \mbox{if } \lambda' \neq \lambda,
+\]
+which is just the mathematical formulation of saying that the Hamiltonian is block-diagonal. In the case of quantum dots, a channel $\lambda$ is specified by the two quantum numbers $M$ and $M_s$. However, for nuclear systems for example, one could  add the parity $\tau$ as third preserved quantum number. In order to treat those kinds of systems, too, we have opened up the possibility of including more quantum numbers in our code.
+
+\begin{lstlisting}[float, caption={Function to check if a Slater determinant fulfils the requirements of a specific channel. Input parameters are the vector \textit{occ}, containing the occupied sp-states, the number of particles \textit{numpart} and the vector \textit{spes\_channel}. This vector contains the values of the preserved quantum numbers in the same order as they appear in the array \textit{qnumbers} with the quantum numbers of each sp-state, starting with the second index. In our case, \textit{qnumbers} contains the quantum numbers $n,m,m_s$ and if we are interested in the channel with $M = M_s = 0$, the vector \textit{spes\_channel} therefore has to contain $(0,0)$. For other systems with more quantum numbers, one could simply extend the array \textit{qnumbers} and, if those quantum numbers define the channel, also the vector $spes\_channel$.},label=lst:channel]
+
+// Return whether the occupation scheme "occ" has the correct channel
+bool Basis::correct_channel(ivec& occ, int numpart,ivec& spes_channel) {
+    ...
+    int fixed_channel = spes_channel.size(); // number of quantum numbers to be checked is specified by the input vector
+      
+    for(int i = 1; i<= fixed_channel; i++){
+        sum = 0;
+        for( int j = 0; j< numpart; j++){       
+            sum += singPart[occ(j)].qnumbers[i];
+        }
+              
+        if(sum != spes_channel(i-1))
+            return false;       
+    }
+    return true;
+}
+\end{lstlisting}
+
+Especially with regard to systems with many particles, the Slater determinant basis is not stored in occupation representation, i.e. in the form
+\[
+\lb\begin{array}{c}
+|0,1,2,3\rangle \\
+|0,1,2,6\rangle \\
+|0,1,3,8\rangle \\
+\dots
+\end{array}\rb,
+\]
+but in binary representation, with the mapping
+\[
+\lb\begin{array}{c}
+|0,1,2,3\rangle \\
+|0,1,2,6\rangle \\
+|0,1,3,8\rangle \\
+\dots
+\end{array}\rb
+\leftrightarrow
+\lb\begin{array}{c}
+|15\rangle \\
+|71\rangle \\
+|267\rangle \\
+\dots
+\end{array}\rb.
+\] 
+ On the one hand, this approach saves memory since instead of $N$ integers, just one integer is saved per Slater determinant. On the other hand, it makes the usage of time saving bit manipulation operations possible when the Hamiltonian acts on those basis states, something we will explain at a later stage.\\
+However, in this first approach, this method has a limitation, since an integer is restricted to 32 or 64 bits, depending on the operating system. In order to have the possibility to treat systems with more than $R=7$ or $R=10$ shells, respectively, the Slater determinants are therefore saved in the form of \textit{bitsets} \cite{C++}.  This C{}\verb!++! class, which is part of the standard library, is a special container class designed to store bits. The number of stored bits can be assigned to an arbitrary value, in our case $R(R+1)$, with $R$ denoting the number of shells. Further advantages of this class are the numerous methods for bit manipulation, such as setting and removing bits or testing whether a specific bit is set.
+
+\subsubsection{Setting up the Hamiltonian matrix}
+
+In order to set up the Hamiltonian matrix, we have to compute all matrix elements 
+\[
+\lla \alpha \right| \hat{H} \left| \beta \rra = \lla \alpha \right|\left( \sum\limits_{pq}\left\langle p \right| \hat{h}^{(0)} \left| q \right\rangle a_p\da a_q + \frac{1}{4}\sum\limits_{pqrs}\lla pq \right|\left| r s \rra a_p\da a_q\da a_s a_r \right)\left| \beta \rra
+\]
+ in the given basis of Slater determinants. To do this as effective as possible, we proceed as summarized for the interaction elements in the box below. The procedure for the non-interacting part of the Hamiltonian is similar, in the case that $\hat{H}_0$ is diagonal even much easier since one simply has to add the corresponding contributions on the diagonal.
+ 
+ \begin{framed}
+\begin{center}
+\textbf{Algorithm: Setup of the Hamiltonian matrix (interaction part)}
+\end{center}
+Loop over all ket-states (right of the Hamiltonian operator)
+ \begin{itemize}
+ \item Loop over all indices $i<j$ and $k<l$. 
+ \begin{enumerate}
+ \item Act with creation/annihilation operators  $\ad_i \ad_j a_l a_k $ on the ket-state $|\beta\rangle$. If not zero, this yields a bra-state $\langle \alpha |$.
+ \item Determine the index of $\langle \alpha |$ in the basis of Slater determinants.
+ \item If the state exists in our basis, extract the transition amplitude  $\lla \alpha \left| \hat{v} \right| \beta \rra$ from the elements that have been read in.
+ \item Add this contribution to the matrix element $H_{\alpha \beta} = \lla \alpha \right| \hat{H} \left| \beta \rra$ of the Hamiltonian matrix. 
+ \end{enumerate}
+ \end{itemize}
+ \end{framed}
+The step of acting with $\ad_i \ad_j a_l a_k $ on a ket-state $|\beta\rangle$ to obtain the bra-state $\langle \alpha |$ might need some additional explanation:\\
+As explained above, all Slater determinants are saved as a bit pattern.
+ Acting with $\ad_i \ad_j a_l a_k $ on such a bit pattern means to remove the bits $k$ and $l$, and to add the bits $i$ and $j$. 
+ At the same time, it is necessary to keep track of the phase since for $i\neq j$ we have that $a_i a_j = -a_j a_i$ and $\ad_i \ad_j = -\ad_j \ad_i$. The concrete procedure is therefore as follows:\\
+First, we check whether both bits $k$ and $l$ are occupied, using the the corresponding method of the C{}\verb!++! class \textit{bitset}. If not, no further calculations are necessary since $a_p |\Phi\rangle = a_p \ad_{q_1}\ad_{q_2}\dots \ad_{q_N}|0\rangle = 0$ for $p \not\in \lbrace q_1,q_2,\dots q_n \rbrace$. If both bits are set, first the bit $k$, then the bit $l$ is removed from the bit pattern. To keep track of the correct sign, each time a bit is removed, we count the number of occupied bits before that one and multiply the overall sign with $(-1)$ for each occupied bit. Afterwards, the two creation operators $\ad_i \ad_j$ have to act on the state. Similar to the annihilation process, we first check whether the two bits $i$ and $j$ already are contained in the bit pattern. In this case, we return zero, since $\ad_p |\Phi\rangle = \ad_p \ad_{q_1}\ad_{q_2}\dots \ad_{q_N}|0\rangle = 0$ for $p\in \lbrace q_1,q_2,\dots q_n \rbrace$. Otherwise, the two bits are added at the correct place using simple bit operations. Again we keep track of the overall sign by counting the number of occupied bits before that one. The results are the bra-state $\langle\alpha|$ in bit representation as well as the phase, which one has to multiply with the transition amplitude. 
+
+\begin{framed}
+\begin{center}
+\textbf{Algorithm to determine $|\alpha\rangle = \pm \ad_i \ad_j a_l a_k |\beta \rangle$}
+\end{center}
+\begin{enumerate}
+\item Test if bit $k$ and $l$ are occupied in the bit pattern of state $|\beta\rangle$. If not, return zero.
+\item Remove first bit $k$, then bit $l$ from state $|\beta\rangle$, keeping track of the phase as explained in the text.
+\item Check if bit $i$ or $j$ is occupied in $|\beta\rangle$.
+\item If yes, then return zero, otherwise add first bit $j$, then $i$, again following the phase.
+\end{enumerate}
+\end{framed}
+ 
+\subsection{Applying the SRG solver}
+\label{subsec:SRG}
+When the Hamiltonian matrix is set up, the SRG method can be used to diagonalize it. Since the flow equations (\ref{eq:flow}) represent a set of coupled ordinary differential equations (ODEs), one needs an ODE solver that performs the integration. In this thesis, we use a solver based on the algorithm by Shampine and Gordon \cite{shampine1975computer}, provided as C{}\verb!++! version on \cite{odesolver}.\\
+
+\subsubsection{ODE algorithm by Shampine/Gordon}
+In the following we will explain the basic concepts of the Shampine/Gordon ODE algorithm. The code itself, however, is much more advanced than that and involves dealing with discontinuities and stiffness criteria, controls for propagated roundoff errors and detecting requests for high accuracies. This makes it a very powerful tool for the solution of ordinary differential equations, but the code gets difficult to read and the reader can easily get lost in all the details. Therefore, we will summarize the main procedure and ideas of the algorithm, without mentioning all the minor functions used for error control etc. For a detailed explanation, we refer instead to \cite{shampine1975computer}.
+
+The ODE algorithm by Shampine and Gordon involves three major functions: the core integrator \textit{step}, a method for interpolation \textit{intrp} and a driver \textit{ode}. \\
+Suppose we have to solve a general ODE problem of the form
+\begin{align*}
+y_1'(t) &= f_1(t,y_1(t),y_2(t),\dots, y_n(t))\\
+y_2'(t) &= f_2(t,y_1(t),y_2(t),\dots, y_n(t))\\
+\vdots& \\
+y_n'(t) &= f_n(t,y_1(t),y_2(t),\dots, y_n(t)),
+\end{align*}
+with initial conditions $y_1(a), y_2(a),\dots,y_n(a)$ given.
+ In a simplified notation, this can be summarized as
+\begin{align}
+\mathbf{y}'(t) &= \mathbf{f}(t,\mathbf{y}(t)),\\
+\label{eq:ODE1}
+\mathbf{y}(a) &= \mathbf{y}_0.
+\end{align}
+In order to solve such a problem with an ODE solver, it is necessary to provide that one with a complete specification of the problem. This involves the concrete equations (\ref{eq:ODE1}), which should be supplied as a subroutine, the initial conditions $y_1(a), y_2(a),\dots,y_n(a)$, the interval of integration $[a,b]$, as well as the expected accuracy and how the error should be measured. The integrator should then be able to return the solution at $b$, or, in the case that the integration failed, the solution up to the point where it failed and should report why it failed. \\
+All this tasks, getting the input parameters, piecing all the minor functions together to a working code and at the same time taking care of the above mentioned criteria like stiffness and error propagation etc., are carried out by the driver function \textit{ode}.
+It is intended for problems in which the solution is only desired at some endpoint $b$ or a sequence of output points $b_i$, and the user gets no insight into the complicated calculations regarding the integration within $[a,b]$. However, in order for the user to know about success of the integration and how to possibly attain it in a next attempt, \textit{ode} returns a flag which explicitly states why an integration failed. Possible causes that we encountered in our integrations and that helped to tune the input parameters, are too small error tolerances, too many required steps to reach the output point and the warning that the equations appear to be stiff. In the ideal case, the integration converges and one only has to provide the function with appropriate input parameters, call the \textit{ode} function and collect the output results in the end.
+
+The concrete equations (\ref{eq:ODE1}) must be supplied as subroutine of the form 
+\be
+f(t,y,dy),
+\label{eq:devfunction}
+\ee
+where $t$ is a specific integration point, $y$ an array containing the values $y_i(t), i=1\dots n$ at that point and $dy$ an array with the same dimension as $y$, holding the derivatives. \\
+In our specific case of SRG, we have the function
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray},numbers=none]
+void SRG::derivative(double lambda, double** v, double** dv),
+\end{lstlisting}
+for both the free space and the in-medium case, where $lambda$ specifies the integration point, $v$ holds the interaction elements and $dv$ the corresponding derivatives. \\
+On input, \textit{ode} must be provided with all initial conditions, which means that the array $v$ must contain the interaction elements of the initial Hamiltonian. 
+On output this array contains the (hopefully) converged interaction elements at the output integration point $s$.
+\begin{align*}
+\mbox{Input: } v& \leftarrow  \langle p q | \hat{H} | r s \rangle \\
+\mbox{Output: } v& = v(s).
+\end{align*}
+
+The mathematically most fundamental routine of the algorithm is the routine \textit{step}, which is the basic integrator and advances the solution of the differential equations exactly one step at a time, that is from $y_n$ to $y_{n+1} = y_{n}+h$. It uses a variable order version of the Adams formulas in a PECE combination with local extrapolation \cite{shampine1975computer}, which means that the predictor is of order $k$ and the corrector of order $k+1$.
+
+In order to use Adams methods most effectively, the algorithm aims at using the largest step size $h$ yielding the requested accuracy. Most ODE codes require the user to guess an initial step size, which can be a source of error if the user does not know how to estimate a suitable value. The ODE algorithm by Shampine/Gordon therefore includes a routine to estimate this value automatically, trying to limit the problem to a minimum of function evaluations, but at the same time maintaining stability. \\
+The determination of the step length is motivated by experimentation done by F.T.Krogh \cite{DBLP:confifip/Krogh68} and C.W.Gear \cite{Gear68} and based on various error predictions and interpolation. Concerning selection of the right order, the algorithm tends to use low orders since they have better stability properties. The order is only raised if this is associated with a lower predicted error.\\
+Starting with lowest order $k$, the typical behaviour is that, after the next order $k+1$ has been reached, the step size will double on successive steps until a step size appropriate to the order $k+1$ is attained. Then $k+1$ steps of this size are taken and the order is raised. This procedure is repeated until one has found an order appropriate to the problem and with lowest possible error.\\
+After the step size as well as the order have been specified, the function \textit{step} advances the solution of the differential equation one step further. During the propagation, the local error is controlled according to a criterion that bases on a generalized error per unit step [ref].
+
+With a step size determined by error propagation and stability, it is very likely that the integration points of the algorithm do not coincide with the desired integration output \mbox{point $s$}. Moreover, results are most accurate if the equations are integrated just beyond that \mbox{point $s$} and then interpolated. Exactly this task is carried out by the routine \textit{intrp}, performing such an interpolation to obtain the solution at specified output points. 
+
+\subsubsection{Class \textit{SRG}}
+
+Everything concerning the SRG method itself, i.e. the flow of the Hamiltonian, is handled by the class \textit{SRG}. The task of this class is to be given a system with a Hamiltonian and solve the flow equations (\ref{eq:flow}) as a system of coupled ODEs. \\
+The main data structure this class holds, is an object of type \textit{System}, which serves as communication point to system-specifying objects of type \textit{Hamiltonian}, \textit{Basis} etc. The central function  \textit{run\_algo}  performs the integration, employing the ODE-solver of Shampine and Gordon. We adopted the original version of the C{}\verb!++! code \cite{odesolver} to our needs, such that it fits our system of data storage and the derivative function. The modified functions are now part of our class \textit{SRG}.
+
+As stated above, the ODE-solver needs to be supplied with initial conditions, integration interval, specifications of error limits, as well as the concrete derivative equations (\ref{eq:ODE1}). In our case, the initial conditions are stored in the Hamiltonian matrix and the integration interval, as well as the limits for the relative and absolute error, are transferred as input parameters to the function \textit{run\_algo}. As already mentioned above, we have a separate function, called \textit{oscillator\_derivative}, that computes the derivatives at a certain point of integration. \\
+Concerning the integration interval, one theoretically has to integrate down to $\lambda=0$. Practically, one can stop the integration after the ground state energy $E_0$ does not change any more within a user-defined tolerance. For this reason, we specify for each run a sufficiently small value for $\lambda$, after which the integration shall stop in certain steps and detect whether the change of $E_0$ lies within the given bounds. On the one hand, this step length should be chosen small enough that integration is not performed unnecessarily close to the zero point, because the required CPU time increases drastically with the length of integration, as we will see later on. On the other hand, it should be chosen large enough that differences of $E_0$ exceed the error tolerance if convergence has not been reached yet and the integration has not to stop too often for interpolation. \\
+We solved this problem in such a way, that we usually start with a step length of $\Delta\lambda=0.1$ after we stop for the first check and integrate to maximally $\lambda=0.1$. If there is still no convergence, we decrease the step length and approach the zero point in smaller steps.\\
+As explained in chapter \ref{chap:SRG}, there are different possible generators $\hat{\eta}$ driving the Hamiltonian to  diagonal form. In the case of free-space SRG, we will look at the simple generator  $\hat{\eta}_1 = \left[ \hat{T}_{\text{rel}}, \hat{V}\right]$  and Wegner's canonical choice $\hat{\eta}_2 = \left[ \Hd, \Ho \right]$. The only computational difference between both generators occurs when computing the derivatives. Therefore, we designed  the derivative-function as a kind of wrapper that chooses the generator-specific routine from an array containing the routines for all considered generators. This structure makes it enormous easy to include further generators: One simply has to extend the array by a further derivative-function. Listings (\ref{lst:eta0}) and (\ref{lst:eta1}) demonstrate how we practically implemented this choosing of generator.
+
+\begin{lstlisting}[float,caption={The function \textit{oscillator\_derivative} serves as a wrapper, picking the generator-specific derivative-computing function from an array. All functions in this array must have the same signature as in Eq. (\ref{eq:devfunction}). Here \textit{lambda} denotes the integration point, and \textit{v} and \textit{dv} are arrays containing the interaction elements and corresponding derivatives, respectively. },numbers=none, label={lst:eta0}]
+void SRG::derivative(double lambda, double** v, double** dv) {
+     (this->*eta)(lambda, v,dv);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[float,caption={Demonstration how we practically implemented the array containing the derivative-functions \textit{deriv\_eta1} and \textit{deriv\_eta2} for two different generators. When an instance of the class \textit{SRG} is created, the integer \textit{eta\_choice} determines which of the functions shall be used when \textit{oscillator\_derivative} is called.},numbers=none, label={lst:eta1}]
+typedef void (SRG::*fptr)(double k_lambda, double **v, double **dv);
+    static const fptr eta_table[2];
+    fptr eta;
+    
+const SRG::fptr SRG::eta_table[] = {
+    &SRG::deriv_eta1, &SRG::deriv_eta2
+};
+
+// in constructor:
+SRG::SRG(..., int eta_choice) {
+    ...
+    eta = eta_table[eta_choice];
+    ...
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[float,caption={Derivative function for generator $\hat{\eta}_1$. The function receives the current interaction elements at \textit{k\_lambda} in the array  \textit{v} and returns the corresponding derivatives in the \mbox{array \textit{dv}}. The calculation is performed according to Eq.~(\ref{eq:flow}). Via the object \textit{Sys} of type \textit{System}, the Hamiltonian can effectively be accessed.}, label={lst:eta2}]
+void SRG::deriv_eta1(double k_lambda, double** v, double** dv) {
+
+	...
+	
+    k3 = k_lambda * k_lambda*k_lambda;
+
+#pragma omp parallel for private(i,k12,j,sum,k) schedule(dynamic)
+    for (i = 0; i < n; i++) {
+         for (j = i; j < n; j++){
+             
+            sum = 0.0;
+            k12 = Sys->H->H0[i] + Sys->H->H0[j];
+            for (k = 0; k < i; k++)
+                sum += (k12 - 2.0 * Sys->H->H0[k]) * v[k][j] * v[k][i];
+            for (k = i; k < j; k++)
+                sum += (k12 - 2.0 * Sys->H->H0[k]) * v[k][j] * v[i][k];
+            for (k = j; k < n; k++)
+                sum += (k12 - 2.0 * Sys->H->H0[k]) * v[j][k] * v[i][k];
+
+            dv[i][j] = sum - (Sys->H->H0[j] - Sys->H->H0[i])*(Sys->H->H0[j] - Sys->H->H0[i]) * v[i][j];
+            dv[i][j] *= -2.0 / k3;
+        }
+    }
+    
+    return;
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[float,caption={Derivative function for Wegner's generator $\hat{\eta}_2$. The function has the same signature as for generator $\hat{\eta}_1$, receiving the current interaction elements at \textit{k\_lambda} in the array  \textit{v} and returning the corresponding derivatives in the array \textit{dv}. The calculation is performed according to Eq.~(\ref{eq:flowWegner}).}, label={lst:eta3}]
+void SRG::deriv_eta2(double k_lambda, double** v, double** dv) {
+
+	...
+	
+    k3 = k_lambda * k_lambda*k_lambda;
+
+#pragma omp parallel for private(i,k12,j,sum,k) schedule(dynamic)
+    for (i = 0; i < n; i++) {
+         for (j = i; j < n; j++){
+
+            sum = 0.0;
+            k12 = Sys->H->H0[i] + Sys->H->H0[j] + v[i][i] + v[j][j];
+            for (k = 0; k < i; k++)
+                sum += (k12 - 2.0 * (Sys->H->H0[k] + v[k][k])) * v[k][j] * v[k][i];
+            for (k = i+1; k < j; k++)
+                sum += (k12 - 2.0 * (Sys->H->H0[k] + v[k][k])) * v[k][j] * v[i][k];
+            for (k = j+1; k < n; k++)
+                sum += (k12 - 2.0 * (Sys->H->H0[k] + v[k][k])) * v[j][k] * v[i][k];
+
+            dv[i][j] = sum - (Sys->H->H0[j] + v[j][j] - Sys->H->H0[i] - v[i][i])*(Sys->H->H0[j] + v[j][j] - Sys->H->H0[i] - v[i][i]) * v[i][j];
+            dv[i][j] *= -2.0 / k3;
+        }
+    }
+    return;
+}
+\end{lstlisting}
+
+The concrete derivative functions, the first one for  $\hat{\eta}_1 = \left[ \hat{T}_{\text{rel}}, \hat{V}\right]$  and the second one for Wegner's choice $\hat{\eta}_2 = \left[ \Hd, \Ho \right]$, are presented in listings (\ref{lst:eta2}) and (\ref{lst:eta3}). Since there is only a minimal difference between the final flow equations (\ref{eq:flow}) and (\ref{eq:flowWegner}), our derivative functions look quite similar, too. The only difference lies in some additional terms for Wegner's generator in lines 14,16,18 and 20. \\
+These two functions are well suited to demonstrate how the \textit{SRG}-class communicates with the Hamiltonian by the class $System$: If we want to access the $k$th element of the array $HO$, containing the diagonal, non-interacting elements, we call $Sys->H->H0[k]$. This means that we enter the Hamiltonian $H$ of our system $Sys$, and of this Hamiltonian the array $H0$ is called. All accessing happens via pointers, minimizing overhead. \\
+Concerning lines 13-18, it might seem unclear why we split the sum into three parts. The reason is that for efficiency reasons, we make use of our Hamiltonian being symmetric and therefore only store and consider its upper triangular part in our calculations. This reduces the number of coupled differential equations to nearly one half, which is a great benefit for the required CPU time of our program.\\
+Line 7 demonstrates how we parallelized these functions with OpenMP, selecting a dynamic schedule to ensure equal work balance in spite of the triangular form. For more information about syntax and scheduling in OpenMP, we refer to \cite{quinn2004parallel}.
+
+

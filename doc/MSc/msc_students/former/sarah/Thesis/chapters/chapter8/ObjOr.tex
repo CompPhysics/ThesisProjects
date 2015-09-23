@@ -1,0 +1,110 @@
+In this chapter, we explain the code developed for this thesis. We  discuss how we structured it, how the different items are related to each other to make the code as flexible and efficient as possible, and of course we show how we specifically implemented the methods of the two last chapters.\\
+To make the reader familiar with the terminology used in the following sections, we start with a short introduction to object-orientation in the programming language C{}\verb!++!. Afterwards, we will first explain the main code of this thesis, the SRG method, before we outline the implementation of the other two used many-body methods: Hartree-Fock and Diffusion Monte Carlo.
+
+\section{Object-orientation in C++}
+The programming language C{}\verb!++! is built on the C programming language, and was developed with the main purpose of adding object-orientation. Analogous to its predecessor, C{}\verb!++! is statically typed and compiled, which means that type-checking is performed during compile-time, as opposed to run-time. This is of great importance for the high-level performance of the code, which shall run as fast as possible. Object-orientation  provides the user with tools to write general codes that can without much effort be adapted to the demands of different problems. \\
+In physics problems, this is a great benefit, since it allows to treat different variations of the same problem, e.g. different potentials or Euclidean dimensions, without having to write a complete new code for each instance. Instead, so-called \textit{classes} form reusable building blocks that can unify groups of problems in a structured way, always opening up the possibility for extension.\\
+In this section, we will explain the central features of C{}\verb!++! which allow object-oriented programming. We will mainly concentrate on those aspects that are relevant for understanding the chosen structure of the code in this thesis, and we assume that the reader 
+is familiar with the syntax and basic functionalities of C{}\verb!++!. For  details, we refer to \cite{C++}.
+
+\subsection{Classes and objects}
+To combine data structures and methods for data manipulation handily into one package, C{}\verb!++! provides so-called \textit{classes}. A class is used to specify the form of an object, and the data and functions within a class are called \textit{members} of a class.
+
+\subsubsection{Definition of a C++ class}
+Defining a class, the prototype for a data type is specified. In particular, it is determined what objects of the class  consist of and what kinds of operations one can perform on such objects.
+As an example, we give the definition of our class \textit{SPstate}, which is a class for holding single-particle states:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}]
+class SPstate
+{   
+  private:
+    int index; // label of the state
+    ...
+    
+  public:
+    SPstate();
+     ~SPstate();    
+    void create(int i_qn);
+    ...
+};
+\end{lstlisting}
+
+Each class definition starts with the keyword \textit{class}, after which the name of the class and the class body are given. The class body contains the members of the class, where the keywords \textit{public, private} and \textit{protected} determine their access attributes. For example, a public member can be accessed from anywhere outside the class, whereas private members can just be accessed within the class itself. By default, members are assumed to be \textit{private}. %Usually, data members are declared private, whereas functions are declared public. 
+\\ In the example of \textit{SPstate}, we have a private variable called \textit{index}, which is of type integer, and in line 10, the public function \textit{create} is declared, with explicitly specified syntax. Note that member functions of a class are defined within the class definition like any other variable.
+
+\subsubsection{Defining a C++ object}
+Instances of a class are called \textit{objects}, and contain all the members of the class. To declare an object, one can use one of the following two alternatives:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}, numbers=none]
+SPstate SP();
+SPstate* SP = new SPstate();
+\end{lstlisting}
+
+In the first case, we create an object \textit{SP} of type \textit{SPstate}, whereas in the second case, a pointer is created. The latter possibility is used in this thesis to generate arrays, containing objects of type \textit{SPstate}  as items:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}, numbers=none]
+SPstate* singPart = new SPstate[number_states];
+\end{lstlisting}
+
+Each time a new object of a class is created, a special function, called the \textit{constructor}, is called. In our example of \textit{SPstate}, this is the function declared in line 8.  A destructor, see line 9 in the example, is another special function, and called when a created object is deleted.
+
+\subsection{Inheritance}
+The main concept in object-orientation is the one of inheritance, providing the opportunity to reuse  code functionality. Inheritance allows to define a class in terms of another class, such that the new class inherits the members of an existing class, which avoids writing completely new data members and functions. The existing class is called \textit{base} class, whereas the new class is referred to as \textit{derived} class or \textit{subclass}.\\
+To define a subclass, one uses a class derivation list to specify the base class (or several ones). This list names one or several base classes and has the following form:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}, numbers=none]
+class subclass: access-specifier base-class
+\end{lstlisting}
+Here \textit{base-class} is the name of any previously defined class, and \textit{access-specifier} must be one of $\lbrace$\textit{public, protected, private}$\rbrace$. By default, \textit{private} is used, and the specifier \textit{protected} means that data members can be accessed within the class and all derived subclasses.
+
+As an example, we consider the class \textit{System} of our SRG code, which has a derived class \textit{System\_2DQdot}:
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}]
+class System {
+
+  protected:
+    int R, numpart, sp_states;
+
+  public:   
+    System(){};
+    virtual void mapping(double omega) = 0;
+    void setup(bool hfbasis, double omega, int label);
+    ...
+};
+    
+class System_2DQdot: public System{ 
+    
+  public:
+    System_2DQdot(int numpart, int R);
+    void mapping(double omega);
+};
+\end{lstlisting}
+When an object of class \textit{System\_2DQdot} is created, it inherits all data members of \textit{System}, in particular all the protected data members declared in line 4, and the public member functions. 
+
+\paragraph{Polymorphism}
+When deriving more than one subclass from a base class, the C{}\verb!++! functionality of polymorphism is very handy. Polymorphism allows the base class and its subclasses to have functions of the same name, and a call to such functions will cause different routines to be executed,
+depending on the type of object that invokes the function. 
+
+As an example, consider the function \textit{mapping} of the previous listing. This function is declared in \textit{System}, as well as in \textit{System\_2DQdot}, and if we had further base classes of \textit{System}, each of the classes could have one such a function with a specific implementation.  To make it possible to select the specific function to be called, based on the kind of object for which it is called, we have defined \textit{mapping} to be \textit{virtual} in the base class.
+Defining a virtual function in a base class, with another version in a derived class, signals the compiler not to use static linkage for this function. \\
+In our case, the function \textit{mapping} is even set to zero, since there is no meaningful general definition for it in the base class. In this case, it is referred to as \textit{pure virtual function}. To demonstrate its usage, consider the following example of our code:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}, numbers=none]
+void System::setup(bool hfbasis, double omega, int label) {
+        ...
+    mapping(omega); 
+    ...   
+}
+\end{lstlisting}
+
+The class \textit{System} contains a member function \textit{setup}, calling the function \textit{mapping}, which we already explained to be a pure virtual function in the class definition of \textit{System}. We can now call:
+
+\begin{lstlisting}[backgroundcolor=\color{lighter-gray}, numbers=none]
+...
+System_2dQdot QuantumDot(numpart,R);
+QuatumDot.setup(hfbasis, omega, label);
+\end{lstlisting}
+The compiler understands that \textit{QuantumDot} is derived of the base class \textit{System}, and therefore has a function \textit{setup}, and calls automatically that implementation of \textit{mapping} that is specified in the subclass \textit{System\_2DQDot}.\\
+This example demonstrates the power of object-orientation and its great features for writing general, well-structured codes.
+
+\nocite{C++tutorial}
+

@@ -1,0 +1,538 @@
+\chapter{Many-body theory}
+\label{chap:mb}
+
+When studying real physical systems, for instance nucleons in a nucleus, electrons in atoms or atoms in a molecule, one usually considers more than one particle. The degrees of freedom of the system increase, and the many-body Schr\"odinger equation includes more terms than a pure addition of the single-particle contributions:\
+The particles interact, and since each particle influences each other one's motion, the problem gets almost impossibly complicated. In the general case, one neither knows the exact form of the Hamiltonian, nor is one able to solve Schr\"odinger's equation with conventional methods. It is therefore necessary to simplify the problem and make approximations, and several many-body methods have been developed to understand the behaviour of interacting systems.\\
+In this thesis, the focus lies on interacting electrons and the following sections serve to explain the basic aspects of many-body theory, especially concentrating on second quantization. Unless explicit references are given, we will follow the explanations in \cite{shavitt2009many,nolting2009grundkurs}.
+ 
+ 
+\section{The Many-Body Problem}
+The problem of interest is an isolated system consisting of $N$ particles. The evolution is described by Schr\"odinger's equation, which for one particle has been given in Eq.(\ref{eq:th6}). For more than one particle, the many-body wave function
+\be 
+\Psi(\rv_1,\rv_2,\dots,\rv_N;t) \equiv \Psi(\rf,t)
+\ee
+is a $N$-dimensional vector in the composite Hilbert space 
+\[
+\mathcal{H}_N = \mathcal{H}_1^{(1)} \otimes \mathcal{H}_1^{(2)} \cdots \otimes \mathcal{H}_1^{(N)}.
+\]
+Here the single-particle Hilbert space $\mathcal{H}_1^{(i)}$ denotes the space of square integrable functions over spatial as well as spin degrees of freedom, and the basis of $\mathcal{H}_N$ are direct products of the corresponding single-particle basis states:
+\be 
+\Phi_N(\rf,t) = \phi_1(\rv_1,t) \otimes \phi_2(\rv_2,t) \otimes \cdots \otimes \phi_N(\rv_N,t),
+\ee
+where $\rv_i$ contains spin in addition to spatial degrees of freedom. Each general $N$-particle wave function $\Psi(\rf,t)$ can be expanded in terms of those basis functions $\Phi_N(\rf,t)$, in bra-ket notation given by
+\begin{align}
+|\Psi(\rf,t)\rangle &= \sum_{\alpha_1\cdots\alpha_N} C(\alpha_1\cdots\alpha_N)  |\phi_{\alpha_1} \rangle\otimes |\phi_{\alpha_2}\rangle \otimes \cdots \otimes |\phi_{\alpha_N}\rangle \notag \\
+&\equiv \sum_{\alpha_1\cdots\alpha_N} C(\alpha_1\cdots\alpha_N)| \phi_{\alpha_1}\phi_{\alpha_2}\cdots\phi_{\alpha_N}\rangle.
+\label{eq:coeff}
+\end{align}
+With the single-particle functions $\phi_i$ normalized as explained in chapter \ref{chap:theory}, $|C(\alpha_1\cdots\alpha_N)|^2$ represents the probability with which a measurement of a observable in state $|\Psi(\rf,t)\rangle$ will yield the eigenvalue of $| \phi_{\alpha_1}\phi_{\alpha_2}\cdots\phi_{\alpha_N}\rangle$.
+
+
+Apart from the wave function, also the Hamiltonian of Eq.(\ref{eq:th6}) has to be extended to include the contributions from all particles. A first approach is to start with non-interacting particles, where the Hamiltonian of the $N$-particle system is given as the sum of the single-particle Hamiltonians $\hat{h}^{(0)}_i$,
+\be 
+\hat{H}_0 = \sum_i \hat{h}^{(0)}_i = \sum_i \lb -\frac{\hbar^2}{2m}\nabla_i^2 + \hat{v}_{i} \rb,
+\ee
+where $\hat{v}_{i}$ denotes the external single-particle potential. With this Hamiltonian, the time-independent Schr\"odinger equation, $\hat{H}|\Psi(\rf,t)\rangle = E |\Psi(\rf,t)\rangle$, is separable, with solution
+\be 
+\hat{H}|\Psi(\rf,t)\rangle = \lb \sum_i \hat{h}^{(0)}_i \rb |\phi_{1} \rangle\otimes |\phi_{2}\rangle \otimes \cdots \otimes |\phi_{N}\rangle = \sum_i \epsilon_i |\phi_{i} \rangle.
+\ee
+The single-particle energies $\epsilon_i$ are the solutions to the associated one-particle problems
+\[
+\hat{h}^{(0)}|\phi_{i} \rangle = \epsilon_i |\phi_{i} \rangle.
+\]
+
+Taking the interaction between the particles into account, the potential energy is extended by an interaction term $\hat{V}_{int}$, such that the total Hamiltonian reads
+\be 
+\hat{H} = \sum_i \hat{h}^{(0)}_i + \hat{V}_{int} = \sum_i \lb -\frac{\hbar^2}{2m}\nabla_i^2 + \hat{v}_{i} \rb + \hat{V}_{int}.
+\label{eq:hamiltonian}
+\ee
+The explicit form of $\hat{V}_{int}$ is usually unknown, and depending on the many-body method, there exist different ways to model it.
+
+\subsection{Fermionic systems}
+In this thesis, we deal with electrons, which are fermions. Fermions are particles with half-integer spin and follow the Pauli exclusion principle, stating that two fermions cannot simultaneously occupy the same quantum state. In the case that two fermions have the same spatial probability distribution, at least one other property, for instance spin, must be different.
+
+Moreover, our electrons behave as identical particles, meaning that under similar physical conditions, they behave exactly the same way and therefore cannot be distinguished by any objective measurement. While in classical mechanics, due to a computable orbit, particles are always identifiable, in quantum mechanics the principle of indistinguishability holds.  Resulting from the uncertainty relation, the particles have no sharply defined orbit. Therefore the occupation probabilities of mutually interacting identical particles overlap, making their identification impossible.\\
+As a consequence, the probability distribution of a system should not be altered when interchanging the coordinates of two particles $i$ and $j$. Introducing the permutation operator $\hat{P}_{ij}$, with the property
+\[
+\hat{P}_{ij}|\phi_1\cdots\phi_i\cdots\phi_j\cdots\phi_N\rangle = |\phi_1\cdots\phi_j\cdots\phi_i\cdots\phi_N\rangle,
+\]
+we can express this fact by
+\be 
+|\Psi(\rf,t)|^2 = |\hat{P}_{ij}\Psi(\rf,t)|^2.
+\label{eq:permutation}
+\ee 
+Equation (\ref{eq:permutation}) has two solutions, namely
+\[
+\hat{P}_{ij}\Psi(\rf,t) = \Psi(\rf,t), \qquad \hat{P}_{ij}\Psi(\rf,t) = -\Psi(\rf,t).
+\]
+The first solution results in a symmetric wave function, describing bosons, whereas the second solution corresponds to an antisymmetric wave function and describes fermions.
+
+To construct  such an antisymmetric wave function for electrons, one usually expresses the wave function as so-called \textit{Slater determinant}, named after J.C. Slater who first proposed this model in 1929 \cite{PhysRev.34.1293}. For a $N$-particle function, the entries of this determinant are $N$ single-particle functions $\phi_{\alpha}, \phi_{\beta},\cdots,\phi_{\delta}$, forming a complete, orthonormal basis. With the positions and spin degrees of freedoms of the particles given by $\rv_1,\cdots,\rv_N$, such a determinant reads
+\be 
+\Phi_{\alpha,\beta,\cdots,\delta}(\rv_1,\cdots,\rv_N) =
+\frac{1}{\sqrt{N!}}\left|
+\begin{array}{cccc}
+\phi_{\alpha}(\rv_1) & \phi_{\beta}(\rv_1) & \cdots &\phi_{\delta}(\rv_1) \\
+\phi_{\alpha}(\rv_2) & \phi_{\beta}(\rv_2) & \cdots &\phi_{\delta}(\rv_2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\phi_{\alpha}(\rv_N) & \phi_{\beta}(\rv_N) & \cdots &\phi_{\delta}(\rv_N)
+\end{array}
+\right|,
+\label{eq:SDeterminant}
+\ee
+where the factor $1/\sqrt{N!}$ accounts for the indistinguishability of the particles, ensuring normalization of the wave function. Since determinants have the property to vanish whenever two of their rows or columns are equal, the Pauli exclusion principle is respected in addition to the antisymmetry. It is important to note that two electrons are  allowed to have the same position, as long as their spin is different. In particular, each of the single-particle functions $\phi_i(\rv_j)$ is strictly speaking composed of two parts, namely a spatial and a spin part:
+\be 
+\phi_i(\rv_j) = \tilde{\phi}_i(x_j,y_j,z_j)\otimes \chi(\sigma_j),
+\label{eq:SPspin}
+\ee
+where $\sigma_j$ denotes the spin orientation of particle $j$.
+
+The basic idea now is that any arbitrary wave function can be expressed as linear combination of such Slater determinants,
+\be 
+\Psi(\rf) = \sum_{\alpha,\beta\cdots\delta} C_{\alpha,\beta\cdots\delta} \Phi_{\alpha,\beta,\cdots,\delta}(\rv_1,\cdots,\rv_N),
+\ee
+where the expansion coefficients $C_{\alpha,\beta\cdots\delta}$  have the same meaning as in Eq.~(\ref{eq:coeff}) and the Slater determinants $\Phi_{\alpha,\beta,\cdots,\delta}(\rv_1,\cdots,\rv_N)$ are defined by Eq.~(\ref{eq:SDeterminant}). Such an expansion is possible for all times $t$, such that we will suppress the $t$-dependence in the following.
+
+
+
+\section{Second Quantization}
+\label{sec:SecQuant}
+
+The formalism of second quantization involves a reformulation of the original Schr\"odinger equation, allowing a considerable simplification of the many-body problem. Tedious constructions of wave functions as products of single-particle wave functions get redundant when making use of the creation and annihilation operators introduced in the previous chapter. The overall statistical properties are then contained in fundamental commutation relations, and complicated interactions between particles can be modelled in terms of creation and annihilation of particles.\\
+In the following sections, we will give a short introduction to the formalisms of second quantization and how they can be applied to treat fermionic systems.  Since we are interested in electrons, we will restrict us to antisymmetric wave functions constructed of Slater determinants.
+
+
+\subsection{The basic formalism}
+A first useful tool is to introduce the \textit{occupancy notation} for Slater determinants (SDs), 
+\be 
+\Phi_{\alpha_1,\alpha_2,\cdots,\alpha_N} \equiv 
+|\alpha_1\alpha_2\cdots\alpha_N\rangle,
+\ee
+which specifies which basis states $\phi_i$ are occupied in the determinant. 
+The creation and annihilation operators, $\ad$ and $a$, respectively, are defined in terms of their action on the SDs,
+\begin{align}
+\ad_{\alpha_0} |\alpha_1\alpha_2\cdots\alpha_N\rangle &= |\alpha_0\alpha_1\alpha_2\cdots\alpha_N\rangle 
+\label{eq:creat}\\
+a_{\alpha_1} |\alpha_1\alpha_2\cdots\alpha_N\rangle &= |\alpha_2\cdots\alpha_N\rangle.
+\label{eq:annil}
+\end{align}
+In Eq.~(\ref{eq:creat}), the creation operator $\ad_{\alpha_0}$ adds a state $\phi_0$ to the Slater determinant, creating a $(N+1)$- from a $N$-particle state. On the other hand, in Eq.~(\ref{eq:annil}), the annihilation operator $a_{\alpha_1}$ removes a state $\phi_1$, thus transforming a $N$- to a $(N-1)$-particle state.\\
+We define the vacuum state $|0\rangle$ as state where none of the orbitals are occupied, specified by the relation
+\[
+a_{\alpha_i} |0\rangle = 0, \qquad \forall i\in\mathbb{N}.
+\]
+Each $N$-particle state can now be generated by applying a product of creation operators on the vacuum state
+\be  
+|\alpha_1\alpha_2\cdots\alpha_N\rangle = \ad_{\alpha_1}\ad_{\alpha_2}\cdots\ad_{\alpha_N}|0\rangle.
+\ee 
+Note that the orbitals are given an ordering, guaranteeing antisymmetry by
+\be 
+|\alpha_1\cdots\alpha_i\alpha_j\cdots\alpha_N\rangle = - |\alpha_1\cdots\alpha_j\alpha_i\cdots\alpha_N\rangle.
+\label{eq:assym}
+\ee
+Carried over to the creation operators, this means
+\[
+\ad_{\alpha_i}\ad_{\alpha_j} = -\ad_{\alpha_j}\ad_{\alpha_i}.
+\]
+The same holds true for the annihilation operators and defining the anticommutator of two operators $\hat{A},\hat{B}$,
+\be 
+\lbrace \hat{A},\hat{B}\rbrace = \hat{A}\hat{B} + \hat{B}\hat{A},
+\ee
+we obtain the following basic anticommutation relations\footnote{For a proof of the relations, we refer to \cite{shavitt2009many}.}:
+\begin{align}
+\begin{split}
+\lbrace \ad_{\alpha}, \ad_{\beta}\rbrace &= 0, \\
+\lbrace a_{\alpha}, a_{\beta}\rbrace &= 0, \\
+\lbrace \ad_{\alpha}, a_{\beta}\rbrace &= \delta_{\alpha\beta}.
+\label{eq:anticom}
+\end{split}
+\end{align}
+
+\subsection{Second quantization with reference state}
+\label{subsec:SecQuantRef}
+When the system consists of a larger amount of particles, it gets often rather cumbersome to work with the physical vacuum state $|0\rangle$. A large number of creation operators has to be taken into account and worked with, often resulting in long equations. \\
+To reduce the dimensionality of the problem, we introduce a reference state $|\Phi_0\rangle$, which is the state where $N$ particles occupy the $N$ single-particle states with the lowest energy. This reference state is also referred to as \textit{Fermi vacuum}, and the level of the highest occupied orbital is called \textit{Fermi level}.\\
+In the following, we will refer to the single-particle states up to the Fermi level as \textit{hole states}, and label them with $i,j,k,\dots$, and to the ones above the Fermi level as \textit{particle states}, labelled with $a,b,c,\dots$ General single-particle states that can lie above or below the Fermi level, will be labelled with $p,q,r,\dots$
+
+With this notation, the $N$-particle reference state is obtained by applying all $N$ creation operators corresponding to hole states on the vacuum state,
+\be 
+|\Phi_0\rangle = \ad_i\ad_j\ad_k\cdots|0\rangle,
+\ee 
+where we assume that the energies of the single-particle states are arranged in lexical order,
+\[
+\cdots \geq \epsilon_k \geq \epsilon_j \geq \epsilon_i.
+\]
+When applying the creation and annihilation operators to the reference state, we have to guarantee that particles can only be annihilated if they are present in the determinant, and that we cannot create particles that already are contained.\\
+For the creation operator $\ad$, this suggests
+\begin{align}
+\begin{split}
+\ad_p |\Phi_0\rangle = \begin{cases}
+|\Phi^p\rangle, &\text{if } p \in \lbrace a,b,c,\dots\rbrace\\
+0 & \text{if } p \in \lbrace i,j,k,\dots\rbrace
+\end{cases},
+\end{split}
+\end{align}
+where $|\Phi^p\rangle$ denotes the reference state added by particle $p$. Similarly, we have for the annihilation operator
+\begin{align}
+\begin{split}
+a_p|\Phi_0\rangle = \begin{cases}
+|\Phi_p\rangle, &\text{if } p \in \lbrace i,j,k,\dots\rbrace\\
+0 & \text{if } p \in \lbrace a,b,c,\dots\rbrace
+\end{cases},
+\end{split}
+\end{align}
+where $|\Phi_p\rangle$ denotes the reference state with particle $p$  removed, or, equivalently, with hole $p$ created.\\
+Creating $n_p$ particles and  $n_h$ holes, one obtains so-called $n_p$-particle-$n_h$-hole excitations. For example, the determinant
+\[
+|\Phi_{ij}^{abc}\rangle = \ad_a\ad_b\ad_c a_i a_j |\Phi_0\rangle
+\]
+is referred to as 3p-2h excitation.
+
+\subsection{Wick's theorem}
+When computing the inner product between two determinants, the straightforward way is to transform the states into strings of operators acting on the vacuum or a reference state, and transform them further using anticommutation relations.\\
+For example, to compute the inner product $\langle pq|rs\rangle$, we first rewrite
+\[
+\langle pq| = \langle 0|a_p a_q, \qquad |rs\rangle = \ad_r \ad_s |0\rangle,
+\]
+where we make use of the fact that creation and annihilation operator are Hermitian conjugate to each other. Afterwards, we aim to bring all annihilation operators to the right and all creation operators to the left, applying the anticommutation relations (\ref{eq:anticom}), 
+\begin{align*}
+\langle pq|rs\rangle &= \langle 0|\lb a_p a_q \ad_r \ad_s \rb|0\rangle \\
+&= \langle 0 | \lb a_p (\delta_{qr}-\ad_r a_q)\ad_s \rb | 0 \rangle \\
+&= \langle 0 | \lb a_p \ad_s \delta_{qr} - a_p \ad_r a_q \ad_s \rb | 0 \rangle \\
+&= \langle 0 | \lb (\delta_{ps} - a_p\ad_s) \delta_{qr} - (\delta_{pr} - \ad_r a_p)(\delta_{qs}-\ad_s a_q) \rb |0\rangle \\
+&= \langle 0 | \lb \delta_{ps}\delta_{qr} - \ad_p\ad_s\delta_{qr} - \delta_{pr}\delta_{qs} + \ad_s a_q \delta_{pr} + \ad_r a_p \delta_{qs} - \ad_r a_q \delta_{ps} + \ad_r \ad_s a_p a_q \rb | 0 \rangle \\
+&= \delta_{ps}\delta_{qr} - \delta_{pr}\delta_{qs}
+\end{align*}
+Only those two terms with only Kronecker deltas give a non-zero contribution, since in all other terms an annihilation operator acts on the vacuum state. As the number of particles is increased, these computations get more and more lengthy, and one commonly applies Wick's theorem, which simplifies the calculations based on the concepts of \textit{normal-ordering} and \textit{contractions}.
+
+For a string of operators $\hat{A},\hat{B},\hat{C},\dots$, the \textit{normal-ordered} product\footnote{We start with normal-ordering \textit{with respect to the vacuum state}, as originally used by Wick \cite{1950PhRv...80..268W}.} $\left\lbrace \hat{A}\hat{B}\hat{C}\dots\right\rbrace$  is defined as that rearrangement where all creation operators are moved to the left, and all annihilation operators to the right. In addition, a phase factor of ($-1$) arises for each permutation of nearest neighbour operators. Since creation and annihilation operators can permute among themselves, the normal-ordered form is not uniquely defined.\\
+ The most important property of normal-ordered products is that the expectation value with respect to the vacuum state vanishes,
+\be 
+\langle 0 | \left\lbrace \hat{A}\hat{B}\dots \right\rbrace |0\rangle = 0.
+\label{eq:normalordered1}
+\ee
+Moreover, we define the \textit{contraction} between two operators as
+\be 
+\contraction{}{A}{}{B}
+AB \equiv \hat{A}\hat{B} - \left\lbrace \hat{A}\hat{B}\right\rbrace.
+\ee
+The four possible contractions are
+\begin{align}
+\begin{split}
+\contraction{}{\ad_p}{}{\ad_q}\ad_p \ad_q &= \ad_p\ad_q - \ad_p \ad_q = 0,\\
+\contraction{}{a_p}{}{a_q} a_p a_q &= a_p a_q - a_p a_q = 0,\\
+\contraction{}{\ad_p}{}{a_q} \ad_p a_q&= \ad_p a_q - \ad_p a_q = 0,\\
+\contraction{}{a_p}{}{\ad_q} a_p\ad_q &= a_p\ad_q - (-\ad_q a_p) = \lbrace a_p, \ad_q \rbrace = \delta_{pq}.
+\end{split}
+\end{align}
+
+The concept of normal-ordering can be extended from the vacuum state $|0\rangle$ to the reference state $|\Phi_0\rangle$.  In this case, the normal-ordered product $\left\lbrace \hat{A}\hat{B}\hat{C}\dots\right\rbrace$   requires that all creation operators above and all annihilation operators below the Fermi level are moved to the left, whereas all creation operator below and all annihilation operators above the Fermi level are moved to the right. With this reordering, we get again the useful property that the expectation value with respect to the reference state vanishes,
+\be 
+\langle \Phi_0 | \left\lbrace \hat{A}\hat{B}\dots \right\rbrace |\Phi_0\rangle = 0.
+\label{eq:normalordered2}
+\ee
+Labelling our indices as before, the only two non-zero contractions are
+\begin{align}
+\begin{split}
+\contraction{}{\ad_i}{}{a_j} \ad_i a_j &= \ad_i a_j - (-a_j \ad_i) = \delta_{ij}, \\
+\contraction{}{a_a}{}{\ad_b} a_a \ad_b &= a_a \ad_b - (-\ad_b a_a) = \delta_{ab}.
+\end{split}
+\end{align}
+The second relation is analogous to the vacuum case, which makes sense since loosely speaking, with respect to the vacuum state, all indices correspond to particles.
+
+\paragraph{Statement of the theorem}
+Wick's theorem \cite{1950PhRv...80..268W} states that any product of creation and annihilation operators can be expressed as their normal-ordered product plus the sum of all possible normal products with contractions. Symbolically, this means
+\begin{align}
+\hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}\dots &= \left\lbrace \hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}\dots \right\rbrace \notag\\
+&+ \left\lbrace \contraction{}{\hat{A}}{}{\hat{B}}\hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}\dots \right\rbrace + \left\lbrace\contraction{}{\hat{A}}{\hat{B}}{\hat{C}}
+\hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}\dots \right\rbrace + \dots \notag \\
+&+ \left\lbrace
+\contraction{}{\hat{A}}{\hat{B}}{\hat{C}}
+\contraction[2ex]{\hat{B}}{\hat{C}}{\hat{D}}{\hat{E}}
+{ \hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}}\dots \right\rbrace 
++ \left\lbrace 
+\contraction{\hat{A}}{\hat{B}}{\hat{C}}{\hat{D}}
+\contraction[2ex]{\hat{A}\hat{B}}{\hat{C}}{\hat{D}}{\hat{E}}
+{\hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}} \right\rbrace + \dots \notag  \\
+&+ \dots \\
+&+\left\lbrace 
+\contraction{}{\hat{A}}{\hat{B}\hat{C}}{\hat{D}}
+\contraction[2ex]{\hat{A}}{\hat{B}}{{\hat{C}\hat{D}}}{\hat{E}}
+\contraction[3ex]{\hat{A}\hat{B}}{\hat{C}}{{\hat{D}\hat{E}}}{\hat{F}}
+{\hat{A}\hat{B}\hat{C}\hat{D}\hat{E}\hat{F}}\dots \right\rbrace + \dots 
+\end{align}
+In words, the first term is the normal-ordered string, followed by all possible normal products with contractions between two operators. Afterwards, we have all possible contractions between four operators and this scheme is continued, up to the terms where all operators are contracted.\\
+When calculating the expectation value with respect to the vacuum or a reference state, this theorem brings considerable simplifications: As suggested by Eqs. (\ref{eq:normalordered1}) and (\ref{eq:normalordered2}), only the last terms, where all operators are contracted, can give a non-zero contribution. Regarding the previous example, this means
+\begin{align*}
+\langle pq|rs\rangle &= \langle 0|\lb a_p a_q \ad_r \ad_s \rb|0\rangle \\
+&= \langle 0|\lb \contraction{a_p}{a_q}{}{\ad_r}
+\contraction[2ex]{}{a_p}{a_q\ad_r}{\ad_s}
+a_p a_q \ad_r \ad_s + 
+\contraction{}{a_p}{a_q}{\ad_r}
+\contraction[2ex]{a_p}{a_q}{\ad_r}{\ad_s}
+a_p a_q \ad_r \ad_s
+\rb |0\rangle \\
+&= \delta_{ps}\delta_{qr} - \delta_{pr}\delta_{qs},
+\end{align*}
+which is the same result as before, obtained with much less effort, and demonstrates the power of Wick's theorem.\\
+Another useful feature is that a product of two already normal-ordered operator strings can be rewritten as the normal-ordered product of the total group of operators plus all possible contractions between the first and second string. In particular, there are no internal contractions inside each of the strings. This statement is often referred to as \textit{Wick's generalized theorem}.
+
+
+\subsection{Hamiltonian in second quantization}
+To make use of the machinery of second quantization when computing expectation values, it is necessary to find a representation for the quantum-mechanical operators.\\
+To compute expectation values of the form $\langle \Phi_1 | \hat{A} | \Phi_2 \rangle$, we utilize the fact that the 
+single-particle functions of our basis are orthonormal, such that for $\langle \Phi_1 | \Phi_2\rangle$ to be $1 $, the determinants  $|\Phi_1\rangle$ and $|\Phi_2\rangle$ must have an identical occupation scheme. \\
+ To count the  number of occupied orbitals, we introduce the number operator
+\be 
+\hat{N} = \sum_p \ad_p a_p.
+\ee 
+Applied to a determinant $|\Phi_N\rangle = |\alpha_1 \alpha_2 \dots \alpha_N\rangle$, we get
+\begin{align}
+\hat{N} |\alpha_1 \alpha_2 \dots \alpha_N\rangle &= \sum_p \ad_p a_p \;|\alpha_1 \alpha_2 \dots \alpha_N\rangle \notag \\
+&= \ad_1 |\alpha_2 \alpha_3 \dots \alpha_N\rangle + \ad_2 |\alpha_1 \alpha_3 \dots \alpha_N\rangle + \dots \notag \\
+&= |\alpha_1 \alpha_2 \dots \alpha_N\rangle + |\alpha_1 \alpha_2 \dots \alpha_N\rangle + \dots \notag \\
+&= N |\alpha_1 \alpha_2 \dots \alpha_N\rangle.
+\label{eq:numOp}
+\end{align}
+In words, when acting on a determinant, the number operator loops over all particles, each time removing and adding the same particle subsequently. With relation (\ref{eq:numOp}),  the expectation value is 
+\[
+\langle \Phi_N |\hat{N} |\Phi_N \rangle  = \langle \Phi_N |N |\Phi_N \rangle = N.
+\]
+
+Let us now demonstrate how to express the more complex operators of the Hamiltonian in a similar manner: \\
+Restricted to maximally two-body interactions, our Hamiltonian of Eq.~(\ref{eq:hamiltonian}) is given by
+\begin{align*}  
+\hat{H} &= \sum_i \hat{h}^{(0)}_i  + \hat{V} 
+ = \sum_i \lb -\frac{\hbar^2}{2m}\nabla_i^2 + \hat{v}_{i} \rb + \frac{1}{2}\sum_{ij} \hat{v}_{ij}(\rv_i,\rv_j)\\
+ &\equiv \hat{H}_0 + \hat{H}_I.
+\end{align*}
+The non-interacting part of the Hamiltonian, $\hat{H}_0$, acts just on one particle at a time, and represents therefore a \textit{one-body operator}.  In second quantization, it reads\footnote{For a profound motivation of this representation, see \cite{shavitt2009many}.}
+\be 
+\hat{H}_0 = \sum_{pq} \langle p| \hat{h}^{(0)}|q\rangle \ad_p a_q.
+\ee
+Similar to the number operator, its function as operator is translated into creation and annihilation operators. In addition, we now encounter transition amplitudes
+\be 
+\langle p | \hat{h}^{(0)} |q \rangle = \int d\rv\; \phi_p^* (\rv) \hat{h}^{(0)}\phi_q(\rv),
+\ee
+representing the probability that the operator moves a particle from single-particle state $|q\rangle$ to $|p\rangle$. 
+
+For the two-body operator of the Hamiltonian, we have analogously 
+\be
+\hat{V} = \frac{1}{2}\sum_{pqrs} \langle pq| \hat{v}|rs\rangle \ad_p \ad_q a_s a_r,
+\label{eq:vint} 
+\ee
+\be 
+\langle p q | \hat{v}|  r s \rangle = \int\!\int d\rv_1 d\rv_2 \; \phi_p^*(\rv_1)\phi_q^*(\rv_2) \hat{v}(\rv_1,\rv_2)\phi_r(\rv_1)\phi_s(\rv_2).
+\label{eq:vInt} 
+\ee
+The interpretation is that particles are removed from states $|r\rangle$ and $|s\rangle$ and created in states $|p\rangle$ and $|q\rangle$, respectively, with probability $\frac{1}{2}\langle p q | \hat{v}|  r s \rangle$.  Note that with definition (\ref{eq:vInt}), one does not account for the antisymmetry of $|rs\rangle$, as stated in Eq. (\ref{eq:assym}). This relation would suggest
+\be 
+\langle p q | \hat{v}|  r s \rangle = - \langle p q | \hat{v}|  s r \rangle,
+\ee
+where on the left-hand side, the first particle is moved from $|r\rangle$ to $|p\rangle$ and the second one from $|s\rangle$ to $|q\rangle$, and on the right-hand side, the first particle is moved from $|r\rangle$ to $|q\rangle$ and the second one from $|s\rangle$ to $|p\rangle$. To account for this antisymmetry, one commonly uses so-called  \textit{antisymmetric elements}, defined as
+\be 
+\langle p q || r s \rangle = \langle p q | \hat{v}|  r s \rangle - \langle p q | \hat{v}|  s r \rangle.
+\ee
+With these elements, the two-body interaction operator reads
+\be 
+\hat{V} = \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \ad_p \ad_q a_s a_r,
+\ee
+and the full Hamiltonian
+\begin{align}
+\hat{H} &= \hat{H}_0 + \hat{V} \notag \\
+&= \sum_{pq} \langle p| \hat{h}^{(0)}|q\rangle \ad_p a_q + \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \ad_p \ad_q a_s a_r.
+\label{eq:tbHamiltonian}
+\end{align}
+
+
+To demonstrate how the expectation value of the Hamiltonian, $\langle\Phi_1|\hat{H}|\Phi_2\rangle$, is computed making use of Wick's theorem, let us consider two determinants
+\begin{align*}
+|\Phi_1\rangle &= |\alpha_1\alpha_2\dots\alpha_N\rangle,\\
+|\Phi_2\rangle &= |\beta_1\beta_2\dots\beta_N\rangle,
+\end{align*}
+and start with the interaction part. Since we have restricted the Hamiltonian to two-body operators, maximally two of the states in $|\Phi_1\rangle$ and $|\Phi_2\rangle$ can be different. If more than two states are different, our Hamiltonian can not link all the states and the expectation value vanishes. \\
+If two states are different, the expectation value can be simplified to the one between two two-particle determinants,
+\begin{align*}
+\langle \Phi_1 | \hat{V}|\Phi_2\rangle &= \langle \alpha_N \dots i \dots j \dots \alpha_2\alpha_1 |\hat{V}|\alpha_1\alpha_2 \dots k \dots l \dots \alpha_N\rangle \\
+&= \langle\underbrace{\alpha_N|\alpha_N}_1\rangle\cdots \langle\underbrace{\alpha_2|\alpha_2}_1\rangle\langle\underbrace{\alpha_1|\alpha_1}_1\rangle\langle i j |\hat{V}| k l\rangle \\
+&= \langle i j | \hat{V}| k l\rangle, 
+\end{align*}
+afterwards Wick's theorem is applied:
+\begin{align*}
+\langle i j | \hat{V}| k l\rangle
+&=\frac{1}{4}\langle 0 | a_j a_i \sum_{pqrs} \langle pq||rs\rangle \ad_p\ad_q a_s a_r\ad_k\ad_l|0\rangle\\
+&= \frac{1}{4}\sum_{pqrs}\langle pq||rs\rangle\langle 0|a_ja_i \ad_p\ad_q a_s a_r \ad_k\ad_l|0\rangle\\
+&= \frac{1}{4}\sum_{pqrs}\langle pq||rs\rangle \langle 0 | 
+\contraction{}{a_j}{a_i}{\ad_p}
+\contraction[2ex]{a_j}{a_i}{\ad_p}{\ad_q}
+\contraction{a_ja_i\ad_p\ad_q}{a_s}{a_r}{\ad_k}
+\contraction[2ex]{a_ja_i\ad_p\ad_qa_s}{a_r}{\ad_k}{\ad_l}
+a_ja_i \ad_p\ad_q a_s a_r \ad_k\ad_l
++ \contraction[2ex]{}{a_j}{a_i\ad_p}{\ad_q}
+\contraction{a_j}{a_i}{}{\ad_p}
+\contraction{a_ja_i \ad_p\ad_q}{a_s}{a_r}{\ad_k}
+\contraction[2ex]{a_ja_i \ad_p\ad_q a_s}{a_r}{\ad_k}{\ad_l}
+a_ja_i \ad_p\ad_q a_s a_r \ad_k\ad_l\\
+&\qquad+ \contraction{}{a_j}{a_i}{\ad_p}
+\contraction[2ex]{a_j}{a_i}{\ad_p}{\ad_q}
+\contraction{a_ja_i \ad_p\ad_q}{a_s}{a_r}{\ad_k}
+\contraction[2ex]{a_ja_i \ad_p\ad_q a_s}{a_r}{\ad_k}{\ad_l}
+a_ja_i \ad_p\ad_q a_s a_r \ad_k\ad_l
++ \contraction[2ex]{}{a_j}{a_i\ad_p}{\ad_q}
+\contraction{a_j}{a_i}{}{\ad_p}
+\contraction{a_ja_i\ad_p\ad_q}{a_s}{a_r}{\ad_k}
+\contraction[2ex]{a_ja_i\ad_p\ad_qa_s}{a_r}{\ad_k}{\ad_l}
+a_ja_i \ad_p\ad_q a_s a_r \ad_k\ad_l
+|0\rangle \\
+&= \frac{1}{4}\sum_{pqrs}\langle pq||rs\rangle \langle 0 | 
+\delta_{jp}\delta_{iq}\delta_{sk}\delta_{rl} - \delta_{jq}\delta_{ip}\delta_{sk}\delta_{rl} - \delta_{jp}\delta_{iq}\delta_{sl}\delta_{rk} + \delta_{jq}\delta_{ip}\delta_{sl}\delta_{rk} |0\rangle\\
+&=\frac{1}{4}\lb \langle ji||lk\rangle - \langle ij||lk\rangle - \langle ji||kl\rangle + \langle ij||kl\rangle\rb\\
+&= \langle ij|| kl\rangle.
+\end{align*}
+Note that we have only written down those fully contracted terms where all contractions are non-zero. To get the correct phase, it is possible to count the number of crossings between the contraction lines, instead of permuting the operators to get contracted pairs next to each other: An even number of crossings gives a positive, an odd number a negative phase. In the last step, we have made use of the antisymmetry relations, giving four equal terms.\\
+If less than two states in the determinants $|\Phi_1\rangle$ and $| \Phi_2\rangle$ are different, the operator can link several possible pairs of states. If one of the states is different, here denoted as transition from state $|k\rangle$ to $|j\rangle$, this means
+\begin{align*}
+\langle \Phi_1 | \hat{V}|\Phi_2\rangle  &= \langle \alpha_1 j |\hat{V}| \alpha_1 k \rangle + \langle \alpha_2 j |\hat{V}|\alpha_2 k \rangle + \dots \\
+&= \langle \alpha_1 j || \alpha_1 k \rangle + \langle \alpha_2 j ||\alpha_2 k \rangle + \dots = \sum_i \langle \alpha_i j ||\alpha_i k \rangle,
+\end{align*}
+where $i$ sums over all occupied single-particle states. In the case that both determinants are equal, complete free summation is possible:
+\[
+\langle\Phi_1 | \hat{V}|\Phi_1\rangle = \sum_{i<j} \langle i j || i j \rangle,
+\]
+where the restriction $i<j$ makes sure that equivalent configurations are not counted twice.
+
+
+Analogous to the fact that the two-body operator can maximally link two determinants with two different states in their occupancy scheme, the one-body operator can maximally change one state. Thus the contribution from the non-interacting part of the Hamiltonian simplifies to
+\begin{align*}
+\langle \Phi_1 | \hat{H}_0 | \Phi_2 \rangle &= \langle \alpha_N \dots  i \dots  \alpha_2\alpha_1 |\hat{H}_0 | \alpha_1 \alpha_2 \dots j \dots \alpha_N \rangle\\
+&= \langle\underbrace{\alpha_N|\alpha_N}_1\rangle\cdots \langle\underbrace{\alpha_2|\alpha_2}_1\rangle\langle\underbrace{\alpha_1|\alpha_1}_1\rangle \langle i |\hat{H}_0|j\rangle\\
+&= \langle i |\hat{H}_0|j\rangle,
+\end{align*}
+and again, we apply Wick's theorem to get
+\begin{align*}
+\langle i |\hat{H}_0|j\rangle
+&= \langle 0 | a_i \sum_{pq} \langle p |\hat{h}^{(0)} q \rangle \ad_p a_q \ad_j | 0 \rangle \\
+&= \sum_{pq} \langle p |\hat{h}^{(0)}|q\rangle \langle 0 | 
+\contraction{}{a_i}{}{\ad_p}
+\contraction{a_i\ad_p}{a_q}{}{\ad_j}
+a_i \ad_p a_q \ad_j | 0 \rangle\\
+&= \sum_{pq} \langle p | \hat{h}^{(0)} | q \rangle \delta_{ip}\delta_{qj} = \langle i | \hat{h}^{(0)} | j \rangle.
+\end{align*}
+In the case that both determinants have the same occupation scheme, the operator has several possibilities to link the states:
+\[
+\langle \Phi_1 | \hat{H}_0 | \Phi_1 \rangle = \sum_i \langle i |\hat{h}^{(0)}|i \rangle.
+\]
+
+Although in this thesis, we will work with a Hamiltonian that is restricted to two-body interactions, the interaction part can in principle contain higher-order interactions, too, and is straightforwardly extended to
+\be 
+\hat{H}_I = \frac{1}{2!}\sum_{pqrs}\langle pq|\hat{v}|rs\rangle + \frac{1}{3!}\sum_{pqr\\stu}\langle pqr|\hat{v}^{(3)}| stu\rangle + \dots + \frac{1}{N!}\sum_{\substack{pqr\dots\\stu\dots}}\langle pqr\cdots |\hat{v}^{(N)}| \cdots stu\rangle,
+\ee 
+where $v^{(n)}$ denotes the interaction potential for interaction between $n$ particles.
+
+\subsubsection{In-medium formulation of $\hat{H}$}
+To make use of the particle-hole formalism, introduced in subsection \ref{subsec:SecQuantRef}, and the advantages calculations with a reference state $|\Phi_0\rangle$ bring, it is useful to express the Hamiltonian in terms of normal-ordered strings of operators. In particular, starting with the second-quantized Hamiltonian
+\begin{align}
+\hat{H} &= \sum_{pq} \langle p| \hat{h}^{(0)}|q\rangle \ad_p a_q + \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \ad_p \ad_q a_s a_r \notag \\
+ & \qquad + \frac{1}{36}\sum_{pqrstu} \lla pqr \right|\hat{v}^{(3)}\left| stu \rra a_p\da a_q\da a_r\da a_u a_t a_s + \dots,
+\end{align}
+we use Wick's theorem to convert all operator strings $a_{1} a_{2} \cdots \ad_{{n-1}}\ad_{n}$ into sums of normal-ordered expressions. Defining $\delta_{pq<F}$ to be the Kronecker delta function where states $p$ and $q$ are restricted to be hole states below the Fermi level, the one-body operator is rewritten the following way:
+\be 
+\ad_p a_q = \lbrace \ad_p a_q \rbrace + \contraction{}{\ad_p}{}{a_q} \ad_p a_q = \lbrace \ad_p a_q \rbrace + \delta_{pq<F}.
+\ee
+With our convention of labelling the states, in particular the use of $\lbrace i,j,\dots\rbrace$ for hole states below the Fermi level, the non-interacting part of $\hat{H}$ thus reads
+\be 
+\hat{H}^{(0)}_N = \sum_{pq}\langle p | \hat{h}^{(0)}|q\rangle \lbrace \ad_p a_q \rbrace + \sum_i \langle i | \hat{h}^{(0)} | i\rangle,
+\label{eq:contr1}
+\ee
+where the subscript $N$ denotes normal-ordering. The same procedure can be applied to the two-body part of $\hat{H}$:
+\begin{align}
+\ad_p\ad_q a_s a_r &= \lbrace \ad_p\ad_q a_s a_r\rbrace + 
+\left\lbrace
+\contraction{}{\ad_p}{\ad_q}{a_s}
+\ad_p\ad_q a_s a_r
+\right\rbrace
++ \left\lbrace
+\contraction{}{\ad_p}{\ad_q a_s}{a_r}
+\ad_p\ad_q a_s a_r
+\right\rbrace
++ \left\lbrace
+\contraction{\ad_p}{\ad_q}{}{a_s}
+\ad_p\ad_q a_s a_r
+\right\rbrace\notag\\
+& \qquad + \left\lbrace
+\contraction{\ad_p}{\ad_q}{a_s}{a_r}
+\ad_p\ad_q a_s a_r
+\right\rbrace
++ \left\lbrace
+\contraction{}{\ad_p}{\ad_q}{a_s}
+\contraction[2ex]{\ad_p}{\ad_q}{a_s}{a_r}
+\ad_p\ad_q a_s a_r
+\right\rbrace
++ \left\lbrace
+\contraction{}{\ad_p}{\ad_q a_s}{a_r}
+\contraction[2ex]{\ad_p}{\ad_q}{}{a_s}
+\ad_p\ad_q a_s a_r
+\right\rbrace\notag\\
+&= \lbrace \ad_p\ad_q a_s a_r\rbrace - \delta_{ps<F}\lbrace \ad_q a_r\rbrace + \delta_{pr<F}\lbrace \ad_q a_s\rbrace + \delta_{qs<F}\lbrace \ad_p a_r\rbrace \notag\\
+&\qquad - \delta_{qr<F}\lbrace \ad_p a_s\rbrace - \delta_{ps<F}\delta_{qr<F} + \delta_{pr<F}\delta_{qs<F}.
+\end{align}
+Inserting this into the expression for the two-body operator $\hat{V}$, we obtain
+\begin{align}
+\hat{V} &= \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \ad_p \ad_q a_s a_r\\
+&= \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \lbrace \ad_p\ad_q a_s a_r \rbrace - \frac{1}{4}\sum_{qri} \langle iq||ri\rangle \lbrace \ad_q a_r\rbrace + \frac{1}{4}\sum_{qsi} \langle iq||is\rangle \notag \\
+& \qquad + \frac{1}{4}\sum_{pri} \langle pi||ri\rangle\lbrace\ad_p a_r\rbrace - \frac{1}{4}\sum_{psi} \langle pi||is\rangle \lbrace \ad_p a_s\rbrace - \frac{1}{4}\sum_{ij} \langle ij||ji\rangle + \frac{1}{4}\sum_{ij} \langle ij||ij\rangle.
+\label{eq:vtermTmp}
+\end{align}
+With the antisymmetry relation (\ref{eq:assym}) suggesting that
+\be 
+\langle pq||rs\rangle = - \langle qp||rs\rangle = - \langle pq||sr\rangle = \langle qp||sr\rangle,
+\ee
+expression (\ref{eq:vtermTmp}) can be simplified to
+\be 
+\hat{V} = \frac{1}{4}\sum_{pqrs} \langle pq||rs\rangle \lbrace \ad_p\ad_q a_s a_r \rbrace + \sum_{pqi} \langle pi||qi\rangle \lbrace \ad_p a_q \rbrace + \frac{1}{2}\sum_{ij} \langle ij||ij\rangle.
+\label{eq:contr2}
+\ee
+For higher-order interactions, one proceeds analogously, and for the three-body operator we get
+\begin{align}
+\hat{V}^{(3)} &= \frac{1}{36}\sum_{pqrstu} \lla pqr \right|\hat{v}^{(3)}\left| stu \rra a_p\da a_q\da a_r\da a_u a_t a_s \notag \\
+&= \frac{1}{36}\sum\limits_{pqrstu} \lla pqr\right|\hat{v}^{(3)}\left|stu\rra \llb a_p\da a_q\da a_r\da a_u a_t a_s\rrb + \frac{1}{4} \sum\limits_i \lla p q i \right| \hat{v}^{(3)}\left| rsi \rra \llb a_p\da a_q\da a_s a_r \rrb \notag\\
+&\qquad+ \frac{1}{2}\sum\limits_{ij}\lla pij\right|\hat{v}^{(3)}\left| pij\rra \llb a_p\da a_q\rrb + \frac{1}{6}\sum\limits_{ijk}\lla ijk \right| \hat{v}^{(3)} \left| ijk \rra.
+\label{eq:contr3}
+\end{align}
+One usually collects all one-body contributions in the one-body operator $\hat{F}_N$, all two-body contributions in $\hat{V}_N$ and all higher-order contributions in $\hat{H}_N^{(3)}, \hat{H}_N^{(4)},\dots$.\\
+A Hamiltonian restricted to three-body interactions then reads 
+\begin{align}
+\hat{H}_N &= \hat{F}_N + \hat{V}_N + \hat{H}_N^{(3)} \notag \\
+&= \sum\limits_{pq}f_{pq}\llb a_p\da a_q\rrb + \frac{1}{4}\sum\limits_{pqrs}\Gamma_{pqrs} \llb a_p\da a_q\da a_s a_r \rrb + \frac{1}{36}\sum\limits_{pqrstu} W_{pqrstu} \llb a_p\da a_q\da a_r\da a_u a_t a_s\rrb ,
+\end{align}
+with the amplitudes for the one-body, two-body and three-body operator given by
+\begin{align}
+f_{pq} &= \lla p \right|\hat{h}^{(0)}\left| q \rra + \sum\limits_i \lla pi \right| \hat{v} \left| qi\rra + \frac{1}{2}\sum\limits_{ij}\lla pij\right|\hat{v}^{(3)}\left| pij\rra,\\
+\Gamma_{pqrs} &= \lla pq \right| \hat{v} \left| r s \rra + \sum\limits_i \lla p q i \right| \hat{v}^{(3)}\left| rsi \rra,\\
+W_{pqrstu} &=  \lla pqr\right|\hat{v}^{(3)}\left|stu\rra,
+\end{align}
+respectively.
+When restricting the Hamiltonian to two-body operators, as mostly used in this thesis, $\hat{H}_N$ simplifies to
+\begin{align}
+\hat{H}_N &= \hat{F}_N + \hat{V}_N \notag\\
+&= \sum_{pq} f_{pq} \lbrace \ad_p a_q \rbrace + \sum_{pqrs} \langle pq||rs\rangle \lbrace \ad_p \ad_q a_s a_r \rbrace,
+\end{align} 
+with
+\be 
+f_{pq} = \langle p | \hat{h}^{(0)} | q \rangle + \sum_i \langle pi|| qi \rangle.
+\ee
+Note that the normal-ordered Hamiltonian does by definition not contain any scalar terms, representing the ground state energy $E_0 = \langle \Phi_0 | \hat{H}| \Phi_0 \rangle$,
+\be 
+\hat{H}_N = \hat{H} - E_0.
+\ee 
+When collecting those scalar terms of Eqs. (\ref{eq:contr1}), (\ref{eq:contr2}) and (\ref{eq:contr3}) , the ground state energy 
+of the three-body Hamiltonian is given by 
+\begin{align}
+E_0 &= \lla \Phi_0 \right| H \left| \Phi_0 \rra \notag \\
+&= \sum\limits_i \lla i \right| \hat{h}^{(0)} \left| i \rra + \frac{1}{2}\sum\limits_{ij}\lla ij\right| \hat{v} \left| ij\rra + \frac{1}{6}\sum\limits_{ijk}\lla ijk \right| \hat{v}^{(3)} \left| ijk \rra,
+\end{align}
+and the one of the two-body Hamiltonian by
+\be 
+E_0 = \sum\limits_i \lla i \right| \hat{h}^{(0)} \left| i \rra + \frac{1}{2}\sum\limits_{ij}\lla ij\right| \hat{v} \left| ij\rra.
+\label{eq:tbenergy}
+\ee

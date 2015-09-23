@@ -1,0 +1,337 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bra}[1]{\left\langle #1 \right|}
+\newcommand{\ket}[1]{\left| #1 \right\rangle}
+\newcommand{\braket}[2]{\left\langle #1 \right| #2 \right\rangle}
+
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Thesis project for Espen Flage-Larsen:  Simulations of quantum dots}
+
+{\bf The aim of this thesis is to study numerically systems consisting of several
+interacting electrons in two dimensions}, confined to small regions
+between layers of semiconductors. 
+These electron systems
+are dubbed quantum dots in the literature. 
+
+In this thesis,
+the study of such a system of two-dimensional electrons 
+entails more specifically the use of many-body techniques through the 
+development of large scale shell-model diagonalization techniques. These results will be compared 
+with those from  
+diffusion Monte Carlo  (DMC) and variational Monte Carlo (VMC) programs 
+to solve Schr\"odinger's equation, in order to obtain various expectation values of interest, 
+such as the energy
+of the ground state, magnetization etc. 
+The shell-model and VMC/DMC approaches allow, in principle, for a numerically
+exact solution of Schr\"odinger's equation. 
+
+
+\subsection*{Introduction to quantum dots}
+
+Quantum computing has attracted much interest 
+recently as it opens up the possibility of outperforming 
+classical computation through new and more powerful quantum algorithms
+such as the ones discovered by Shor and by Grover. 
+There is now a growing list of quantum tasks 
+such as cryptography, error correcting schemes, quantum
+teleportation, etc. that have indicated even more the desirability 
+of experimental implementations of quantum computing. 
+In a quantum computer each quantum bit (qubit) is allowed
+to be in any state of a quantum two-level system. 
+All quantum algorithms can be implemented by 
+concatenating one- and two-qubit gates. There is a growing number of proposed
+physical implementations of qubits and quantum gates. 
+A few examples are: Trapped ions, cavity QED, nuclear spins, 
+superconducting devices, and
+our qubit proposal 
+based on the spin of the electron in quantum-confined nanostructures. 
+
+Coupled quantum dots provide a powerful source of 
+deterministic entanglement between qubits of localized 
+but also of delocalized electrons. E.g., with such quantum gates it is
+possible to create a singlet state out of two electrons 
+and subsequently separate (by electronic transport) 
+the two electrons spatially with the spins of the two electrons still being
+entangled--the prototype of an EPR pair. 
+This opens up the possibility to study a new class 
+of quantum phenomena in electronic nanostructures 
+such as the entanglement and
+non-locality of electronic EPR pairs, tests of Bell inequalities, 
+quantum teleportation, and quantum cryptography 
+which promises secure information transmission. 
+
+
+Semiconductor quantum dots are structures where
+charge carriers are confined in all three spatial dimensions, 
+the dot size being of the order of the Fermi wavelength 
+in the host material, typically between  10 nm and  1 $\mu$m.
+The confinement is usually achieved by electrical gating of a 
+two-dimensional electron gas (2DEG), 
+possibly combined with etching techniques. Precise control of the
+number of electrons in the conduction band of a quantum dot 
+(starting from zero) has been achieved in GaAs heterostructures. 
+The electronic spectrum of typical quantum dots
+can vary strongly when an external magnetic field is applied, 
+since the magnetic length corresponding to typical 
+laboratory fields  is comparable to typical dot sizes.
+In coupled quantum dots Coulomb blockade effects, 
+tunneling between neighboring dots, and magnetization 
+have been observed as well as the formation of a
+delocalized single-particle state. 
+
+
+Quantum mechanical studies of such many-body systems are also
+interesting per se. 
+This thesis deals with a numerical {\em ab initio}  solution of  
+Schr\"odinger's equation for quantum dots, from few electrons to many.
+A critical understanding of our ability 
+to solve such many-body systems through Monte Carlo methods is one 
+of the aims
+of this thesis project. Presently, large scale shell-model diagonalization and
+Monte Carlo methods are
+the only ones which allow us to solve, in principle exactly, 
+systems with many interacting particles. 
+The main focus is on large scale shell-model techniques. If possible these results will be compared 
+with existing Variational Monte Carlo results. A diffusion Monte Carlo program is under 
+development and can also be used to compare the results from shell-model diagonalizations.
+
+The ability to study different methods is crucial to the reliability of each method.
+This thesis project will thus be able to shed light on differences between VMC and DMC calculations
+using the shell-model calculations as the exact frame. Presently, see Ref. [1] below, discrepancies exist between DMC and VMC calculations regarding the spin of the ground  and excited states. 
+
+The shell-model program is  briefly sketched 
+in the next section.
+
+
+\subsection*{Shell-model studies}
+Here we describe the philosophy behind the shell-model code developed here in Oslo by Torgeir Engeland. This code will be used in order to deal with 
+the diagonalization of the hamiltonian for several electrons confined
+in a quantum dot. 
+
+The shell model problem requires the solution of a real symmetric
+$n \times n$ matrix eigenvalue equation
+\be
+H\ket{vec_k} = E_k \ket{vec_k},
+\label{e1}
+\ee
+with $k = 1,\ldots, K$. The eigenvalues $E_k$ are understood to be
+numbered in increasing order. In a typical shell model problem
+we are interested in only the lowest eigenstates of Eq.~(\ref{e1}),
+so $K$ may be of the order of 10 to 50.
+The total dimension $n$ of the eigenvalue matrix $H$ can be large,
+up to $n \approx 2 \times 10^{8}$ or more.
+Different computational approaches to solve Eq.(\ref{e1}) can
+be distinguished
+based on the size of $n$.
+For $n$ small, i.e. $10^2 < n < 10^3$ and with  the number of
+matrix elements of $H$
+less than $10^6$ such  problems can be accomodated within the direct
+access memory of a modern work station and can be diagonalized by
+standard matrix routines.
+In a second domain  with  $ n > 10^3$ but small enough that $H$
+has no more than $10^8$ elements. This will require $\approx 1.5$~Gbyte
+of storage.Then all matrix elements may be stored in memory
+or alternatively on a standard disk.
+In these cases the complete diagonalization of
+$H$ will not be of physical interest and efficient iteration
+procedures have been developed to find the lowest energy eigenvalues
+and eigenvectors.
+
+Based on the present computer methods we have developed a code
+which is under continuous improvement
+to solve the eigenvalue problem given in Eq.~(\ref{e1}).
+The basic requirement
+is to be able to handle problems with $n > 10^6$. In the following
+we discuss some of the important elements which enter the algorithm.
+
+We separate the discussion into two parts:
+%
+\begin{itemize}
+%
+\item The m--scheme representation of the basic states.
+%
+\item The Lanczos iteration algorithm.
+%
+%
+\end{itemize}
+%
+\subsection*{\it The m--scheme representation.}
+%
+We write the eigenstates in Eq.~(\ref{e1})  as  linear combinations
+of Slater determinants. In a second quantization representation
+a Slater determinant (SD) is given by
+%
+\be
+\ket{SD_{\nu}(N)} = \prod_{(jm)\in {\nu}} a_{jm}^{\dagger}\ket{0},
+\ee
+%
+and the complete set is generated by distributing the $N$ particles
+in all possible ways throughout the basic one--particle states constituting
+the P--space. This is a very efficient
+representation. A single $\ket{SD}$ requires only one  computer word
+(32 or 64 bits) and  in memory a $\ket{SD}$ with $N$ particles
+is given by
+%
+\be
+\ket{SD} \longrightarrow (\underbrace{00111101010 \cdots}_{N 1's}),
+\ee
+%
+where each 0 and 1 corresponds to an m--orbit in the valence
+P--space. Occupied orbits  have a 1 and empty orbits a 0.
+ Furthermore, all important calculations  can
+be handled in Boolean algebra which is very efficient on modern computers.
+The action  of operators of the form $a_{\alpha}^{\dagger} a_{\beta}$ or
+$a_{\alpha}^{\dagger} a_{\beta}^{\dagger} a_{\gamma} a_{\delta}$
+acting on an $\ket{SD}$ is easy to perform.
+
+The $m$-scheme allows also for a straightforward definition of many-body operators 
+such as one--, two-- and three--particle operators
+     \begin{equation}
+     a_{\alpha}^{\dagger} a_{\beta},
+     \end{equation}
+\begin{equation}
+     a_{\alpha_1}^{\dagger}a_{\alpha_2}^{\dagger} a_{\beta_1} a_{\beta_2} ,
+\end{equation}
+\begin{equation}
+     a_{\alpha_1}^{\dagger}a_{\alpha_2}^{\dagger}a_{\alpha_3}^{\dagger}
+            a_{\beta_1} a_{\beta_2} a_{\beta_3},
+\end{equation}
+respectively.
+
+\subsection*{\it The Lanczos iteration process.}
+%
+At present our basic approach to finding solutions to Eq.~(\ref{e1})
+is the Lanczos algorithm. 
+For the present discussion we outline the basic elements
+of the method.
+\begin{enumerate}
+%
+\item We choose  an initial Lanczos vector $\ket{lanc_0}$ as the zeroth order
+approximation to the lowest eigenvector in Eq.~(\ref{e1}). Our experience
+is that any  reasonable choice  is acceptable as long as the
+vector does not have special properties such as good angular momentum.
+That would usually terminate the iteration process at too early a
+stage.
+%
+\item The next step involves generating a new  vector
+through the process $|new_{p+1}> = H |lanc_p>$.
+Throughout this process we construct the energy matrix elements
+of $H$ in this Lanczos basis. First, the diagonal matrix elements of $H$
+are then obtained by
+
+%
+\be
+\bra{lanc_p} H \ket{lanc_p} = \bra{lanc_p} \left . new_{p+1} \right \rangle,
+\label{lanc1}
+\ee
+%
+
+\item The new vector $\ket{new_{p+1}}$ is then orthogonalized to all
+previously calculated Lanczos vectors
+%
+\be
+\ket{new_{p+1}^{'}} = \ket{new_{p+1}} - \ket{lanc_p} \cdot
+	                \bra{lanc_p} \left . new_{p+1} \right \rangle		 - \sum_{q = 0}^{p-1} \ket{lanc_q} \cdot
+	          \bra{lanc_q} \left . new_{p+1} \right \rangle,
+\ee
+%
+and finally normalized
+
+%
+\be
+\ket{lanc_{p+1}} = \frac{1}{\sqrt{\bra{new_{p+1}^{'}}
+                      \left . new_{p+1}^{'} \right \rangle}}
+						\ket{new_{p+1}^{'}},
+\ee
+%
+to produce a new Lanczos vector.
+%
+\item The off--diagonal matrix elements of $H$ are calculated by
+%
+\be
+\bra{lanc_{p+1}} H \ket{lanc_p} = \bra{new_{p+1}^{'}}
+                                \left . new _{p+1}^{'}\right \rangle,
+\label{off1}
+\ee
+
+%
+and all others are zero.
+%
+\item After n iterations we have an energy matrix of the form
+%
+\be
+\left \{
+\begin{array}{ccccc}
+H_{0,0} & H_{0,1} & 0       & \cdots   & 0  \\
+H_{0,1} & H_{1,1} & H_{1,2} & \cdots   & 0  \\
+0       & H_{2,1} & H_{2,2} & \cdots   & 0  \\
+\vdots  & \vdots  & \vdots  & \vdots   & H_{p-1,p}  \\
+0       & 0       & 0       & H_{p,p-1}   & H_{p,p}\\
+\end{array}
+\right \}
+\label{matr1}
+\ee
+as the p'th approximation to the eigenvalue problem in Eq.~(\ref{e1}).
+The number p is a reasonably small number and we can diagonalize
+the matrix by standard methods to obtain eigenvalues and eigenvectors
+which are linear combinations of the Lanczos vectors.
+%
+\item This process is repeated until a suitable convergence
+criterium has been reached.
+%
+\end{enumerate}
+%
+In this method each Lanczos vector is a linear combination
+of the basic $\ket{SD}$ with dimension $n$.
+
+
+
+
+\section*{Progress plan}
+A program for solving the diffusion Monte Carlo problem for fermions is under development as part of two other Master of Science thesis projects and will be used in this thesis in order to compare
+with the shell-model results.
+The task here is to use two-body effective interactions for a given set of single-particle orbits
+and perform a shell-model diagonalization. The effective interaction will be provided by Morten
+Hjorth-Jensen but will also be developed by Espen. 
+A variational Monte Carlo program has already been developed and is documented in Victoria Popsueva's thesis. She will also work closely with Espen. She is presently a PhD student at UiB working on
+quantum dot related problems. 
+
+
+
+The thesis is expected to be finished towards the end  of the spring
+semester of 2006.
+\begin{itemize}
+\item Fall 2004: 
+      Exams in FYS4520 (Subatomic Many-Body Physics I), FYS4170 (Relativistic Quantum Field Theory) and  INF-MAT4350	Numerical Linear Algebra.
+Thesis work: Set up a given model space using harmonic oscillator energies with and without a finite $B$-field and obtain the energies for the ground state and
+excited states with no interaction. Use also the shell-model code to chech that the results are the same.
+Develop a numerical code which computes the two-body interaction matrix elements using a two-dimensional harmonic oscillator basis.
+\item Spring 2005:  Exams in FYS4530	Subatomic Many-Body Physics II, FYS5120
+Advanced Quantum Field theory and INF5620	Numerical methods for partial differential equations.
+
+Thesis work: Read in the two-body interaction and study the spectra of 
+two electrons confined in a quantum dot. Compare the results with the analytic ones of Ref. [2].
+\item Fall 2005: Thesis work: extensive shell-model calculations for systems with many electrons in several shells. Compare the results with the Variational
+Monte Carlo code. 
+\item Spring 2006: Finalize thesis and final exam. Eventually also compare the results with the diffusion Monte Carlo code.
+\end{itemize}
+
+\section*{Literature}
+\begin{enumerate}
+\item S.M. Reimann and M. Manninen, Reviews of Modern Physics {\bf 74}, 1283 (2002).  
+\item M. Dyneykhan and R.G. Naszmitdinov, Physical Review {\bf B 55}, 13707 (1997). Exact solution for two electrons.
+\item A. Harju, V.A. Sverdlov, R.M. Nieminen and V. Halonen, Physical Review {\bf B 59}, 5622 (1999). Variational Monte Carlo paper
+\item F. Bolton, Physical Review {\bf B 54}, 4780 (1996). Diffusion Monte Carlo paper.
+\item W. D. Heiss and R. G. Nazmitdinov, Physical Review {\bf B 55}, 16310 (1997). Shell-model paper.
+\item A useful text on Matrix computations is Golub and Van Loan.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,441 @@
+\section{Numerical method}
+\subsection{Why numerical methods?}
+
+\begin{frame}{Why is it a hard problem to solve?}
+  \begin{alertblock}{P.A.M. Dirac:}
+    \begin{scriptsize}
+    \emph{The fundamental laws necessary for the 
+    mathematical treatment of a large part of physics and the 
+    whole of chemistry are thus completely known, and the 
+    difficulty lies only in the fact that application of these laws 
+    leads to equations that are too complex to be solved}. 
+    \end{scriptsize}
+  \end{alertblock}
+  
+  \begin{scriptsize}
+    
+% % % %         \begin{column}{0.35\textwidth}
+% %           \begin{itemize}
+% %             \item Describes the physics of matter at "normal" time and length scales, i.e., $v<<c$.
+% %             \item Gives the energy states of a system, from which physical properties can be derived.
+% %             \item Gives a full quantum description of matter.
+% %           \end{itemize}
+% %         \end{column}
+
+
+        \begin{table}[hbtp]
+          \begin{center} 
+            \resizebox{0.45\textwidth}{!}{
+            \begin{tabular}{ll}
+              \toprule[1pt]
+              {\bf Hamiltonian term}    & {\bf Quantum nature}               \\
+              \midrule[1pt]
+              Kinetic energy            & One-body  \\
+% % % % % % %               Nuclei-nuclei             & Zero-body \\
+              Nuclei-electron           & One-body  \\       
+              Electron-electron         & Two-body (hard)\\
+              \bottomrule[1pt]
+            \end{tabular}
+            }
+          \end{center}
+          \caption{\footnotesize{Nature of the terms in the Hamiltonian.}}
+        \end{table}
+    \end{scriptsize}
+  \emph{The wave function contains explicit correlations that leads to non-factoring multi-dimensional integrals.}
+  
+  
+  
+% % % % % % % % % % % % %   \begin{scriptsize}
+% % % % % % % % % % % % %   \begin{columns}[T,c]
+% % % % % % % % % % % % %     \column{0.45\textwidth}
+% % % % % % % % % % % % %     \begin{block}{One-body terms}
+% % % % % % % % % % % % %       \begin{itemize}
+% % % % % % % % % % % % %       \item $\Psi(\bfv{r}) = \Psi(\bfv{r}_1) \Psi(\bfv{r}_2)...\Psi(\bfv{r}_N)$.
+% % % % % % % % % % % % %       \item $N-$electrons need $N$ functions of three dimensions.
+% % % % % % % % % % % % %       \item Discretization of the space into $q$ points along each dimension requires $N q^3$ values to describe electrons. For $N=100, \, q=100, \, 3Nq^3 = 3 \times 10^4$ points.
+% % % % % % % % % % % % %       \end{itemize}
+% % % % % % % % % % % % %     \end{block}
+% % % % % % % % % % % % % 
+% % % % % % % % % % % % %     \column{0.55\textwidth}
+% % % % % % % % % % % % %     \begin{block}{Two-body terms}
+% % % % % % % % % % % % %       \begin{itemize}
+% % % % % % % % % % % % %       \item $\Psi(\bfv{r})$: Many-particle wave function cannot be exactly written as a product of spwf.
+% % % % % % % % % % % % %       \item $N$ electrons need one function of $3N$ dimension.
+% % % % % % % % % % % % %       \item Discretization of the space into $q$ points along each dimension requires $q^{3N}$ values to describe electrons. For $N=100, \, q=100, \, q^{3N} = 100^{300} = ?$ points.
+% % % % % % % % % % % % %       \end{itemize}
+% % % % % % % % % % % % %     \end{block}
+% % % % % % % % % % % % %   \end{columns}
+% % % % % % % % % % % % %   \end{scriptsize}
+  
+  
+  
+\end{frame}
+
+
+
+% % % % % % % % \begin{frame}{Why is it a hard problem to solve?}
+% % % % % % % %   \begin{alertblock}{P.A.M. Dirac:}
+% % % % % % % %     \begin{scriptsize}
+% % % % % % % %     \emph{The fundamental laws necessary for the 
+% % % % % % % %     mathematical treatment of a large part of physics and the 
+% % % % % % % %     whole of chemistry are thus completely known, and the 
+% % % % % % % %     difficulty lies only in the fact that application of these laws 
+% % % % % % % %     leads to equations that are too complex to be solved}. 
+% % % % % % % %     \end{scriptsize}
+% % % % % % % %   \end{alertblock}
+% % % % % % % %   
+% % % % % % % %   \begin{scriptsize}
+
+
+\begin{frame}{Quantum Variational Monte Carlo}
+	\begin{scriptsize}
+		\begin{alertblock}{Variational principle}
+			\emph{The expectation value of the energy computed for a Hamiltonian $\Op{H}$ given a (parametrized) trial wave function $\Psi_T$ is an upper bound to the ground state energy $E_0$.}
+			$$E_{VMC} = \langle \Op{H} \rangle = \frac{\int \Psi_{T}^* \Op{H} \Psi_{T} \, d\bfv{R}}{\int \Psi_{T}^2 \, d\bfv{R}} = \frac{\langle \Psi_{T} |\Op{H}|\Psi_{T}\rangle}{\langle \Psi_{T}|\Psi_{T}\rangle} \geq E_0$$
+		\end{alertblock}
+
+		\begin{alertblock}{How to compute high dimensional integrals efficiently?}
+			\textcolor{red}{Solution:} Translate the problem into a Monte Carlo language.
+			$$
+				E_{vmc} = \frac{\int \Psi_{T}^{*} \textcolor{green}{\Psi_T} \frac{\Op{H} \Psi_{T}}{\textcolor{green}{\Psi_{T}}}\, d\bfv{R}}{\int \Psi_{T}^2 \, d\bfv{R}} = \frac{\int \textcolor{red}{|\Psi_{T}|^2} \textcolor{blue}{\left[\frac{\Op{H} \Psi_{T}}{\Psi_{T}}\right]}\, d\bfv{R}}{\textcolor{red}{\int \Psi_{T}^2 \, d\bfv{R}}} 
+					=  \int \textcolor{red}{P(\bfv{R})} \textcolor{blue}{{E}_L}\, d\bfv{R}
+			$$
+			\begin{itemize}
+				\item Sample configurations, $\bfv{R}$, stochastically. 
+		\end{itemize}
+		\end{alertblock}
+	\end{scriptsize}
+\end{frame}
+
+
+\begin{frame}
+	\begin{scriptsize}
+		\begin{alertblock}{...How to compute high dimensional integrals efficiently? [continued]}
+			\begin{itemize}
+				\item Average of the local energy $\textcolor{blue}{{E}_L}$ over the probability distribution function $\textcolor{red}{P(\bfv{R})}$.
+					$$
+					\boxed{\langle E \rangle =  \int \textcolor{red}{P(\bfv{R})} \textcolor{blue}{{E}_L}\, d\bfv{R} \approx \frac{1}{M} \sum_{i=1}^{M} \textcolor{blue}{{E}_L(}\bfv{R}_i\textcolor{blue}{)},}
+					$$
+					where $M$ is the number of Monte Carlo samples.
+					
+				\item Statistical variance (assuming uncorrelated data set)
+					$$
+						\boxed{var(E) =  \langle E^2 \rangle - \langle E \rangle^2}
+					$$
+					
+% % % % % % 				\item The local energy $\textcolor{blue}{E_L}$ is constant for an exact wave function (because it is an eigenfunction of the Hamiltonian). Therefore the variance is zero in this case (\emph{Zero variance principle}).
+
+        \item \emph{Zero variance principle}.
+				
+				\item The optimization of the trial wave function has as goal to find the optimal set of parameters that gives the minimum energy/variance.
+				
+				\item \textcolor{red}{BUT: We just need a (parametric) trial wave function...!} 
+			\end{itemize}
+		\end{alertblock}
+	\end{scriptsize}
+\end{frame}
+
+
+\subsection{Trial wave function}
+\begin{frame}{Trial wave function: $\Psi_T = \Psi_D \Psi_J$ (Slater-Jastrow)}
+	\begin{scriptsize}
+		\begin{alertblock}{Slater determinant}
+			\begin{columns}
+				\begin{column}{0.35\textwidth}
+					$$
+					\Psi_D \propto %%% \frac{1}{\sqrt{N!}}
+					\begin{vmatrix}
+					\phi_1(\bfv{r}_1) & \phi_2(\bfv{r}_1) & \cdots & \phi_N(\bfv{r}_1)\\
+					\phi_1(\bfv{r}_2) & \phi_2(\bfv{r}_2) & \cdots & \phi_N(\bfv{r}_2)\\
+					\vdots  & \vdots & \ddots & \vdots  \\
+					\phi_1(\bfv{r}_N) & \phi_2(\bfv{r}_N) & \cdots & \phi_N(\bfv{r}_N)  
+					\end{vmatrix}
+					$$
+				\end{column}
+								
+				\begin{column}{0.45\textwidth}
+					\begin{itemize}
+						\item Pauli exclusion principle.
+						\item Spin-independent Hamiltonian?\\$\Psi_D = |\bfv{D}|_{\uparrow} |\bfv{D}|_{\downarrow}$.
+						\item Electron-nucleus cusp conditions.
+				\end{itemize}
+				\end{column}
+			\end{columns}
+		\end{alertblock}	
+		
+		\begin{alertblock}{Linear Pad\'e-Jastrow correlation function}
+			\begin{columns}
+				\begin{column}{0.35\textwidth}
+					$$
+					\Psi_{J} = \exp\left(\sum\limits_{j<i}\frac{a_{ij}r_{ij}}{1 + \beta_{ij}r_{ij}}\right)
+					$$
+					$$
+					r_{ij} = |\bfv{r}_j - \bfv{r}_i| 
+					$$
+				\end{column}
+								
+				\begin{column}{0.45\textwidth}
+					\begin{itemize}
+						\item Linear correlation.
+						\item Two-body correlation.
+						\item Fullfils electron-electron cusp conditions.
+				\end{itemize}
+				\end{column}
+			\end{columns}
+		\end{alertblock}	
+	\end{scriptsize}
+\end{frame}
+
+
+% % % % % % % 
+% % % % % % % \begin{frame}{The essence of QVMC}
+% % % % % % % 	\begin{scriptsize}
+% % % % % % % 		\begin{alertblock}{Quantum Variational Monte Carlo algorithm}
+% % % % % % % 			QVMC is a method to evaluate the integral $\int \Psi^2(R) E_L dR.$
+% % % % % % % 			To accomplish this, we use Markov chain Monte Carlo and proceed in the following manner:
+% % % % % % % 			
+% % % % % % % 			\begin{enumerate}
+% % % % % % % 				\item Choose a trial wave function $\Psi_T$, depending on a set of variational parameters $\bfv{\alpha} = (\alpha_1, \alpha_2, \cdots, \alpha_S)$. More about this later.
+% % % % % % % 				
+% % % % % % % 				\item  Generate a random set of points $\{R_i\}, \, i=1,2,...,M$ in configuration space that are distributed according to the $P(\bfv{R}) = |\psi_T|^2$.
+% % % % % % % 				
+% % % % % % % 				\item Evaluate the ratio squared of the wavefunctions for the new and cur trial locations.
+% % % % % % % 				
+% % % % % % % 				\item If the ratio squared is greater then some random number, then keep the new trial location, otherwise keep the cur trial location. 
+% % % % % % % 				
+% % % % % % % 			\end{enumerate}
+% % % % % % % 			
+% % % % % % % 				Typically the integration part of Variational Monte Carlo is coupled with an optimization technique for the parameters. 
+% % % % % % % 		\end{alertblock}
+% % % % % % % 	\end{scriptsize}
+% % % % % % % \end{frame}
+
+
+% % % % % % % 
+% % % % % % % \begin{frame}[fragile]{How to sample the PDE?}
+% % % % % % % 	\begin{columns}
+% % % % % % % 	\column{6cm}
+% % % % % % % 	\begin{scriptsize}
+% % % % % % % 		\begin{algorithmic}%[1]
+% % % % % % % 			\medskip
+% % % % % % % 			\REQUIRE \emph{$nel$, $nmc$, $nes$, $\delta t$, $\bfv{R}$ and $\Psi_{\alpha}(\bfv{R})$.}
+% % % % % % % 
+% % % % % % % 			\ENSURE $\langle E_{\alpha} \rangle$.
+% % % % % % % 
+% % % % % % % 			\FOR{$c=1$ to $nmc$}
+% % % % % % % 				\FOR{$p=1$ to $nel$}
+% % % % % % % 					\STATE {$\color{red}\bfv{x}^{new}_p = \bfv{x}^{cur}_p + \Delta x \zeta, \qquad \zeta \in [-1, 1]$}\\
+% % % % % % % 					\medskip
+% % % % % % % 					\emph{Define $q(\bfv{x^{new}}, \bfv{x^{cur}}) \equiv \frac{P(\bfv{x^{new}})}{P(\bfv{x^{cur}})} = \frac{|\Psi_{T}(\bfv{x^{new}})|^2}{|\Psi_{T}(\bfv{x^{cur}})|^2}$}\\
+% % % % % % % 					\emph{Accept trial move with probability}\\
+% % % % % % % 					$min\left[1,q(\bfv{x^{new}}, \bfv{x^{cur}})\right]$
+% % % % % % % 				\ENDFOR
+% % % % % % % 				\\
+% % % % % % % 				\emph{Compute $E_L = \frac{\Op{H}\Psi_T}{\Psi_T} = -\frac{1}{2}\frac{\nabla^2 \Psi_T}{\Psi_T} + V.$}
+% % % % % % % 			\ENDFOR
+% % % % % % % 			\\
+% % % % % % % 			\emph{Compute $\langle E \rangle = \frac{1}{nmc} \sum_{c=1}^{nmc} E_L$ and $\sigma^2 = \langle E \rangle^2- \langle E^2 \rangle$.}
+% % % % % % % 		\end{algorithmic}\label{RSDalgo}
+% % % % % % % 	\end{scriptsize}
+% % % % % % % 	
+% % % % % % % 	\column{6cm}
+% % % % % % % 	{\color{red}{INCLUIR GRAFICA DE MUESTREO DE METROPOLIS}}
+% % % % % % % 		\begin{scriptsize}
+% % % % % % % 			\begin{itemize}
+% % % % % % % 				\item $\bfv{x}^{new}$ does not depend on $\Psi_T$
+% % % % % % % 				\item \emph{Importance sampling:} Bias the moves toward the states of high probability.
+% % % % % % % 				\item Now $\bfv{x}^{new}_p = \bfv{x}^{cur}_p + D \bfv{F}(\bfv{x}^{cur}) \delta t + \chi\sqrt{\delta t}$.
+% % % % % % % 				\item The acceptance probability is now:
+% % % % % % % 				$min(1, \frac{G(\bfv{x^{cur}},\bfv{x^{new}},\Delta t)|\Psi_T(\bfv{x^{new}})|^2}{G(\bfv{x^{new}},\bfv{x^{cur}},\Delta t)|\Psi_T(\bfv{x^{cur}})|^2})$ and
+% % % % % % % 				$G(\bfv{x^{new}},\bfv{x^{cur}},\Delta t)$ is a transitition probability matrix.
+% % % % % % % 			\end{itemize}
+% % % % % % % 		\end{scriptsize}
+% % % % % % % 	\end{columns}
+% % % % % % % \end{frame}
+
+
+\subsection{QVMC algorithm}
+
+\begin{frame}[fragile]
+	\begin{scriptsize}
+	\begin{columns}%[T,l]
+		\column{6cm}
+		\begin{algorithmic}%[1]
+			\medskip
+			\REQUIRE \emph{$nel$, $nmc$, $nes$, $\delta t$, $\bfv{R}$ and $\Psi_{\alpha}(\bfv{R})$.}
+
+			\ENSURE $\langle E_{\alpha} \rangle$.
+
+			\FOR{$c=1$ to $nmc$}
+				\FOR{$p=1$ to $nel$}
+					\STATE {$\bfv{x}^{new}_p = \bfv{x}^{cur}_p + \chi + D \bfv{F}(\bfv{x}^{cur}_p) \delta t$}\\
+					\medskip
+					\emph{Compute $\bfv{F}(\bfv{x}^{new}) = \frac{\bfv{\nabla \Psi_T}}{\Psi_T}$}\\
+					\emph{Accept trial move with probability}\\
+					$min\left[1,\frac{\omega(\bfv{x}^{cur}, \bfv{x}^{new})}{\omega(\bfv{x}^{new}, \bfv{x}^{cur})} {\frac{|\Psi(\bfv{x}^{new})|^2}{|\Psi(\bfv{x}^{cur})|^2}}\right]$
+				\ENDFOR
+				\\
+				\emph{Compute $E_L = \frac{\Op{H}\Psi_T}{\Psi_T} = -\frac{1}{2}\frac{\nabla^2 \Psi_T}{\Psi_T} + V.$}
+			\ENDFOR
+			\\
+			\emph{Compute $\langle E \rangle = \frac{1}{nmc} \sum_{c=1}^{nmc} E_L$ and $\sigma^2 = \langle E \rangle^2- \langle E^2 \rangle$.}
+		\end{algorithmic}\label{RSDalgo}
+		
+		\column{4cm}
+		\begin{figure}
+			\centering
+		\scalebox{0.35}{\input{chartFlows/chartFlowQVMC.tex}}
+% % % 			\caption{Simulation chart flow}
+		\end{figure}
+	\end{columns}
+	\end{scriptsize}
+\end{frame}
+
+
+\subsection{Optimization of the trial wave function}
+\begin{frame}{Wave function optimization, why and how?}
+	
+	\begin{scriptsize}̈́
+		\begin{alertblock}{Goal}
+			\emph{Find an optimal set of parameters $\bfv{\alpha}$ in $\Psi_T$ to minimized the estimated energy.}
+% 			
+% 			\begin{itemize}
+% 				\item Important both for VMC and DMC.
+% 				\item	Reduce the systematic error.
+% 				\item Reduce the statistical uncertainty.		 
+% 			\end{itemize}
+		\end{alertblock}
+	\end{scriptsize}
+	
+	\begin{scriptsize}̈́
+		\begin{alertblock}{Approaches}
+			\begin{enumerate}
+				\item	Minimization of the variance of the local energy.
+				\item Minimization of the energy.
+				\item A combination of both.
+			\end{enumerate}
+		\end{alertblock}
+
+		\begin{alertblock}{Examples optimization algorithms}
+			\begin{enumerate}
+				\item Stochastic gradient approximation (SGA).
+				\item Quasi-Newton method.
+			\end{enumerate}
+		\end{alertblock}
+	\end{scriptsize}
+\end{frame}
+
+
+
+\begin{frame}{Minimization of energy with quasi-Newton method}
+	\begin{scriptsize}
+		\begin{alertblock}{Objective function and its derivative}
+			\begin{columns}
+			\column{4.0cm}
+				\begin{itemize}
+					\item {\color{red}{Expectation value of the energy:}}\\
+					$E_{vmc} = \frac{ \int |\Psi_{T}|^2 \left[\frac{\Op{H} \Psi_{T}}{\Psi_{T}}\right]\, d\bfv{R}}{\int \Psi_{T}^2 \, d\bfv{R}}$
+				\end{itemize}
+				 
+				 \column{6.0cm}
+				 \begin{itemize}			 
+					\item {\color{red}{Derivative of the expectation value of the energy:}}\\
+					$\frac{\partial E}{\partial c_m} = 2\left[\left\langle E_L \frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}\right\rangle - E \left\langle \frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}\right\rangle \right]$
+				 \end{itemize}
+				\end{columns}
+			\end{alertblock}
+		\end{scriptsize}
+		
+		
+		
+	\begin{scriptsize}
+		\begin{alertblock}{Strategies for computing the derivative}
+			
+				\begin{itemize}
+					\item {\color{red}{Direct analytical differentiation:}}\\
+					\vspace{0.2cm}
+					$\frac{\partial \Psi_{T_{c_m}}}{\partial c_m} = \frac{\partial}{\partial c_m}\left[|\bfv{D}|_{\uparrow} |\bfv{D}|_{\downarrow} \prod_{i=1}^{N} \prod_{i=j+1}^{N} J(r_{ij})\right] = ...? \qquad \text{Enjoy it!}$
+					\vspace{0.2cm}
+					\item {\color{red}{Numerical derivative: central differences:}} Just for $\Psi_{SD}$ we have to do\\
+					\vspace{0.2cm}
+						$\frac{d \Psi_{SD}}{d \alpha_m} = \frac{\Psi_{SD}(\alpha_m + \Delta \alpha_m) - \Psi_{SD}(\alpha_m - \Delta \alpha_m)}{2\Delta \alpha_m} + \mathcal{O}(\Delta \alpha_{m}^2)$ \\
+						\vspace{0.2cm}
+						(...to be done per parameter).
+						\vspace{0.2cm}
+				\end{itemize}
+				
+				%%{\color{green}{TOO EXPENSIVE...}}
+			\end{alertblock}
+		\end{scriptsize}
+\end{frame}
+
+
+\begin{frame}{Minimization of energy with quasi-Newton method}
+
+	\begin{scriptsize}
+		\begin{alertblock}{Trick to compute the derivative of the energy}
+			{\color{red}{Goal:}}\\
+			$\frac{\partial E}{\partial c_m} = 2\left[\left\langle E_L {\color{red}{\frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}}}\right\rangle - E \left\langle {\color{red}{\frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}}}\right\rangle \right]$ 
+			
+			\begin{enumerate}
+				\item  Split the trial wave function: $\Psi_{T_{c_m}} = \Psi_{{SD}_{c_m}} \Psi_{{J}_{c_m}} = \Psi_{{SD}_{c_m} \uparrow}  \Psi_{{SD}_{c_m} \downarrow} \Psi_{{J}_{c_m}} $.
+				
+				\item Rewrite the {\color{red}{derivatives}} as:  $\color{red}{\frac{\partial \ln \Psi_{T_{c_m}}}{\partial c_m} = \frac{\partial \ln(\Psi_{{SD_{c_m}}\uparrow})}{\partial c_m} + \frac{\partial \ln(\Psi_{{SD}_{c_m}\downarrow})}{\partial c_m}  + \frac{\partial \ln(\Psi_{J_{c_m}})}{\partial c_m}}$\label{ww}
+				
+				\item Divide he standard expression $\frac{\mathrm d}{\mathrm dt}(\det\mathbf A)=(\det\mathbf A)\mathop{\textrm{tr}}\biggl(\mathbf A^{-1}\frac{\mathrm d\mathbf A}{\mathrm dt}\biggr)$ by $\det\mathbf A$ to get: $\frac{d}{dt}\ln\det \mathbf A(t) = \mathrm{tr} \left(\mathbf A^{-1} \frac{d \mathbf{A}}{dt}\right) = \sum_{i=1}^{N} \sum_{j=1}^{N} A^{-1}_{ij} \dot{A}_{ji}$
+				
+				\item This expression inserted in step (\ref{ww}) gives:
+				$\boxed{\frac{\partial \ln \Psi_{T_{c_m}}}{\partial c_m} = (\sum_{i=1}^{N} \sum_{j=1}^{N} D_{ij}^{-1} \dot{D}_{ji})_{\uparrow} + (\sum_{i=1}^{N} \sum_{j=1}^{N} D_{ij}^{-1} \dot{D}_{ji})_{\downarrow} + \frac{\partial \ln(\Psi_{J_{c_m}})}{\partial c_m}}$
+			\end{enumerate}
+		\end{alertblock}
+	\end{scriptsize}
+
+\end{frame}
+
+
+
+% % % % % 	\begin{scriptsize}
+% % % % % 		\begin{alertblock}{Split Slater-Jastrow}
+% % % % % 			$$\Psi_{T}(\bfv{x}) = |\bfv{D}|_{\uparrow} |\bfv{D}|_{\downarrow} \prod_{i=1}^{N} \prod_{i=j+1}^{N} J(r_{ij})$$
+% % % % % 		\end{alertblock}
+% % % % % 	\end{scriptsize}
+
+
+% % % % Uncovering Tagged Formulas Piecewise
+% % % % % \begin{align}
+% % % % %   A &= B \\
+% % % % %     \uncover<2->{&= C \\}
+% % % % %     \uncover<3->{&= D \\}
+% % % % %     \notag
+% % % % %   \end{align}
+% % % % % \vskip-1.5em
+% % % % 
+% % % % 
+% % % % \end{frame}
+
+
+% % % \begin{frame}{The Quantum Varitional Monte Carlo algorithm}
+% % % \begin{itemize}
+% % %  \item \textcolor{red}{Zero temperature method.}
+%
+% % % \begin{description}
+% 
+% % %  $\langle \Op{H} \rangle = \int P(\bfv{R}) f(\bfv{R}) d \bfv{R}, \qquad \bfv{R} \in \mathcal{R}^N$
+% % %  \item Measure $\Op{H}$ by sampling the \textcolor{blue}{probability distribution} 
+% % %  
+% % %  
+% % %  \item The points \bfv{R}_i are generated using random methods.
+% % %  \item We introduce noise in the problem
+% % % %  \subitem The results have error bars
+% % % %  \subitem BUT it might a good way to proceed.
+% % %  \item Reduce considerably the problem's complexity.
+% % %  \item It scales better than other methods.
+% % % \end{description}
+% % % \end{frame}
+
+% % % % \subsection{Monte Carlo Integration}
+% % % % \begin{frame}{Monte Calo method}
+% % % % \begin{description}
+% % % %  \item[Stochastic:] Relies on high quality random number generator and a Markov process. 
+% % % %  \item[Variational Monte Carlo:] A trial wave function is optimized using a set of adjustable parameters.
+% % % % \end{description}

@@ -1,0 +1,127 @@
+PROG=main
+COMP=c++ -finline-functions -Wall 
+DEBUG=#-D_DEBUG_
+OPT=-O3
+
+${PROG}:		${PROG}.o Coor/Coor.o Jastrow/Jastrow.o Distance/Distance.o Random/Random.o Domain/Domain.o Correlation/Correlation.o Func/Func.o SlaterDet/SlaterDet.o SlaterMatrix/SlaterMatrix.o Walker/Walker.o LocalWaveFunction/LocalWaveFunction.o Variations/Variations.o SpinFactors/SpinFactors.o Vmc/Vmc.o
+			${COMP} ${DEBUG} ${OPT} ${PROG}.o Coor/Coor.o Jastrow/Jastrow.o Distance/Distance.o Random/Random.o Domain/Domain.o Correlation/Correlation.o Func/Func.o SlaterDet/SlaterDet.o SlaterMatrix/SlaterMatrix.o Walker/Walker.o LocalWaveFunction/LocalWaveFunction.o Variations/Variations.o SpinFactors/SpinFactors.o Vmc/Vmc.o -o app
+
+${PROG}.o:		${PROG}.cpp Coor/Coor.h Jastrow/Jastrow.h Distance/Distance.h Random/Random.h Domain/Domain.h Correlation/Correlation.h fFunction/fFunction.h Func/Func.h SingleParticleFuncs/SingleParticleFuncs.h SlaterDet/SlaterDet.h SlaterMatrix/SlaterMatrix.h Functor/Functor.h Ref/Ref.h Walker/Walker.h LocalWaveFunction/LocalWaveFunction.h Variations/Variations.h SpinFactors/SpinFactors.h Vmc/Vmc.h FuncUpDown/FuncUpDown.h SolidHarmonics/SolidHarmonics.h SolidHarmonicsFuncs/SolidHarmonicsFuncs.h
+			${COMP} ${DEBUG} ${OPT} -c ${PROG}.cpp
+
+Coor/Coor.o:		Coor/Coor.cpp Coor/Coor.h
+			${COMP} ${DEBUG} ${OPT} -c Coor/Coor.cpp
+			mv Coor.o Coor/Coor.o
+
+Jastrow/Jastrow.o:	Jastrow/Jastrow.cpp Jastrow/Jastrow.h Distance/Distance.h fFunction/fFunction.h Jastrow/InlineJastrow.h SpinFactors/SpinFactors.h Domain/Domain.h Coor/Coor.h
+			${COMP} ${DEBUG} ${OPT} -c Jastrow/Jastrow.cpp
+			mv Jastrow.o Jastrow/Jastrow.o
+
+
+Distance/Distance.o:	Distance/Distance.cpp Distance/Distance.h Coor/Coor.h
+			${COMP} ${DEBUG} ${OPT} -c Distance/Distance.cpp
+			mv Distance.o Distance/Distance.o
+
+Random/Random.o:	Random/Random.cpp Random/Random.h
+			${COMP} ${DEBUG} ${OPT} -c Random/Random.cpp
+			mv Random.o Random/Random.o
+
+Domain/Domain.o:	Domain/Domain.cpp Domain/Domain.h Random/Random.h Coor/Coor.h Distance/Distance.h SpinFactors/SpinFactors.h fFunction/fFunction.h Paramizer/Paramizer.h
+			${COMP} ${DEBUG} ${OPT} -c Domain/Domain.cpp
+			mv Domain.o Domain/Domain.o
+
+Correlation/Correlation.o:	Correlation/Correlation.cpp Correlation/Correlation.h Domain/Domain.h Jastrow/Jastrow.h Distance/Distance.h fFunction/fFunction.h
+			${COMP} ${DEBUG} ${OPT} -c Correlation/Correlation.cpp
+			mv Correlation.o Correlation/Correlation.o
+
+Func/Func.o:		Func/Func.cpp Func/Func.h Coor/Coor.h Functor/Functor.h Ref/Ref.h Domain/Domain.h SingleParticleFuncs/SingleParticleFuncs.h
+			${COMP} ${DEBUG} ${OPT} -c Func/Func.cpp
+			mv Func.o Func/Func.o
+
+SingleParticleFuncs/SingleParticleFuncs.o:	SingleParticleFuncs/SingleParticleFuncs.h Coor/Coor.h Domain/Domain.h SolidHarmonics/SolidHarmonics.h
+			${COMP} ${DEBUG} ${OPT} -c SingleParticleFuncs/SingleParticleFuncs.cpp
+			mv SingleParticleFuncs.o SingleParticleFuncs/SingleParticleFuncs.o
+
+SlaterDet/SlaterDet.o:	SlaterDet/SlaterDet.cpp SlaterDet/SlaterDet.h SlaterMatrix/SlaterMatrix.h Coor/Coor.h Domain/Domain.h Func/Func.h SingleParticleFuncs/SingleParticleFuncs.h Random/Random.h Ref/Ref.h LocalWaveFunction/LocalWaveFunction.h
+			${COMP} ${DEBUG} ${OPT} -c SlaterDet/SlaterDet.cpp
+			mv SlaterDet.o SlaterDet/SlaterDet.o
+
+SlaterMatrix/SlaterMatrix.o:	SlaterMatrix/SlaterMatrix.cpp SlaterMatrix/SlaterMatrix.h
+			${COMP} ${DEBUG} ${OPT} -c SlaterMatrix/SlaterMatrix.cpp
+			mv SlaterMatrix.o SlaterMatrix/SlaterMatrix.o 
+
+Walker/Walker.o:	Walker/Walker.cpp Walker/Walker.h Random/Random.h Domain/Domain.h SlaterDet/SlaterDet.h Ref/Ref.h Correlation/Correlation.h Variations/Variations.h
+			${COMP} ${DEBUG} ${OPT} -c Walker/Walker.cpp
+			mv Walker.o Walker/Walker.o
+
+
+LocalWaveFunction/LocalWaveFunction.o:	LocalWaveFunction/LocalWaveFunction.cpp LocalWaveFunction/LocalWaveFunction.h Domain/Domain.h
+			${COMP} ${DEBUG} ${OPT} -c LocalWaveFunction/LocalWaveFunction.cpp
+			mv LocalWaveFunction.o LocalWaveFunction/LocalWaveFunction.o
+
+
+Variations/Variations.o:	Variations/Variations.cpp Variations/Variations.h Domain/Domain.h Correlation/Correlation.h SlaterDet/SlaterDet.h Ref/Ref.h fFunction/fFunction.h LocalWaveFunction/LocalWaveFunction.h SpinFactors/SpinFactors.h
+			${COMP} ${DEBUG} ${OPT} -c Variations/Variations.cpp
+			mv Variations.o Variations/Variations.o
+
+SpinFactors/SpinFactors.o:	SpinFactors/SpinFactors.cpp SpinFactors/SpinFactors.h
+			${COMP} ${DEBUG} ${OPT} -c SpinFactors/SpinFactors.cpp
+			mv SpinFactors.o SpinFactors/SpinFactors.o
+
+Vmc/Vmc.o:		Vmc/Vmc.cpp Vmc/Vmc.h Domain/Domain.h Correlation/Correlation.h SlaterDet/SlaterDet.h Ref/Ref.h Variations/Variations.h Walker/Walker.h
+			${COMP} ${DEBUG} ${OPT} -c Vmc/Vmc.cpp
+			mv Vmc.o Vmc/Vmc.o
+
+clear:
+			rm -f *.o
+			rm -f Coor/Coor.o
+			rm -f Jastrow/Jastrow.o
+			rm -f Distance/Distance.o
+			rm -f Derivatives/Derivatives.o
+			rm -f Random/Random.o
+			rm -f Domain/Domain.o
+			rm -f Correlation/Correlation.o
+			rm -f Func/Func.o
+			rm -f SingleParticleFuncs/SingleParticleFuncs.o
+			rm -f SlaterDet/SlaterDet.o
+			rm -f SlaterMatrix/SlaterMatrix.o
+			rm -f Walker/Walker.o
+			rm -f LocalWaveFunction/LocalWaveFunction.o
+			rm -f Variations/Variations.o
+			rm -f SpinFactors/SpinFactors.o
+			rm -f Vmc/Vmc.o
+			rm -f FuncUpDown/FuncUpDown.o
+
+clear~:
+			rm -f *~
+			rm -f Coor/*~
+			rm -f Jastrow/*~
+			rm -f Distance/*~
+			rm -f Derivatives/*~
+			rm -f Functor/*~
+			rm -f Random/*~
+			rm -f Domain/*~
+			rm -f Correlation/*~
+			rm -f fFunction/*~
+			rm -f Func/*~
+			rm -f SingleParticleFuncs/*~
+			rm -f SlaterDet/*~
+			rm -f SlaterMatrix/*~
+			rm -f Walker/*~
+			rm -f LocalWaveFunction/*~
+			rm -f Variations/*~
+			rm -f Init/*~
+			rm -f SpinFactors/*~
+			rm -f Vmc/*~
+			rm -f FuncUpDown/*~
+			rm -f InitLi/*~
+			rm -f Init/*~
+			rm -f InitNe/*~
+			rm -f Kjoringer/*~
+			rm -f SolidHarmonics/*~ 
+
+clearAll:	
+		rm -f app	
+		make clear
+		make clear~
+		rm -f ./#* ./.#*

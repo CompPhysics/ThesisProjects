@@ -1,0 +1,203 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bra}[1]{\left\langle #1 \right|}
+\newcommand{\ket}[1]{\left| #1 \right\rangle}
+\newcommand{\braket}[2]{\left\langle #1 \right| #2 \right\rangle}
+
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Thesis title:  Quantum Monte Carlo Approaches to Dense Nuclear and Neutron Star Matter }
+
+
+{\bf The aim of this thesis is to study numerically systems such as 
+dense nuclear matter and neutron star matter  using  different models for the nucleon-nucleon interaction.
+Variational Monte Carlo (VMC) and 
+Diffusion Monte Carlo (DMC) methods will be used for solving 
+Schr\"odinger's equation. }
+
+A microscopic treatment of 
+problems in nuclear physics involves a highly complex and state dependent
+interaction. For systems of few nucleons (protons and neutrons) in a light nucleus or in a lattice 
+which defines the density, ab initio
+calculations can be performed. In this thesis the aim is to use 
+VMC and DMC approaches. These methods are briefly described below.
+A general reference to neutron star and dense matter studies can be found in Ref.~[1].
+Monte Carlo applications to dense matter are in Ref.~[2], while Refs.~[3,4] discuss implementations and 
+algorithms for atoms and quantum liquids.
+\subsection*{Quantum Monte Carlo}
+The variational quantum Monte Carlo (VMC) has been widely applied 
+to studies of quantal systems. 
+The recipe consists in choosing 
+a trial wave function
+$\psi_T({\bf R})$ which we assume to be as realistic as possible. 
+The variable ${\bf R}$ stands for the spatial coordinates, in total 
+$dN$ if we have $N$ particles present. The variable $d$ is the dimension
+of the system. 
+The trial wave function serves then as
+a mean to define the quantal probability distribution 
+\be
+   P({\bf R})= \frac{\left|\psi_T({\bf R})\right|^2}{\int \left|\psi_T({\bf R})\right|^2d{\bf R}}.
+\ee
+This is our new probability distribution function  (PDF). 
+
+The expectation value of the energy $E$
+is given by
+\be
+   \langle E \rangle =
+   \frac{\int d{\bf R}\Psi^{\ast}({\bf R})H({\bf R})\Psi({\bf R})}
+        {\int d{\bf R}\Psi^{\ast}({\bf R})\Psi({\bf R})},
+\ee
+where $\Psi$ is the exact eigenfunction. Using our trial
+wave function we define a new operator, 
+the so-called  
+local energy, 
+\be
+   E_L({\bf R})=\frac{1}{\psi_T({\bf R})}H\psi_T({\bf R}),
+   \label{eq:locale1}
+\ee
+which, together with our trial PDF allows us to rewrite the 
+expression for the energy as
+\be
+  \langle H \rangle =\int P({\bf R})E_L({\bf R}) d{\bf R}.
+  \label{eq:vmc1}
+\ee
+This equation expresses the variational Monte Carlo approach.
+For most hamiltonians, $H$ is a sum of kinetic energy, involving 
+a second derivative, and a momentum independent potential. 
+The contribution from the potential term is hence just the 
+numerical value of the potential.
+A good discussion of the VMC approach for nuclear systems can be found 
+in Ref.~[1].
+\subsection*{Diffusion Monte Carlo}
+The DMC method is based on rewriting the 
+Schr\"odinger equation in imaginary time, by defining
+$\tau=it$. The imaginary time Schr\"odinger equation is then
+\be
+   \frac{\partial \psi}{\partial \tau}=-\OP{H}\psi,
+\ee
+where we have omitted the dependence on $\tau$ and the spatial variables
+in $\psi$.
+The wave function $\psi$  is again expanded in eigenstates of the Hamiltonian 
+\be
+    \psi = \sum_i^{\infty}c_i\phi_i,
+    \label{eq:wexpansion_dmc}
+\ee 
+where 
+\be 
+   \OP{H}\phi_i=\epsilon_i\phi_i, 
+\ee 
+$\epsilon_i$ being an eigenstate of $\OP{H}$. 
+
+In order to solve the above equations, 
+importance sampling is essential for DMC methods, 
+if the simulation is to be efficient. 
+A trial or guiding wave function $\psi_T({\bf R})$, which closely
+approximates the ground state wave function is introduced.
+This is where typically the VMC result enters.
+A new distribution is defined as 
+\be
+   f({\bf R}, \tau)=\psi_T({\bf R})\psi({\bf R}, \tau),
+\ee
+which is also a solution of the Schr\"odinger equation when  
+$\psi({\bf R}, \tau)$ 
+is a solution. 
+Schr\"odinger's equation is consequently modified to
+\be
+   \frac{\partial f({\bf R}, \tau)}{\partial \tau}=
+    \frac{1}{2}\nabla\left[\nabla -F({\bf R})\right]f({\bf R}, \tau)
+    +(E_L({\bf R})-E_T)f({\bf R}, \tau).
+    \label{eq:dmcequation2}
+\ee
+In this equation we have introduced the so-called force-term $F$,
+given by
+\be
+   F({\bf R})=\frac{2\nabla \psi_T({\bf R})}{ \psi_T({\bf R})},
+\ee
+and is commonly referred to as the ``quantum force''. 
+The local energy $E_L$ is defined as previously
+\be
+    E_L{\bf R})=-\frac{1}{\psi_T({\bf R})}
+                \frac{\nabla^2 \psi_T({\bf R})}{2}+V({\bf R})\psi_T({\bf R}),
+\ee
+and is computed, as in the VMC method, with respect to the trial wave function
+while $E_T$ is the trial energy.
+
+We can give the following interpretation to Eq.~(\ref{eq:dmcequation2}).
+The right hand side of the importance sampled DMC equation
+consists, from left to right, of diffusion, drift and rate terms. The
+problematic potential dependent rate term of the non-importance 
+sampled method is replaced by a term dependent on the difference 
+between the local
+energy of the guiding wave function and the trial energy. 
+The trial energy is initially chosen to be the VMC energy of 
+the trial  wave function, and is
+updated as the simulation progresses. Use of an optimised 
+trial function minimises the difference between the local 
+and trial energies, and hence
+minimises fluctuations in the distribution $f$ . 
+A wave function optimised using VMC is ideal for this purpose, 
+and in practice VMC provides the best
+method for obtaining wave functions that accurately 
+approximate ground state wave functions locally. 
+
+
+A large program for VMC for both fermions and bosons has been developed by Mateusz R\o stad,
+Simen Reine, Jon Nilsen and Victoria Popsueva, all PhD students at present.
+Similarly, we have at present a DMC program for bosons planned extended to fermion systems.
+The fixed node approach will be used for studying fermionic systems or excited states
+of bosonic systems.
+This forms part of the present thesis with applications to dense matter of 
+quantum liquids, with emphasis on
+neutron star studies. The DMC work of this thesis can easily be extended to other fermionic 
+systems such as quantum dots, atoms and nuclei. Similarly,  excited states 
+
+\section*{Preliminary Progress Plan}
+The thesis is expected to be finished towards the end  of the spring
+semester of 2006.
+\begin{itemize}
+\item Fall 2004: 
+      Exams in FYS4520 (Subatomic Many-Body Physics I), FYS4170 (Relativistic Quantum Field Theory) and  INF-MAT4350	Numerical Linear Algebra.
+Thesis work: Write  a code for VMC and DMC Monte Carlo for the alpha particle and possibly $^{16}$O. 
+This means partly reproducing 
+results from Mateusz R\o stad's thesis, see Ref.~[5]. The same simplified nucleon-nucleon interaction
+is to be used. 
+The program developed by Mateusz can be used and extended upon. This work can also be done together
+with Andreas S\ae bj\o rnsen.
+\item Spring 2005:  Exams in FYS4530	Subatomic Many-Body Physics II, FYS5120
+Advanced Quantum Field theory and INF5620 Numerical methods for partial differential equations.
+Thesis work: Write a code for VMC and DMC Monte Carlo for liquid Helium following the lecture notes
+of Guardiola, see Ref.~[4]. The same interaction as that used in Ref.~[4] is to be used.
+The thesis of Jon Nilsen and his codes for Bosonic DMC can be used, see 
+Ref.~[6].
+
+\item Fall 2005: The code developed during the spring 2005 semester is now to be extended to dense
+nuclear systems, following much of the same recipe with periodic lattices defining the density of
+the system. The main aim is to compute the binding energy of the system. Pairing correlations, as done in
+Ref.~[7] can also be extracted if time allows for. Ref.~[7] is a very useful work.
+\item Spring 2006: Finalize thesis and final exam.
+\end{itemize}
+
+\section*{Literature}
+\begin{enumerate}
+\item H.~Heiselberg and M.~Hjorth-Jensen, Phys.~Rep.~{\bf 328} (2000) 237
+\item A.~Sarsa, S.~Fantoni, K.~E.~Schmidt, F.~Pederiva, Phys.~Rev.~{\bf C68} (2003) 024308
+\item B. L. Reynolds, W. A. Lester Jr., and P. J.~Reynolds, {\em Monte Carlo Methods in Ab Initio Quantum Cheistry}, (World Scientific, Singapore, 1994). 
+\item R. Guardiola, Bolivian Summer School and Valencia Summer School Lecture notes.
+\item M.~M.~R\o stad, Master Thesis, UiO august 2004.
+\item J.~K.~Nilsen, Master Thesis, UiO june 2004.
+\item  S.~Y.~Chang, J.~Morales, Jr., V.~R.~Pandharipande, D.~G.~Ravenhall, J.~Carlson, Steven C.~Pieper, R. B. Wiringa, K.~E.~Schmidt, preprint nucl-th/0401016, see xxx.lanl.gov and look at nuclear theory, nucl-th
+\end{enumerate}
+
+\end{document}
+
+
+
+
+

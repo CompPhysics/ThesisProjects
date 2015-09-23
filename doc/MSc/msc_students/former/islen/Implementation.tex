@@ -1,0 +1,691 @@
+\section{Implementation}
+\subsection{General framework}
+\begin{frame}{Implementing a QVMC simulator}
+	\begin{scriptsize}
+		\begin{alertblock}{How and why [later]?}
+			\begin{enumerate}
+				\item Programming style?: Object-orientation.
+			
+				\item Methodology?: Prototyping-test-extension/migration.
+	% 		
+				\item Programming languages?: Python/C++.
+				
+				\item Structure of the program?: Define classes [next slide], methods and flux of information (algorithm).
+			\end{enumerate}
+		\end{alertblock}
+	\end{scriptsize}
+	
+  \begin{scriptsize}
+    \begin{alertblock}{Basic class structure of a QVMC simulator}
+      \begin{itemize}
+        \item An administration class: {\color{blue}{VMC}}.
+        \item A class computing energies: {\color{blue}{Energy}}.
+        \item A class containing the trial wave function: {\color{blue}{PsiTrial}}.
+        \item A class for administrate the configuration space: {\color{blue}{Particle}}.   
+      \end{itemize}
+    \end{alertblock}
+  \end{scriptsize}
+\end{frame}
+
+\subsection{Implementation in Python}
+\begin{frame}[fragile]{Quick design of a QVMC simulator in Python}
+  \begin{Python}
+    ...
+    #Import some packages
+    ...
+    class VMC():
+      def __init__(self, _dim, _np, _charge, ...,_parameters):
+        ...
+        particle = Particle(_dim, _np, _step) 
+        psi      = Psi(_np, _dim, _parameters)
+        energy   = Energy(..., particle, psi, _charge) 
+        self.mc  = MonteCarlo(psi, _ncycles, particle, energy,...)
+
+      def doVariationalLoop(self):
+        ...
+        for var in xrange(nVar):
+          self.mc.doMonteCarloImportanceSampling()
+          self.mc.psi.updateVariationalParameters()
+  \end{Python}
+\end{frame}
+
+
+\begin{frame}[fragile]{Easy creation/manipulation of matrices in Python}
+\begin{Python}
+
+    ...
+    class Particle(): 
+      def __init__(self, _dim, _np, _step):
+        # Initialize matrices for configuration space
+        r_old = zeros((_np, _dim))
+        ...
+
+      def acceptMove(self, i):
+        self.r_old[i,0:dim] = self.r_new[i,0:dim]
+
+      ...
+      def setTrialPositionsBF(self):
+        dt = self.step
+        r_old = dt*random.uniform(-0.5,0.5,size=np*dim)
+        r_old.reshape(np,dim)
+      ...
+  \end{Python}
+\end{frame}
+
+% % % % 
+% % % % \begin{frame}[fragile]
+% % % %   \begin{Python}
+% % % %     ...
+% % % %     class Psi:
+% % % %       def __init__(self, _np, _dim, _parameters):
+% % % %         ...
+% % % %         self.cusp = zeros((_np*(_np-1)/2))    # Cusp factors
+% % % %         self.setCusp()
+% % % % 
+% % % %       # Define single particle wave functions
+% % % %       def phi1s(self, rij):
+% % % %         return exp(-self.parameters[0]*rij)
+% % % %         
+% % % %       def phi2s(self, rij):
+% % % %         return (1.0 -self.parameters[0]*rij/2.0) \
+% % % %               *exp(-self.parameters[0]*rij/2.0)
+% % % %               
+% % % %       def getPsiTrial(self, r):
+% % % %         return self.getModelWaveFunctionHe(r) \
+% % % %               *self.getCorrelationFactor(r)
+% % % %       ...
+% % % %   \end{Python}
+% % % % \end{frame}
+
+
+% % % 
+% % % \begin{frame}[fragile]
+% % %   \begin{Python}
+% % %     ...
+% % %     class Energy: 
+% % %       def __init__(self, dim, np, particle, psi,...):
+% % %         self.cumEnergy = zeros(maxVar)  #Cumulate local energy
+% % %         self.cumEnergy2= zeros(maxVar)  #Cumulant local energy squared
+% % %         ...
+% % % 
+% % %       def getLocalEnergy(self, wfold):
+% % %         EL     = self.getKineticEnergy(wfold) \
+% % %               + self.getPotentialEnergy()
+% % %         self.E  += EL
+% % %         self.E2 += EL*EL 
+% % %       ...
+% % %   \end{Python}
+% % % \end{frame}
+
+
+\begin{frame}[fragile]{Calling the code}
+  \begin{Python}
+    import sys
+    from VMC import *
+
+    # Set parameters of simulation
+    nsd = 3        # Number of spatial dimensions
+    nVar= 10       # Number of variations (optimization method)
+    nmc = 10000    # Number of monte Carlo cycles
+    nel = 2        # Number of electrons
+    Z   = 2.0      # Nuclear charge
+    ...
+    vmc = VMC(nsd, nel, Z,..., nmc, dt, nVar, varPar)
+    vmc.doVariationalLoop()
+    vmc.mc.energy.printResults()
+  \end{Python}
+\end{frame}
+
+
+\begin{frame}{What do you gain from using Python?}
+   \begin{scriptsize}
+% % %     \begin{columns}
+% % %       \column{5cm}
+% % %       \begin{scriptsize}
+% % %       \begin{alertblock}{Object-oriented programming?}
+% % %         \begin{itemize}
+% % %           \item More flexibility.
+% % %             \begin{itemize}
+% % %               \scriptsize
+% % %               \item Encapsulation (Public interface and private implementation.).
+% % %               \item Polymorfims (Objects acts according to the context.).
+% % %               \item Inheritance (specialization).
+% % %             \end{itemize}
+% % %           
+% % %           \item Divide and konqueror approach.
+% % %         \end{itemize}
+% % %       \end{alertblock}
+% % %       \end{scriptsize}
+% % %     
+
+% %       \column{5cm}
+      \begin{alertblock}{High level language?}
+        \begin{itemize}
+          \item Clear and compact syntax.
+          \item Support all the major program styles. 
+          \item Runs on all major platforms.
+          \item Free, open source.
+          \item Comprehensive standard library.
+          \item Huge collection of free modules on the web.
+          \item Good support for scientific computing.
+        \end{itemize}
+      \end{alertblock}
+% %     \end{columns}
+  \end{scriptsize}
+  
+  \begin{alertblock}{However...}
+%     \begin{enumerate}
+     How well performs Python with respect to C++?
+%      \item How quick is Python with respect to C++?
+%     \end{enumerate}
+  \end{alertblock}
+\end{frame}
+
+
+% % % % % 
+% % % % % \begin{frame}{Comparing Python to C++}
+% % % % %   \begin{figure}
+% % % % %     \begin{tabular}{cc}
+% % % % %       \scalebox{0.4}{\input{figures/experimentalData/performancePythonCpp/plotEnergiesHePlainCppdBeta003.tex}}&
+% % % % %       \scalebox{0.4}{\input{figures/experimentalData/performancePythonCpp/plotEnergiesHePython.tex}}
+% % % % %     \end{tabular}
+% % % % %     \caption{\scriptsize Energy for the He atom as a function of the variational parameter $\beta$ computed with plain C++ (left) and Python (right) simulators. Set up: $dt=0.1$ and $\alpha = 1.6785$. Monte Carlo cycles: $1\times 10^{7}$ and $1\times 10^{6}$ cycles for C++ and Python, respectively.}
+% % % % %   \end{figure}
+% % % % %    
+% % % % %   \begin{table}
+% % % % %     \centering
+% % % % %      \begin{scriptsize}
+% % % % %     \begin{tabular}{rl}
+% % % % %       \toprule[0.5pt]
+% % % % %       \textbf{Method} & \textbf{$\langle E \rangle$}, au \\
+% % % % %       \midrule[0.5pt]
+% % % % %         Hartree-Fock   & -2.8617 \\
+% % % % %         DFT            & -2.83 \\
+% % % % %         Exact          & -2.9037\\
+% % % % %       \bottomrule[1pt]
+% % % % %     \end{tabular}\caption{Ground state energies for He atom obtained from reference \cite{Thijssen}.}
+% % % % %     \end{scriptsize}
+% % % % %   \end{table}
+% % % % % \end{frame}
+
+
+
+\begin{frame}{Comparing Python to C++ computing VMC}
+       \begin{figure}
+        \begin{tabular}{cc}
+        \centering
+        \scalebox{0.42}{\input{figures/experimentalData/performancePythonCpp/plotExecTimeHePyCpp.tex}}
+        \scalebox{0.42}{\input{figures/experimentalData/performancePythonCpp/plotExecTimeCppAlone.tex}}
+        \end{tabular}
+        \caption{\scriptsize Execution time as a function of the number of Monte Carlo cycles for a \textcolor{blue}{Python (blue)} and \textcolor{green}{C++ (green)} simulators implementing the QVMC method with importance sampling for the He atom.}
+      \end{figure}
+  
+ 
+  \scriptsize{\textcolor{red}{CONCLUSION:}} {\textcolor{blue}{Python}} is {\color{blue}{SLOW}}, except when it is not running!
+\end{frame}
+
+
+
+\begin{frame}{Detecting bottlenecks in Python}
+  \begin{scriptsize}
+    \begin{table}
+      \centering
+      \begin{tabular}{rrrl}
+        \toprule[1pt]
+        \textbf{\# calls} & \textbf{Total time} & \textbf{Cum. time} & \textbf{Class:function}\\
+        \midrule[1pt]
+        \scriptsize
+              1  &  9.153 &   207.061  & \footnotesize{MonteCarlo.py:(doMCISampling)}\\
+              1  &  0.000 &   207.061  & \footnotesize{VMC.py:(doVariationalLoop)}\\
+        1910014  & 23.794 &   159.910  & \footnotesize{Psi.py:(getPsiTrial)}\\
+          100001 & 12.473 &   117.223  & \footnotesize{Psi.py:(getQuantumForce)}\\
+        1910014  & 58.956 &   71.704   & \footnotesize{Psi.py:(getModelWaveFunctionHe)}\\
+          50000  &  0.864 &  66.208    & \footnotesize{Energy.py:(getLocalEnergy)}\\
+        1910014  & 57.476 &   64.412   & \footnotesize{Psi.py:(getCorrelationFactor)}\\
+          50000  &  8.153 &  62.548    & \footnotesize{Energy.py:(getKineticEnergy)}\\
+        \textcolor{red}{6180049}  &  \textcolor{red}{21.489} & \textcolor{red}{21.489}    & \textcolor{red}{\footnotesize{:0(sqrt)}}\\
+          900002  &  4.968 &  4.968    & \footnotesize{:0(copy)}\\
+          300010  &  2.072 &  2.072    & \footnotesize{:0(zeros)}\\
+          50000  &  2.272  &  2.796    & \footnotesize{Energy.py:(getPotentialEnergy)}\\
+        \bottomrule[1pt]
+      \end{tabular}\caption{\scriptsize Profile of a QVMC simulator with importance sampling for the He atom implemented in Python. The run was done with 50000 Monte Carlo cycles.}
+      \label{profileHe}
+    \end{table}
+  \end{scriptsize}
+\end{frame}
+
+
+
+% % % % % % % % \begin{frame}[fragile]{Detecting bottlenecks in Python}
+% % % % % % % %   \begin{scriptsize}
+% % % % % % % %     \begin{table}
+% % % % % % % %       \centering
+% % % % % % % %       \begin{tabular}{rrrl}
+% % % % % % % %         \toprule[1pt]
+% % % % % % % %         \textbf{\# calls} & \textbf{Total time} & \textbf{Cum. time} & \textbf{Class:function}\\
+% % % % % % % %         \midrule[1pt]
+% % % % % % % %         \scriptsize
+% % % % % % % %               1  & 17.985  & 2417.743 & \footnotesize{MonteCarlo.py:(doMCISampling)}\\
+% % % % % % % %               1  &  0.000  & 2417.743 & \footnotesize{VMC.py:(doVariationalLoop)}\\
+% % % % % % % %         6220026  & 81.841  & 2305.124 & \footnotesize{Psi.py:(getPsiTrial)}\\
+% % % % % % % %           200001 &  41.787 & 1828.758 & \footnotesize{Psi.py:(getQuantumForce)}\\
+% % % % % % % %         6220026  & 532.861 & 1171.609 & \footnotesize{Psi.py:(getModelWaveFunctionBe)}\\
+% % % % % % % %         6220026  & 921.182 & 1051.674 & \footnotesize{Psi.py:(getCorrelationFactor)}\\
+% % % % % % % %           50000  &  0.912  & 477.214  & \footnotesize{Energy.py:(getLocalEnergy)}\\
+% % % % % % % %           50000  & 15.313  & 467.341  & \footnotesize{Energy.py:(getKineticEnergy)}\\
+% % % % % % % %         24880104 & 295.931 & 295.931  & \footnotesize{Psi.py:(phi2s)}\\
+% % % % % % % %         \textcolor{red}{63300273} & \textcolor{red}{220.166} & \textcolor{red}{220.166}  & \textcolor{red}{\footnotesize{:0(sqrt)}}\\
+% % % % % % % %         24880104 & 215.998 & 215.998  & \footnotesize{Psi.py:(phi1s)}\\
+% % % % % % % %         6820036  & 45.579  & 45.579   & \footnotesize{:0(zeros)}\\
+% % % % % % % %         1700002  & 9.369   & 9.369    & \footnotesize{:0(copy)}\\
+% % % % % % % %           50000  &  7.108  & 8.961    & \footnotesize{Energy.py:(getPotentialEnergy)}\\
+% % % % % % % %         \bottomrule[1pt]
+% % % % % % % %       \end{tabular}\caption{\scriptsize Profile of a QVMC simulator with importance sampling for the Be atom implemented in Python. The run was done with 50000 Monte Carlo cycles.}
+% % % % % % % %       \label{profileBe}
+% % % % % % % %     \end{table}
+% % % % % % % %   \end{scriptsize}
+% % % % % % % % 
+% % % % % % % %   
+% % % % % % % % \end{frame}
+
+
+\subsection{Implementation in mixed Python/C++}
+\begin{frame}[fragile]{Can "Python" do better?: Extending Python with C++}
+  \begin{scriptsize}
+  \begin{Python}
+    ...
+    sys.path.insert(0, './extensions')  # Set the path to the extensions
+    import ext_QVMC                     # Extension module
+
+    class Vmc():
+      def __init__(self, _Parameters):
+        # Create an object of the 'conversion class' 
+        self.convert = ext_QVMC.Convert()
+        
+        # Get the paramters of the currrent simulation
+        simParameters   = _Parameters.getParameters()
+        alpha   = simParameters[6]
+        self.varpar = array([alpha, beta])
+
+        # Convert a Python array to a MyArray object
+        self.v_p = self.convert.py2my_copy(self.varpar)
+
+        # Create objects to be extended in C++
+        self.psi    = ext_QVMC.Psi(self.v_p, self.nel, self.nsd)...
+  \end{Python}
+  \end{scriptsize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Calling code for the mixed Python/C++ simulator}
+  \begin{Python}
+    import sys
+
+    from SimParameters import * # Class encapsulating the \
+                                # parameters of simulation
+    from Vmc import *           # Import the simulator box.
+
+    # Create an object containing the 
+    # parameters of the current simulation
+    simpar = SimParameters('Be.data')
+
+    # Create a Variational Monte Carlo simulation
+    vmc = Vmc(simpar)
+
+    vmc.doVariationalLoop()
+    vmc.energy.doStatistics("resultsBe.data", 1.0)
+  \end{Python}
+\end{frame}
+
+
+
+\begin{frame}{Comparing Python to C++}
+  \begin{figure}
+% % %     \begin{tabular}{cc}
+% % %       \centering
+% % % %       \scalebox{0.45}{\input{figures/experimentalData/performancePythonCpp/plotExecTimeMixedVsPlainSmall.tex}}&
+      \scalebox{0.55}{\input{figures/experimentalData/performancePythonCpp/plotExecTimeMixedVsPlainBig.tex}}
+% % % %     \end{tabular}
+    \caption{\scriptsize{Execution time as a function of the number of Monte Carlo cycles for mixed Python/C++ and pure C++ simulators implementing the QVMC method with importance sampling for He atom.}}
+  \end{figure}  
+\end{frame}
+
+
+
+% % % % 
+% % % % \begin{frame}[fragile]{Implementation of a QVMC simulator in C++}
+% % % %   
+% % % %   \begin{columns}[T,c]
+% % % %     \column{5cm}
+% % % %     \scriptsize
+% % % %     \begin{alertblock}{Requirements}
+% % % %       \begin{enumerate}
+% % % %         \scriptsize
+% % % %         \item Numerical efficiency.
+% % % %         \item Flexibility.
+% % % %           \begin{itemize}
+% % % %             \scriptsize
+% % % %             \item Extensibility.
+% % % %             \item Independent of the nsd.
+% % % %           \end{itemize}
+% % % %         \item Readability.
+% % % %       \end{enumerate}
+% % % %     \end{alertblock}
+% % % %     
+% % % %     \begin{alertblock}{How?}
+% % % %       \begin{enumerate}
+% % % %       \scriptsize
+% % % %       \item Alternative algorithms.
+% % % %       
+% % % %       \item Object oriented programming.
+% % % %       
+% % % %         \begin{itemize}
+% % % %           \scriptsize
+% % % %           \item Classes, inheritance, templates, etc.
+% % % %         \end{itemize}
+% % % %       \item Operator overloading, functors, etc.
+% % % %       \end{enumerate}
+% % % %     \end{alertblock}
+% % % %   
+% % % %   
+% % % %   \column{5cm}
+% % % %     \scriptsize
+% % % %     \begin{alertblock}{QVMC algorithm with drift diffusion}
+% % % %       \begin{algorithmic}%[1]
+% % % %         \medskip
+% % % %         \REQUIRE \emph{$nel$, $nmc$, $nes$, $\delta t$, $\bfv{R}$ and $\Psi_{\alpha}(\bfv{R})$.}
+% % % % 
+% % % %         \ENSURE $\langle E_{\alpha} \rangle$.
+% % % % 
+% % % %         \FOR{$c=1$ to $nmc$}
+% % % %           \FOR{$p=1$ to $nel$}
+% % % %             \STATE {$\bfv{x}^{new}_p = \bfv{x}^{cur}_p + \chi + D {\color{red}{\bfv{F}(\bfv{x}^{cur}_p)}} \delta t$}\\
+% % % %             \medskip
+% % % %             \emph{Compute $\color{red}{\bfv{F}(\bfv{x}^{new}) = 2.0\frac{\bfv{\nabla \Psi_T}}{\Psi_T}}$}\\
+% % % %             \emph{Accept trial move with probability}\\
+% % % %             $min\left[1,\frac{\omega(\bfv{x}^{cur}, \bfv{x}^{new})}{\omega(\bfv{x}^{new}, \bfv{x}^{cur})} {\color{red}{\frac{|\Psi(\bfv{x}^{new})|^2}{|\Psi(\bfv{x}^{cur})|^2}}}\right]$
+% % % %           \ENDFOR
+% % % %           \\
+% % % %           \emph{Compute $\color{red}{E_L = \frac{\Op{H}\Psi_T}{\Psi_T} = -\frac{1}{2}\frac{\nabla^2 \Psi_T}{\Psi_T}} + V.$}
+% % % %         \ENDFOR
+% % % %         \\
+% % % %         \emph{Compute $\langle E \rangle = \frac{1}{nmc} \sum_{c=1}^{nmc} E_L$ and $\sigma^2 = \langle E \rangle^2- \langle E^2 \rangle$.}
+% % % %       \end{algorithmic}\label{RSDalgo}
+% % % %     \end{alertblock}
+% % % %     
+% % % %   \end{columns}
+% % % % \end{frame}
+% % % % 
+% % % % 
+% % % % % % % \begin{frame}{Algorithm analysis and performance improvement}
+% % % % % % % MOstrar los dos determinantes, jastrows y rijs y mostrar que cuando muevo una particula a la vez solo una row cambia.
+% % % % % % %   ESCRIBIR AQUI DOS DETERMINANTES GRADES VECES UN JASTRO, LAS DISTANCIAS RELATIVAS, ETC CON LAS ROWS SOMBREADAS.
+% % % % % % % \end{frame}
+% % % % 
+% % % % 
+% % % % 
+% % % % \begin{frame}{Algorithm analysis and performance improvement}
+% % % % 
+% % % %   \begin{columns}[T,c]
+% % % %     \column{5cm}
+% % % %     \scriptsize
+% % % %     \begin{alertblock}{No optimization}
+% % % %       \begin{itemize}
+% % % %         \item $\frac{\Psi_{T}^{new}}{\Psi_{T}^{cur}} = \underbrace{\frac{\Det{D}_{\uparrow}^{new}}{\Det{D}_{\uparrow}^{cur}} \frac{\Det{D}_{\downarrow}^{new}}{\Det{D}_{\downarrow}^{cur}}}_{R_{SD}}\, \underbrace{\frac{\Psi_{C}^{new}}{\Psi_{C}^{cur}}}_{R_{C}}.$
+% % % %         
+% % % %         \item $\frac{\bfv{\nabla}\Psi_{T}^{new}}{\Psi_{T}^{new}} = \frac{\bfv{\nabla}(\Det{D}_{\uparrow} \Det{D}_{\downarrow} \Psi_{C})}{\Det{D}_{\uparrow} \Det{D}_{\downarrow} \Psi_{C}}$
+% % % %         
+% % % %         \item $\frac{\nabla^2 \Psi_{T}^{new}}{\Psi_{T}^{new}} = \frac{\nabla^2(\Det{D}_{\uparrow} \Det{D}_{\downarrow} \Psi_{C})}{\Det{D}_{\uparrow} \Det{D}_{\downarrow} \Psi_{C}}$
+% % % %       \end{itemize}
+% % % %     \end{alertblock}
+% % % %   
+% % % %   
+% % % %   \column{6cm}
+% % % %     \scriptsize
+% % % %     \begin{alertblock}{Optimization}
+% % % %       \begin{itemize}
+% % % %         \item $R \equiv R_{SD} R_{C}$\\
+% % % %         
+% % % %           $R_{SD} = \sum_{j=1}^{N} \phi_j(\bfv{x^{new}_i}) D_{ji}^{-1}(\bfv{x^{cur}}).$\\
+% % % %           $R_C = \cdots?$\\
+% % % %         
+% % % %         \item $\frac{\Grad \Psi}{\Psi} =  \frac{\Grad (\Det{D}_{\uparrow}) }{\Det{D}_{\uparrow}} + \frac{\Grad (\Det{D}_{\downarrow})}{\Det{D}_{\downarrow}} + \frac{\Grad  \Psi_C}{ \Psi_C}.$\\
+% % % %         
+% % % %         $\frac{\bfv{\nabla_i}|\bfv{D}(\bfv{x})|}{|\bfv{D}(\bfv{x})|} = \sum_{j=1}^{N} \bfv{\nabla_i}\phi_j(\bfv{x_i}) D_{ji}^{-1}(\bfv{x})$\\
+% % % %         
+% % % %         $\frac{\bfv{\nabla_i}|\bfv{D}(\bfv{y})|}{|\bfv{D}(\bfv{y})|} = \frac{1}{R} \sum_{j=1}^{N} \bfv{\nabla_i}\phi_j(\bfv{y_i}) D_{ji}^{-1}(\bfv{x}).$\\
+% % % %         ...
+% % % % %         \item 
+% % % %       \end{itemize}
+% % % %     \end{alertblock}
+% % % %   \end{columns}
+% % % %   
+% % % %   
+% % % %     \scriptsize
+% % % %     \begin{alertblock}{Inverse updating}
+% % % %       $
+% % % %  D^{-1}_{kj}(\bfv{x^{new}})=
+% % % %   \begin{cases} 
+% % % %   D^{-1}_{kj}(\bfv{x^{cur}}) - \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{new}})  D^{-1}_{lj}(\bfv{x^{cur}}) & \mbox{if $j \neq i$}\\
+% % % %     \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{cur}}) D^{-1}_{lj}(\bfv{x^{cur}}) & \mbox{if $j=i$}
+% % % % \end{cases}
+% % % % $
+% % % %   \end{alertblock}
+% % % % \end{frame}
+
+
+
+
+%%%%%%%%%%%%%%%%%%% STRUCTURING A SIMULATOR %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Implementation in C++}
+\begin{frame}{Structuring a simulator with object-orientation?}
+    \begin{alertblock}{Defining classes}
+      \begin{enumerate}
+        \item From the mathematical model and the algorithms, {\textbf{identify the main components of the problem}} \color{blue}{(classes)}.
+          \begin {itemize}
+           \item Vmc simulation: {\color{red}{\citecode{VmcSimulation.h}}}
+           \item Parameters in simulation: {\color{red}{\citecode{Parameters.h}}}
+           \item Monte Carlo method: {\color{red}{\citecode{MonteCarlo.h}}}
+           \item Energy: {\color{red}{\citecode{Energy.h}}}
+           \item Potential:{\color{red}{\citecode{Potential.h}}}
+% % %            \item Relative Distances:{\color{red}{\citecode{RelDistances.h}}}
+           \item Trial wave function: {\color{red}{\citecode{PsiTrial}}}
+% % %            \item Slater determinant: {\color{red}{\citecode{Slater.h}}}
+% % %            \item Correlation function: {\color{red}{\citecode{CorrelationFnc.h}}}
+% % %            \item Single particle wave functions: {\color{red}{\citecode{SPWF.h}}}\\
+           ...
+          \end {itemize}
+          
+          
+                  \item {\textbf{Identify the mathematical and algorithmic parts changing from problem to problem}} \color{blue}{(superclasses)}.
+          \begin {itemize}
+           \item Potential:{\color{red}{\citecode{Potential.h}}}
+           \item Trial wave function: {\color{red}{\citecode{PsiTrial}}}
+           \item Monte Carlo method: {\color{red}{\citecode{MonteCarlo.h}}}         ...
+         \end {itemize}
+
+
+      \end{enumerate}
+    \end{alertblock}
+\end{frame}
+ 
+ 
+ 
+\begin{frame}[fragile]
+  \begin{alertblock}{Enhance flexibility}
+      \begin{enumerate}\setcounter{enumi}{2}
+       
+       \item  {\textbf{List what each of these classes should do}}, IN GENERAL \color{blue}{(member functions)}, e.g., for {\color{red}{\citecode{PsiTrial.h}}}:
+          \begin{itemize}
+           \item Compute the acceptance ratio: \citecode{getPsiPsiRatio()}.
+           
+           \item Compute the quantum force: \citecode{getQuantumForce()}.
+% % % %            \item Compute the $\frac{\nabla^2 \Psi_T}{\Psi_T}$ ratio: \citecode{getLapPsiRatio()}\\
+           ...
+          \end{itemize}
+
+% % %         \begin{scriptsize}
+% % %           What we have now are interfaces, i.e. classes with a general appearance without a defined behaviour, i.e, we know what they do, but not specify how. Their functions are declared \emph{virtual or pure virtual functions}.
+% % %         \end{scriptsize}
+          
+      \end{enumerate}
+    \end{alertblock}
+    
+      \begin{scriptsize}
+    \begin{C++}
+    
+      #include "SomeClass.h"
+      
+      class PsiTrial{
+        public:
+          virtual double getAcceptanceRatio()=0;
+          virtual MyArray<double> getQuantumForce()=0;
+          virtual getLapPsiRatio()=0;
+      }
+    \end{C++}
+  \end{scriptsize}
+
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+
+  
+%   \begin{scriptsize}
+    \begin{alertblock}{Inheritance (specializing behaviours):  {\textbf{\emph{is a (kind of)}}-relationship}}
+      \begin{enumerate}\setcounter{enumi}{3}
+        \item Be specific with the behaviour , i.e., create subclases by finding {\textbf{\emph{is a (kind of)}}~-relationships}.\color{blue}{(subclasses)}
+        For example:
+      
+        \begin{itemize}
+          \scriptsize
+          \item Slater-Jastrow ({\color{red}{\citecode{SlaterJastrow.h}}}) {\textbf{\emph{is a (kind of)}}} trial wave function ({\color{red}{\citecode{PsiTrial.h}}}).
+          
+          \item Slater alone ({\color{red}{\citecode{SlaterAlone.h}}}) {\textbf{\emph{is a (kind of)}}} trial wave function ({\color{red}{\citecode{PsiTrial.h}}}).\\
+          ...
+          
+          \item Coulomb one-body ({\color{red}{\citecode{OneBodyCoulomb.h}}}) {\textbf{\emph{is a (kind of)}}} potential ({\color{red}{\citecode{Potential.h}}}).
+          % % %           \item Lennard-Johes ({\color{red}{\citecode{LennardJones.h}}}) {\textbf{\emph{is a (kind of)}}} potential ({\color{red}{\citecode{Potential.h}}}).
+        \end{itemize}
+      \end{enumerate}
+    \end{alertblock}
+%   \end{scriptsize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+ \begin{alertblock}{Composition: {\textbf{\emph{has a}}-relationship}}
+  \begin{enumerate}\setcounter{enumi}{4}
+   \item Connect the whole structure with relatonships of type  {\textbf{\emph{has a}}} \color{blue}{(composition)}.
+   \end{enumerate}
+    $$\Psi_T = |\bfv{D}|_{\uparrow} |\bfv{D}|_{\downarrow}| J(rij)$$
+   For example: Slater-Jastrow wave function ({\color{red}{\citecode{SlaterJastrow.h}}}) {\textbf{\emph{has~a}}} Slater determinant ({\color{red}{\citecode{SlaterDeterminant.h}}}) and a correlation function  ({\color{red}{\citecode{CorrelationFnc.h}}}).
+  
+
+  
+ \end{alertblock}
+ 
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \begin{scriptsize}
+  \begin{C++}
+  
+    #include "SlaterDeterminant.h"
+    #include "CorrelationFnc.h"
+    
+    class SlaterJastrow: public PsiTrial{
+      private:
+        SlaterDeterminant *slater;
+        CorrelationFnc *correlation;
+      
+      public:
+        SlaterJastrow(SlaterDeterminant *sd, 
+                     CorrelationFnc *cor):
+                     slater(sd), correlation(cor){}
+        
+        double getPsiPsiRatio(){
+          return slater->getDetDetRatio(...)
+                 *correlation->getCorCorRatio(...);
+        }
+    };    
+  \end{C++}
+  \end{scriptsize}
+\end{frame}
+
+
+\frame[fragile]{Creating objects}
+  \begin{scriptsize}
+    \begin{alertblock}{Creating trial wave functions}
+    \begin{C++}
+    
+      void VmcSimulator::setTrialWaveFnc(){
+        ...
+        SlaterDeterminant *sd = new SlaterDeterminant(...);
+        Correlation *pj = new PadeJastrow(...);
+        
+        PsiTrial *s = new SlaterJastrow(sd, pj);
+      }
+    \end{C++}
+    
+    
+    or 
+    
+    
+    \begin{C++}
+    
+       void VmcSimulator::setTrialWaveFnc(){
+        ...
+          SlaterDeterminant *sd = new SlaterDeterminant(...);
+          PsiTrial *sj = new SlaterAlone(sd);
+       }
+    \end{C++}
+    \end{alertblock}
+    
+%     Used as:
+%     
+%     \begin{C++}
+%       
+%       void someFunction(){
+%         sj->getPsiPsiRatio(...);
+%       }
+%     \end{C++}
+  \end{scriptsize}
+\end{frame}
+
+
+
+
+
+% % % % % \begin{frame}{Computational gain}
+% % % % % %  \column{6cm}
+% % % % % % 		\scriptsize
+% % % % % % 		\begin{alertblock}{Performance gain.}
+% % % % % % 		
+% % % % % % 	
+% % % % % % % 		\begin{scriptsize}
+% % % % % % 		\begin{table}
+% % % % % % 		\centering
+% % % % % % 		\resizebox{0.9\textwidth}{!}{
+% % % % % % 		\begin{tabular}{l*{6}{l}l}
+% % % % % % 		\toprule[1pt]
+% % % % % % 		Operation       & Not optimized & Optimized\\
+% % % % % % 		\midrule[1pt]
+% % % % % % 		Evaluation of $R$    & $\mathcal{O}(N^2)$ & $\mathcal{O}\left(\frac{N^2}{2}\right)$\\
+% % % % % % 		Updating inverse& $\mathcal{O}(N^3)$ & $\mathcal{O}\left(\frac{N^3}{4}\right)$  \\
+% % % % % % 		Transition of one particle & $\mathcal{O}(N^2) +  \mathcal{O}(N^3)$ & $\mathcal{O}\left(\frac{N^2}{2}\right) + \mathcal{O}\left(\frac{N^3}{4}\right)$\\
+% % % % % % 		\bottomrule[1pt]
+% % % % % % 		\end{tabular}
+% % % % % % 		}
+% % % % % % 
+% % % % % % 		% \caption{Computational cost of the Slater determinant.}
+% % % % % % 		\end{table}
+% % % % % % % 		\end{scriptsize}
+% % % % % % 	\end{alertblock}
+% % % % %  
+% % % % % \end{frame}

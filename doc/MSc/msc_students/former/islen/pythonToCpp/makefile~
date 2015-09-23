@@ -1,0 +1,52 @@
+###########################################################################
+# Use SWIG to integrate the myModule.h C++ class for use in Python programs.
+#
+# # Note: name "_myModule.dll" matters, because shadow class imports _myModule.
+# ##########################################################################
+
+
+PYLIB = /usr/lib
+
+PYINC = /usr/include/python2.5
+
+all: _myModule.so myModule.py
+
+# Compile external libraries
+MyArray.o: MyArray.cpp MyArray.h
+			g++ -c MyArray.cpp -I/extension
+
+Convert.o: Convert.cpp Convert.h
+			g++ -c Convert.cpp -I./extension
+
+TestCpp.o: TestCpp.cpp TestCpp.h 
+			g++ -c TestCpp.cpp -I./extension
+
+
+
+# Create a shared library
+_myModule.so: Convert.o myModule_wrap.o myModule.o
+				g++ -shared myModule_wrap.o myModule.o TestCpp.o -L$(PYLIB) -lpython2.5 -o $@
+
+# generated class wrapper module(s)
+myModule_wrap.o: myModule_wrap.cpp myModule.h
+				g++ myModule_wrap.cpp -c -g -I$(PYINC)
+
+myModule_wrap.cpp: myModule.i
+				swig -c++ -python -shadow myModule.i
+
+myModule.py: myModule.i
+				swig -c++ -python -shadow myModule.i
+
+# wrapped C++ class code
+myModule.o: myModule.cpp myModule.h
+				g++ -c -g myModule.cpp -Wno-deprecated
+
+# non Python test
+
+clean:
+				rm -f *.pyc *.o *.so
+
+force:
+				rm -f *.pyc *.o *.so \
+        				myModule_wrap.doc myModule_wrap.cpp myModule.py
+

@@ -1,0 +1,1980 @@
+\chapter{Contour deformation method (CDM) in momentum space; theory and applications}
+\section{The momentum space Schr\"odinger equation.}
+\label{sec:momspace}
+The Schr\"odinger equation in abstract vector representation is
+\begin{equation}
+  \left( T + V \right) \vert \psi_n \rangle = E_n \vert\psi_n \rangle 
+  \label{eq:vec_rep}
+\end{equation}
+Here $T$ is the kinetic energy operator and $V$ is the potential operator. 
+The eigenstates form a complete orthonormal set according to 
+\[ 
+{\bf 1} = \sum_n \vert \psi_n\rangle\langle \psi_n \vert, \:\: \langle \psi_n\vert \psi_{n'} \rangle = \delta_{n,n'}
+\]
+The most commonly used representations of equation~\ref{eq:vec_rep} are the coordinate
+and
+the momentum space representations. They define the completeness relations 
+\begin{eqnarray}
+ {\bf 1}&  = &  \int d{\bf r} \:\vert  {\bf r} \rangle \langle {\bf r}\vert, \:\: 
+ \langle  {\bf r}\vert  {\bf r'} \rangle = \delta ( {\bf r}-{\bf r'}) \\
+{\bf 1} & = & \int d{\bf k} \:\vert  {\bf k} \rangle \langle {\bf k}\vert, \:\: 
+  \langle  {\bf k}\vert  {\bf k'} \rangle = \delta ( {\bf k}-{\bf k'}) 
+\end{eqnarray}
+Here the basis states in  both ${\bf r}$- and ${\bf k}$-space are dirac-delta 
+function normalized. From this it follows that the plane-wave states are given by,
+\footnote{Some authors define the plane wave by  $ \langle  {\bf r}\vert  {\bf k} \rangle = 
+  \exp \left( i {\bf k\cdot r} \right) $, in which case 
+  $ \langle  {\bf k}\vert  {\bf k'} \rangle = \left( 2\pi \right)^3 \delta ( {\bf k}-{\bf k'}) $
+  and each $\int d{\bf k}$ is replaced by $ (1/2\pi)^{3/2}\int d{\bf k} $.} 
+\begin{equation}
+  \langle  {\bf r}\vert  {\bf k} \rangle = \left( 1\over2\pi \right)^{3/2}\exp \left( i {\bf k\cdot r} \right)
+  \label{eq:planewave1}
+\end{equation}
+which is a transformation function defining the mapping from the abstract 
+$ \vert {\bf k} \rangle $ to the abstract $\vert {\bf r}\rangle $ space.
+That the ${\bf r}$-space basis states are 
+delta-function normalized follows from 
+\begin{equation}
+  \delta ( {\bf r}-{\bf r'}) = \langle {\bf r} \vert {\bf r}'\rangle = 
+  \langle {\bf r} \vert {\bf 1} \vert {\bf r}'\rangle = 
+  \int \mathrm{d}{\bf k} \langle {\bf r}\vert {\bf k} \rangle \langle {\bf k}\vert {\bf r}' \rangle = 
+  \left( {1\over 2\pi}\right)^3 \int \mathrm{d}{\bf k} e^{i {\bf k}({\bf r} - {\bf r}')} 
+\end{equation}
+and the same for the momentum space basis states,
+\begin{equation}
+  \delta ( {\bf k}-{\bf k'}) = \langle {\bf k} \vert {\bf k}'\rangle = 
+  \langle {\bf k} \vert {\bf 1} \vert {\bf k}'\rangle = 
+  \int \mathrm{d}{\bf r} \langle {\bf k}\vert {\bf r} \rangle \langle {\bf r}\vert {\bf k}' \rangle = 
+  \left( {1\over 2\pi}\right)^3 \int \mathrm{d}{\bf r} e^{i {\bf r}({\bf k} - {\bf k}')} 
+\end{equation}
+Projecting equation~\ref{eq:vec_rep} on momentum states\footnote{In the literature the momentum states
+are often called plane-wave states.},  
+the momentum space Schr\"odinger equation is obtained,
+\begin{equation}
+  {\hbar^2 \over 2\mu} k^2 \psi_n({\bf k})  + 
+  \int d{\bf k'}\: V({\bf k}, {\bf k'}) \psi_n({\bf k'}) = 
+  E_n \psi_n({\bf k})
+  \label{eq:momspace1}
+\end{equation}
+Here the notation $\psi_n({\bf k}) = \langle {\bf k} \vert \psi_n\rangle $ and 
+$ \langle {\bf k} \vert V \vert {\bf k}' \rangle = V({\bf k}, {\bf k'})$ has been introduced.
+The potential in momentum space is given by a double Fourier-transform 
+of the potential in coordinate space, i.e.
+\begin{equation} 
+  V ({\bf k}, {\bf k'}) = \left( {1\over 2\pi}\right)^3 \int \mathrm{d}{\bf r}\int \mathrm{d}{\bf r}'\: 
+  e^{-i {\bf kr} }V({\bf r},{\bf r}') e^{i{\bf k}'{\bf r}'}  
+\end{equation}
+Here it is assumed that the potential interaction does not contain any spin dependence. 
+Instead of a differential equation in coordinate space, the Schr\"odinger
+equation becomes an integral equation in momentum space. This has 
+many tractable features. Firstly, most realistic 
+nucleon-nucleon interactions derived from field-theory are given 
+explicitly in momentum space. Secondly, the boundary conditions imposed
+on the differential equation in coordinate space are automatically built into the
+integral equation. And last, but not least, integral equations are easy to numerically 
+implement, and convergence is obtained by just increasing the number of integration
+points.
+Instead of solving the three-dimensional integral equation given in equation~(\ref{eq:momspace1}), an 
+infinite set of 1-dimensional equations can be obtained by invoking a partial wave
+expansion. 
+The wave function $ \psi_n({\bf k}) $ can be expanded in a complete set of spherical harmonics, i.e. 
+\begin{equation}
+  \psi_n({\bf k}) = \sum _{lm} \psi_{nlm}(k)Y_{lm} (\hat{k}), \:\:
+  \psi_{nlm}(k) = \int d\hat{k} Y_{lm}^*(\hat{k})\psi_n({\bf k}).   
+  \label{eq:part_wave1}
+\end{equation}
+By inserting equation~\ref{eq:part_wave1} in equation~\ref{eq:momspace1}, and projecting from the left
+$Y_{lm}(\hat{k})$, the three-dimensional Schr\"odinger equation~(\ref{eq:momspace1}) is reduced
+to an infinite set of  1-dimensional angular momentum coupled integral equations, 
+\begin{equation}
+  \left( {\hbar^2 \over 2\mu} k^2 - E_{nlm}\right) \psi_{nlm}(k) =  
+  -\sum_{l'm'} \int_{0}^\infty dk' {k'}^2 V_{lm, l'm'}(k,k') \psi_{nl'm'}(k') 
+  \label{eq:part_wave2}
+\end{equation}
+where the angular momentum projected potential takes the form,
+\begin{equation}
+  V_{lm, l'm'}(k,k') = \int \mathrm{d}{\hat{k}} \int \mathrm{d}{\hat{k}'}\: 
+    Y_{lm}^*(\hat{k})V({\bf k}, {\bf k'})Y_{l'm'}(\hat{k}')
+    \label{eq:pot1}
+\end{equation}
+here $\mathrm{d}{\hat k} = \mathrm{d}\theta \sin\theta \:\mathrm{d}\varphi $.
+In many cases the potential is given in position space, so it is convinient to establish 
+the connection between $V_{lm, l'm'}(k,k')$ and $V_{lm, l'm'}(r,r')$. Inserting 
+position space completeness in equation~(\ref{eq:pot1}) gives
+\begin{eqnarray}
+  \nonumber
+  V_{lm, l'm'}(k,k') = \int \mathrm{d}{\bf{r}} \int \mathrm{d}{\bf{r}'}\: 
+  \int \mathrm{d}{\hat{k}} \int \mathrm{d}{\hat{k}'}\: 
+  Y_{lm}^*(\hat{k})\langle {\bf k}\vert {\bf r} \rangle
+  \langle{\bf r}  \vert V \vert {\bf r}' \rangle
+  \langle {\bf r'}\vert {\bf k}' \rangle Y_{lm}(\hat{k}') = \\
+  \int \mathrm{d}{\bf{r}} \int \mathrm{d}{\bf{r}'}\: 
+  \left\{ \int \mathrm{d}{\hat{k}}  Y_{lm}^*(\hat{k})\langle {\bf k}\vert {\bf r} \rangle \right\}
+  \langle{\bf r}  \vert V \vert {\bf r}' \rangle
+  \left\{ \int \mathrm{d}{\hat{k}'}\:   Y_{lm}(\hat{k}') \langle {\bf r'}\vert {\bf k}' \rangle\right\}
+  \label{eq:pot2}
+\end{eqnarray}
+Since the plane waves depend only on the absolute values of position and momentum, 
+$ \vert {\bf k} \vert, \vert {\bf r} \vert  $,
+and the angle between them, $ \theta_{kr} $, they may be expanded in terms of bipolar harmonics of 
+zero rank \cite{biedenharn}, i.e.  
+\begin{equation} 
+  e^{i {\bf k}\cdot {\bf r}} = 4\pi \sum_{l=0}^{\infty} i^l j_l(kr)\left( Y_l(\hat{k}) \cdot Y_l(\hat{r}) \right)
+  = \sum_{l=0}^{\infty} (2l+1)i^l j_l(kr) P_l(\cos \theta_{kr}) 
+\end{equation}
+Where the addition theorem for spherical harmonics has been used in order to write
+the expansion in terms of Legendre polynomials. The spherical Bessel functions, $j_l(z)$,  
+are given in terms of Bessel functions of the first kind with half integer orders \cite{gradshteyn,stegun},  
+\[
+j_l(z) = \sqrt{\pi \over 2 z} J_{l+1/2}(z).  
+\]
+Inserting the plane-wave expansion
+into the brackets of equation~(\ref{eq:pot2}) yields, 
+\begin{eqnarray}
+  \nonumber
+  \int \mathrm{d}{\hat{k}}  Y_{lm}^*(\hat{k})\langle {\bf k}\vert {\bf r} \rangle & = &  
+  \left( {1\over 2\pi} \right) ^{3/2}4\pi i^{-l} j_l(kr) Y_{lm}^*(\hat{r}), \\  
+  \nonumber
+  \int \mathrm{d}{\hat{k}'}\:   Y_{lm}(\hat{k}') \langle {\bf r'}\vert {\bf k}' \rangle & = &  
+  \left( {1\over 2\pi} \right) ^{3/2}4\pi i^{l'} j_{l'}(k'r') Y_{l'm'}(\hat{r}). 
+\end{eqnarray}
+The connection between the momentum- and position space angular momentum 
+projected potentials are then given, 
+\begin{equation}
+  V_{lm, l'm'}(k,k') = {2 \over \pi} i^{l' -l}\int_0^\infty dr\: r^2 \int_0^\infty dr'\: {r'}^2 
+  j_l(kr) V_{lm,l'm'}(r,r') j_{l'}(k'r')
+  \label{eq:pot3}
+\end{equation}
+which is known as a double Fourier-Bessel transform. The position space angular 
+momentum projected potential is given by,
+\begin{equation}
+  V_{lm, l'm'}(r,r') = \int \mathrm{d}{\hat{r}} \int \mathrm{d}{\hat{r}'}\: 
+  Y_{lm}^*(\hat{r})V({\bf r}, {\bf r'})Y_{l'm'}(\hat{r}').
+  \label{eq:pot4}
+\end{equation}
+No assumptions of locality/non-locality and deformation of the interaction has so far been made, 
+and the result in equation~(\ref{eq:pot3}) is general. In position space the Schr\"odinger equation 
+takes form of an integro-differential equation in case of a non-local interaction, 
+in momentum space the Schr\"odinger equation is an ordinary integral equation of the Fredholm type, 
+see equation~(\ref{eq:part_wave2}). This is a further advantage of the momentum space approach as compared to 
+the standard position space approach.  
+If we assume that the 
+interaction is of local character, i.e. 
+\begin{equation}
+  \nonumber
+  \langle {\bf r}\vert V \vert {\bf r'}\rangle = V({\bf r}) \delta( {\bf r}-{\bf r}' ) = 
+  V({\bf r}) {\delta( { r}-{r}' ) \over r^2} \delta ( \cos \theta - \cos \theta' ) \delta (\varphi-\varphi'), 
+\end{equation}
+then equation~(\ref{eq:pot4}) reduces to 
+\begin{equation}
+  V_{lm, l'm'}(r,r') = {\delta( { r}-{r}' ) \over r^2}\int \mathrm{d}{\hat{r}}\:
+  Y_{lm}^*(\hat{r})V({\bf r})Y_{l'm'}(\hat{r}),
+  \label{eq:pot5}
+\end{equation}
+and equation~(\ref{eq:pot3}) reduces to  
+\begin{equation}
+  V_{lm, l'm'}(k,k') = {2 \over \pi} i^{l' -l}\int_0^\infty dr\: r^2 \:
+  j_l(kr) V_{lm,l'm'}(r) j_{l'}(k'r)
+  \label{eq:pot6}
+\end{equation}
+where 
+\begin{equation}
+  V_{lm, l'm'}(r) = \int \mathrm{d}{\hat{r}}\:
+  Y_{lm}^*(\hat{r})V({\bf r})Y_{l'm'}(\hat{r}),
+  \label{eq:pot10}
+\end{equation}
+In the case that the interaction is central, $V({\bf r}) = V(r)$, then
+\begin{equation}
+  V_{lm, l'm'}(r) = V(r) \int \mathrm{d}{\hat{r}}\:
+  Y_{lm}^*(\hat{r})Y_{l'm'}(\hat{r}) = V(r) \delta_{l,l'}\delta_{m,m'},
+  \label{eq:pot7}
+\end{equation}
+and 
+\begin{equation}
+  V_{lm, l'm'}(k,k') = {2 \over \pi} \int_0^\infty dr\: r^2 \:
+  j_l(kr) V(r) j_{l'}(k'r)\delta_{l,l'}\delta_{m,m'} = 
+  V_l(k,k') \delta_{l,l'}\delta_{m,m'}
+  \label{eq:pot8}
+\end{equation}
+where the momentum space representation of the interaction finally reads,
+\begin{equation}
+  V_{l}(k,k') = {2 \over \pi} \int_0^\infty dr\: r^2 \:
+  j_l(kr) V(r) j_{l}(k'r).
+  \label{eq:pot9}
+\end{equation}
+For a local and spherical symmetric potential, 
+the coupled momentum space Schr\"odinger equations given in equation~(\ref{eq:part_wave2})
+decouples in angular momentum, 
+giving
+\begin{equation}
+  {\hbar^2 \over 2\mu} k^2 \psi_{n l}(k) + 
+  \int_{0}^\infty dk' {k'}^2 V_{l}(k,k') \psi_{n l }(k') =
+  E_{n l} \psi_{n l}(k) 
+  \label{eq:momentum_space}
+\end{equation}   
+Where we have written $\psi_{n l }(k) = \psi_{nlm}(k)$, since the 
+equation becomes independent of the projection $m$ for spherical symmetric interactions. 
+The momentum space wave functions $\psi_{n l}(k) $ defines a complete orthogonal set 
+of functions, which spans the space of functions with a positive finite Euclidean norm 
+ (also called $l^2$-norm), $ \sqrt{ \langle \psi_n \vert \psi_n \rangle} $, which 
+is a Hilbert space. The corresponding normalized wave function in coordinate space
+is given by the Fourier-Bessel transform 
+\begin{equation}
+  \phi_{n l}(r)  = \sqrt{ 2\over \pi}\int dk\: k^2 j_l(kr) \psi_{n l}(k)
+\end{equation}    
+
+
+
+% new section
+\section{Analytic continuation of momentum space Schr\"odinger equation by CDM}
+\label{sec:analytic_continuation}
+In Chapter~\ref{chap:gentheory} it was shown how the generalized Berggren completeness
+relations may be derived from the completeness relation defined on the physical energy sheet
+using analytic continuation techniques to reach into the non-physical energy sheet. 
+Having obtained a generalized completeness relation, the corresponding eigenvalue
+problem may easily be deduced. On the other hand one may start with the 
+eigenvalue problem for bound- and scattering scates, and investigate under 
+which conditions the Schr\"odinger equation may be continued to the non-physical 
+energy sheet where the most interesting continuum phenomena, i.e. the resonance phenomena, 
+are located. In this section we outline a method which analytically continue the
+momentum space Schr\"odinger equation through the unitarity cut onto the second 
+Riemann sheet of the complex energy plane, which is based on deforming the integration
+contour. This method is known as the \emph{contour deformation (distortion) method} (CDM).  
+The contour deformation method was first introduced in the study of the full off-shell 
+scattering amplitudes
+in two- and three particle scattering in the early 60's, see Refs.~\cite{tikto,nuttal2,nuttal1,nuttal}. 
+A rotation of the integration contour in the 
+momentum space integral equations extended the domain over which the integral kernel 
+is a compact (Schmidt)-operator. This has numerical advantages as the kernel is no longer
+singular. In 1954 Wick \cite{wick}  introduced the method of contour
+rotation in momentum space; in transforming the equation to the imaginary axis
+the strong singularities of the interaction kernel where avoided. A
+rotation of the contour in momentum space has therefore often been referred to as 
+Wick rotation. The contour deformation method has therefore two important
+applications, first the Schr\o dinger equation is analytically continued onto
+the non-physical sheet revealing resonant structures and secondly 
+it provides a method for making the integral kernels compact enabling
+stable numerical solutions for the scattering amplitudes.
+
+In the following we consider the momentum space Schr\o dinger equation given in 
+equation~(\ref{eq:part_wave2}) where the potential is assumed spherically symmetric and
+with no spin- or tensor components. 
+Equation~\ref{eq:momentum_space} may be rewritten as an integral equation for the bound states 
+\begin{equation}
+\psi_{nl}(k) = {1\over E_{nl} - k^2/2\mu }\int_{0}^{\infty} 
+dk' {k'}^{2}V_{l}(k,k')\psi_{nl}(k').
+\label{eq:boundstate}
+\end{equation}
+For real $k,k'$ this equation is defined on the physical energy sheet, 
+i.e. in the upper half complex $k$-plane. 
+If this equation to describe a resonant or
+anti bound state, it has to be anlytically continued through the branch cut along the real 
+energy axis and onto the non-physical energy sheet, defined as the lower half complex $k$-plane. 
+
+The most straightforward method of analytic continuation is by use of power 
+series. Consider a function $f(z)$ analytic in the domain $D$, 
+and let $f_1$  and $f_2$ be taylor series of $f(z)$ about $z_0$ and $z_0'$ 
+on domains $D_1$ and $D_2$, respectively,
+\[ f_1(z) = \sum_{n=0}^\infty a_n(z-z_0)^n, \:\:\: 
+ f_2(z) = \sum_{n=0}^\infty b_n(z-{z'}_0)^n
+\]
+Both domains $D_1$ and $D_2$ are in $D$, and the radius of convergence 
+is determined by distance from $z_0$ and $z_0'$ to the nearest point on 
+the boundary of analyticity region $D$. Further suppose that the intersection $D_1 \cap D_2 $ 
+is not empty and that $f_1 = f_2 $ on $D_1 \cap D_2 $ . 
+Then $f_2$ is called an analytic continuation $f_1$ of  to $D_2$, 
+and vice versa. This procedure may be iterated to obtain the values of $f(z)$ in the
+entire domain $D$ based on its values in the subdomains $D_1,D_2,...$.
+
+Consider now the analytic continuation of the bound state equation given in equation~(\ref{eq:boundstate}). 
+In analytic continuation of integral equations we state the general rule, 
+see for example \cite{kukulin,newton}: \\
+\emph{Continuing an integral in the complex plane, the moving singularities of the
+integrand must not intercept the integration contour.} \\
+First of all, it is seen that the analytic properties of $\psi_{nl}(k)$ 
+is determined by the interaction, $V_l(k,q)$ entering the integral kernel. 
+The analytic continuation of equation~(\ref{eq:boundstate}) to the lower 
+half complex energy plane is a stepwise process where overlapping domains of analyticity
+are created. Each step of analytic continuation of the bound state Schr\"odinger equation to 
+the lower half complex energy plane involves the following three steps:  
+\begin{enumerate}
+\item The analyticity domain, $D_1$, for the wavefunction $\psi_{nl}(k)$ is determined. 
+The analyticity of $\psi(k) $
+is given by the potential $V(k,q)$, where in the first step $q$ is defined along the real axis.
+\item Having determined the analyticity region $D_1$ in the lower half
+$k$-plane, the integration in $q$ along the real axis may be distorted 
+onto a contour $L_1^+$ in the lower half complex $k$-plane, using the Cauchy integral formula. 
+All points on the contour $L_1^+$ must be contained in the analyticity domain $D_1$.  
+\item A new analyticity domain $D_2$ is determined for the
+wavefunction $\psi(k)$. The domain $D_2$ is again determined by the
+singularity structure of the potential $V(k,q) $ where $q$ is now on the distorted contour $L_1^+$. 
+If and only if the contour $L_1^+ $ also lies in the new domain of analyticity $D_2$, 
+we may choose $k$ on $L_1^+$ as well. This gives a closed integral equation, 
+and the Schr\"odinger  equation is transformed onto the contour $L_1^+$.  
+\end{enumerate} 
+This process of analytic continuation may be continued iteratively 
+uncovering larger domains of interest in the complex energy plane.
+The contour  $L^+$ start at $k=0$, and is therefore by definition 
+part of the inversion symmetric contour $L=L^- + L^+$. 
+The analytically continued equation~(\ref{eq:momentum_space}) on a general inversion symmetric contour then 
+takes the form
+\begin{equation}
+  \label{eq:neweq1}
+	{\hbar^{2}\over 2\mu}k^2\psi_{nl}(k) + {2\over\pi}\int_{L^{+}} 
+	dk' {k'}^{2}V_{l}(k,k')\psi_{nl}(k') = E_{nl}\psi_{nl}(k).
+\end{equation}
+Here both $k$ and $k'$ are defined on the inversion symmetric contour $L^+$ in the lower
+half complex $k$-plane, giving a closed integral equation. 
+\footnote{See  Paper I for an application of CDM to the solution of
+anti-bound and resonant states and scattering in the Malfliet-Tjon potential.}
+The analytically continued wave functions $\psi_{n l }(k) $ defines a complete bi-orthogonal set 
+of functions, which spans the space of functions with exponential asymptotics in the domain 
+above the inversion symmetric contour $L^+$, see also Chapter~\ref{chap:gentheory}.
+The wave functions are normalized 
+according to the generalized inner product (c-product), 
+see e.g. \cite{nimrod,berggren1}
+\begin{equation}
+  \int_{L^+} dk k^2 \psi_{n l }(k)\psi_{n' l }(k) = \delta_{n,n'}
+  \label{eq:norm1}
+\end{equation}
+The corresponding normalized wave function in coordinate space
+is given by the Fourier-Bessel transform 
+\begin{equation}
+  \phi_{n l}(r)  = \sqrt{ 2\over \pi}\int dk\: k^2 j_l(kr) \psi_{n l}(k)
+\end{equation}  
+the orthogonality of the coordinate wave functions is easily proved using the orthogonality 
+of the spherical Bessel functions \cite{gradshteyn},
+\begin{equation}
+  \int dr\: r^2 j_l(kr) j_l(k'r) = {\pi \over 2} { \delta (k-k')\over kk'}. 
+\end{equation}
+Equation~(\ref{eq:neweq1}) is analytically solvable for only a limiting class of potenials.
+Newton \cite{newton} proved that for all separable potentials, 
+equation~(\ref{eq:neweq1}) admits solutions in closed forms. 
+In most practical applications the solutions have to be approximated 
+numerically.  This is for example the case for the Woods-Saxon potential which
+is widely used in nuclear physics. 
+In solving equation~\ref{eq:neweq1} numerically, one chooses a set of 
+$N$ grid points in $k-$space by some quadrature rule, e.g. Gauss-Legendre.
+The integral is then discretized by $\int dk \rightarrow \sum_{i=1}^N w_i $.
+On the chosen grid, equation~\ref{eq:neweq1} takes the form 
+\begin{equation}
+  {\hbar^2 \over 2\mu} k_i^2  \psi_{n l}(k_i) + \sum_j^N w_j k_j^2 V_{l}(k_i,k_j) \psi_{n l }(k_j) 
+  =  E_{n l} \psi_{n l}(k_i)
+  \label{eq:momentum_space2}
+\end{equation}
+this equation represents a non-symmetric eigenvalue problem which is easily 
+solved numerically. As most diagonalization routines are optimized for
+specific classes of matrices, it would be preferable to obtain a symmetric 
+matrix, in the complex case the computational cost is 
+drastically reduced if the matrix to be diagonalized 
+can be made symmetric, see e.g. \cite{ilonbar1,ilonbar2,ilonbar3}. 
+Equation~\ref{eq:momentum_space2} is easily made
+symmetric by multiplying through with $\sqrt{w_i} k_i$. Defining 
+$ {\psi}_{n l}(i) \equiv  \sqrt{w_i} k_i \psi_{n l }(k_i) $, 
+one gets the symmetric eigenvalue problem,
+\begin{equation}
+  {\hbar^2 \over 2\mu} k_i^2 {\psi}_{n l}(i) + 
+  \sum_j^N \sqrt{w_i w_j} k_i k_j V_{l}(k_i,k_j) {\psi}_{n l }(j) 
+  =  E_{n l} {\psi}_{n l}(i)
+  \label{eq:momentum_space3}
+\end{equation}
+The norm integral in equation~(\ref{eq:norm1}) becomes the discrete sum
+\begin{equation}
+  \delta_{n, n'} = 
+  \sum_{i=1}^N {\psi}_{n l }(i) {\psi}_{n' l }(i) = 
+  \sum_{i=1}^N w_i k_i^2 {\psi}_{n l }(k_i) {\psi}_{n' l }(k_i), 
+\end{equation}
+and the discretized completeness relation then takes the form
+\begin{equation}
+  {\bf 1} = 
+  \sum_{n}^N \vert {\psi}_{n l }\rangle\langle{\psi}_{n l }^*\vert  = 
+  \sum_{n}^N \sum_{i=1}^N {\psi}_{n l }(i){\psi}_{n l }(i)
+  \label{eq:unity2}
+\end{equation}
+Changing from a continuous to a discrete plane-wave basis, it becomes transparent that
+the coordinate wave function is an expansion in a basis of spherical-Bessel functions
+ \begin{equation}
+   \phi_{n l}(r)  = \sqrt{ 2\over \pi}\sum_{i=1}^N \sqrt{w_i}k_i j_l(k_ir) {\psi}_{n l}(i)
+\end{equation}  
+where ${\psi}_{n l}(i)$ are the expansion coefficients.
+Defining the functions 
+\begin{equation}
+  f_l(k_i r) = \sqrt{2 \over \pi} \sqrt{w_i} k_i j_l(k_i r)
+\end{equation}
+and using the discrete representation of the Dirac-delta function 
+\begin{equation}
+  \delta (k-k') \rightarrow {\delta _{k_i,k_j}\over \sqrt{w_i w_j}}
+\end{equation}
+we get the expansion 
+\begin{equation}
+   \phi_{n l}(r)  = \sum_{i=1}^N {\psi}_{n l}(i) f_l(k_ir) 
+\end{equation}  
+where it is easily seen that the functions $f_l(k_i r) $ are orthogonal for different $k_i$ 
+and normalized
+\begin{equation}
+  \int dr \: r^2 f_l(k_i r)f_l(k_jr )= \delta_{k_i, k_j}
+\end{equation}
+where $\delta_{k_i, k_j} $ is the Kronecker delta.
+The eigenfunctions satisfy the general Berggren completeness relation discussed in
+the previous sections, and constitute a \emph{bi-orthogonal} set and
+are normalized according to the general $c$-product. 
+Collecting the results from the discussion on the Berggren completeness relation in the 
+previous section, and on the analytic continuation of the momentum space Schr\"odinger equaiton 
+by CDM, the choice of contour in the complex $k$-plane must therefore be based on the following.
+\begin{itemize}
+\item The contour must be \emph{ inversion symmetric}. 
+\item The contour must be located in overlapping domains of analyticity, 
+see step (iii) above, and the wavefunction must admit analytic continuation onto 
+the contour $L^+$. 
+\item The choice of contour must be based on an 
+\emph{a posteriori} knowledge of poles in each partial wave of the scattering matrix.
+\end{itemize}
+In figure~\ref{fig:antibound} a plot of the $l=1$ trajectory of the 
+imaginary part of the bound and antibound 
+state poles in the complex $k$-plane as a function of interaction strength $\nu_A$ is given,
+for the Malfliet-Tjon potential. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{7cm}{6cm}{\epsfig{file=figures/fig8.eps}}
+\end{center}
+\caption{Plot of the bound and antibound state pole trajectory for the $l=1$ component of
+Malfliet-Tjon interaction. The location of the poles
+along the imaginary $k$-axis is plotted as a function of interaction strength  $\nu_A$. }
+\label{fig:antibound}
+\end{figure}
+In figure~\ref{fig:resonance} a plot of how the $l=1$ bound state in the Malfliet-Tjon potential approaches the scattering 
+threshold and develop into decay resonant states for decreasing interaction strength $ \nu_A$ is shown. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{7cm}{6cm}{\epsfig{file=figures/fig9.eps}}
+\end{center}
+\caption{Plot of pole trajectory in the complex energy plane for the $l=1$ partial 
+wave solution of the Malfliet-Tjon interaction for
+$\nu_A$ varied from $ -5.6 $ to $ -2.9 $ in steps of $0.1$. }
+\label{fig:resonance}
+\end{figure}
+See Paper I for further details on the potential parameters.
+
+
+% new section
+%\section{The generalized complex 
+%variational principle; upper and lower bounds 
+%for energies in the complex plane} 
+
+% new section
+%\section{Two-particle resonances by Sturmian procedures}
+
+\section{Single particle resonances in a deformed field}
+\label{sec:deformed}
+In this section we will consider formation of resonances in an 
+axially deformed field. The study of resonances in deformed fields
+has so far only been considered on rare occuations. In Ref.~\cite{deform1}
+energy levels and conditions for bound states to become resonances and 
+resonances to become bound states were investigated for an 
+axially deformed Woods-Saxon potentialm, by solving the 
+the radial Schr\"odinger for coupled channels with outgoing asymptotics.
+However, the coupled channels method used in Ref.~\cite{deform1} 
+does not easily generalize to the non-resonant continuum. This implies
+that a complete Berggren basis in a deformed field is difficult to obtain, 
+and all evaluated observables will become complex quantities unless
+the non-resonant continuum is taken properly into account. 
+In Ref.~\cite{deform2} a different approach were considered. Their aim was
+to propose a method to obtain scattering wave functions in the vicinity of a 
+multi-channel resonance on the real axis. 
+Then calculate the phase shifts, and investigate
+whether a resonance condition is met. Further this method allows for 
+evaluation of observables where the continuum is properly taken into 
+account, and they become real quantities. Here we propose 
+an alternative method, starting with the momentum space Schr\"odinger equation 
+given in equation~(\ref{eq:momspace1}). The obvious advantage of this, is that 
+the boundary conditions are automatically built into the integral equations, 
+further we will show that a single particle Berggren basis taken 
+into account all non-resonant continuum states is possible to obtain
+within this approach.
+
+We consider an axially deformed Gaussian potential with no spin and 
+tensor components. In spherical coordinates it is given as 
+\begin{equation} 
+  V(r,\theta) = V_0 \exp\left( -r^2( \alpha \cos^2\theta +\beta \sin^2\theta ) \right) 
+  \label{eq:sph1}
+\end{equation}  
+or in cartesian coordinates, 
+\begin{equation} 
+  V(x,y,z) = V_0 \exp\left( -\beta (x^2 + y^2)\right) \exp(-\alpha z^2) 
+  \label{eq:cartesian1} 
+\end{equation}  
+here $V_0$ is the strength of the potential and $\alpha $ and $\beta $ are shape
+parameters. In the case $ \alpha = \beta $ the potential is just a spherical 
+Gaussian potential. In the case $ \alpha > \beta $ the potential field is stretched  
+out in the $x,y$-plane, and defines an \emph{oblate} shape. In the case $\alpha < \beta $ 
+the potential field is stretched out in along the $z$-axis, and defines a \emph{prolate} shape. 
+Defining a deformation parameter $\delta$ in the following way, 
+\begin{equation}
+  \delta = 1 - { \alpha \over \beta }, 
+\end{equation}
+equation~(\ref{eq:sph1}) can be written in the form, 
+\begin{equation}
+  V(r,\theta;\: \beta, \delta ) = V_0 \exp (-\beta r^2) \exp( \beta \delta r^2 \cos^2\theta) = 
+  V(r; \: \beta) D(r,\theta;\: \beta, \delta )
+  \label{eq:deform1}
+\end{equation}
+Here $V(r; \: \beta) $ 
+is a spherically symmetric formfactor and $ D(r,\theta;\: \beta, \delta ) $ 
+a deformation formfactor.
+We require that the volume of the central potential, with the shape parameter
+$\alpha_0 = \alpha = \beta $, is equal to the volume of the axially 
+deformed potential. This gives implies that the shape 
+parameters of the non-central and central Gaussian potential satisfy the 
+following relation,
+\begin{equation}
+  \alpha \beta^2 = \alpha_0^3 
+\end{equation} 
+In figure~\ref{fig:deform1} a plot of the isocurves $V(r,\theta) = 0.5 $ are shown in 
+the $x,z$-plane for the deformation parameters $\delta = \pm 0.5$.  $\delta = 0.5 $ 
+gives 
+the shape parameters for the deformed potential $ \alpha = 2^{-2/3}$ 
+and $\beta = 2^{1/3}$,
+and $\delta = 0.5 $ 
+gives 
+the parameters $ \alpha = (3/2)^{2/3}$ and $\beta = (2/3)^{1/3}$.
+Here potential parameters $\alpha_0 = 1$ 
+and $V_0 = 1$ 
+are used. It is
+seen that $ \delta = 0.5 $ 
+corresponds to an \emph{oblate} shape, where the field is
+stretched out in the $x,y$-plane. For $\delta = -0.5 $ 
+the potential takes a \emph{prolate}
+shape, where the field is stretched out along the symmetry axis ($z$-axis). 
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{6cm}{6cm}
+	      {\epsfig{file=figures/deform1.eps}} 
+  \end{center}
+  \caption{Plot of isocurves $V(r,\theta) = 0.5 $ of the deformed potential for deformation
+    $\delta = \pm 0.5 $ with potential strength $V_0 = 1$ in the $x,z$-plane. 
+    For the spherically
+    symmetric potential a  shape parameter $\alpha_0 = 1 $ were chosen.}
+  \label{fig:deform1}
+\end{figure}
+In order to assess the shape structure in more detail, it is
+instructive to study the multipole components of the potential.    
+An axially symmetric potential may be expanded in terms
+of Legendre polynomials, i.e.  
+\begin{equation}
+  V(r,\theta) = \sum_\lambda V_\lambda(r) P_\lambda ( \cos\theta) 
+  \label{eq:multipoles}
+\end{equation}
+the multipole components are then given by the  integrals 
+\begin{equation}
+  V_\lambda(r) = { (2\lambda + 1) \over 2} V_0 \exp (-\beta r^2) \int_{-1}^1 dx \:
+  \exp( \beta \delta r^2 x^2 ) P_\lambda(x) 
+\end{equation}
+Here it is explicitly seen that only \emph{even} multipoles give non-vanishing 
+contributions, since the Legendre polynomials have the 
+property 
+\[
+ P_\lambda(-x) = (-1)^\lambda P_\lambda(x),
+\]
+and the potential is an even function in $x$. 
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{16cm}{8cm}{\epsfig{file=figures/multi_poles.eps}}
+  \end{center}
+  \caption{Plot of $\lambda = 0,2,4$ multipoles of the Gaussian potential 
+    with deformation parameters $\delta = 0.5$ (right plot) and $\delta = -0.5$  
+    (left plot)  and $\alpha_0 = 1 $}
+\label{fig:multi1}
+\end{figure}
+Figure~\ref{fig:multi1} gives a plot of the 
+$\lambda = 0,2,4$ multipoles of the Gaussian potential  
+with deformation parameters $\delta = \pm 0.5$. It is seen that the radial monopole 
+distribution is more or less identical for $\delta = 0.5 $ and $\delta = -0.5$. 
+From the  volume conservation imposed on the deformed potential, it 
+follows that the volume of the monopole part of the potential is independent of the 
+deformation parameter $\delta $. 
+This is easy to show, since  $P_\lambda(\cos\theta) = Y_{\lambda 0}(\theta, \varphi)$
+and using the well known property of the spherical harmonics (see e.g. \cite{varshalovich} ), 
+\begin{equation}
+  \int d\hat{r} Y_{lm}(\hat{r}) = \sqrt{4 \pi}\delta_{l,0}\delta_{m,0}
+\end{equation}
+from which it follows directly, 
+\begin{equation}
+\int dV\: V({\bf r}) = \int_0^\infty dr\: r^2V_{\lambda = 0}(r)
+\end{equation}
+Further it is seen that the deformed Gaussian potential 
+is nearly a pure quadrupole deformation, since the $\lambda =4$ 
+multipole is almost vanishing in both cases. This may be understood
+from considering the exponent of the deformed formfactor in equation~(\ref{eq:deform1}),
+which can be rewrittin in terms of the $ Y_{20}(\hat{r}) $ spherical harmonic.
+
+Having discussed the shape and multipoles of the deformed Gaussian potential, 
+we now turn to the acually solution of the Schr\"odinger equation for 
+this potential. We wish to solve the 
+momentum space Schr\"odinger equation given in equation~(\ref{eq:momspace1}).
+The Fourier transformation of the deformed 
+Gaussian potential in equation~(\ref{eq:cartesian1})
+is, 
+\begin{eqnarray}
+  \nonumber
+  V(q_x,q_y,q_z) & = &  {V_0 \over (2\pi)^3 }\int dx \:dy \:dz\: 
+  \exp\left( i( q_x x +q_y y +q_z z) \right) 
+  \exp\left( -\beta (x^2 + y^2) -\alpha z^2 \right) \\ 
+  &  = &{V_0 \over 8 \pi^{3/2} \beta \alpha^{1/2} }
+  \exp\left( -{1\over 4 \beta}(q_x^2 +q_y^2) \right)   
+  \exp\left( -{1\over 4 \alpha} q_z^2 \right)
+\end{eqnarray}
+here $q_i= k_i - k_i',\: i = x,y,z$. In terms of spherical coordinates $k,\theta, \varphi $  
+the potential takes the form, 
+\begin{eqnarray}
+  \nonumber
+  V({\bf k},{\bf k}')&  = & {V_0 \over 8 \pi^{3/2} \beta \alpha^{1/2} }
+  \exp\left( -{1\over 4 \beta} ( k^2 \sin^2\theta + {k'}^2\sin^2\theta')
+  -{1\over 4 \alpha} ( k^2 \cos^2\theta - {k'}^2\cos^2\theta')^2\right) \\
+  & \times & \exp\left( -{1\over 4 \beta } kk'\sin\theta\sin\theta' \cos\left( \varphi - \varphi'\right) \right)
+  \label{eq:sph2}
+\end{eqnarray} 
+due to axial symmetry the  dependence of the potential 
+on the azimuthal angles $\varphi, \varphi' $ is only the difference 
+$ \omega = \varphi - \varphi'$. The potential may therefore be expanded in 
+a complete set of harmonics, i.e. 
+\begin{equation}
+  V( {\bf k}, {\bf k'}) = \sum_{\mu = -\infty}^\infty V_{\mu}(\tilde{k}, \tilde{k}') \exp(i \mu \omega), 
+  \label{eq:pot_exp1}
+\end{equation}
+here $\tilde{k} = k,\theta $. 
+The harmonics $\exp ( i\mu \omega )$ obey the orthogonality relation 
+\begin{equation}
+  \int_{-\pi}^\pi d\omega \: \exp (-i\mu \omega) \exp( i\mu'\omega) = 2\pi \delta_{\mu,\mu'}
+\end{equation}
+the $\mu$'th harmonic of the potential is therefore given by the integral
+\begin{equation}
+  V_\mu( \tilde{k},\tilde{k}') = 
+    {1 \over 2\pi} \int_{-\pi}^\pi d\omega \:\exp(-i\mu \omega) V({\bf k},{\bf k}')
+\end{equation}
+From equation~(\ref{eq:sph2}) it is seen, that for the integral over $\omega $, 
+we have to consider the following integral, 
+\begin{equation}
+  I_{\mu}(y) = {1 \over 2\pi} \int_{-\pi}^\pi d\omega \:\exp(-i\mu \omega) 
+  \exp( y \cos\omega ) = {1\over \pi} \int_0^\pi d\omega \: \cos( \mu \omega) \exp(y \cos\omega ) 
+  \label{eq:bessel1}
+\end{equation}
+where we have introduced the variable 
+\[
+y = {1\over 2\beta } kk'\sin\theta\sin\theta'.
+\]
+The integral in equation~(\ref{eq:bessel1}) is just the definition of the modified Bessel 
+function of the 1'st kind (see e.g. \cite{stegun}). 
+The $\mu$'th harmonic of the potential is analytic form given by, 
+\begin{eqnarray}
+  \nonumber
+  V_\mu( \tilde{k},\tilde{k}') = {V_0 \over 8 \pi^{3/2} \beta \alpha^{1/2} } \times  \\
+  \exp\left( -{1\over 4 \beta} ( k^2 \sin^2\theta - {k'}^2\sin^2\theta')^2
+  -{1\over 4 \alpha} ( k^2 \cos^2\theta - {k'}^2\cos^2\theta')^2\right) 
+  \exp(-y) I_{\mu}(y)
+\end{eqnarray}
+Inserting the expansion of the potential given in equation~(\ref{eq:pot_exp1}) into 
+the momentum space Schr\"odinger equation~(\ref{eq:momspace1}) and projecting 
+the equation on the harmoncis $\exp ( i\mu \omega )$, the three-dimensional 
+integral equation has been reduced to an infinite set of two-dimensional 
+integral equations. The $\mu$'th integral equation is easily solved as
+a matrix diagonalization problem with dimension $N_r\times N_\theta $. 
+Where $N_r$ is the number of integration points for the radial integral 
+and $N_\theta$ is the number of integration points for the angle integral. The
+Schr\"odinger equation can be further reduced to a coupled set of one-dimensional
+integral equation by projecting on spherical harmonics (see equation~(\ref{eq:part_wave2})). 
+The angular momentum projected potential in equation~(\ref{eq:sph2}) then  takes the form, 
+\begin{eqnarray}
+  \nonumber
+  V_{lm, l'm'}(k,k') = \int \mathrm{d}{\hat{k}} \int \mathrm{d}{\hat{k}'}\: 
+  Y_{lm}^*(\hat{k})\left\{ \sum_{\mu = -\infty}^\infty V_{\mu}(\tilde{k}, \tilde{k}') 
+  \exp(i \mu \omega)\right\}   Y_{l'm'}(\hat{k}') \\
+  = 2\pi \int_0^\pi d\theta \: \sin\theta \int_0^\pi d\theta' \: \sin\theta' 
+  \bar{P}_{lm}(\cos\theta) V_{m}(\tilde{k}, \tilde{k}')  \bar{P}_{l'm}(\cos\theta') \:\delta_{m,m'}  
+  \label{eq:pot_exp2}
+\end{eqnarray}
+where $ \bar{P}_{lm}(x)$ are the normalized associated Legendre polynomials, 
+\begin{equation}
+  \bar{P}_{lm}(x) = \left\{ { 2l + 1 (l-m)! \over 2 (l+m)! }\right\}^{1/2}P_{lm}(x).
+\end{equation}
+We wish to study the formation of resonances in the deformed Gaussian potential by 
+the contour deformation method. 
+The 1-dimensional coupled integral equation are then analytically continued
+from the physical to the non-physical energy sheet by distorting the integration contour. 
+Choosing a suitable inversion symmetric 
+contour $L^+$, discussed in the previous section, we end up with the 
+analytically continued coupled integral equations for the axially deformed Gaussian potential, 
+\begin{equation}
+  \left( {\hbar^2 \over 2\mu } k^2 - E_{nlm}\right) \psi_{nlm}(k) =  
+  -\sum_{l'} \int_{L^+} dk' {k'}^2 V_{lm, l'm}(k,k') \psi_{nl'm}(k') 
+  \label{eq:part_wave3}
+\end{equation}
+As a case study we consider a Gaussian potential which in the spherically 
+symmetric case reproduce the $J^\pi={3/2^{-}_1} $ resonance in $^5$He. 
+The  $J^\pi={3/2^{-}_1}$ resonance, to be associated with the single-particle orbit 
+$p_{3/2}$, is experimentally 
+known to have a width of $\Gamma \approx 0.60$ MeV.
+Using the following parameters for the sperically symmetric Gaussian given in 
+equation~(\ref{eq:sph1}),
+\begin{equation}
+  V_0 = -53.5 \mathrm{MeV}, \:\: \alpha_0 = 0.188 \mathrm{fm}^{-2}
+\end{equation}
+the Gaussian potential supports a bound state for 
+the $l^\pi = 0^+$ channel with energy $E = -14.9044  $MeV, 
+and a resonance for the $l^\pi = 1^-$ channel with energy 
+$E = 0.7268  -0.3096i $MeV. Here the nucleon spin $s=1/2$ is neglected
+since the energy levels are degenerate for $ j = l \pm 1/2 $, which 
+follows from the spin independence of the Gaussian potential.
+Table~\ref{tab:deform1} gives the convergence of the $m^\pi = 0^+$ 
+ground state for deformation parameters $ \delta = \pm 0.9$. It is seen that
+the deformation $\delta = 0.9$ affects the bound state the most, and 
+the ground state becomes much more less bound $ E = -12.1 $MeV, 
+for the prolate deformation. 
+On the other hand, the oblate deformation $\delta = -0.9$ has little effect
+on the ground state energy $E = -14.7$MeV.  
+\begin{table}[htbp]
+  \begin{center}
+  \begin{tabular}{ccccc}
+    \hline
+    \multicolumn{1}{c}{} & \multicolumn{2}{c}{$\delta = 0.9 $} 
+    & \multicolumn{2}{c}{$\delta = -0.9$} \\
+    \hline
+    \multicolumn{1}{c}{$l_{\mathrm{max}}$} &
+      \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} &
+      \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} \\
+    \hline
+    0 &  -10.5843 & 0.&  -14.4816 & 0.\\
+    2 &  -11.9041 & 0.&  -14.6533 & 0.\\
+    4 &  -12.0741 & 0.&  -14.6551 & 0.\\
+    6 &  -12.0953 & 0.&  -14.6551 & 0.\\
+    8 &  -12.0979 & 0.&  -14.6551 & 0.\\ 
+    10 & -12.0983 & 0.&  -14.6551 & 0.\\
+    \hline
+  \end{tabular}
+  \caption{Convergence of groundstate, $m^\pi = 0^+$, for deformation
+    parameters  $\delta = \pm 0.9$ as the number of partial waves increases.
+    In the spherically symmetric case $\delta = 0$ the  $l^\pi=0^+$ Gaussian potential 
+    supports a bound state at energy $ E = -14.9044 $MeV. }
+  \label{tab:deform1}
+  \end{center}
+\end{table}
+This may be understood by considering the monopole term of the potential, 
+which is the main component in the multipole expansion in equation~(\ref{eq:multipoles}).
+In figure~\ref{fig:monopole} a plot of the monopole part of the Gaussian 
+potential with deformation parameters $\delta = \pm 0.9$ is given, together with a plot 
+of the spherically symmetric potential. It is
+seen that the monopole term for the $\delta = -0.9$ potential is more or less identical 
+to the spherically symmetric potential (slightly less attractive), 
+on the other hand the monopole 
+term for the $\delta = 0.9 $ potential is less attractive for small radii, but
+more attractive at large distances.  From this one may conclude that the 
+ground state of the $\delta = -0.9$ 
+potential will be more bound than for the $\delta = 0.9$ potential, since 
+the ground state is deeply bound and the wave function will be
+mainly located in the interior part of the potential.
+\begin{figure}
+  \begin{center}
+    \resizebox{10cm}{8cm}{\epsfig{file=figures/monopole.eps}}
+  \end{center}
+  \caption{Plot of the monopole part  of the Gaussian potential 
+    with deformation parameters $\delta = 0$ and $\delta = \pm 0.9$.}
+  \label{fig:monopole}
+\end{figure}
+
+
+The resonant orbit $l^\pi = 1^-$ in the spherically symmetric 
+potential is split into two non-degenerate orbits ( $m^\pi = 0^- $ and $ m^\pi  = 1^-$) 
+in the case of an axially symmetric deformation. This is a 
+characteristic of axially deformed potentials.
+Table~\ref{tab:deform2} gives the convergence of the $m^\pi = 0^-$ and  
+$m^\pi = 1^-$ excited negative parity states in the Gaussian potential
+for deformation parameters $ \delta = \pm 0.5$. In all cases a satisfactory 
+convergence is obtained with $l_{\mathrm{max}} = 5$. For the states 
+with angular momentum projection along the $z$-axis ( $ m = 0$ ), it is
+seen that for $\delta = 0.5$, ( prolate deformation ), the $ l^\pi = 1^-$ state
+has become a bound state with energy $ E = -0.680 $MeV. 
+For zero angular momentum projection, the particle moves in an orbit
+making $ \theta = 0$ degrees with the $z$-axis. So in the case of a prolate deformation, 
+where the field is stretched out along the $z$-axis, a particle moving in this
+orbit will ``feel'' the field more strongly than compared with the spherically symmetric 
+field, and it will become more bound. This explains also why the particle 
+with $m=0$ becomes more unbound in the case of the oblate deformation $\delta = -0.5$,
+see Columns 6 and 7 of table~\ref{tab:deform2}.  
+\begin{table}[htbp]
+  \begin{center}
+  \begin{tabular}{ccccccccc}
+    \hline
+    \multicolumn{1}{c}{} & \multicolumn{4}{c}{$\delta = 0.5 $} 
+    & \multicolumn{4}{c}{$\delta = -0.5$} \\
+    \hline
+    \multicolumn{1}{c}{} & \multicolumn{2}{c}{$m^\pi = 0^- $} 
+    & \multicolumn{2}{c}{$ m^\pi = 1^- $} 
+    & \multicolumn{2}{c}{$m^\pi = 0^- $} 
+    & \multicolumn{2}{c}{$ m^\pi = 1^- $} \\
+    \hline
+    \multicolumn{1}{c}{$l_{\mathrm{max}}$} &
+    \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} &
+    \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} &
+    \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} &
+    \multicolumn{1}{c}{Re[E]} & \multicolumn{1}{c}{Im[E]} \\
+    \hline
+    1 &   -0.5282 & 0. &  1.4865 & -1.0177 &  1.5402 & -1.0701 &  0.3815 & -0.1139 \\
+    3 &   -0.6772 & 0. &  1.4419 & -0.9631 &  1.5170 & -1.0404 &  0.3602 & -0.1042 \\
+    5 &   -0.6802 & 0. &  1.4410 & -0.9621 &  1.5168 & -1.0402 &  0.3601 & -0.1041 \\
+    7 &   -0.6803 & 0. &  1.4410 & -0.9620 &  1.5168 & -1.0402 &  0.3601 & -0.1041 \\
+    9 &   -0.6803 & 0. &  1.4410 & -0.9620 &  1.5168 & -1.0402 & 0.3601 & -0.1041  \\
+    \hline
+  \end{tabular}
+  \caption{Convergence of the $m^\pi = 0^-$ and $m^\pi = 1^-$ states, for deformation
+    parameters  $\delta = \pm 0.5$ with increasing number of partial waves.
+    In the spherically symmetric case ($\delta = 0$) the  $l^\pi=1^-$ Gaussian potential 
+    supports a resonance state at energy $ E = 0.7268  -0.3096i $MeV.}
+\label{tab:deform2}
+\end{center}
+\end{table}
+
+\begin{table}[htbp]
+  \begin{center}
+  \begin{tabular}{ccccccccc}
+    \hline
+    \multicolumn{1}{c}{} & \multicolumn{4}{c}{$\delta = 0.5 $} 
+    & \multicolumn{4}{c}{$\delta = -0.5$} \\
+    \hline
+    \multicolumn{1}{c}{} & \multicolumn{2}{c}{$m^\pi = 0^- $} 
+    & \multicolumn{2}{c}{$ m^\pi = 1^- $} 
+    & \multicolumn{2}{c}{$m^\pi = 0^- $} 
+    & \multicolumn{2}{c}{$ m^\pi = 1^- $} \\
+    \hline
+    \multicolumn{1}{c}{$l$} &
+    \multicolumn{1}{c}{Re[$\psi_{l}^2$ ]} & \multicolumn{1}{c}{Im[$\psi_{l}^2$]} &
+    \multicolumn{1}{c}{Re[$\psi_{l}^2$ ]} & \multicolumn{1}{c}{Im[$\psi_{l}^2$]} &
+    \multicolumn{1}{c}{Re[$\psi_{l}^2$ ]} & \multicolumn{1}{c}{Im[$\psi_{l}^2$]} &
+    \multicolumn{1}{c}{Re[$\psi_{l}^2$ ]} & \multicolumn{1}{c}{Im[$\psi_{l}^2$]} \\
+    \hline
+    1 &   0.9947 & 0. & 0.9982 & 2.31E-03& 0.9992 & 1.1E-03 & 0.9993 & 3.E-04 \\ 
+    3 &   5.7E-03&0. & 1.8E-03 &-2.3E-03& 8.E-04&-1.1E-03& 7.E-04 &-3.E-04 \\
+    5 &   5.E-05 & 0. &2.E-05  &-2.E-05 & 3.E-06&-3.E-06& 2.E-06 &-9.E-07 \\
+    7 &   6.E-07 & 0. &3.E-07  &-2.E-07 & 2.E-08&-1.E-08& 9.E-09 &-4.E-09 \\
+    9 &   8.E-09 & 0. &4.E-09  &-3.E-09 & 9.E-11&-7.E-11& 4.E-11 &-2.E-11 \\
+    \hline
+  \end{tabular}
+  \caption{Convergence of the $m^\pi = 0^-$ and $m^\pi = 1^-$ states, for deformation
+    parameters  $\delta = \pm 0.5$ with increasing number of partial waves.
+    In the spherically symmetric case ($\delta = 0$) the  $l^\pi=1^-$ Gaussian potential 
+    supports a resonance state at energy $ E = 0.7268  -0.3096i $MeV.}
+\label{tab:deform3}
+\end{center}
+\end{table}
+For the $m=1$ case the opposite
+takes place. In the case of $\delta = 0.5$ the particle becomes more unbound, 
+while in the of $\delta = -0.5$ the particle becomes more bound. By considering 
+the dipole ($l=1$) term of the wave function, the particle moves in 
+an orbit making $\theta = \pi/4$ degrees with the $z$-axis. From this
+it may be understood that particle gains more binding in the case of 
+an oblate deformation $\delta = -0.5$ and becomes more unphysical in the 
+opposite case $\delta = 0.5$ 
+( see columns 4,5,8 and 9 of table~\ref{tab:deform2}).
+
+In table~\ref{tab:deform3} the squared amplitudes of the wave functions are given
+for each partial wave $l$. It is seen that in all cases that the 
+squared amplitudes for the $l=1$ component of the total wave function, 
+is nearly equal to the norm of the total wave function, while
+all other partial wave amplitudes are vanishing. In this sense one may 
+say that the orbital angular momentum is approximatetly a ``good'' quantum number. 
+
+In figure~(\ref{fig:0plus}) a plot of the bound state energy of the $m^\pi 0= 0^+$ 
+state are given for the deformation parameter $\delta $ 
+taking values between $-0.9$ and $0.9$. It is seen that the position of the
+bound state varies much more strongly for a prolate deformation ($\delta > 0$), than 
+for an oblate deformation. 
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{16cm}{8cm}{\epsfig{file=figures/0plus.eps}}
+  \end{center}
+  \caption{Bound state trajectory for the $m^\pi = 0^+$ state in the deformed 
+  Gaussian potential. Energy is plotted as function of deformation parameter $\delta$.}
+\label{fig:0plus}
+\end{figure}
+
+In figure~(\ref{fig:0minus}) a plot of the real and imaginary parts of the $m^\pi = 0^-$ 
+state are given for the deformation parameter $\delta $ 
+taking values between $-0.9$ and $0.9$. Here it is seen that resonance in the 
+$\delta =0$ becomes a bound state for $\delta > 0.3 $. For $\delta < 0$ the resonance
+becomes more unphysical with $\delta$. 
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{16cm}{8cm}{\epsfig{file=figures/0minus.eps}}
+  \end{center}
+  \caption{Real and imaginary part of the $m^\pi = 0^-$ state energy in the deformed 
+    Gaussian potential as the deformation parameter $\delta $ is varied between $-0.9$ and $0.9$.}
+  \label{fig:0minus}
+\end{figure}
+
+
+In figure~(\ref{fig:1minus}) a plot of the real and imaginary parts of the $m^\pi = 1^-$ 
+state are given for the deformation parameter $\delta $ 
+taking values between $-0.9$ and $0.9$. Here the resonance state never becomes a
+bound state for $\delta \in (-0.9,0.9)$. For $\delta \in ( -0.9,0.2) $ 
+the resonance display a weak variation from the $\delta = 0$ resonance. On the
+other hand, as $\delta \rightarrow 0.9 $ the imaginary part of the energy
+dives into the lower half complex energy plane, and the resonance
+state becomes strongly unphysical.
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{16cm}{8cm}{\epsfig{file=figures/1minus.eps}}
+  \end{center}
+  \caption{Real and imaginary part of the $m^\pi = 1^-$ state energy in the deformed 
+    Gaussian potential as the deformation parameter $\delta $ is varied between $-0.9$ and $0.9$.}
+  \label{fig:1minus}
+\end{figure}
+
+In figure~(\ref{fig:combined}) a combined plot of the real and imaginary parts of the $m^\pi = 0^-$ 
+and $ m^\pi = 1^-$ states are given for the deformation parameter $\delta $ 
+taking values between $-0.9$ and $0.9$. Here the splitting of the $l^\pi = 1^-$ 
+resonant level with respect to the angular momentum projection $m$ is clearly seen.
+\begin{figure}[hbtp]
+  \begin{center}
+    \resizebox{16cm}{8cm}{\epsfig{file=figures/deform_minus.eps}}
+  \end{center}
+  \caption{Real and imaginary part of the $m^\pi = 1^-$ state energy in the deformed 
+    Gaussian potential as the deformation parameter $\delta $ is varied between $-0.9$ and $0.9$.}
+  \label{fig:combined}
+\end{figure}
+
+% new section^
+\section{Two-particle resonances and bound states embedded in the continuum in complex potentials} 
+\label{sec:optical}
+CDM has a number of different applications, in this section
+scattering from a complex Malfliet-Tjon interaction 
+describing absorbtive and emitting processes is considered. 
+\footnote{See Paper I for a detailed analysis of the 
+structure of the Malfliet-Tjon potential in momentum space, the relevant 
+equations to be solved and the bound, anti-bound and resonant pole distributions 
+as funtion of the interaction strength.}
+Complex potentials have commonly been used in optical potential models 
+in nuclear and particle physics. Inelastic scattering where the conservation 
+of flux is broken due to the possibility of the particle to 
+be ejected to other exit channels or particles to emerge from them, may 
+be taken into account by a complex absorbing or emitting potentials respectively. 
+Another application of complex potentials, is the nucleon-antinucleon scattering,
+in which a short range complex annihilation potential may describe how
+bound- and resonant states are formed such systems. 
+
+In letting the interaction strengths be generalized to the complex plane 
+the Schr\"odinger equation 
+becomes a non-hermitian eigenvalue problem from the very beginning, and 
+the eigenvalues will in general 
+become complex. See Refs.~\cite{kukulin, kok} for a more rigorous 
+discussion of complex interactions. Below follows an illustration that 
+CDM gives accurate calculation 
+of the complete energy spectrum for complex interactions.  
+The pole 
+trajectories are studied by varying the absorbtive 
+and emittive strength of the interaction. 
+
+In the case of the Malfliet-Tjon interaction two cases are studied. 
+First the attractive strength, $ V_A  \rightarrow (1+\eta i)V_A $, is scaled 
+by a complex constant $ 1 + \eta i$ 
+keeping the repulsive strength $V_R$  real. 
+Since the attractive strength $V_A$ is a negative quantity, 
+absorbtive scattering takes place for $ \eta > 0 $ while
+emittive scattering takes place for $ \eta < 0$. 
+Secondly  both the attractive and repulsive interaction
+strengths are scaled, i.e. $ V  \rightarrow (1+\eta i)V$. 
+Starting with $\nu_A = -5 $,
+ so for $ \eta = 0 $ a resonance at
+$ E = 5.1804 -3.1555i $ MeV corresponding to a pole at $ k = 0.3682 - 0.1033i \: \mathrm{fm}^{-1} $ 
+in the complex $k$-plane appears (see Paper I)
+\footnote{Here $ V_A = \nu_A\times \hbar c $, see Paper I for more details.}.
+In figure~\ref{fig:optical1} a plot of 
+the pole trajectory for varying $\eta $ 
+is given, keeping $\nu_A$ fixed. An imaginary part is added to the attractive
+strength $V_A$ while $V_R$ is kept real. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/optical.eps}}
+\end{center}
+\caption{Pole trajectory of the $l=1$ resonance in the $\nu_A = -5$ Malfliet-Tjon interaction,
+for increasing absorbtion/emission. Here only the attractive strength of the interaction
+takes complex values,$ V_A  \rightarrow (1+\eta i)V_A$. }
+\label{fig:optical1}
+\end{figure}
+From the figure it is seen that when the probability for finding the particle increases
+( $\ eta < 0$ ), the resonance pole approaches the real $k$-axis, and eventually crosses from the 
+non-physical to the physical energy sheet. In the case of absorbtion ( $ \eta > 0 $ ) the opposite
+effect is observed. That the pole becomes ``more'' physical with a repulsive imaginary part added to 
+the potential, may be understood from the following argument. The resonance is formed inside 
+the potential barrier, with a limited lifetime before it tunnels through the barrier and dies. 
+If more particles are created inside the barrier, the probability of finding a particle inside
+the barrier should increase  with the number of particles added. 
+
+In figure~\ref{fig:optical2} a plot of the pole trajectory 
+of the resonance at $ E = 5.1804 -3.1555i $ with $\eta = 0$ is given for varying $\eta $.
+Here both attractive and repulsive part are scaled. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/optical2.eps}}
+\end{center}
+\caption{Pole trajectory of the $l=1$ resonance in the $\nu_A = -5$ Malfliet-Tjon interaction,
+for increasing absorbtion/emission. Here both attractive and repulsive strengths of the interaction
+takes complex values,$ V  \rightarrow (1+\eta i)V$ .}
+\label{fig:optical2}
+\end{figure}
+In scaling both the attractive and repulsive parts of the potential with the 
+same complex constant $ 1 + \eta i $, both absorbtion and emission takes place.
+However, since the potential is on average more attractive than repulsive, the 
+total effect of letting $ \eta $ become negative will be emission of particles
+while letting $ \eta  $ become positive will result in absorbtion of particles. This is 
+also seen from the figure~\ref{fig:optical2}, where the pole moves towards the
+physical sheet for $ \eta < 0$, and becomes more ``unphysical'' for $ \eta > 0$.  
+Since absorbtion and emission are competing processes in this case, the dependence
+of the pole position on increasing/decreasing imaginary part of 
+the potential should be weaker than in the 
+former case where only the attractive part was scaled, i.e.  pure 
+absorbtion and emission took place. 
+This is observed from figures.~\ref{fig:optical1},\ref{fig:optical2}. In figure~\ref{fig:optical1}
+the pole has moved onto the physical energy sheet for $ \eta = - 0.1 $ while
+it is still on the nonphysical sheet in figure~\ref{fig:optical2}. The same strong and weak 
+dependence on $\eta $ is observed for the absorbtive process $ \eta = 0.1 $.   
+
+For comparison with the results for the Malfliet-Tjon potential above, 
+the pole trajectory for  the $l=1$ 
+Yamaguchi interaction with $\beta = 2 \:\mathrm{fm}^{-1}$ and 
+interaction strength $ \lambda = 165 \:\mathrm{MeVfm}^{-1} $ is considered as well
+\footnote{See Paper I for details on the $l=1$ Yamaguchi potential}. 
+This interaction supports a resonance at $ E = 0.8736 -0.1285i $ MeV 
+for $\eta = 0 $. Figure~\ref{fig:optical3} gives a plot of the pole trajectory 
+of the resonance for varying $\eta $. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/optical3.eps}}
+\end{center}
+\caption{Pole trajectory of the resonance at 
+ $ E = 0.8736 -0.1285i $ MeV  in the Yamaguchi interaction with 
+$\beta = 2 \:\mathrm{fm}^{-1}$ and 
+ interaction strength $ \lambda = 165 \:\mathrm{MeVfm}^{-1} $ }
+\label{fig:optical3}
+\end{figure}
+From the figure it is seen that pole behaves in the same way with increasing 
+emission  and  absorbtion as in the Malfliet-Tjon case considered in figures~\ref{fig:optical1} and 
+\ref{fig:optical2}.
+
+From the  above numerical analysis of the resonance pole trajectory for 
+a complex absorbing or emitting potential, one may make the following conclusion.
+For increasing emission, i.e. $ \eta < 0 $,  the resonant pole 
+in the third quadrant of the complex $k$-plane
+moves towards the real $k$-axis.
+Eventually the resonant poles move
+through the unitarity cut and 
+onto the physical energy sheet (upper half complex $k$-plane). 
+When the pole crosses the cut, the imaginary part of the resonance energy is 
+zero, that is why poles located on the cut are usually defined as 
+\emph{bound states embedded in the continuum}. 
+Poles which are located on the physical energy sheet 
+may be interpreted as unstable bound states. 
+Poles moving onto the physical energy sheet may therefore give a clear 
+signature in physical observables such as phaseshifts and scattering cross sections.
+For increasing absorbtion on the other hand, i.e. $\eta > 0$ , the resonant pole 
+becomes more and more unphysical in the sense that it moves away from the
+physical scattering axis. These conclusion apply in all cases considered above,
+and one may expect these conclusions to hold for other potential shapes. 
+
+The illustrations above indicates a general behaviour of decay resonant states 
+when the interaction is scaled by a complex constant. One may ask in a similar fashion 
+in what way the capture resonant states develops as a function of $\eta$. Will the symmetry 
+with respect to the imaginary $k$-axis for capture and decay states prevail ? 	
+The answer to this is no. It can be seen by considering the symmetry properties of the 
+scattering matrix in the case of a complex interaction. In particular we have the 
+property, see equations~(\ref{eq:sym1},\ref{eq:sym2}) 
+\begin{equation}
+S_l^*(-k^*,\eta^*)  = S_l(k,\eta) 
+\end{equation}
+This implies that if the interaction $ (1+i\eta )V$ supports a 
+resonance at $k$, the complex conjugated interaction $ (1+i\eta)^*V$ supports a resonance at
+$ -k^*$. The number of poles is invariant with respect to $\eta $, the poles
+only get redistributed as $\eta$ is varied. The symmetry between decay and capture states
+is therefore broken. As the capture resonance moves away from the real $k$-axis in the third
+quadrant of the complex $k$-plane the capture state moves toward the real $k$-axis and 
+eventually into the physical energy sheet. It is quite interesting that a capture state
+which for $\eta = 0 $ was considered a non-physical state, may become a physical bound state
+with a finite lifetime for $\eta > 0$.  
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/mt_phase_opt.eps}}
+\end{center}
+\caption{Real part of phase shifts for the $l=1$ Malfliet-Tjon interaction with
+$ \nu _A = -5$. The dashed line gives the phase shifts for $\eta = 0 $,
+while the continuous line give the phase shifts for $ \eta \pm 0.2 $.}
+\label{fig:mt_phase_opt}
+\end{figure}
+
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/mt_phase_opt2.eps}}
+\end{center}
+\caption{Imaginary part of the phase shifts for the $l=1$ Malfliet-Tjon interaction with
+$ \nu _A = -5$ and $\eta = -0.2 $ given by the dashed line and $ \eta = 0.2 $ by the continuous line.}
+\label{fig:mt_phase_opt2}
+\end{figure}
+
+
+In the case of complex interactions the phase shift is a complex quantity, $\delta = \delta_R + i \delta_I$, 
+the real part $\delta_R$ is interpreted as before and describes the elastic scattering while
+the imaginary part, $\delta_I $,  is a measure of the inelastic scattering taking place. 
+Figures~\ref{fig:mt_phase_opt},\ref{fig:mt_phase_opt2} 
+gives a plot of the real and imaginary part of the phase shifts for  
+the $l=1$ Malfliet-Tjon interaction with
+$ \nu _A = -5$ and $\eta = 0, \pm 0.2 $. Here only the attractive strength $V_A$ 
+was scaled, keeping the
+repulsive part $V_R$
+real, see figure~\ref{fig:optical1} for details on the pole trajectory.
+In the case $ \eta = -0.2 $ the decay state
+has moved onto the physical energy sheet and become a bound state. In the case 
+$ \eta = 0.2 $ the capture state has moved into the physical energy sheet and become a bound state, 
+while the decay state has become more unphysical.
+There is no way to differentiate between the real part of the phase shifts for $\eta = \pm 0.2 $.
+The elastic scattering is the same for both cases, which is expected since the real part of the
+interaction is the same. The imaginary part of the phase shifts are on the other hand different, and
+is directly related to the sign of $\eta $ where either an absorbtion of particles out of
+the elastic channel or an emission of particles into the elastic channel takes place. 
+
+A generalized Levinson theorem may be formulated for the real part of the phase shift \cite{kukulin}, 
+$\delta_R(0) -\delta_R (\infty ) = n\pi $ 
+where $n $ is the number of poles in the upper half complex $k$-plane (physical energy sheet). 
+In figure.~\ref{fig:mt_phase_opt}
+we have for $\eta = \pm 0.2 $ , $\delta (0) = \pi $ which is in accordance with the generalized
+Levinson' theorem. 
+
+% new section
+\section{Two-particle scattering; isolating resonance phenomena by CDM}
+In this section we will discuss the solution for the full
+off-shell $t$-matrix, and hence the full two-body scattering problem, by expanding 
+the two-body Green's function in a complete set of Berggren states. 
+The Berggren representation of the scattering equations gives 
+an analytic continuation in energy, from the upper rim of
+cut through the cut and into the non-physical energy sheet.     
+
+The $t$-matrix is defined in operator form by 
+\begin{equation}
+\label{eq:t1}
+t(\omega)  = V + Vg^{II}(\omega)V,
+\end{equation}
+or 
+\begin{equation}
+\label{eq:t2}
+t(\omega) =  V + Vg_0^{II}(\omega)t(\omega).
+\end{equation} 
+Here $\omega$ is the incoming energy, $ g^{II}(\omega) $ is the resolvent, 
+commonly known as the Green's operator, and $g_0^{II}(\omega) $ the 
+corresponding free Green's operator. In operator form they are defined by
+\begin{eqnarray}
+  g_0^{II}(\omega) & = & {1\over \omega - H_{0}}, \\ 
+  \label{eq:greensfunc}
+  g^{II}(\omega) & = & {1\over \omega - H }. 
+\end{eqnarray}
+They are related through the Dyson equation
+\begin{equation}
+  g^{II}(\omega) = g_0^{II}(\omega) + g_0^{II}(\omega)Vg^{II}(\omega)
+\end{equation} 
+The term $H_{0}$ is the kinetic energy operator and $H$ the full two-body
+Hamiltonian. The physical interpretation of the Green's functions is that $g_0^{II} $ 
+describes the propagation of two noninteracting particles, and $g^{II}$ 
+describes the propagation of two interacting particles in free space.
+
+\subsection{Berggren representation of the $t$-matrix}
+The Berggren representation of the Green's function is obtained by expanding the unit 
+operator using the completeness relation given in equation~(\ref{eq:unity2}). In this case 
+the Green's operator takes the form
+\begin{equation} 
+ \label{eq:spectral2}
+g^{II}(\omega) = \sum _{n = a,b,c,d} {\vert\psi _{n}\rangle\langle \psi^* _{n}\vert\over 
+\omega - E_{n}} + \int _{L^+} dE{\vert\psi\rangle
+\langle\psi^*\vert\over \omega - E}.
+\end{equation}	
+Here $n$ denotes bound, antibound and resonant states. The integration contour $L^{+}$
+denotes an arbitrary inversion symmetric contour, see e.g. figure~\ref{fig:int_contour2}  in 
+SubSec.~\ref{sec:berggren} of Chapter~\ref{chap:gentheory}, 
+and gives the non-resonant distorted continuum contribution to   
+the interacting Green's function. If we neglect the non-resonant continuum contribution 
+to the Green's function we get the \emph{resonant state expansion} of the Green's  
+function. Such expansions have been studied over the last decade for finite range potentials, 
+see e.g. \cite{vertse, vertse1, lind}. The Green's function given in equation~(\ref{eq:spectral2})     
+is continuous and analytic in energy across the real axis and into the domain ${\bf C} $ of 
+the lower part of the complex energy plane. Equation ~(\ref{eq:spectral2}) is therefore an analytic 
+continuation in energy of the Green's function defined along the real energy axis. 
+
+The Berggren representation of the $t$-matrix is obtained by inserting the 
+interacting Green's function given by equation~(\ref{eq:spectral2}) into equation~(\ref{eq:t1}), giving
+\begin{equation}
+t(\omega) = V + \Delta t(\omega) = V + \Delta t^{R}(\omega ) + \Delta t^{C}(\omega).
+\end{equation}
+Here $\Delta t^{R}(\omega )$ is the resonant contribution while
+$ \Delta t^{C}(\omega) $ is the non-resonant distorted continuum contribution to 
+the $t$-matrix.
+By projecting $t(\omega)$ on momentum states, and decomposing
+into partial waves, the  $t$-matrix elements $t_{l}(k,k';\omega) $ can be 
+expressed as 1-dimensional integral equations,
+\begin{equation}
+\nonumber
+t_{l}(k,k',\omega) = V_{l}(k,k')  
+\label{eq:tmat2}
+ + \int _{L^{+}}\int _{L^{+}} dq\:d{q'}
+\: q^{2}{q'}^{2}
+V _{l}(k,q)g^{II}(q,q';\omega)V_{l}(q',k'), 
+\label{eq:tmat1}
+\end{equation}
+This representation of the $t$-matrix is valid as long as we do not pass
+through any singularities of the interaction potential by deforming the real 
+$k$-axis into the distorted contour $L^{+}$. 
+
+In numerically solving for equation~(\ref{eq:tmat1}), the eigenvalue 
+problem on the discretized contour $L^+$ given in equation~(\ref{eq:momentum_space3}) has to be solved.
+Then the interacting Green's function is represented in the discretized 
+complete set of momentum states given in equation~(\ref{eq:unity2}), giving the discretized
+Green's function, 
+\begin{equation}
+  g^{II}(k_i,k_j, \omega) = \sum _{n}{\psi_{nl}(k_i)\psi_{n l}(k_j)\over  \omega - E_{nl}} = 
+  \sum _{n}\left( \sqrt{w_iw_j}k_ik_j\right)^{-1}{\psi_{nl}(i)\psi_{n l}(j)\over  \omega - E_{nl}}.
+\end{equation}
+Inserting this discretized form of the interacting Green's function into 
+equation~(\ref{eq:tmat1}) and discretizing the integration over $q$ and $q'$, 
+a discretized version of the $t$-matrix is obtained. Having obtained $g^{II}(k_i,k_j) $, 
+the full off-shell $t$-matrix is therefore obtained by the matrix equation
+\begin{equation}
+  t_l(k_i,k_j,\omega) = V_l(k_i,k_j) + \tilde{V}_l^T(i) \tilde{g}^{II}(\omega ) \tilde{V}_l(j) 
+\end{equation} 
+where $\tilde{V}_l(n)$ is the $n$'th column of the potential matrix $V_l(k_i,k_j)$ 
+and $\tilde{g}^{II}(\omega)$is the matrix
+\begin{equation}
+  \tilde{g}^{II}(i,j,\omega) = \sqrt{w_i w_j}k_ik_j 
+  \sum _{n}{\psi_{nl}(i)\psi_{n l}(j)\over  \omega - E_{nl}}.
+\end{equation}
+Applying CDM enables us to 
+obtain $t_{l}(k,k';\omega) $ for both real and complex energies $\omega $. 
+The integral becomes non-singular on the deformed contour for real and positive 
+input energies $\omega $, resulting in numerically stable solutions for physical
+two-body scattering. Equation~(\ref{eq:tmat1}) can also be considered as an
+analytic continuation of equation~(\ref{eq:tmat1}) for complex input energies $\omega$,
+and stable numerical solutions can be obtained for complex energies above the 
+distorted contour. The Berggren representation of the $t$-matrix also allows for a
+separate study of the resonant and continuum contributions.   
+The limitation of this method is due to that most  potentials
+in momentum space have singularities in the complex plane when one argument 
+is real and the other is complex.
+By applying contour $L_{1}^{+}$, which is based
+on rotation into the complex plane, in most cases there will be restrictions
+on both rotation angle ($\theta$) and maximum  incoming and outgoing momentum 
+($k,k'$), see for example Ref.~\cite{nuttal}. 
+
+Using contour $L_{2}^{+} $ we can avoid these limitations by 
+choosing the integration contour in such a way that the potential 
+singularities always will lie outside the integration contour, and therefore
+do not give any restriction on rotation angle and maximum incoming and outgoing
+momentum.
+
+\subsection{Fredholm representation}
+The partial wave decomposition of equation~(\ref{eq:t2}) gives the \emph{Fredholm} 
+representation, commonly known as the Lippmann-Schwinger equation  
+\begin{equation}
+\label{eq:tmat3}
+t_{l}(k,k';\omega) = V_{l}(k,k')+
+{2\over \pi}\int _{0}^{\infty } {dq q^{2}V_{l}(k,q)t_{l}(q,k')\over \omega - E(q) }.
+\end{equation}
+In physical two-body scattering the input energy is real and positive. In this
+case the \emph{Fredholm} integral equation~(\ref{eq:tmat3}) has a singular
+kernel of Cauchy type. Solving singular integrals can be done 
+by Cauchy's Residue theorem, where we 
+integrate over a closed contour enclosing the poles. There are two ways of
+doing this, either by letting $ z $ lie an infinitesimal distance above the 
+real axis, i.e., $ \omega \rightarrow z + i\epsilon $,  or by letting $ \omega $
+lie on the real axis. In both cases we must choose a suitable contour enclosing the
+ singularity. If we choose the latter position of the singularity,  we get  
+ a  Cauchy \emph{principal-value} integral where we integrate up to - but not
+ through - the singularity, and a second contour integral,  where the 
+contour can be chosen as a semicircle around the singularity. 
+Equation~(\ref{eq:tmat3}) can thus be given in terms of a principal value part and a 
+second term coming from integration over the semicircle around the pole. The result is
+\begin{equation}
+\label{eq:pv1}
+ t_{l}(k,k';\omega)  = V_{l}(k,k') + {2\over \pi}
+\mathcal{P}\int _{0}^{\infty } {dq q^{2}V _{l}(k,q)t_{l}(q,k')\over \omega - E (q) } 
+ \:- \: 2i\mu k_{0}V_{l}(k,k_{0})t_{l}(k_{0},k';\omega).
+\end{equation}
+By rewriting the principal value integral using the relation
+\begin{equation}
+\mathcal{P}\int_{0}^{\infty}dk\: {f(k)\over k_{0}^{2} - k^{2}} =  
+\int_{0}^{\infty}dk\: {[f(k)-f(k_{0})]\over k_{0}^{2} - k^{2}}, 
+\end{equation}
+we obtain an equation suitable for numerical evaluation.
+Equation~(\ref{eq:pv1}) can be converted into a set of linear 
+equations by approximating the integral by a sum over $N$ 
+Gaussian quadrature points $( k_{j}; j = 1,...N  ) $, each weighted by $ w_{j} $ 
+The full off-shell $t$-matrix is then obtained by matrix inversion. This
+method for solving integral equations is known as the Nystrom method. 
+It is numerically effective and stable, except for the rare case when
+ the incoming energy $\omega$ coincides with or is very close to one of the 
+integration points. 
+
+So far we have only considered physical input energies in 
+equation~(\ref{eq:tmat3}), but it has been shown in Ref.~\cite{kukulin} 
+that the analytically 
+continued Lippmann-Schwinger equation to complex energies takes the same form
+as equation~(\ref{eq:pv1}). By solving the full off-shell $t$-matrix for arbitrary 
+complex input energy, we do not have to alter the set of linear equations
+obtained for physical energy, the only modification is that the energy is
+complex. 
+
+The Lippmann-Schwinger equation  for $t$-matrix (\ref{eq:tmat3}), 
+can be solved by the contour deformation method as well. Using CDM the integral equation
+given in equation~(\ref{eq:tmat3}) has a compact integral
+kernel (Schmidt kernel) 
+for positive incoming energies $\omega$, 
+thus the principal value (PV) prescription may be avoided. 
+In the first step we calculate the $t$-matrix elements $t_l(z,k,\omega)$ 
+where $k$ is on the real axis and $z$ is on a suitable deformed contour $L^+$.
+This is obtained by solving the integral equation, 
+\begin{equation}
+  \label{eq:tmat4}
+  t_{l}(z,k;\omega) = V_{l}(z,k)+
+  \int_{L^+} {dz' {z'}^{2}V_{l}(z,z')t_{l}(z',k)\over \omega - E(z') }.
+\end{equation}
+Here it is seen that for real input energies $\omega $ 
+the integral kernel is non-singular sincel the kinetic energy term $E(z)$ is
+defined on a deformed contour in the complex $k$-plane. Having obtained 
+$t_l(z,k;\omega) $ the $t$-matrix elements $t_l(k,k';\omega) $ is 
+straightforward obtainable by the non-singular integral, 
+\begin{equation}
+  \label{eq:tmat5}
+  t_{l}(k,k';\omega) = V_{l}(k,k')+
+  \int_{L^+} {dz {z}^{2}V_{l}(k,z)t_{l}(z,k')\over \omega - E(z) }.
+\end{equation}
+here $k$ and $k'$ are given along the real $k$-axis, while $z$ 
+is 
+defined along the deformed integration contour $L^+$.
+This two-step procedure using CDM offers an alternative approach to the numerical
+solutions for the $t$-matrix. Stable solutions will be obtainable as long 
+as the contour does not pass through any singularities of the potential.
+Below we consider the solution of the $t$-matrix for the Malfliet-Tjon potential 
+by CDM and compare results with the standard principal value (PV) prescription.
+First of all, we have to determine the singularity structure of the potential 
+Malfliet-Tjon potential. From equations~(\ref{eq:tmat4},\ref{eq:tmat2}) it is seen that the potential 
+must be defined for one real variable $k$ and 
+one complex variable $z$ given on the contour $L^+$. 
+So in conclusion, the contour $L^+$ must be chosen in such a way that the 
+potential admit analytical continuation from the real $k$-axis to the 
+complex contour $L^+$. 
+
+For an illustration we  consider two contours $C_1$ and $C_2$.
+The $C_1$ contour is just the phase transformation, or complex rotation, 
+$ C_1 \: : \:\: \vert k \vert exp(-i\theta) $. The $C_2$ contour consits of a combination of 
+a rotation and a translation in the complex $k$-plane\footnote{See Paper I for further details. 
+In this particular study
+natural units are used, i.e. the momentum $k$ is in units of MeV and the potential 
+is in units of MeV$^{-2}$. In Paper I conventional units were used.}.  
+If we integrate along contour $C_{1} $ there will always be a singularity on the 
+contour given by 
+\begin{equation}
+z = k_{\mathrm{max}} - i\mu,
+\end{equation}
+where
+\begin{equation}
+k_{\mathrm{max}} = \mu /\tan(\theta ),
+\end{equation}
+and $\mu = \mathrm{min}[\mu_{A},\mu_{B}] $\footnote{$\mu $ is here considered as the mass  
+of the pions entering the Yukawa potentials; $V(r) = V_0exp(-\mu r)/r$}. 
+For $k,k' > k_{\mathrm{max}} $ the contour $C_{1}$ will 
+pass through the singularity of the interaction. 
+However, if the interaction, $V_{l}(k,k') $, is approximately zero for $k,k' > k_{\mathrm{max}} $,
+or the $t$-matrix is wanted only in the low momentum regime ($ k,k' \ll  k_{\mathrm{max}} $),
+integrating along contour $C_{1} $ can be done as long as 
+\begin{equation}
+\theta < \arctan \left( \mu/ k_{\mathrm{max}} \right ).
+\end{equation}
+In this sense we may call $k_{\mathrm{max}} $ the cutoff momentum. 
+This choice may cause numerical unstable solutions for small values of momenta, 
+since the rotated contour may lie very close to the real $k$-axis where the
+integral kernel is singular.  
+The same conclusion has already been pointed out by Nuttal in Ref.~\cite{nuttal2}.
+
+Here we see the advantage of integrating along contour $C_{2}$. Not only 
+will it be able to reproduce virtual states (see Paper I), but it yields also
+accurate results for  the $t$-matrix for real incoming and outgoing momenta.
+It will always  be possible to choose a contour $C_{2}$ lying above the nearest singularity $z = \Re[k] - 
+i\mu $, implying no restriction on rotation angle $\theta $ irrespective of cutoff 
+momentum $k_{\mathrm{max}} $. Figure~\ref{fig:newfig8} gives an illustration. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/newfig9.eps}}
+\end{center}
+\caption{Illustration of potential singularities for the Malfliet-Tjon interaction $V_{l}(k,z)$, 
+where $k$ is real  and $z$ complex. Restriction on the integration contours $C_{1} $ 
+and $C_{2}$
+is clearly seen for given cutoff momentum $k_{max } $ ($V_{l}(k,k') \approx 0 $ for 
+$k,k' > k_{\mathrm{max}} $). }
+\label{fig:newfig8}
+\end{figure}
+
+Figure~\ref{fig:newfig9} shows a plot of the calculated $t$-matrix elements
+$t_{l}(k,k;E) $ for incoming energy $E = 100$ MeV for the $s$ -wave Malfliet-Tjon
+interaction, using the contours $C_{1} $ and $C_{2}$. In this case we used a 
+rotation angle $\theta = \pi/6 $ for both contours, and a translation $b = 
+300$ MeV for contour $C_{2}$. The Malfliet-Tjon interaction has a 
+singularity along contour $C_{1}$, given by $k_{\mathrm{max}} = \mu /\tan(\theta ) = 
+529.77$ MeV. In this case the interaction 
+is not sufficiently neglible for $k,k' > k_{\mathrm{max}}$,
+and using contour $C_{1}$ will not give accurate calculation of the $t$-matrix. 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/newfig10.eps}}
+\end{center}                                           
+\caption{Plot of $t$-matrix elements for the $s$-wave Malfliet-Tjon interaction
+using the contour $C_{1}$ (dashed line) and the contour $C_{2}$ (solid line).
+The potential singularity along contour $C_{1}$ is clearly displayed, and
+located at $k_{\mathrm{max}} = 529.77$ MeV.}
+\label{fig:newfig9}
+\end{figure}
+This illustrates clearly the advantage of integrating along the contour $C_{2}$
+instead of $C_{1}$, and the importance of choosing a contour which avoids
+singularities in the potential. 
+
+For a comparison of CDM with the standard PV prescription in
+solving for the $t$-matrix numerically we consider the 
+the on-shell unitarity for the $S$-matrix calculated with both methods. 
+Table~\ref{tab:tab7} reports
+calculations done by the principal value prescription and the
+contour deformation method $C_{2}$. The calculations used $N=50 $ 
+integration points for the principal value
+integration, for the contour deformation method we used $30$ points
+along the rotated line and $N_T = 
+100,200$ along the translated line.  
+We observe that we need a higher number of integration points
+along the translated line of $C_{2}$ in order to obtain a comparable accuracy with
+the PV method.
+\begin{table}[htbp]
+  \begin{tabular}{rrrrr}
+\hline
+    \multicolumn{1}{c}{} & \multicolumn{1}{c}{PV} & \multicolumn{2}{c}{CDM} \\
+\hline
+    \multicolumn{1}{c}{$k$[MeV]} & \multicolumn{1}{c}{$N = 50$} & \multicolumn{1}{c}{$N_T = 100 $} &
+    \multicolumn{1}{c}{$N_T = 200 $ }  \\
+    \hline
+    10. & 	1.00000000 & 	 1.00000811 & 	1.00000811 \\
+    110. & 1.00000000 & 	 0.999999940 &	 1.00000000 \\
+    210. & 1.00000000 & 	 0.999999940 &  1.00000000 \\
+    310. & 1.00000000 &	0.999999881 &	1.00000000 \\
+    410. & 1.00000000 &	 0.999999881 &	1.00000000 \\
+    510. & 1.00000000 &	 0.999999881 & 	1.00000000 \\
+    610. & 1.00000000 &	0.999999881 & 	1.00000000 \\
+    710. & 1.00000000 & 	 0.999999821 &	1.00000000 \\
+    810. & 1.00000000 & 	0.999999821 &	1.00000000 \\
+    910. & 1.00000000 &	0.999999821 &	1.00000000 \\
+    1010.& 1.00000000 &	0.999999762 &	1.00000000 \\
+    1110.&  1.00000000& 	 0.999999702 &	 1.00000000 \\
+    1210.&  1.00000000& 	 0.999999702 & 	1.00000000 \\
+    1310.&  1.00000000& 	 0.999999642 & 	1.00000000 \\
+    1410.&  1.00000000& 	 0.999999523 & 1.00000000 \\
+    1510.&  1.00000000& 	 0.999999642 & 	1.00000000 \\
+    \hline
+  \end{tabular}
+  \caption{Calculations of $S$-matrix norm, $\vert S(k) \vert $, for the $s$-wave
+    Malfliet-Tjon potential with parameters  $ V_{A} = 7.291$ MeV, 
+    $\mu_{A} = 613.69$ MeV, $V_{B} = -5$ MeV and  $\mu_{B} = 305.86$ MeV. Column 2 gives results for the
+    principal value prescription (PV), while columns 3,4 give results for the contour
+    deformation method (CDM).}
+\label{tab:tab7}
+\end{table}
+
+
+% new section
+\section{Application of CDM to resonance-like phenomena in nuclear matter;
+  pair instabilities and the onset of pairing}
+\subsection{2p2h spectral structures in a nuclear medium.} 
+\label{sec:inmedium}
+In this section we discuss the application of CDM to nucleon-nucleon scattering
+in infininte nuclear matter. Of particular interest is the formation and decay of
+two nucleon bound- and resonant states in nuclear matter. In the early 70's 
+Bishop \emph{et. al.} ~\cite{bishop1,bishop2} showed that the existence of bound state
+pairs in a nuclear medium can be directly linked to the singularities of the 
+in-medium t-matrix. 
+The existence of bound pair states in nuclear medium, 
+is closely related to the concept of \emph{cooper} pairs. Cooper pairs are
+considered as the formation of bound electron pairs in a degenerate electron gas,  
+giving rise the phenomenon of \emph{super conductivity}.
+Treating holes on equal footing with particles  Bishop \emph{et. al.} 
+showed that the pairing effects in nuclear matter 
+where increased when comparing with
+the standard Bethe-Goldstone approach where only particle propagation 
+is considered, see e.g. Ref.~\cite{haftel}. 
+In Ref.~\cite{goldberg} showed that the BCS gap equation is directly related 
+to the 2p2h bound pair states. Two decades later Dickhoff \emph{et. al.} \cite{dick1,dick2,dick3}
+discussed similar properties of composite pair states in nuclear matter,
+and formally related the BCS gap equation to the
+2p2h self-consistent eigenvalue equation for the bound states.
+There it was suggested that strong pairing effects would be present
+in nuclear matter
+at certain densities and total momentum, due to the existence of bound pair states.
+
+It is well known that for a realistic nucleon-nucleon interaction there may appear 
+pairing instabilities in attractive partial waves near the fermi surface. 
+For a continuous single particle spectrum pairing instabilty is 
+interpreted as an instability to form bound 2p2h states in nuclear matter.  
+These pairing instabilities appear as complex poles located around the fermi surface 
+in the effective interaction $\Gamma $. In determining the self consistent self energy, 
+one should take the complete energy dependence of the effective interaction into account. 
+In earlier calculations only the non-resonant continuum portions of the effective interaction
+were taken into account. The inclusion of $K = 0$ 2p2h bound states in the 
+calculation of the self energy, was discussed in Ref. (). 
+
+For a continuous single particle spectrum these 2p2h bound 
+pair states appear as complex  poles of the effective interaction, 
+located around the Fermi energy $2e_f$. 
+These singularities give rise to serious numerical 
+problems when solving the iterated Feynman - Galitskii integral equation for the 
+effective interaction. In Ref.~\cite{dick3} it was proposed that an introduction of a gap in 
+the single particle spectrum located at the fermi surface would resolve this problem.  
+This suggestion was based on the observation that the 2p2h bound state poles 
+become real poles by introducing a gap in the single particle spectrum at the fermi surface. 
+If there is no gap in the single particle energy spectrum, there
+is no room for the bound states to appear as real excitations, since the hole-hole continuum 
+extends from $-\infty $ to $ 2e_f$ and the particle-particle continuum extends from 
+$2e_f$ to $\infty$. So the $2p$ and $2h$ poles appear at complex conjugate energies, 
+$E_{2p} = E_{2h}^*$, around the Fermi energy $2e_f$, this is why the poles of the $t$-matrix
+are often called pair-instabilities. By introduction of a mininum gap in the single particle 
+spectrum this instability will disappear and the poles will position themselves on the
+real energy axis between $2e_f^+ $ and $ 2e_f^-$.
+Ultimately this gap at the fermi surface would be generated self consistently. 
+
+The 2p2h bound states are dependent on both the fermi momentum $k_f$ and the total momentum 
+between the nucleons $K$. 
+The 2p2h bound states appear only in a specific density 
+region where strong pair correlations are expected, and will eventually dissolve with increasing
+center of momentum (total momentum) between the nucleons. 
+In this case the complete energy spectrum is exposed without analytic continuation of the eigenvalue 
+problem into the complex $k$-plane. However, 
+with increasing $K_{CM}$ the 2p2h poles will move towards  
+2p2h continuum, and one may expect that the 2p2h poles will move into the lower half 
+$k$-plane (non-physical energy sheet) 
+for a center of momentum $K$ greater that some critical value $K_{max}$. 
+In close analogy with the free scattering case, these poles may be associated with 
+either virtual or resonant states. In this case CDM may prove to be a 
+reliable and efficient way to calculate these exotic 2p2h states. 
+These 2p2h poles will also appear as singularities in the effective interaction, and may
+on the same level as the bound state poles cause numerical trouble. 
+One may expect that an introduction of a gap at the fermi surface will 
+not make these complex poles real poles, since they are located on the non-physical energy sheet.
+From this observation one may conclude that
+an introduction of a gap at the fermi surface does not completely solve the problem 
+associated with pairing instabilities in the iterated effective interaction $\Gamma $. 
+
+We start by outlining the formalism for 2p2h  
+bound and scattering problems in infinite nuclear matter, and 
+emphasize the relation  between the $t$-matrix and the
+two-nucleon eigenvalue equation in nuclear matter.
+Holes and particles are treated on equal footing, 
+hence allowing for hole-hole and particle-particle propagation. 
+Solving for the effective interaction, $\Gamma $,
+the particle - particle and hole - hole ladder diagrams are summed to infinite order.
+The influence of the surrounding medium is reflected in the Pauli operator and 
+self energy insertions. The two nucleon system is translational invariant, and 
+center of mass motion can be neglected. The ladder summed effective interaction, $\Gamma (\omega )$, 
+is given in operator form 
+\begin{equation}
+\Gamma (\omega ) = V + Vg_{II}^{(0)}(\omega )\Gamma(\omega)
+\label{eq:effective1}
+\end{equation}
+
+here $V$ is the nucleon-nucleon interaction and $g_{II}^{(0)}(\omega) $ is the 
+non-interacting 2p2h propagator given in terms of a product of two 
+single particle propagators. The effective interaction can also be given in terms 
+of an interacting 2p2h propagator $g_{II}$, 
+\begin{equation}
+\Gamma (\omega ) = V + Vg_{II}(\omega)V 
+\label{eq:eff2} 
+\end{equation}  
+$g_{II}(\omega ) $ satisfies the Dyson equation 
+\begin{equation}  
+g_{II}(\omega ) = g_{II}^{(0)} (\omega ) + g_{II}^{(0)}(\omega)Vg_{II}(\omega )
+\label{eq:eff3}
+\end{equation}
+From equation~(\ref{eq:eff2}) it is seen that the singularity structure of the effective 
+interaction $\Gamma (\omega )$ is given in terms of the singularties of the 
+interacting 2p2h propagator $g_{II}(\omega ) $.  
+By rewriting equation~(\ref{eq:eff3}) as 
+\begin{equation}
+g_{II}(\omega ) = { g_{II}^{(0)} (\omega )\over 1 - g_{II}^{(0)}(\omega)V} 
+\end{equation}
+it is seen that finding the poles of $\Gamma (\omega ) $ corresponds 
+to solving the characteristic equation 
+\begin{equation} 
+  \mathrm{det} \left( 1 - g_{II}^{(0)}(\omega)V \right) = 0
+\end{equation}
+which is associated with the eigenvalue problem
+\begin{equation}
+(1 - g_{II}^{(0)}(\omega)V)\vert \Psi \rangle = 0 
+\label{eq:eigenvalue1}
+\end{equation}	 
+
+In the following discussion the propagation of particles 
+and holes are considered with respect to an ucorrelated fermi sea, which gives the mean field
+approximation to the 2p2h propagators. In this picture the propagator $g_{II}^{(0)}$ 
+is known as the Feynman - Galitskii \cite{bishop1} propagator, which in turn gives the Feynman - Galitskii 
+integral equation for the effective interaction $\Gamma (\omega )$. 
+In the lab system the Feynman - Galitskii propagator is given by
+\begin{equation}
+g_{II}^{FG(0)}(p_1, p_2, \omega) = { Q( p_{1},p_{2})\over \omega - \epsilon(p_{1}) - \epsilon(p_{2}) } 
+\end{equation} 
+here $Q = Q_{2p} - Q_{2h} $ 
+, the Pauli operator projecting onto the 2p space is given  
+\begin{equation}
+ Q_{2p}(p_{1},p_{2}) =  \theta( \vert {\bf p}_{1} \vert - k_{f})\theta( \vert {\bf p}_{2} \vert - k_{f})
+\end{equation}
+and the corresponding 2h projector 
+\begin{equation} 
+Q_{2h}(p_{1},p_{2}) =   \theta( k_{f} - \vert {\bf p}_{1} \vert)\theta( k_{f} - \vert {\bf p}_{2} \vert)
+\end{equation}
+the Pauli operator is an implicit function of the fermi momentum $k_f$ defining the 
+density of the infinite fermi sea. The eigenvalue equation (\ref{eq:eigenvalue1}) can now be written 
+\begin{equation}
+\left[ H_{0} + \left(\begin{array}{cc}
+Q_{2p} & 0 \\
+0 & -Q_{2h} \end{array}\right)V \right] \left(\begin{array}{c} \psi_{2p} \\
+\psi_{2h} \end{array}\right) = E \left(\begin{array}{c} \psi_{2p} \\
+\psi_{2h} \end{array}\right)    
+\label{eq:eigenvalue2}
+\end{equation}
+\\
+here $H_{0}(p_1,p_2) = \epsilon(p_1) + \epsilon(p_2) $.  The single particle energies 
+$\epsilon $ are given by a kinetic energy term and a one body energy dependent self energy term,
+\begin{equation}
+\epsilon(p) = {p^2\over 2M} + \Sigma(p, \epsilon(p) )
+\end{equation}
+this gives a self consistent equation for the self energy ($\Sigma $). 
+
+The normalization and completeness relation for the 2p2h states are given  
+\begin{equation}
+\langle \psi_n\vert \phi_{n'}\rangle = \delta _{n,n'}, \:\: 
+{\bf 1} = \sum_{n} \vert\psi_{n} \rangle\langle \phi_{n}\vert. 
+\end{equation}
+Here the dual states $\phi_{nl} $ have been introduced. They are solutions of the transposed 
+eigenvalue equation given in equation~(\ref{eq:eigenvalue2}),
+and $\phi_{nl}$ and $\psi_{nl}$ constitutes a biorthogonal set of states.
+The discrete sum is over bound states and in addition the sum 
+implies an integration over the 2p2h continuum. 
+Inserting this complete set of 2p2h states into the Feynman - Galitskii 
+propagator equation~(\ref{eq:eff3}) the spectral representation of the
+2p2h interacting propagator is obtained, 
+\begin{equation} 
+g_{II}^{FG}(\omega) =  { \sum_{n} \vert\psi_{n} \rangle\langle \psi_{n}\vert \over 
+\omega - E_n }
+\label{eq:int_prop}
+\end{equation} 
+
+As the nucleon-nucleon interaction is given in relative coordinates it is 
+convienient to transform from the nucleon lab system to 
+relative and center of mass coordinates of the two nucleons, 
+\begin{equation}
+{\bf k} =  { ( { \bf p_{1}} - { \bf p_{2}} )\over 2 }, \;\; 
+{\bf K} =  { ( { \bf p_{1}} + { \bf p_{2}} )\over 2 }
+\end{equation} 
+Here ${\bf k}$ is the relative momentum and ${\bf K}$ the center of momentum between the two 
+interacting nucleons.
+To allow a partial wave decomposition  the standard angle 
+averaged Pauli operator $ \bar{Q} $ and the angled averaged 
+one body operator $\bar{H}_0$ are introduced.
+
+A partial wave decomposition of the 2p2h eigenvalue equation ( \ref{eq:eigenvalue2} ) in relative and 
+center of momentum can then be approximated by 
+\begin{equation} 
+\bar{H}_{0}(k,K) \psi_{nl}^{\alpha} (k,K ) + \bar{Q}(k,K;k_{f}) \int_{0}^{\infty} 
+dk' {k'}^{2}V_{l}(k,k')\psi_{nl}^{\alpha}(k',K) = E_{nl}^{\alpha}\psi_{nl}^{\alpha}(k,K)
+\label{eq:eigenvalue3}
+\end{equation}
+Here $\alpha $ represents the conserved quantum numbers $J,S,T$ and 
+$k_{f}$ is the fermi momentum. 
+The normalization integral for the two 2p2h states is
+\begin{equation}
+\int_{0}^{\infty} dk\: k^{2}\psi_{n'l}^{*}(k,K)\phi_{nl}(k,K) 
+= \delta_{n,n'}
+\end{equation}
+where the dual 2p2h states $\phi_{nl}(k,K) $ are given in terms of $\psi_{nl}(k,K)$,
+\begin{equation}
+\phi_{nl}(k,K) =  \bar{Q}^{-1}(k,K;k_{f})\psi_{nl}(k,K)
+\end{equation}
+The operator $\bar{H}_{0}$ is given by 
+\begin{equation}
+\bar{H}_{0} =  {k^{2}\over 2\mu} +{ K^{2}\over 2\mu } + \bar{\Sigma}_1 + \bar{\Sigma}_2,
+\end{equation} 
+The angle averaged Pauli operator,$\bar{Q} = \bar{Q}_{2p} - \bar{Q}_{2h} $,  entering
+ equation~(\ref{eq:eigenvalue3}) will in this case depend on both fermi momentum, $k_{f}$,
+ and the center of momentum $K$.  The hole-hole  
+part, $\bar{Q}_{2h}$ for $K < k_{f} $ is, see Ref.~\cite{ramos},  
+\begin{eqnarray}
+\bar{Q}_{2h}(k,K;k_{f}) = \left\{ \begin{array}{ll} 
+1 &   0 < k \leq k_{a} \\
+{ k_{f}^{2} - K^{2} -k^{2}\over 2kK} & 	 k_{a} < k \leq \sqrt{k_{f}^{2} - K^{2}} \\
+0 & 	\textrm{otherwise}
+\label{eq:pauli1}
+\end{array}\right. 
+\end{eqnarray}	
+and the particle - particle part, ${\bar Q}_{2p}$, for $K  < k_{f} $ is
+\begin{eqnarray}
+\bar{Q}_{2p}(k,K;k_{f}) = \left\{ \begin{array}{ll} 
+0 &  0 < k  \leq \sqrt{k_{f}^{2} - K^{2}} \\
+{ k^{2} + K^{2} - k_{f}^{2}\over 2kK} &  \sqrt{k_{f}^{2} - K^{2}} < k \leq k_{b} \\
+1 & 	\textrm{otherwise}
+\end{array}\right. 
+\label{eq:pauli2}
+\end{eqnarray}	
+here
+\begin{equation}
+k_{a} =  k_{f} - K, \:\: k_{b} = K + k_{f}
+\end{equation}
+In the case $K > k_{f} $, $ \bar{Q}_{2h}$ is zero everywhere. The particle - particle 
+part, ${\bar Q}_{2p} $, is given 
+\begin{eqnarray}
+\bar{Q}_{2p}(k,K;k_{f}) = \left\{ \begin{array}{ll} 
+1 &  0 < k  \leq k_{a}  \\
+{ k^{2} + K^{2} - k_{f}^{2}\over 2kK} &   k_{a} < k \leq k_{b} \\
+1 & 	\textrm{otherwise}
+\end{array}\right. 
+\label{eq:pauli3}
+\end{eqnarray}	
+here 
+\begin{equation}
+k_{a} = K -k_{f} , \:\: k_{b} = K + k_{f}.
+\end{equation}
+
+Equation~(\ref{eq:eigenvalue3}) represents a non-hermitian eigenvalue problem. The general 2p2h energy 
+spectrum will therefore in general be complex. The energy spectrum will depend on both the 
+single particle energies entering the unpertubed one-body operator $\bar{H}_{0} $ and the
+two nucleon interaction $V_{l}(k,k')$. For a continuous single particle spectrum the 
+2h continuum extends from $-\infty $ to the fermi energy $ E_{f} = k_{f}^{2}/2\mathrm{m}_{n} $ and the
+2p continuum extends from $E_{f}$ to $ \infty $. 
+The analytic structure of the integral kernel is the same as for free scattering except for 
+the angle averaged Pauli operator.  If we want to search for pole structures on the 
+non-physical energy sheet, an analytical continuation in energy through the branch cut along 
+the real axis, and onto the non-physical energy sheet has to be performed.   
+The Pauli operator is continuous along the whole real $k$-axis but presents 
+discontinuous derivatives at $k_{a}$ and $k_{b}$. For real $k$ the Pauli operator is therefore
+analytic only within the domains $ k \in [0 , k_{a}] $, $ k\in ( k_{a}, k_{b}] $ and
+$ k \in  ( k_{b}, \infty ) $. 
+Summarizing; the Pauli operator is nonsingular in the complex $k$-plane, and
+analytic within three domains given by $ D_{1} =  \vert z \vert \leq k_{a} $, 
+$ D_{2} = k_{a} < \vert z \vert \leq k_{b} $  and $ D_{3}  =  \vert z \vert > k_{b} $.
+Analytical continuation of equation~(\ref{eq:eigenvalue3}) 
+onto the non-physical energy sheet (lower half $k$-plane) can be carried out
+within each domain where the integral kernel is analytic. 
+Figure~\ref{fig:medium1} gives an illustration 
+of regions in the complex plane where the integral kernel is analytic, singularites in the potential
+are also shown along with a possible choice of deformed integration contour $C$.
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{6cm}{\epsfig{file=figures/medium1.eps}}
+\end{center}
+\caption{ $D_{1}$, $D_{2}$ and $ D_{3} $ demarcated by dotted circles 
+define the regions in the complex    $ k$ -plane 
+where the Pauli operator is analytic. The shaded area represents a region in the 
+complex $k$-plane where singularities in the potential appear. The optimal  
+deformed contour choice for equation~(\ref{eq:eigenvalue3}) is given by $  C = C_{1} + C_{2} + C_{3} $.}
+\label{fig:medium1}
+\end{figure}
+The transformed equation~(\ref{eq:eigenvalue3}) will on the distorted contour $C$ take the form
+\begin{equation}
+\label{eq:transformed} 
+\bar{H}_{0}(k,K) \psi_{nl}^{\alpha} (k,K ) + \bar{Q}(k,K;k_{f})\int_{C} 
+dk' {k'}^{2}V_{l}(k,k')\psi_{nl}^{\alpha}(k',K) = E_{nl}^{\alpha}\psi_{nl}^{\alpha}(k,K)
+\end{equation}
+here $k$ and $k'$ are both defined on the contour $C$, giving a closed integral equation. 
+The fermi momentum, $k_{f}$, and the center
+of momentum, $K$, is kept real, since equation~(\ref{eq:transformed}) is an integral equation in the relative
+momentum $k$ only. 
+The normalization of the 2p2h states follow the generalized $c$-product as described for 
+the free scattering case. 
+
+\subsection{Pairing instabilities and resonance-like phenomena for the CD-Bonn interaction.}
+Here we give a numerical calculation of 2p2h pair states in symmetric nuclear matter
+using the realistic CD-Bonn \cite{machleidt} nucleon-nucleon interaction.
+We use a free single particle spectrum with no gap in the calculations.
+The 2p2h complex pole trajectories of the virtual states in the 
+${}^1S_0$ channels are considered with increasing fermi momentum ($k_f$) and center
+of momentum ($K$).
+The 2p2h eigenvalue 
+problem is solved on the contour $C$ consisting of a rotated and a translated part as 
+shown in figure~\ref{fig:medium1}.
+The singularity structure of the interaction is the same as for free scattering, 
+the only modification is the angle averaged Pauli operartor entering the integral equation
+\footnote{See Paper I for a discussion of the singularity structure of the CD-Bonn potential}.   
+Figure~\ref{fig:1s0pole} gives the $^1S_0$ 2p and 2h complex pair states for $K = 0$ MeV and increasing
+fermi momentum. Observe that the 2p2h pair states approaches the $^1S_0$ virtual states 
+as $k_f \rightarrow 0 $. For $K = 0$ MeV the 2p2h pair states are located in the upper half 
+complex $k$-plane. In this case integration along the real $k$-axis will give the 
+complete energy spectrum, see figure~\ref{fig:1s0pole}. 
+It is worth noting that the imaginary part of the 2p2h complex energy fits remarkably well 
+with the pairing gap obtained from the BCS gap equation using a free single particle spectrum, 
+see e.g. Ref.~\cite{morten2}.
+This serves to illustrates that the BCS gap equation is an approximate solution of the 
+2p2h eigenvalue problem as pointed out in Ref.~\cite{dick1,dick2,dick3} 
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/1s0pole.eps}}
+\end{center}
+\caption{$^1S_0$ 2p2h pole trajectory in nuclear matter for $K_{CM}= 0$. 
+Crosses:  $t_z = -1 $ -channel, dots: $t_z= 1$ , 
+circles:  $t_z = 0$. $k_f \in [0, 280] $ MeV, $ \Delta k_f = 10$ MeV.}
+\label{fig:1s0pole}
+\end{figure}
+Pairing correlations may also appear for $K > 0$.
+Figure~\ref{fig:1s0virtual} gives the $^1S_0$ 2p complex pole trajectory for increasing 
+center of momentum and fixed fermi momentum. The complex pole move towards the real energy 
+axis and eventually through the branch cut and 
+onto the non-physical energy sheet with increasing center of momentum.
+Translated to the momentum plane, this implies that  
+the complex pole will move from the upper half $k$-plane and onto the lower half complex $k$-plane 
+for a given center of momentum $K_{min}$. In the case $K > K_{min}$ the complete 2p2h 
+energy spectrum is no longer obtainable by integrating along the real $k$-axis. 
+By a suitable choice of contour CDM provides a method for obtaining the 
+complete 2p2h energy spectrum for any $K > K_{min} $.  
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/1S0virtual.eps}}
+\end{center}
+\caption{Calculated 2p pole trajectory for maximum pairing instability $k_{f} = 170$ MeV in 
+the $^1S_0 $ neutron - neutron isospin channel as function of $K_{CM}$. A rotated + translated contour 
+was used in order to obtain energy spectrum. }
+\label{fig:1s0virtual}
+\end{figure}
+Figure~\ref{fig:poles1} gives a scetch of the $^1S_0$ 2p2h pole trajectories in nuclear matter. 
+First the center of momentum is held fixed and equal $K = 0$ and the fermi momentum is varied. 
+The 2p and 2h poles will move symmetrically to the imaginary axis in the upper half complex
+$k$-plane. Thereafter the fermi momentum is held fixed and the center of momentum is varied $K > 0$.
+In this case the 2p and 2h poles will move towards the real $k$-axis and for a given $K$ into the
+lower half complex $k$-plane.   
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/poles1.eps}}
+\end{center}  
+\caption{Trajectory of 2p2h complex poles (pair instabilities) in 
+nuclear matter for increasing fermi momentum, $k_{k} $, and $K_{CM} = 0$ MeV. 
+The figure also give the trajectory for increasing center of momentum $K_{CM}$, and
+$k_f$ is held fixed.}
+\label{fig:poles1}
+\end{figure}
+
+
+\subsection{Calculation of $\Gamma $ by CDM for the CD-Bonn nucleon-nucleon interaction.}
+In this section we will discuss a method for solving the full off-shell
+vertex function (effective interaction), $\Gamma$, in a nuclear medium.
+This method is based on analytic continuation of the integral equations and
+expansion of the Green`s function on a complete set of Berggren states. This is
+known as the Lehmann representation of the effective interaction $\Gamma $.
+ 
+For two nucleons in free space the vertex function reduces to 
+the  $t$-matrix, and hence the free full two-body scattering problem. 
+In free space the $t$-matrix can be interpreted as an effective interaction
+between two nucleons. In a scattering process the $t$-matrix
+includes repeated two body interactions to infinite order, i.e. a summation of
+all ladder diagrams to infinite order. In analouge to the free scattering case, 
+we will consider only repeated interactions between either hole or particle states in 
+the medium, giving the 2p2h ladder summed vertex function, $\Gamma $. 
+
+The integral equation (\ref{eq:effective1}) for the effective interaction may be
+written in relative and center of momentum coordinates by
+\begin{equation}
+\label{eq:gamma_mat1}
+\Gamma_l(k,k'; \omega) = V_l(k,k') + \int_{0}^{\infty}dq q^2 V_l(k,q)
+g_{II}^{FG(0)}(q,\omega)\Gamma_l(q,k'; \omega)  
+\end{equation}
+where we introduce the shorthand notation $\Gamma_l(k,k'; \omega) = \Gamma_l(k,k',K,k_f; \omega) $. 
+The non-interacting 2p2h propagator is given, 
+\begin{equation}
+  g_{II}^{FG(0)}(k,\omega) = {\bar{Q}(k,K;k_f)\over \omega - H_0(k,K) }
+\end{equation}
+In the case of free scattering $Q=1$, and equation~(\ref{eq:gamma_mat1}) reduces
+to the Lippmann-Schwinger equation for the $t$-matrix given in equation~(\ref{eq:tmat3}). 
+The spectral representation of the effective interaction takes the following form
+in RCM coordinates
+\begin{equation}
+  \label{eq:gamma_mat2}
+  \Gamma_l(k,k'; \omega) = V_l(k,k') + \int_{0}^{\infty}dq q^2 
+  \int_0^\infty dq' {q'}^2 V_l(k,q) g_{II}^{FG}(q,q';\omega) V_{l}(q',k')
+\end{equation}
+where the interacting 2p2h propagator is given by equation~(\ref{eq:int_prop}).
+We will consider the solution of
+Equation~(\ref{eq:gamma_mat2}) for the effective interaction by CDM. 
+Using the completeness relation defined on a distorted contour $C$, shown in figure~\ref{fig:medium1}, 
+gives the Berggren representation of the effective interaction in a nuclear medium, 
+\begin{equation}
+\Gamma_l(k,k'; \omega) = V_l(k,k') + \int_C dz z^2 
+\int_C dz' {z'}^2 V_l(k,z) g_{II}^{FG}(z,z';\omega) V_{l}(z',k')
+\end{equation}
+here the interacting 2p2h propagator are represented in the 2p2h basis obtained by 
+solving the eigenvalue problem in equation~(\ref{eq:transformed}).
+
+By applying CDM and the spectral representation of the effective interaction,
+we are able to single out the bound and resonant state contribution from the non-resonant 
+2p2h continuum contribution  to the full effective interaction. 
+The effective interaction may be written in the form,
+\begin{displaymath}
+\Gamma(\omega) = V + \Delta\Gamma(\omega) = V + \Delta\Gamma^R(\omega) + \Delta\Gamma^C(\omega), 
+\end{displaymath}
+here $R$ denotes the discrete bound and resonant states, $C$ denotes 
+the non-resonant continuum contributions. 
+In this way we may study the resonant, $\Delta\Gamma ^{R}$, and non-resonant 
+contributions, $\Delta\Gamma ^{C}$, to the effective interaction separately. 
+In figure~\ref{fig:eff} the effective interaction $\Gamma $ 
+for the input energy $ \omega = ( k^2 + K^2 )/2m_{n} $, center of momentum 
+$K=30$MeV and Fermi momentum $k_f=170$MeV 
+is given for   $^1S_0$ neutron-neutron channel in the CD-Bonn interaction. 
+A sharp peak is observed around the Fermi surface, indicating the existence of 
+bound pair states. In figure~\ref{fig:eff5} the non-resonant continuum contribution 
+to the effective interaction is plotted, and it is seen that the peak 
+around the Fermi surface has disappeared. The Discontinuties in the non-resonant
+contribution is due to the analytic structure of the angle averaged Pauli operator given 
+in equations.~(\ref{eq:pauli1},\ref{eq:pauli2}, \ref{eq:pauli3}). In figure~\ref{fig:eff6}
+the resonant contribution to the effective interaction is given.
+The resonant contribution displays a sharp peak around the Fermi surface, 
+while the resonant contributions are neglible moving away from the Fermi surface.
+ 
+In conclusion, CDM will enable us to 
+obtain $\Gamma_{l}(k,k',K;\omega) $ for both real and complex input energies $\omega $. 
+The integral becomes non-singular on the deformed contour for real 
+input energies $\omega $, resulting in numerically stable solutions for
+two-body scattering in both free space and in a uniform medium.   
+In this perspective, CDM offers an alternative approach to the standard
+PV prescription in solving for the effective interaction, and
+offers a valuable tool in descrbing different contributions to the
+effective interaction.
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/eff.eps}}
+\end{center}  
+\caption{Effective interaction $\Gamma(k,k; \omega = ( k^2 + K^2 )/2m_{n} )  $ for $K = 30$ MeV and 
+$k_f = 170$ MeV for $^1S_0$ neutron-neutron channel in the CD-Bonn interaction. The peak around 
+the fermi surface $k \approx 170 $MeV indicates the formation of a pairing instability. }
+\label{fig:eff}
+\end{figure}
+
+      
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/eff5.eps}}
+\end{center}  
+\caption{Continuum part of effective interaction $\Delta\Gamma(k,k; \omega = ( k^2 + K^2 )/2m_{n} )  $ 
+for $K = 30$ MeV and 
+$k_f = 170$ MeV for $^1S_0$ neutron-neutron channel in the CD-Bonn interaction. The peak around 
+$k \approx 170 $MeV has been washed out. }
+\label{fig:eff5}
+\end{figure}
+
+
+\begin{figure}[hbtp]
+\begin{center}
+\resizebox{9cm}{7cm}{\epsfig{file=figures/eff6.eps}}
+\end{center}  
+\caption{Resonant part of effective interaction $\Delta\Gamma(k,k; \omega = ( k^2 + K^2 )/2m_{n} )  $ 
+for $K = 30$ MeV and 
+$k_f = 170$ MeV for $^1S_0$ neutron-neutron channel in the CD-Bonn interaction. The resonant part of $\Gamma $
+has is clearly non-neglible around the fermi surface $k \approx 170 $MeV. }
+\label{fig:eff6}
+\end{figure}
+
+

@@ -1,0 +1,125 @@
+Hei Gustav,
+må bare beklage så mye det treige svaret, du sendte mail den 28/3 og får svar   7/4, too bad.
+
+Nåvel, her kommer en lengre sak.
+
+1)  Først litt oppvarming:
+Når du har to ulike partikler a og b  og du velger å relatere disse til en isospinn basis  har du følgende relasjon
+(jeg glemmer først alle andre kvantetall enn isospinn)
+
+|ab Tz>  = \sum_T  < t_a t_za  t_b  t_zb | T Tz >  | a b TTz>
+
+T er totalt isospin og Tz dets projeksjon.
+
+Dersom du har protoner og nøytroner svarer dette til
+
+|p_a n_b Tz=0>  =  < 1/2 -1/2  1/2 1/2 | 00> | p_an_b 00> + < 1/2 -1/2 1/2 1/2 |p_an_b 10> 
+
+Clebsch-Gordan koeffisientene er 1/sqrt(2)
+
+Merk at på høgre side betraktes partiklene som identiske.
+
+
+2) La oss holde  oss til identiske partikler først, kopla til godt isospinn.
+Relasjonen ovenfor gjelder  uansett, du må bare passe på å sette inn riktige kvantetall for isospinn og isospinn
+projeksjon.  La oss se på en tilstand | ab JT>  i lab systemet: 
+Her har du en koplingsrekkefølge for clebsch-gordan koeffisienten for angulærmoment 
+<am_a b m_b | J M>, det betyr a koples til b, samme gjelder for isospin. Vi skal holde oss til denne rekkefølgen.
+Det betyr at ombytte av partikkel a og b gjøres slik at koplingsrekkefølgen er fra venstre mot høyre.
+To-partikkel bølgefunksjonen er 
+|ab JT>_as = 1/norm ( |ab JT > - | ba JT> )
+
+men vi ønsker å holde  en kopling rekkefølge hvor a-->b  --> J, det betyr at 
+
+|ba JT >   =  - (-)^{j_a+j_b-J+t_a+t_b -T} | a b JT>
+
+Det første minus fra ombytte av to like fermioner 
+
+Hvis a og b er to nøytroner  er t_a=t_b = 1/2  og T = 1
+Da har du 
+
+|ba JT > = -(-)^{j_a+j_b-J} | ab JT> .
+
+Den totale b.f.   er (med normering)  1/norm ( |ab JT > - | ba JT> ) = 1/norm ( 1 - (-)^{ja+jb-J}) |ab JT >
+
+eller mer generelt når vi ikke spesialiserer isospinn verdier
+
+1/norm ( 1 - (-)^{ja+jb-J +t_a+t_b -T}) |ab JT >
+
+Konsekvensen er at ja+jb+t_a+t_b-J-T ikke kan være et like tall. 
+Siden ja+jb+ta+tb blir et like tall for halvtallige spinnverdier   betyr det at J+T ikke kan være et like tall.
+
+Når du så går over til relative koordinater i transformasjonen fra rel til lab, så er det kvantetallene 
+l og S i tillegg til T som er viktige.
+
+Det betyr at en antisymmetrisert b.f. i relative koordinater er
+
+| lST >_as =  1/sqrt(2) ( 1- (-)^{l+S+T}), som bare gir en faktor   sqrt(2).
+
+
+3) Når du så går over  til den fysiske basis,må du framleis passe på Pauli prinsippet for identiske 
+partikler, samtidig må du velge hvordan du skal kople ulike partikler.
+Jeg har valgt  å bruke en antisym bølgefunksjon, da jeg da får brukt alle diagramreglene med antisym
+vekselvirkning.
+ 
+
+
+
+Du må passe i den delen av koden somgjør transformasjonen
+
+
+        !     pauli test for identical particles in partial waves
+        IF((ABS(itz) == 1).AND. ((-1)**(l+ispin+1) > 0)) CYCLE
+        !     get right sign from isospin clebsch-gordan coeff for the partial waves
+        !     since we have for Tz=0 always a coupling order | (pn) J >
+        !     this means that the T=0 contrib goes like  -(1-(-)^(l+spin))/sqrt(2)
+        !     and l+s have to be odd       
+        cst = 1.0_dp
+        IF ( itz /= 0 ) THEN
+           cst = SQRT(2.D0)/SQRT( 1.d0+ delta(n1,n2)*delta(l1,l2)*delta(j1d,j2d) )
+        ELSEIF ( (itz == 0) ) THEN
+           IF ( (MOD(l+ispin,2) /= 0 ) )  cst= -1.0_dp
+        ENDIF
+
+
+Du må nå forandra til et mer generelt tilfelle.  Du vil se at dersom du transformer en |pn> tilstand som definert 
+her tilbake til godt isospinn,så stemmer alt. 
+I mitt tilfelle er itz = 0 det samme som |pn>.
+Du  må velge dine verdier for itz.  Feks, lambda-neutron har itz = -1/2  osv.   Du må sette opp flere if-tester.
+For ulike partikler bruker du alltid 
+     ELSEIF ( (itz == 0) ) THEN
+           IF ( (MOD(l+ispin,2) /= 0 ) )  cst= -1.0_dp
+        ENDIF
+men passer på itz verdiene slik at de matcher fekx lambda-neutron, lambda-proton osv.
+
+I tillegg må du passe på verdiene for identiske partikler. Nå har du faktisk itz = 0  som et tilfelle foridentiske
+partikler også, dvs lambda-lambda.  da må du forandre testene ovenfor.
+
+
+4) Du må også passe på i bhf-matrix.f90 hvor jeg setter opp to-partikkel koeffisientene i 
+funksjonen bhf_coeffficients. Merk her at testene er tilrette lagt for |pn>, |pp> og |nn>.
+For ulike partikler bruker du derfor bare oppsettet for itz = 0, men du må forandre testene.
+Likeså for identiske partikler.
+
+5) pass også på i funksjonen pphhmtx  i bhf-matrix.f90, den er også tilpassa pp, pn og nn tilfellet.
+
+6) og siste sjekk er sjølsagt 
+
+
+ CALL mtx_elements(ja,jb,jc,jd,jt,gmtpn)
+i bhf-modules.f90, hvordu faktisk leiter  opp det fysiske elementet.
+
+
+ 
+Skrik ut om noe er uklart.
+
+
+Når reiser du til barcelona?   Du bør da prøve å  få ut tall 
+som kan brukes til artikkel!!!  Skal skrive til artur om dette. 
+
+Fikk du bestilt reise via HRG_nordic og belasta kjernefysikk gruppa?
+
+
+Morten
+
+p.s. neste gang skal jeg prøve å svare kjappere.

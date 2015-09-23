@@ -1,0 +1,3015 @@
+\documentclass[a4paper,11pt]{book}
+
+%-----------------PREAMBLE---------------%
+%Graphics
+\usepackage{graphicx}
+\usepackage{color}
+\DeclareGraphicsRule{.pdftex}{pdf}{.pdftex}{}
+\usepackage[]{subfigure}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumerate}
+\usepackage{bbold}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.markings,matrix,arrows}
+\usetikzlibrary{trees}
+\usetikzlibrary{decorations.pathmorphing}
+\usetikzlibrary{decorations.markings}
+
+
+%Text
+\usepackage{appendix}
+\usepackage{empheq}
+\usepackage{listings}
+\lstset{ %
+language=C,                % the language of the code
+basicstyle=\footnotesize,       % the size of the fonts that are used for 
+numbersep=5pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,                   % adds a frame around the code
+tabsize=2,                      % sets default tabsize to 2 spaces
+captionpos=b,                   % sets the caption-position to bottom
+breaklines=true,                % sets automatic line breaking
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+title=\lstname,                 % show the filename of files included with \lstinputlisting;
+                                % also try caption instead of title
+escapeinside={\%*}{*)},         % if you want to add a comment within your code
+morekeywords={*,...}            % if you want to add more keywords to the set
+}
+
+%For tables
+\usepackage{multirow} 
+
+%---------------------------------------------------
+%customizing page body layout using the geometry package:
+%---------------------------------------------------
+\usepackage[vscale=0.8,left=3cm,right=2cm,footskip=2.5cm, headsep=1cm]{geometry}
+%-----------------------------------------------------------
+%customizing headers and footers using the fancyhdr package:
+%-----------------------------------------------------------
+\usepackage{fancyhdr}
+%redefining plain style,(necessary to remove default page-style setings):
+\fancypagestyle{plain}{
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}}
+%seting new style
+\pagestyle{fancy}
+\fancyhf{} %clears both head and foot
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter.\ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}{}}
+\fancyhead[LE]{\footnotesize \bfseries \leftmark}
+\fancyhead[RO]{\footnotesize \bfseries \rightmark}
+\headheight 15pt
+\fancyfoot[LE,RO]{\bfseries \thepage}
+
+%----------------------------------------
+%redefining the \cleardoublepage command
+%----------------------------------------
+%automatically clears the (even) blank side following each chapter
+\makeatletter
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+  \hbox{}
+  %\vspace*{\fill}
+  %If you want the blank page following the chapters
+  %to have some content, this is added here. 
+  %\vspace{\fill}
+  \thispagestyle{empty}
+  \newpage
+  \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+%-------------------------------
+%section-setings,no indentation:
+%-------------------------------
+%\usepackage{parskip}
+%\setlength{\parindent}{0pt}
+%\setlength{\parskip}{\baselineskip}
+
+%-------------
+%math setings:
+%-------------
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{simplewick} 
+\usepackage{amsthm}  %Gives us abillity to begin proof
+
+%changes refrences into links:
+\usepackage{hyperref}
+
+%Tabulars
+\usepackage{booktabs,tabularx}
+
+%---------------ENDING PREAMBLE---------------%
+
+%----Note----%
+%\footnote{}
+%\emph{}
+%\label{} - \ref{} - \pageref{} 
+
+%--------------COSTUMIZE NEWCOMMANDS-----------------%
+\newcommand{\bra}[1]{\langle{#1}|}
+\newcommand{\ket}[1]{|{#1}\rangle}
+\newcommand{\braket}[2]{\langle{#1}|{#2}\rangle}
+\newcommand{\ql}{\left}
+\newcommand{\qr}{\right}
+\newcommand{\hh}[1]{\widehat{#1}}
+\newcommand{\p}[1]{\hat{#1}}
+\newcommand{\da}[1]{{#1}^{\dagger}}
+%\newcommand{\bb}[1]{{\bf{#1}}}
+\newcommand{\dd}[1]{\delta_{#1}}
+\newcommand{\vv}[2]{\bra{#1}v\ket{#2}}
+\newcommand{\vva}[2]{\bra{#1}|\hat{v}|\ket{#2}}
+
+
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\newcommand{\bb}[1]{\, \ensuremath{\mathbf{#1}}}
+%--------------COSTUMIZE amsthm package-----------------%
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+
+\providecommand{\e}[1]{\ensuremath{\times 10^{#1}}}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+{\huge \bf Coupled-Cluster Studies of Double Quantum Dots}\\
+\ \\ 
+{\Large by}\\
+\ \\
+{\Large \bf Yang Min Wang}\\
+\ \\
+\ \\
+\ \\
+{\large \bf THESIS}\\
+{\large for the degree of}\\
+{\large \bf MASTER OF SCIENCE}\\
+\ \\
+(Master in Computational Physics)\\
+\ \\
+\ \\
+%\includegraphics[width=60mm,height=60mm]{uiologo}
+%\includegraphics[width=0.5\textwidth]{uio-logo.jpg}
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=0.3\textwidth]{uiologo}
+%\includegraphics[width=0.8\textwidth]{UiO_Segl_black.eps}
+\end{center}
+\end{figure}
+\ \\
+\Large{\rm Faculty of Mathematics and Natural Sciences}\\
+{\rm Department of Physics}\\
+{\rm University of Oslo}\\
+\ \\
+\ \\
+{\rm June 2011}
+
+%\author{Marte Hoel J\o rgensen}
+%\title{Thesis for the degree of Master of Science}
+%\affiliation{Faculty of Mathematical and Natural Sciences}
+%\maketitle
+%\thispagestyle{empty}
+\end{center}
+\end{titlepage}
+
+\chapter*{Acknowlegdement}
+
+I am very thankful to my supervisor, professor Morten Hjort-Jensen, who has taught me ever since 2008. He has been a mentor and helped me far beyond what I would expected. His enthusiasm and humor have been a motivation. I am very lucky to have met Morten, and I hope I have in return fullfiled his expectations. I am deeply grateful to the many hours Simen Kvaal have spent helping me to implement the transformations and writing replies to my questions. 
+
+It has been interesting to work with such a likable person as Marte Hoel J\o rgensen, whom I worked with on the optimization of the CCSD code. I admire her professionalism and discipline, and she has helped me to see things from different perspectives.
+
+I would also thank Gustav Jansen and \O yvind Jensen for their insights and suggestions that have helped me understand the nature of my problems. Magnus Pedersen Lohne have been very helpful and responded every time on email. Thanks to my fellow students David Sk\aa lid Amundsen, Andreas Nakkerud, J\o rgen Tr\o mborg, Christoffer Hirth, J\o rgen H\o gberget, who have helped me along the way and made my time at the University of Oslo very enjoyable.
+ 
+I have enjoyed the physics as well as non-physics discussions with my friends Henrik and Michael, they have broadened my perspectives on what a fruit is and is not. The discussions have been very fruitful to say the least. It has been a challenging year, and skiing has been very relaxing, thanks to Patrick, Vladimir, Morten, Christoffer, Thomas, Henrik and Michael for joining me for some memorable trips in Lillomarka. Shout-out to Henrik Holte for proof-reading my thesis.
+
+Finally, I want to give credit to my mother, father, and my sister. Without their encouragement and support there would be no thesis. 
+
+\begin{quotation}
+\hfill Yang Min Wang
+\end{quotation}
+
+
+\clearpage
+\begin{figure}
+\begin{quotation}
+\it ``The highest forms of understanding we can achieve is laughter and human compassion.''
+\end{quotation}
+\hfill R. P. Feynman.
+\end{figure}
+
+\tableofcontents
+
+%\maketitle
+%\thispagestyle{empty}
+
+%\chapter*{Abstract}
+
+\section*{Abbreviations}
+\begin{table}[ht]
+\begin{tabular}{l l}
+EPV & Exclusion-Principle-Violationg\\
+Eq & Equation\\
+Fig & Figure\\
+BCH & Baker-Campbell-Hausdorff expansion\\
+SD & Slater Determinant\\
+PEP & Pauli Exclusion Principle\\ 
+HF & Hartree-Fock Method\\
+RHF & Restriced Hartree-Fock Method\\
+DFT & Density functional Theory\\
+MBPT & Many-Body Perturbation Theory\\
+CC & Coupled-Cluster\\
+CCM & Coupled-Cluster Method\\
+CCS & Coupled-Cluster Method with Single Excitations\\
+CCD & Coupled-Cluster Method with Double Excitations\\
+CCSD & Coupled-Cluster with Single and Double Excitations\\
+CCSDT & Coupled-Cluster with Single, Double and Triple Excitations\\
+CCSDTQ & Coupled-Cluster with Single, Double,Triple and Quadrouple Excitations\\
+DMC & Diffusion Monte Carlo \\
+\end{tabular}
+\label{table:abbreviations}
+\end{table}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% INTRODUCTION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter*{Introduction}
+The goal of this thesis is to show how we can study the double quantum dot potential using the CCSD method. During this process we have used Magnus Pedersen Lohnes Master's Thesis \cite{lohne} as a starting point, and a lot of the work has been to optimalize his code. I have been working with Marte Hoel Joergensen \cite{marte} with the optimalization, and we have developed a method of using a Hartree-Fock calculation as an input to improve the convergence of the CCSD calculations. 
+
+This thesis could be regarded as a academic curiosity. However we will show that the versatility of the CCSD method and the generality of our potential, could be used in a real world scenario. This is the main reason why we want to study the quantum dot. People have applied the DFT method to describe this system \cite{introdft}, but we want to describe it from a deeper fundamental theory. This is why we use the ab initio CCSD method. And some of the physics behind the quantum dot have been used develop everything from devices such as single electron transistors and quantum dot lasers \cite{introqdotlaser} to ``artificial atoms'' \cite{ashoori}. They share similar properties such as shell structure and magic numbers. Lately one of the important applications is the use of colloidal quantum dot for detecting cancer cells \cite{gao}. For this we need a proper theoretical description of the electronic system, exchange coupling, correlation energies, and ground state energies.
+
+The quantum dot is essentially a device that can trap electrons. The typical size of these devices are between a micrometer to few nanometers. In these quantum dots we can quantum mechanical effects such as discrete energy levels. Our quantum mechanical model for the quantum dot is a parabolic quantum well which traps the electrons in two dimensions. Such a model does not exist in nature but is a starting point to understand realistic quantum dots. They are in fact crystalline and have periodic potentials. That is the reason why we are interested in the double quantum dot. This could give us insights of the physics in more real life systems. 
+ 
+\subsubsection{Structure of Thesis}
+The thesis is divided into three parts. Part one is an introduction to quantum mechanics, I start by covering the one-body Schr\"{o}dinger equation and then the development of the many-body theory which we need in part two.
+
+In part two we cover the different many-body theories, \emph{Hartree-Fock} and \emph{CCSD}. Finally, part three contains the results and implementation of our code. We finish off with discussions and then conclusion.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PART FUNDAMENTALS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+\part{FUNDAMENTALS}
+
+\chapter{Quantum Mechanics for single-particle systems}
+\begin{quotation}
+\it
+``Quantum mechanics is that mysterious, confusing discipline, which really no one of us understands but which we know how to use. It works perfectly, as far as we can tell, in describing physical reality, but it is a counter-intuitive discipline,as the social scientists would say. Quantum mechanics is not a theory, but rather a framework within which we believe any correct theory must fit.''
+\end{quotation}
+\begin{quote}
+   Murray Gell-Mann, in Mulvey (1981)
+\end{quote}
+
+
+
+\section{Introduction}
+In the late 19th century scientists had problems with their classical understanding of the ways things are. Some experiments showed up that did not coicide with the current theories. The beginning of quantum mechanics was when Max Planck published in a theory of black-body radiation (1900). He explained that atoms can absorb and emit discrete quanta of radiation with energy $\epsilon = h f$, where $f$ is the radiation frequency and $h$ is the fundamental constant called Planck's constant.
+
+\begin{equation}
+h \approx 6.626 \times 10^{-34} \mbox{Js}
+\end{equation}
+%
+In classical physics we distinguish between the particle and waves, a classical particle cannot be wavelike and particle like at the same time. But as some experiments have shown, this does not reflect the reality (Young's famous double slit experiment). Quantum mechanics can sometimes be counterintuitive in that regard, but then again, Newton's theory of gravity must have been difficult to grasp at first. How do we know about these ``invisible'' forces which we cannot see? 
+
+Another problem people had was that the atoms would be unstable if we had electrons that were particle-like and orbited around defined orbits. The orbiting electrons would radiate electromagnetic energy and eventually fall into the nucleus. We need to have a wavelike description of the atomic electrons in order to explain their stability. Wave-like electrons are confined inside the atom, and at the lowest state, the ground state, the electron cannot radiate away its energy and fall into the nucleus. This gave us a whole new way of looking at nuclear physics. It revolutionized the 20th century physics.
+
+\subsection{Measurement and Observables}
+Measurements are done by a subject, usually called an \emph{observer}, that has an instrument which takes measurements on an \emph{object}. During this process we have disturbances and never ideal conditions. In classical physics the disturbance is directly associated with measurement itself and can be made arbitrarily small, depending of how good the engineers are. If we wanted to measure length with 5 decimal precision, we could just get a more precise ruler. But this is not the case in quantum mechanics. Each time we do measurements in quantum mechanics we have a probability distribution of different outcomes. This has nothing to do with the instrument itself, it is a part of the intrinsic nature of formulation of the quantum mechanics called the \emph{Heisenberg uncertainty principle}.
+
+\begin{equation}
+ \Delta x \Delta p \geq \frac{\hbar}{2}
+ \label{heisenberg}
+\end{equation}
+%
+This means that if we determine the momentum exactly $\Delta x = 0$, then the momentum is totally uncertain. The concept that particles exist with definite position and momentum is an idealistic classical concept.   
+%
+\subsection{The Schr\"{o}dinger equation} 
+The Schr\"{o}dinger equation is the quantum mechanical eqvivalent to Newton's Second Law. It describes the motion of a quantum mechanical particle. This is a partial differential equation which describes how the wave function, representing the particle, \emph{flows}. The time-dependent Schr\"{o}dinger equation for a particle moving in a three-dimensional potential is:
+
+\begin{equation}
+i \hbar \frac{\partial \Psi}{\partial t} = \hat{H}\Psi
+\label{schrodinger}
+\end{equation}
+%
+Where $H$ is called the Hamilton operator and $\Psi$ is the wavefunction:
+
+\begin{equation}
+ \hat{H} = -\frac{\hbar^2}{2m} \nabla^2 + V(\vec{r})
+\end{equation}
+%
+It is important to point out that this equation describes a non-relativistic motion of a quantum particle i.e. $E >> m_0 c^2$, where $m_0$ is the rest mass of the quantum particle. 
+
+\subsection{Probabilities}
+Max Born introduced an interpretation of the Schr\"{o}dinger wave function $\Psi(\vec{r},t)$. He pointed out that the probability of detecting a particle at a certain location and time is proportional to $|\Psi(\vec{r},t)|^2$. Thus $|\Psi(\vec{r},t)|^2$ is often viewed as a probability density at the position $r$ and time $t$. And the wavefunction is often referred to as a probability amplitude.
+
+We can normalize our probability density by summing up all the possible position of the particle to one:
+
+\begin{equation}
+ \int |\Psi(\vec{r},t)|^2 d^3 \vec{r} = 1
+\label{normalization}
+\end{equation}
+%
+The wavefunction could also be a function of momentum and thereby describe the probability for finding a momentum in a certain range.
+
+\section{Postulates of Quantum Mechanics}
+We could argue that Newton's law of motion is the postulate in classical mechanics. What are Newton's laws derived from?. So likewise quantum mechanics is based on some fundamental ``laws of nature'' that must be underivable.  
+
+A postulate is a statement made without any proof, an ``underived'' statement. In physics a postulate could be translated into a proposal which could either be verified or falsified based on experiment \cite{bowman}.
+
+\begin{quotation}
+{\bf Postulate 1}{\it We describe a system by its state vector $\ket{s}$, an observable q and it's a hermitian operator $\hat{Q}$ which operates on any $\ket{s}$}
+\end{quotation}
+
+\begin{quotation}
+{\bf Postulate 2 }{\it The time evolution of the quantum state $\Psi$ is goverened by the time-dependent Schr\"{o}dinger equation. $\Psi$ is a function of position coordinates $q_n$ and the time $t$. $\hat{H}$ is the Hamiltonian}
+\begin{equation}
+ i\hbar\frac{\partial \Psi}{\partial t} = \hat{H} \Psi
+\label{eq:tdseq}
+\end{equation}
+\end{quotation}
+
+\begin{quotation}
+{\bf Postulate 3 }{\it The possible results of measurement of an observable $Q$, are its eigenvalues $q_i$ of its operator $\hat{Q}$.}
+\end{quotation}
+
+\begin{quotation}
+{\bf Postulate 4 }{\it If the results of the measurements is found to be $q_i$, then after the measurement the system will ''collapse`` into a corresponding eigenstate $\ket{q_i}$.}
+\end{quotation}
+
+\begin{quotation}
+{\bf Postulate 5 }{\it The expectation value of an observable is given by}
+\begin{equation}
+\langle F \rangle = \int \psi^* \hh{F} \psi \, d \tau \qquad \mbox{(coordinate representation)}
+\end{equation}
+\end{quotation}
+
+
+\section{Different Representations of Quantum Mechanics}
+As we have seen, originally the state $\Psi$ was a solution to the Schr\"{o}dinger equation, which was a partial differential equation, second order in space and first order in time. So the ''state function`` $\Psi$ has to be a function of time and space coordinates. We will refer to this as the Schr\"{o}dinger representation. Quantum mechanics could be more abstract and more convenient as shown by Dirac \cite{dirac}. Another way to represent it is by matrix mechanics introduced by Heisenberg.
+Those are the main ways that we can use to represent quantum mechanics, and they are mathematically equivalent.
+
+\subsection{Dirac's Notation}
+An abstract quantum mechanical state $\Psi$ is represented by a ''bra`` vector $\bra{\Psi}$ or a ''ket`` vector $\ket{\Psi}$. The distinction between the forms lies in the context in which they are used and will become clearer when we show this. The scalar product in Diracs notation is the ''bracket``, which is very convenient compared to writing the integral in the Schr\"{o}dinger representation.
+
+\begin{equation}
+\bra{\Phi}\ket{\Psi} \equiv \int \Phi^*(\vec{r})\Psi(\vec{r}) d\vec{r}
+\label{eq:bracket}
+\end{equation}
+%
+The expectation value of an operator is:
+
+\begin{equation}
+\bra{\Phi}\hat{Q}\ket{\Psi} \equiv \int \Phi^*(\vec{r})\hat{Q}\Psi(\vec{r})d\vec{r}
+\label{eq:dirac_expect} 
+\end{equation}
+%
+The time-independent Schr\"{o}dinger equation in the Dirac notation:
+
+\begin{equation}
+\hat{H} \ket{E_i} = E_i \ket{E_i}
+\end{equation}
+%
+In this example we see that the label $E_i$ inside the ket tells us about its eigenvalue. The spectra of the eigenvalues to an operator could be discrete or continuous like the operator $\hat{x}$: 
+
+\begin{equation}
+ \hat{x}\ket{x} = x \ket{x}
+\label{eq:xrep}
+\end{equation}
+%
+If we wish to get back to the Schr\"{o}dinger representation $\Psi(x)$, we could do a ''projection`` of $\ket{\Psi}$ on the eigenfunction $\ket{x}$:
+
+\begin{equation}
+ \Psi(x) \equiv \braket{x}{\Psi}
+\label{eq:coordinatrep}
+\end{equation}
+%
+Similary the complex conjugate:
+\begin{equation}
+ \Psi^*(x) \equiv \braket{\Psi}{x}
+\label{eq:ccoordinatrep}
+\end{equation}
+
+\subsection{Heisenberg's matrix formulation}
+\label{Heisenberg}
+
+The state vector $\ket{\Psi}$ is represented as a vector by its projection on a complete set of basis states $\ket{E_1},\ket{E_2}...$:
+
+\begin{equation}
+ \ket{\Psi} \equiv \left(\begin{array}{c} \braket{E_1}{\Psi} \\ \braket{E_2}{\Psi} \\ ... \\ ... \end{array}\right)
+\label{eq:heisenbergstate}
+\end{equation}
+%
+Similary we represent the operators by:
+
+\begin{equation}
+ \hat{H} \equiv 
+\left(\begin{array}{cccc} 
+\bra{E_1}\hat{H}\ket{E_1} & \bra{E_1}\hat{H}\ket{E_2} & \bra{E_1}\hat{H}\ket{E_3} & ... \\ 
+\bra{E_2}\hat{H}\ket{E_1} & \bra{E_2}\hat{H}\ket{E_2} & ... & ... \\
+... & ... & ... & ... \\
+\end{array}\right)
+\label{eq:heisenbergopeator}
+\end{equation}
+%
+Since the basis states $\ket{E_n}$ are the eigenstates of $\hat{H}$, its matrix representation is diagonal, and the diagonal elements are eigenvalues of $\hat{H}$. To diagonalize an operator in matrix representation is therefore the same as solving the time-independent Schr\"{o}dinger equation. 
+\section{Angular Momentum and Spin}
+
+In classical physics angular momentum is defined as:
+\begin{equation}
+ \vec{L} = \vec{r} \times \vec{p}
+ \label{angular momentum}
+\end{equation}
+$\vec{r}$ is the displacement vector from the origin and $\vec{p}$ is the linear momentum. 
+We can write out the components of the angular momentum operator in quantum mechanics by using the substitution
+\[
+ p_x \rightarrow -i\hbar \frac{\partial}{\partial x}
+\]
+%
+Gouldsmit and Uhlenbeck (in 1925) introduced the concept of interal, purely quantum mechanical, angular momentum called \emph{spin}. This was later experimentally confirmed by the Stern-Gerlach experiment (1922).
+\newline
+\newline
+The spin eigenstates are:
+\begin{equation}
+\hat{S}_z \ket{l,m} = m \hbar \ket{l,m} 
+ \label{zspin}
+\end{equation}
+
+\begin{equation}
+\hat{S}^2 \ket{l,m} = l(l+1) \hbar^2 \ket{l,m}
+ \label{totalspin}
+\end{equation}
+%
+And their commutation relation reads
+
+\begin{equation}
+  \left[\hh{S}_x,\hh{S}_y \right] = i\hbar\hh{S}_z  \qquad \left[ \hh{S}_y,\hh{S}_z \right] = i\hbar\hh{S}_x \qquad \left[ \hh{S}_z, \hh{S}_x \right] = i\hbar \hh{S}_y
+\end{equation}
+%
+This basically means that we cannot determine eigenvalues of two different components, for example $\hh{S}_z$ and $\hh{S}_x$ simultaneously. They are \emph{incompatible} observables. But we can determine one of the directions and $\hh{S}^2$. The spin quantum numbers are \cite{griffiths}
+
+\begin{align}
+  s = 0,\frac{1}{2},1,\frac{3}{2},... \\
+  m_s = -s,-s+1,...,s-1,s
+\end{align}
+%
+Where $s$ is defined as the \emph{spin} of the particle. Electrons have a spinvalue of $1/2$ spin while the photons have a spinvalue of $1$.
+
+\subsection{The wavefunction}
+The total wavefunction of a state vector mentioned in Postulate 1 are composed of a spatial part $\phi(x,y,z)$ and a spin part $\ket{\chi}$. They are from different Hilbert spaces and mathematically the state vector is a tensor product of these two. 
+
+\begin{equation}
+ \ket{\psi} \equiv \psi(r) \equiv \phi(x,y,z) \otimes \ket{\chi}.
+\end{equation}
+
+
+\section{Simple systems}
+
+\subsection{Particle in a Infinite Potential Well}
+One of the simplest single-particle systems we could solve exactly the infinite one-dimensional potential well, defined by:
+
+\begin{equation}
+V(x) = \left\{ \begin{array}{rl}
+ -x &\mbox{ if $0\geq x \geq a$} \\
+  \infty, &\mbox{ otherwise}
+       \end{array} \right.
+ \label{def:infinitepotential}
+\end{equation}
+%
+and we want to solve the Schr\"{o}dinger equation with respect to this potential,
+
+\begin{equation}
+-\frac{\hbar^2}{2m}\frac{d^2 \psi}{dx^2} + V(x) = E \psi.
+ \label{eq:schrodingerinfinitewell}
+\end{equation}
+% 
+We can rewrite this equation as
+
+\begin{equation}
+\frac{d^2 \psi}{dx^2} = \frac{2m}{\hbar^2}\left[V(x)-E\right]\psi.
+ \label{eq:rewriteschrodingerinfinitewell}
+\end{equation}
+%
+For the case $x>a$ and $x<0$ where $E < V(x)$, we see that the second derivate always has the same sign and therefore cannot be normalized (ref postulate). Such wavefunctions cannot exist in this range. Therefore the wavefunctions only exist in the range $0\geq x \geq a$ and the continuity of $\psi$ requires the boundary conditions $\psi(0)=0$ and $\psi(L)=0$. 
+
+Using standard methods of solving second order differential equations (see \cite{boas} for details), we get 
+
+\begin{equation}
+\psi(x) = A\sin kx
+ \label{eq:infinitewellsolution}
+\end{equation}
+
+\begin{equation}
+k \equiv \frac{\sqrt{2mE}}{\hbar} 
+ \label{def:k}
+\end{equation}
+%
+Normalizing in order to get the constant $A$:
+
+\begin{equation}
+\int_0^a |A|^2 \sin^2 kx \, dx = |A|^2 \frac{a}{2} = 1 \Rightarrow |A|^2 = \frac{2}{a},
+ \label{deriv:normalizing}
+\end{equation}
+%
+We then choose to use the positive root 
+
+\begin{equation}
+\psi(x) = \sqrt{\frac{2}{a}} \sin kx,
+ \label{eq:infinitewellsolution2}
+\end{equation}
+%
+Next we want to determine the konstant $k$. From the boundary condition we know that $\sin ka = 0$. This means that the possible values for $k$ are
+
+\begin{equation}
+ k = \frac{n \pi}{a}, \qquad \mbox{with $n = 1,2,3...$}
+ \label{eq:kvalues}
+\end{equation}
+%
+and hence the possible values of $E$ from Eq.~(\ref{def:k}) are discrete:
+
+\begin{equation}
+E_n = \frac{\hbar^2 k^2}{2m} = \frac{n^2\pi^2\hbar^2}{2ma^2}.
+ \label{eq:energies}
+\end{equation}
+
+
+%%------Under construction--------
+
+\subsection{Particle in a Harmonic Oscialltor Potential Well}
+\label{onebodyharmonicoscillatorpotential}
+The next simplest problem to solve is the \emph{harmonic oscillator} in one-dimensional case. The Hamiltonian we have is
+
+\begin{equation}
+  \hh{H} = \frac{\hat{p}^2}{2m} + \frac{1}{2}\omega^² \hat{x}^2,
+\end{equation}
+%
+where $\hat{x} = x$ is the position operator and the $\hat{p}$ is the momentum operator, given by
+
+\begin{equation}
+  \hat{p} = -i\hbar \frac{d}{dx}.
+\end{equation}
+%
+There are two main approaches to solve this. One of them is the analytical approach \cite{griffiths}, in which we get the solutions in Schr\"{o}dinger representation,
+
+\begin{equation}
+  \psi_n(x) = \sqrt{\frac{1}{2^n n!}} \left(\frac{m\omega}{\pi \hbar}\right)^{1/4} e^{-\beta^2 /2} H_n(\beta), \qquad \beta = \sqrt{\frac{m\omega}{\hbar}}x
+\end{equation}
+%
+And the eigenvalues,
+
+\begin{equation}
+  E_n = \left(n + \frac{1}{2}\right) \hbar \omega, \qquad n = 0,1,2,3...
+\end{equation}
+%
+The other way is algebraically \cite{griffiths}, with which we get solutions in Dirac formalism:
+
+\begin{equation}
+  \ket{\psi_n} = \frac{1}{\sqrt{n!}} (a_+)^n \ket{0},
+\end{equation}
+%
+where $\ket{0}$ is our ground state and $a_+ = (a_-)^\dagger$ is the creation operator
+%
+\begin{equation}
+  a_{\pm} = \frac{1}{\sqrt{2\hbar m \omega}} (\mp i\hat{p} + m\omega \hat{x}).
+\end{equation}
+
+%%-----------------  MATHEMATICAL DESCRIPTION OF THE QD -------------------
+\chapter{The Quantum Mechanics behind Quantum Dots}
+In this chapter we will give a quantum mechanical description for the two-dimensional quantum dot. We will start by solving the Schr\"{o}dinger equation for a single-electron parabolic quantum dot with an applied magnetic field. 
+
+Recent developments in techniques of quantum dot growth have made it possible to create better solar cells, as well as other exotic phenomena such as quantum computing. Quantum dot is a semiconductor on the nanoscale. It can trap one or several electrons in a spatially confined potential. The size of quantum dot ranges from a few hundreds to many thousand atoms \cite{qdotshur}. And it can confine everything from one electron to hundreds. 
+
+\section{Description of the Quantum Dot}
+As we have seen in the chapter 1, quantum dots are artificially created. And there are various techniques and methods for creating quantum dots, which give them different properties. In this thesis we will concentrate on the quantum dots created inside the Gallium Arsenide (GaAs) semiconductors. The semiconductor is sandwiched between layers of Aluminum Gallium Arsenide (AlGaAs) semiconductor material which has a bigger bandgap. This acts like an insulator and results in a confinement in the vertical direction. Our choice for the confinement potential is a parabolic harmonic oscillator $\omega_x = \omega_y = \omega$. Both numerical \cite{numerical1, numerical2} and experimental \cite{experimental1, experimental2} studies have shown that this is a reasonable approximation. And in our case the electrons inside will only feel the Coulomb interaction. The Hamiltonian then becomes 
+\begin{equation}
+\hh{H} = \sum_{i=1}^N \left(-\frac{\hbar^2}{2 m^*} \nabla_i^2 + \frac{1}{2} m^* \omega^2 r_i^2 \right) + \frac{e^2}{4\pi \epsilon_0 \epsilon_r} \sum_{i<j}^N \frac{1}{r_{ij}}.
+  \label{Hamiltonian for QD}
+\end{equation}
+The $e$ is the electron charge, $\epsilon_0$ is the vacuum permittivity, $\epsilon_r$ is the relative permittivity, and $r_{ij} = |r_i - r_j|$, $\omega$ is the oscillator frequency, and $r_i$ is the distance from electron $i$ to the potential minimum $(r=0)$.
+It is important to notice that the $m^*$ here is the effective electron mass and not to be mistaken for the Newtonian reduced mass which is a classical phenomena. This is a simplification we have made to our problem. The effective electron mass differs from the free-electron mass $m$ and is isotropic and independent of both the position and the energy of the electron. The effective mass is the result of the motion of an electron in a periodic potential \cite{quantumheterostructures}. For example in GaAs the electrons appear to carry mass that is only $7\%$ of the free-electron mass \cite{ashoori}.  
+
+\section{The One-electron Quantum Dot}
+We start by deriving the wavefunctions for a general spherical symmetric potential $V(r) = V(-r)$ in two dimensions. Our Hamiltonian in cartesian coordinates reads
+\begin{equation}
+  -\frac{\hbar^2}{2m^*} \nabla^2 \psi(x,y) + V(x,y) \psi(x,y) = E \psi(x,y).
+   \label{Hamiltonian cartesian coordinates}
+\end{equation}
+%
+We want to rewrite this using polar coordinates
+%
+\begin{align}
+x &= r \cos \theta, \\
+y &= r \sin \theta, \\
+r &= \sqrt{x^2 + y^2}.
+\end{align}
+The Laplacian then becomes
+\begin{equation}
+\nabla^2 = \frac{1}{r} \frac{\partial}{\partial r}\left(r\frac{\partial}{\partial r}\right) + \frac{1}{r^2} \frac{\partial}{\partial \theta^2}.
+  \label{laplacian in 2D}
+\end{equation}
+%
+Inserting this into Eq.~(\ref{Hamiltonian cartesian coordinates}) gives us the Schr\"{o}dinger equation in polar coordinates
+\begin{equation}
+  -\frac{\hbar^2}{2m^*} \left(\frac{\partial^2}{\partial r^2} + \frac{1}{r} \frac{\partial}{\partial r} + \frac{1}{r^2} \frac{\partial^2}{\partial \theta^2}\right) \psi(r,\theta) + V(r) \psi(r,\theta) = E \psi(r,\theta).
+   \label{Hamiltonian polar coordinates}
+\end{equation}
+Introducing a solution on the form $\psi(r,\theta) = R(r) Y(\theta)$ and multiplying by $\frac{2m^*}{\hbar^2 R(r)Y(\theta)}r^2$ in Eq.~(\ref{Hamiltonian polar coordinates}), we get
+
+\begin{equation}
+\frac{r^2}{R(r)}\left[\frac{d^2 R}{d r^2} + \frac{1}{r} \frac{dR}{dr} + \frac{2m^*}{\hbar^2}(E-V(r))R(r) \right] = -\frac{1}{Y(\theta)}\frac{\partial^2 Y(\theta)}{\partial \theta^2},
+  \label{separable Hamiltonian 2}
+\end{equation}
+the left side of this equation depends on $r$ while the right side depends on $\theta$. This can only be satisfied if each term is equal to a constant $k=m^2$
+%
+\begin{align}
+\frac{r^2}{R(r)}\left[\frac{d^2 R}{d r^2} + \frac{1}{r} \frac{dR}{dr} + \frac{2m^*}{\hbar^2}(E-V(r))R(r) \right] &= -m^2 \label{separation constants1} \\
+\frac{1}{Y(\theta)}\frac{\partial^2 Y(\theta)}{\partial \theta^2} &= m^2 .
+  \label{separation constants2}
+\end{align}
+%
+The solution to the angular part Eq.~(\ref{separation constants2}) is 
+\begin{equation}
+Y(\theta)  = Ce^{im\theta}.
+\end{equation}
+%
+Normalization gives us the constant $C$
+\begin{equation}
+C^2 = \frac{1}{\int_0^{2\pi}Y(\theta)^2 \, d\theta} = \frac{1}{2\pi}.
+  \label{constant C}
+\end{equation}
+%
+The normalized solution for the angular part is
+\begin{equation}
+Y(\theta) = \frac{1}{\sqrt{2\pi}} e^{im\theta}.
+  \label{normalized angular part}
+\end{equation}
+%
+The total wavefunction must satisfy the physical condition that $\psi(r,\theta) = \psi(r,\theta+2\pi)$. This makes a restriction on the quantum number $m$ which can take integral values
+\begin{equation}
+m = 0, \pm 1, \pm 2, ...
+  \label{m quantum number}
+\end{equation}
+For the Eq.~(\ref{separation constants1}) we can simplify by defining
+\begin{equation}
+  u(r) = \sqrt{r}R(r) \Rightarrow R(r) = \frac{u(r)}{\sqrt{r}},
+  \label{radialequation function}
+\end{equation}
+which yields
+\begin{equation}
+  -\frac{\hbar}{2m^*}\frac{d^2 u}{dr^2} + \left[ V(r) + \frac{\hbar^2}{2m^*} \frac{m^2-\frac{1}{4}}{r^2} \right] u(r) = E u(r).
+\end{equation}
+This is the radial equation. It has the same form as the one-dimensional time-independent Schr\"{o}dinger equation with an effective potential
+\begin{equation}
+V_{eff} = V(r) + \frac{\hbar^2}{2m^*}\frac{m^2-\frac{1}{4}}{r^2}.
+  \label{effective potential}
+\end{equation}
+The radial function Eq.~(\ref{radialequation function}) must satisfy the normalization conditions
+\begin{equation}
+\int_0^\infty |u(r)|^2 dr = 1.
+  \label{normalization radial}
+\end{equation}
+For this to be normalizable we require the boundary conditions 
+\begin{equation}
+  \text{$u(0) = C$ and $u(\infty) = 0$}, \quad \text{where $C$ is a constant}.
+\end{equation}
+%
+Finally the general solutions to the spherical symmetrical potential is
+\begin{equation}
+\psi(r,\theta) = R(r) \frac{1}{\sqrt{2\pi}} e^{im\theta}.
+  \label{final solution to spherical}
+\end{equation}
+
+\subsection{Parabolic Quantum Dot with Influence of an Electromagnetic Field}
+\label{parabolic quantum dot}
+
+As an academic exercise we shall solve the one-electron Schr\"{o}dinger equation for a two dimensional quantum dot. Most of the derivation here is taken from \cite{jackson}. The classical Hamiltonian of a charged electron in an electromagnetic field reads
+  
+\begin{equation}
+   H = \frac{1}{2m}(\bb{p} - e\bb{A})^2 + e\phi ,
+   \label{electromagnetic Hamiltonian}
+ \end{equation}
+%
+with $\bf{A}$ and $\phi$ as the electromagnetic vector and scalar potentials, $m$ is the electron mass, $e$ is the charge, and $\bb{p}$ is the momentum vector. The electromagnetic fields are related to the potentials 
+\begin{align}
+\bb{E} &= - \frac{1}{c} \frac{\partial \bb{A}}{\partial t} - \nabla \phi, \\ 
+\bb{B} &= \nabla \times \bb{A},
+  \label{elmag potentials}
+\end{align}
+where $\bb{E}$ is electric field, and $\bb{B}$ is the magnetic field, which satisfies Maxwells equations. The quantum mechanical Hamiltonian consists of and additional term which couples the spin to the electromagnetic field $-\mu\cdot \bb{B}$, where $\mu$ is the magnetic moment of the electron. 
+\begin{equation}
+  \hh{H} = \frac{1}{2m^*} (\hh{p} - e\bb{A})^2 + e\phi +\frac{1}{2}m^* \omega_0^2 r^2 - \hh{\mu} \bb{B}.
+  \label{Total Hamiltonian}
+\end{equation}
+Here the $\hh{p}$ is a quantum mechanical momentum operator. The time-independent Schr\"{o}dinger we want to solve is 
+\begin{align}
+\frac{1}{2m^*} (\hh{p} - e\bb{A})^2 + e\phi +\frac{1}{2}m^* \omega_0^2 r^2 - \hh{\mu} \cdot \bb{B} \psi(\bb{r}) & = E \psi(\bb{r}),
+  \label{Time-independent SE}
+\end{align}
+\begin{align}
+H_r &= \frac{1}{2m^*} (\hh{p} - e\bb{A})^2  +\frac{1}{2}m^* \omega_0^2 r^2\label{spatial hamiltonian},\\
+H_s &=  - \hh{\mu} \cdot \bb{B} \label{spin hamiltonian}.
+\end{align}
+%
+where the wavefunction $\psi(\bb{r})$ also include the spin part which is decoupled with the spatial part, i.e. their expectation are uncorrelated, and we can therefore write the wavefunction as a product of each.
+\begin{equation}
+ \psi(\bb{r}) = R(r) \otimes \ket{m_s}.
+  \label{wavef spin}
+\end{equation}
+%
+Here the quantum number is $m_s=\pm \frac{1}{2}$, since electrons are fermions. Inserting this into Eqs. (\ref{spatial hamiltonian}) and (\ref{spin hamiltonian}) we obtain two equations, one spatial and one spin dependent
+\begin{align}
+  \left(\frac{1}{2m^*} (\hh{p} - e\bb{A})^2 + e\phi +\frac{1}{2}m^* \omega_0^2 r^2 \right)R(r) &= E_r R(r), \\
+  -(\mu \cdot \bb{B}) \ket{m_s} &= E_s \ket{m_s}.
+\end{align}
+%
+Which gives us the total energy 
+%
+\begin{equation}
+E = E_r + E_s + e\phi.
+  \label{total energy}
+\end{equation}
+%
+We want to do a gauge transformation on the potential $\bb{A}$ with the Coulomb gauge condition. This will not change the potentials $\bb{E}$ and $\bb{B}$.
+%
+\begin{equation}
+\bb{\nabla} \cdot \bb{A} = 0.
+  \label{gauge}
+\end{equation}
+%
+A choice that satisfies this condition is 
+\begin{equation}
+\vec{A} = \frac{1}{2} \bb{B} \times \left(x\,\bb{i} + y \, \bb{j} \right).
+  \label{coulomb gauge}
+\end{equation}
+%
+We want to expand the first term in the spatial Hamiltonian $\hh{H}_r$ Eq.~(\ref{spatial hamiltonian}) using the condition Eq.~(\ref{coulomb gauge})
+
+\begin{align}
+(\hh{p}^2 - e\bb{A})^2 &= \hh{p}^2 - e(\hh{p}\bb{A} + \bb{A}\hh{p}) + e^2 \bb{A},  \\
+& = \hh{p}^2 - 2e \bb{A}\cdot\hh{p}+ e^2 \bb{A}^2, \label{second deriv} \\
+& = \hh{p}^2 - e\mathbf{B}\cdot \hh{L} + \frac{e^2}{4}\left(\mathbf{B} \times (x \bb{i} + y \bb{j}) \right)^2, \label{thirdeq}  
+\end{align}
+%
+In Eq.~(\ref{second deriv}) we have used that $\hh{p}$ and $\bb{A}$ commute because of the Coulomb gauge. 
+\begin{equation}
+\hh{p} \cdot \mathbf{A} \psi = -i\hbar\nabla \cdot \left(\mathbf{A} \psi \right) = -i\hbar\left( \underbrace{\nabla \cdot \mathbf{A}}_{=0} + \mathbf{A} \cdot \nabla \psi \right) = \mathbf{A} \cdot \left(-i\hbar\nabla \psi \right) = \bb{A}\cdot \hh{p} \psi
+\end{equation}
+And in Eq.~(\ref{thirdeq}) we have used the relation 
+\begin{equation}
+ \left( \mathbf{B} \times \vec{r} \right) \cdot \mathbf{p} = \mathbf{B} \cdot \left( \vec{r}  \times \mathbf{p} \right) =  \mathbf{B} \cdot \mathbf{L}.
+  \label{math relation cross}
+\end{equation}
+%
+The applied magnetic field is constant and homogeneous along the z-axis. $\bb{B} = B_0 \bb{k}$. Then our spatial Hamiltonian $\hh{H}_r$ simplifies to 
+\begin{equation}
+\hh{H}_r = \frac{1}{2m^*} \left[\hh{p}^2 - e\mathbf{B_0}\left(x\hh{p}_y - y \hh{p}_x \right) + \frac{e^2B_0^2}{4}\left( x^2 + y^2 \right)\right]
+ + \frac{1}{2} m^* \omega_0^2 (x^2+y^2).
+  \label{total hamiltonian 2}
+\end{equation}
+%
+Introducing
+\begin{equation}
+  \omega_B \equiv \frac{eB_0}{2m^*},
+\end{equation}
+%
+and 
+\begin{equation}
+  \omega \equiv \omega_0 + \omega_B^2,
+\end{equation}
+%
+the Hamiltonian becomes 
+\begin{equation}
+\hh{H}_r = \frac{1}{2m^*} \left(\hh{p}^2 - eB_0\hh{L}_z \right) + \frac{1}{2} m^* \omega^2 \left(x^2+y^2\right) \label{final Hamil}.
+\end{equation}
+%
+Where $\hh{L}_z$ is the angular momentum in the $z$-direction. $L_z = x\hh{p}_y - y \hh{p}_x$ \cite{hemmer}. The next step is to transform the Hamiltonian Eq.~(\ref{final Hamil}) from a cartesian coordinate representation to a polar coordinate representation. Then the angular momentum can be expressed
+as \cite{hemmer} 
+\begin{equation}
+\hh{L}_z = -i\hbar \frac{\partial}{\partial \theta},
+  \label{Lz in polar}
+\end{equation}
+%
+which yields the time-independent Schr\"{o}dinger equation for $\hh{H}_r$ Eq.~(\ref{spatial hamiltonian})
+\begin{equation}
+\left[ - \frac{\hbar^2}{2m^*} \left(\frac{\partial^2}{\partial r^2} + \frac{1}{r} \frac{\partial}{\partial r} + \frac{1}{r^2}\frac{\partial^2}{\partial \theta^2} - \frac{ieB_0}{\hbar} \frac{\partial}{\partial \theta}\right) + \frac{1}{2}m^*\omega^2 r^2 \right] \psi(r,\theta) = E \psi(r,\theta).
+  \label{Hamilton in polar}
+\end{equation}
+This is almost the same as Eq.~(\ref{Hamiltonian polar coordinates}) which we have solved, except we now have an additional term $\frac{ieB_0}{\hbar} \frac{\partial}{\partial \theta}$  caused by the magnetic field. But this can be separated from the radial equation, since it only depends on the angle $\theta$. 
+%
+The wavefunction can still be separated in an angular and a radial part, and we will use the same ansatz as Eq.~(\ref{final solution to spherical})
+\begin{equation}
+\psi(r,\theta) = R(r) \frac{1}{\sqrt{2\pi}} e^{im\theta}, \qquad m=0,\pm 1, \pm 2,... 
+  \label{wave function ansatz}
+\end{equation}
+%
+Inserting this into Eq.~(\ref{Hamiltonian polar coordinates}) 
+\begin{align}
+\left[ - \frac{\hbar^2}{2m^*} \left(\frac{\partial^2}{\partial r^2} + \frac{1}{r} \frac{\partial}{\partial r} + \frac{1}{r^2}\frac{\partial^2}{\partial \theta^2} + \frac{meB_0}{\hbar} \frac{\partial}{\partial \theta}\right) + \frac{1}{2}m^*\omega^2 r^2 \right] R(r) = E_r R(r),
+  \label{Hamilton in polar 2}
+\end{align}
+%
+the solution of this radial equation is
+%
+\begin{equation}
+R_{nm}(r) = \sqrt{\frac{2n!}{(n+|m|)!}}\beta^{\frac{1}{2}(|m|+1)}r^{|m|}e^{-\frac{1}{2}\beta r^2} L_n^{|m|} (\beta r^2).
+  \label{Laguerre solutions}
+\end{equation}
+%
+Here the subscript $n$ denotes the principal quantum number, and $m$ is the angular momentum number
+\begin{align}
+  n &= 0, 1, 2, 3, ... \\
+  m &= 0, \pm 1, \pm, 2, \pm 3, ...
+\end{align}
+
+$L_n^{|m|}$ is the associated Laguerre polynomials \cite{arfken}, and $\beta$ is defined as
+\begin{equation}
+\beta = \frac{m^*\omega}{\hbar}.
+  \label{definition beta}
+\end{equation}
+%
+The final eigenfunction to the spatial Hamiltonian $H_r$ is then
+%
+\begin{equation}
+ \psi(r,\theta) = \sqrt{\frac{n!}{\pi(n+|m|)!}}\beta^{\frac{1}{2}(|m|+1)}r^{|m|}e^{-\frac{1}{2}\beta r^2} L_n^{|m|} (\beta r^2) e^{im\theta},
+ \label{final for spatial Hamiltonian}
+\end{equation}
+%
+with the corresponding eigenvalues
+%
+\begin{equation}
+E_r = (1+|m|+2n)\hbar \omega + m\hbar \omega_B.
+  \label{corresponding eigenvalues}
+\end{equation}
+%
+See Appendix in \cite{lohne} and \cite{drosdal} for details. 
+
+Now we will consider the spin Hamiltonian $H_s$ Eq.~(\ref{spin hamiltonian}). The quantum mechanical magnetic moment $\hh{mu}$ is given by \cite{griffiths}
+
+\begin{equation}
+\hh{\mu} = \frac{eg}{2m^*} \hh{S}.
+  \label{magnetic moment}
+\end{equation}
+%
+where $g$ is the $g$-factor and approximate $2$ for the electron. $\hh{S}$ is the spin operator. Since the magnetic field is $\mathbf{B} = B_0 \bb{k}$, the Schr\"{o}dinger equation reads
+%
+\begin{equation}
+-\frac{egB_0}{2m^*}S_z\ket{m_s} = E_s \ket{m_s}.
+  \label{SL for the spin part}
+\end{equation}
+%
+$\hh{S}_z$ is the $z$-component of the total spin $\hh{S}$. The eigenvectors and eigenvalues of this operator are given by \cite{hemmer}
+%
+\begin{equation}
+E_s = -\frac{eg\hbar B_0}{2m^*}m_s = gm_s \hbar \omega_B.
+  \label{eigenvalue for spin}
+\end{equation}
+%
+The total eigenvalue for the system becomes
+\begin{equation}
+E = (1+|m|+2n)\hbar \omega + m \hbar \omega_B + g m_s \hbar \omega_B + e\phi,
+  \label{total energyeigenvalue}
+\end{equation}
+and the corresponding eigenstate
+\begin{equation}
+\psi_{nmm_s}(\bb{r},\theta) = \sqrt{\frac{n!}{\pi(n+|m|)!}}\beta^{\frac{1}{2}(|m|+1)}r^{|m|}e^{-\frac{1}{2}\beta r^2} L_n^{|m|} (\beta r^2) e^{im\phi} \otimes \ket{m_s}.
+  \label{total eigenstate}
+\end{equation}
+%
+Without any external magnetic field $\bb{B} = 0$, the energy becomes spin-independent because $\omega_B = 0$
+\begin{equation}
+E_{nm}^0 = (1+|m|+2n) \hbar \omega_0 
+  \label{spin independent energy}
+\end{equation}
+%
+In the spirit of perturbation theory we denote this with a superscript $0$. We will have a degeneracy in spin since the Hamiltonian is spin-independent. For each pair of the quantum numbers $\{n,m\}$ we have two different quantum states, one with $m_s=-\frac{1}{2}$ and the other with $m_s=\frac{1}{2}$.
+\begin{equation}
+R \equiv (1+|m|+2n).
+  \label{shellnumber}
+\end{equation}
+%
+$R$ is defined as the \emph{shellnumber}, it corresponds to the energy level and the degeneracy for each level $R$ is
+\begin{equation}
+  g(R) = 2R.
+\end{equation}
+%
+This system has a \emph{shell structure}, Figure \ref{fig:shellnumber}, i.e. the energy levels are equidistant from each other and we have a defined degeneracy. This is similar to the shell model in nuclear physics, for which Goeppert-Mayer, Wiger and Jensen was awarded the Nobel Prize in Physics (1963).
+%
+\begin{figure}
+\centering
+\scalebox{0.6}{\input{shell.pdftex_t}}
+\caption{Shell structure of a single-electron parabolic quantum dot for $\bb{B=0}$, where $R$ is the shell number defined in Eq.~ (\ref{shellnumber}) and $m$ is the angular quantum number. The arrows $\uparrow \downarrow$ denote the spin quantum number $m_s=\pm \frac{1}{2}$}
+\label{fig:shellnumber}
+\end{figure}
+%
+The total number of spin-orbitals for a given shellnumber $R$ is 
+%
+\begin{equation}
+  N = \sum_{R=0}^{R'} g(R) = 2R' + 2(R'-1) + 2(R'-3) + ... + 2.
+\end{equation}
+%
+We have tabulated some of the values in Table~\ref{tab:shellfilling} 
+
+\begin{table}[H]
+\centering 
+\begin{tabular}{rrr}
+\toprule
+$R$ & $g(R)$ & $N$\\
+\midrule
+1	& 2 	 &  2 \\
+2	& 4 	 &  6 \\
+4	& 8 	 &  20  \\
+8	& 16 	 &  72 \\
+10	& 20 	 &  110 \\
+15	& 30 	 &  240 \\
+20	& 40 	 &  420 \\
+\bottomrule
+\end{tabular}
+\caption{This table shows some values for different shellnumbers $R$, where $g(R)$ is the degeneracy. $N$ is the total number of single-electron spin-orbitals occupied in $R$-number of shelles. This is often referred to as \emph{magic numbers} which indicate the number of spin-orbitals needed to complete the shells.}
+\label{tab:shellfilling}
+\end{table}
+%
+If we take a look at Eq.~(\ref{total energyeigenvalue}), we see that in presense of a magnetic field, the degenerate energy levels would split because of the sign of $m$. If we simplify by neglecting the spin quantum number $m_s = 0$, and setting the constant $e\phi = 0$, we can express the energy in Eq.~(\ref{total energyeigenvalue}) by 
+
+\begin{equation}
+\frac{E_{nm}}{\hbar \omega_0} = (1+|m|+2n) \sqrt{1+\frac{\omega_B^2}{\omega_0^2}} + m\frac{\omega_B}{\omega_0}.
+  \label{fock darwin}
+\end{equation}
+%
+If we plot $\frac{E_{nm}}{\hbar \omega_0}$ as a function of $\frac{\omega_B}{\omega_0}$ we get the Fock-Darwin energy spectrum, which was first solved by V.Fock \cite{fock} and later by C.G. Darwin \cite{darwin}. 
+
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{fockdarwin.eps}}
+\caption{This is the Fock-Darwin energy spectrum for a single-electron quantum dot. When $\omega_B = 0$, all the quantum states with equal $R$ are degenerate, after $\omega_B$ increases the levels begin to split due to the angular momentum contribution from $m\hbar \omega_B$. The degeneracy can reappear for certain levels and certain $\omega_B$'s. The energy levels will shift back and forth between $(n,m)$ pairs, but they all appear to reach an asymptote in the high field limit, forming the famous Landau levels \cite{landaulevels}, indicated by the red line. The landau levels are plotted for $N_L =0,1,2$ in Eq.~(\ref{landaulevelsplot})}
+\end{figure}
+%
+The energy of the different states will then decrease or increase with stronger magnetic field $\omega_B$, depending on $m$. States that belong to different shells for $\bb{B}=0$ will become degenerate, and when the magnetic field increases even more, we would reach an asymptote for the energies, as we clearly see in Figure \ref{fock darwin}. These energy levels are popularly called Landau levels, which Landau discovered in 1930 at an age of 22 \cite{landauonline}. 
+
+We are interested in the energy levels when $\omega_B \rightarrow \infty$ for the lowest energy levels $m<0$
+
+\begin{equation}
+\lim_{\omega_B \rightarrow \infty} E_{nm} = (1+2n)\hbar\omega_B.
+\end{equation}
+%
+The Landau levels appear when $N_L \equiv n = 0,1,2,3...$. And the energy only depends on $n$ in the high limit of $\bb{B}$
+
+\begin{equation}
+E_L \approx (1+2N_L) \hbar \omega_B.
+\label{landaulevelsplot}
+\end{equation}
+
+\subsection{Scaling the Hamiltonian}
+\label{section:scaling the hamiltonian}
+When we do computations it is a good thing to have dimensionless parameters. The fewer things that can go wrong in the calculation the better. Therefore we want to rescale our many-body Hamiltonian Eq.~(\ref{Hamiltonian for QD}) so that its dimensionless. The following derivation is based on examples \cite{scaling,lohne}
+
+\begin{align}
+  \omega  & = \omega_c \bar{\omega}, \\
+  \bb{r}  & = r_c \bb{\bar{r}}, \\
+  \bb{\nabla}  & = \frac{1}{r_c} \bb{\bar{\nabla}}, \\
+  r_i^2 & = r_c^2 \bar{r}_i^2, \\
+  r_{ij} & = r_c \bar{r}_{ij}.
+\end{align}
+%
+Here the variables with the subscript $c$ is just a constant with the same dimensions as the variable we want to rescale. The variables with a bar is the dimensionless variables that we want. Inserting these into our Hamiltonian Eq.~(\ref{Hamiltonian for QD}) gives
+
+\begin{equation}
+\hh{H} = -\frac{\hbar^2}{2m^*r_c^2} \sum_{i=1}^N \bar{\nabla}_i^2 + \frac{1}{2}m^* \omega_c^2 \bar{\omega}^2 r_c^2 \sum_{i=1}^N \bar{r}_i^2 + \frac{\hbar}{\epsilon r_c} \sum_{i<j}^N \frac{1}{\bar{r}_{ij}},
+  \label{rescaled Qdot Hamiltonian}
+\end{equation}
+%
+where 
+\begin{equation}
+  \epsilon = \frac{4\pi \epsilon_0 \epsilon_r}{e^2}.
+\end{equation}
+%
+Furthermore we define the oscillator length to be
+\begin{equation}
+r_c = \sqrt{\frac{\hbar}{m^* \omega}}
+  \label{oscillator length}
+\end{equation}
+Inserting this into our Hamiltonian Eq.~(\ref{rescaled Qdot Hamiltonian})
+\begin{equation}
+\hh{H} = -\frac{\omega_c \bar{\omega} \hbar}{2} \sum_{i=1}^N \bar{\nabla}^2_i + \frac{\hbar}{2} \omega_c \bar{\omega} \sum_{i=1}^N \bar{r}^2_i + \frac{\hbar}{\epsilon} \sqrt{\frac{m^*\omega_c \bar{\omega}}{\hbar}} \sum_{i<j}^N \frac{1}{\bar{r}_{ij}}
+  \label{rerescaled Hamiltonian2}.
+\end{equation}
+%
+We want to scale the Hamiltonian as well, so that it has units of the Hartree energy $E_h$ \cite{hartrees}
+\begin{equation}
+  \bar{H} =  \hh{H} / E_h.
+\end{equation}
+%
+where the Hartree energy is defined as
+%
+\begin{equation}
+E_h = m^* \left(\frac{e^2}{4\pi \epsilon_0 \epsilon_r \hbar}\right)^2 = \frac{m^*}{\epsilon^2}.
+  \label{E hartree}
+\end{equation}
+%
+The scaled Hamiltonian becomes
+\begin{equation}
+\bar{H} = -\frac{\omega_c\bar{\omega} \hbar \epsilon^2}{2m^*} \sum_{i=1}^N \bar{\nabla}^2_i + \frac{\hbar \epsilon^2}{2m^*} \omega_c \bar{\omega} \sum_{i=1}^N \bar{r}^2_i + \frac{\hbar\epsilon}{m^*} \sqrt{\frac{m^*\omega_c \bar{\omega}}{\hbar}} \sum_{i<j}^N \frac{1}{\bar{r}_{ij}}.
+\end{equation}
+%
+To make it dimensionless we have to define
+%
+\begin{equation}
+\omega_c = \frac{m^*}{\hbar \epsilon},
+  \label{dimensional condition}
+\end{equation}
+%
+which is fine since $\omega_c$ has the dimension of $[1/s]$ which is the same as $\omega$. Our final dimensionless N-electron scaled Hamiltonian reads
+
+\begin{equation}
+\bar{H} = -\frac{\omega_c}{2} \sum_{i=1}^N \bar{\nabla}^2 + \frac{1}{2} \omega_c \sum_{i=1}^N \bar{r}_i^2 + \sqrt{\omega_c} \sum_{i<j}^N \frac{1}{\bar{r}_{ij}}.
+  \label{N-body Hamiltonian scaled}
+\end{equation}
+
+
+\section{The Double Quantum Dot}
+\label{sec:The double quantum dot}
+\label{section:the double dot potential}
+The rapid development of nanotechnology has made the quantum computer a more realistic achievement. One of the possible candidates to the quantum bit is a double quantum dot. Experiments of this have been done both with a trapped nucleus \cite{doublenuclei} and electrons \cite{doubleelectron}. We will investigate a model based on \cite{doubledot}. Our one-electron Hamiltonian is the same as before but now with a change in the potential
+
+\begin{equation}
+  \hh{H} = -\frac{\hbar^2}{2m^*} \nabla_i^2 + V_c(x,y),
+  \label{one electron hamilton double}
+\end{equation}
+where the confinement potential is
+\begin{equation}
+V_c(x,y) = \frac{1}{2} m^* \omega_0^2 \cdot \left[x^2+y^2 - 2L_x |x| + L_x^2 \right].
+  \label{double potential}
+\end{equation}
+%
+From \cite{doubledot} we use GaAs material parameters $m^* = 0.067m_e$, and the confinement strength $\hbar \omega_0 = 3.0$ meV. Which correspond to a harmonic oscillator length of $\sqrt{\hbar/\omega_0 m^*} \approx 5.3$ nm. And with the minima separated by a distance of $2L_x$ from each other. The values of $V_c(x,0)$ are plotted in Fig.~\ref{doubledotfigure}.
+
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{doubledot.eps}}
+\caption{Confinement potential for $V_c(x,0)$ and $L_x=50$ nm.}
+\label{doubledotfigure}
+\end{figure}
+%
+We will then solve the two-dimensional Schr\"{o}dinger equation by using a finite difference method with a three-point Laplacian \cite{computerjensen}. This will give us a Hermitian matrix for which the eigenvalues and eigenvectors can be solved using the QR-algorithm \cite{faires}. This algorithm was independently introduced in 1960s by Kublanovskaya \cite{QR2} and Francis \cite{francis}. And have been recognized as one the most important algorithms of the 21st century \cite{mostimportant}. 
+
+
+\subsection{The QR-Algorithm}
+\label{section:The QR-Algorithm}
+The idea is surprisingly simple. First step is to factor the matrix $A$ into a product of an orthogonal matrix $Q_1$ and positive upper triangular matrix $R_1$. This also referred to as an QR-decomposition and solved by using the Gram-Schmidt algorithm \cite{linalg}.
+\begin{equation}
+A_1 = Q_1 R_1,
+  \label{first iteration}
+\end{equation}
+next step is to multiply $Q$ and $R$ in a reversed order
+\begin{equation}
+A_2 = R_1 Q_1,
+  \label{second iteration}
+\end{equation}
+%
+we repeat this process by finding the $Q$ and $R$ values to $A_2$
+\begin{equation}
+A_2 = Q_2 Q_2.
+\end{equation}
+%
+The complete algorithm can be written as
+\begin{equation}
+  A = Q_1R_1,\qquad R_kQ_k = A_{k+1} = Q_{k+1}R_{k+1}, \qquad k=1,2,3,...
+\end{equation}
+%
+Where $ R_k,Q_k$ is from the previous steps, and $Q_{k+1}$ is still an orthogonal matrix ($Q^TQ=1$) and $R_{k+10}$ is a positive upper triangular.
+%
+\begin{algorithm}
+\caption{\emph{QR-Algorithm}}
+\begin{algorithmic}
+\FOR{$i=1 \to n$}
+\STATE $Q_iR_i = A_i$ 
+\STATE $A_{i+1} = R_iQ_i$ 
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+%
+The iteration will finally create a matrix $\tilde{A}$ whose diagonal entries are eigenvalues of $A$. The reason why this works is because all the $A_k$ are similar to each other and therefore they have a common set of eigenvalues with different eigenvectors, i.e. 
+\begin{proof}
+\bf{If} $Ax = \lambda x$ and $\tilde{A} = S^TA S $ ($S S^T=1$) $\Rightarrow S^T A S x = \lambda x \Rightarrow  A(Sx) = \lambda (Sx)$
+\label{similartransformation}
+\end{proof}
+%
+And 
+%
+\begin{equation}
+A_{k+1} = R_k Q_k = Q_k^T (Q_k R_k) Q_k = Q_k^T A_k Q_k .
+  \label{shows the similarity transform}
+\end{equation}
+%
+We will not go in to rigorous details for why this works, but readers are recommended to read \cite{qrproof}. Instead we will give an numerical example. Given a Hermitian matrix 
+\begin{equation}
+A = 		\left[\begin{array}{ccc}
+			5 & 4 & 1\\
+			4 & 3 & 2\\
+			1 & 2 & 1\\
+		\end{array}	\right],
+		\label{Hermitian A}
+\end{equation}
+the \emph{exact} eigenvalues found by $\texttt{eig(A)}$ in \textsc{matlab} are 
+%
+\begin{equation}
+\begin{matrix}
+ \lambda_1 & = &  8.6625 \\
+ \lambda_2 & = &  1.1444 \\
+ \lambda_3 & = & -0.8070
+\end{matrix}.
+\label{eigenvalues}
+\end{equation}
+%
+Then the initial QR-factorization $A_1 = Q_1R_1$ produces 
+\begin{equation}
+Q_1 = 		\left[\begin{array}{ccc}
+    0.7715  & -0.0392 &  -0.6350 \\
+    0.6172 & -0.1960  &  0.7620 \\
+    0.1543  &  0.9798  &  0.1270
+		\end{array}\right] 
+				\qquad 
+		R_1 = 		\left[\begin{array}{ccc}
+    6.4807  &  5.2463  &  2.1602 \\
+         0  &  1.2150  &  0.5487 \\
+         0  &       0  &   1.0160
+		\end{array}\right],
+\end{equation}
+which in turn gives us the new $A_2$
+\begin{equation}
+A_2 = R_1Q_1 = \left[\begin{array}{ccc}
+    8.5714 &   0.8346  &  0.1568 \\
+    0.8346 &   0.2995  &  0.9955 \\
+    0.1568  &  0.9955  &  0.1290		
+		\end{array}	\right].
+\end{equation}
+%
+We continue this procedure
+%
+\begin{equation}
+A_3 = R_2Q_2 = \left[\begin{array}{ccc}
+    8.6611  &  0.1033 &   0.0168 \\
+    0.1033  &  0.5392 &   0.9035 \\
+    0.0168  &  0.9035 &  -0.2003		
+		\end{array}	\right],
+\end{equation}
+%
+\begin{equation}
+A_4 = R_3Q_3 = \left[\begin{array}{ccc}
+    8.6625  &  0.0131  &  0.0017 \\ 
+    0.0131 &   0.7871  &  0.7548 \\
+    0.0017  &  0.7548 &  -0.4496 
+		\end{array}	\right].
+\end{equation}
+%
+After $17$ iterations the off-diagonal elements are practically zero, and the eigenvalues on the diagonal correspond to the eigenvalues found in Eq.~(\ref{eigenvalues}). 
+\begin{equation}
+A_{17} = R_{16}Q_{16} = \left[\begin{array}{ccc}
+    8.6625  &   0.0000  & -0.0000 \\
+    0.0000  &  1.1444   & 0.0098 \\
+    0.0000  &  0.0098  & -0.8069
+		\end{array}	\right].
+\end{equation}
+%
+But if we want to increase the precision, this method becomes rather slow. As we can see, the convergence of this method is not that impressive, assuming \textsc{matlab} is using the Householder's QR factorization method \cite{bible}, we are going to have $O(n^3)$ flops per iteration, in addition we have a matrix-matrix multiplication.
+
+One of the optimalization we could do is to use Householder's method for tridiagonalization \cite{computerjensen}, i.e. we want to find a tridiagonal matrix $T$ that is a similar transformed of the matrix $A$.
+
+\begin{equation}
+  T = S^T A S, \qquad S = S_1S_2...S_{n-2} 
+  \label{similar}
+\end{equation}
+%
+This would speed up the iteration since we have fewer off-diagonal elements to worry about. A second optimazation is the QR-algorithm. We could improve the convergence by introducing a \emph{shift} on the diagonal. This is popularly called \emph{The accelerated QR-algorithm} or \emph{The shifted QR-algorithm} \cite{kincaid}
+
+For a general tridiagonal matrix
+
+\begin{equation}
+T_m = \left[\begin{array}{cccccc}
+      \alpha_1^{m}  &  \beta_1^{m}   & 0 	    & 0      & \hdots & 0  \\ 
+      \beta_1^{m}   &  \alpha_2^{m}  & \beta_2^{m}  & 0 \\ 
+                 &  \beta_2^{m}   & \alpha_3^{m} & \beta_3 & & \vdots  \\ 
+       \vdots       &                &  \ddots      & \ddots &  \ddots  \\
+           &      	     &              &  \beta_{n-2}^m & \alpha_{n-1}^m  & \beta_{n-1}^m \\ 
+        0	    &      &      \hdots          &       & \beta_{n-1}^n & \alpha_n^m  \\ 
+		\end{array}	\right].
+\end{equation}
+
+\begin{algorithm}
+\caption{\emph{The accelerated QR-Algorithm}}
+\begin{algorithmic}
+\FOR{$i=1 \to n$}
+\STATE $T_m - \alpha_n^m I = Q_m R_m $ 
+\STATE $T_{m+1} = R_m Q_m + \alpha_{n}^m I$ 
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+%
+It was interesting to see how well this algorithm works compared to a, and we have therefore mad a plot for comparison in Fig. \ref{fig:QRsummary}
+
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{QR.eps}}
+\caption{This is a plot of different eigenvalues as a function of iteration. The blue line with diamond points represents our normal QR-algorithm on the matrix $A$ Eq.~(\ref{Hermitian A}), and the red line with points represents the accelerated QR-algorithm on a tridiagonalized matrix $A$. The improved QR-algorithm converges faster for the lower eigenvalues.}
+\label{fig:QRsummary}
+\end{figure}
+The final issue is the numerical precision, or more correctly, the numerical imprecision. It is important to know the error when we do this type of calculations. The details of the mathematics can be read in \cite{lyche}. We will take use of the Hoffman-Wielandt Theorem which states that
+
+\begin{theorem}
+  Let $A$ and $E$ be a real symmetric $n\times n$. And let $T = A + E$ with eigenvalues $\{ \gamma_i \}$. And   $\{ \lambda_i \}$ the eigenvalues of $A$, arranged in increasing order. Then
+  \begin{equation}
+      \left[\sum_{j=1}^n \left(\lambda_i - \gamma_i \right) \right]^{\frac{1}{2}} \leq F(E),
+  \end{equation}
+ where $F(E) = \left(\sum_{ij}^n |a_{ij}|^2 \right)^{1/2}$ is the Frobenius norm of $E$
+\end{theorem}
+%
+Let $T$ be a tridiagonal matrix and let $\tilde{T}$ be the new matrix obtained by deleting $\beta_{n-1}$ from the off-diagonal positions $(n-1,n)$ and $(n,n-1)$ of T. And let $\{\lambda_j\}$ and $\{\tilde{\lambda}_i\}$ denote the eigenvalues respectively. Then from the Wielandt-Hoffman theorem
+
+\begin{equation}
+  \left[\sum_{j=1}^n \left(\lambda_i - \tilde{\lambda}_i \right) \right]^{\frac{1}{2}} \leq F(T-\tilde{T}) = \sqrt{2}|\beta_{n-1}|,
+\end{equation}
+%
+since $\beta_{n-1}$ is the only term that was left after the subtraction. The conclusion of this is that we are closest to the exact eigenvalues when the off-diagonals are smallest.
+
+\subsection{Discretizing the Schr\"{o}dinger Equation}
+Our one-electron Hamiltonian from Eq.~(\ref{one electron hamilton double}) reads
+
+\begin{equation}
+  \hh{H} = -\frac{\hbar^2}{2m^*} \nabla_i^2 +  \frac{1}{2} m^* \omega_0^2 \cdot \left[x^2+y^2 - 2L_x |x| + L_x^2 \right].
+  \label{rerescaled Hamiltonian}
+\end{equation}
+Using the rescaled parameters in section \ref{section:scaling the hamiltonian} we get
+\begin{equation}
+  \bar{H} = -\frac{\omega_c}{2} \nabla^2 +  \frac{1}{2} \omega_c^2 \cdot V_c(\bar{x},\bar {y}) .
+\end{equation}
+%
+The time-independent Schr\"{o}dinger equation of this Hamiltonian is then
+\begin{equation}
+-\frac{\omega_c}{2} \left[\frac{\partial}{\partial \bar{x}^2} +\frac{\partial}{\partial \bar{y}^2} \right]u(\bar{x},\bar{y}) +  \frac{1}{2} \omega_c^2 \cdot V_c(\bar{x},\bar{y}) u(\bar{x},\bar{y})  = E u(\bar{x},\bar{y}) 
+  \label{tisl scaled hamilton}
+\end{equation}
+%
+Where $u(\bar{x},\bar{y})$ is the single-electrons eigenfunctions. From here on the dimensionless coordinates $\bar{x}$ and $\bar{y}$ would be referred to as $x$ and $y$. And we would set the constant $\omega_c = 1$. The differential equation can be solved as a matrix diagonalization problem. By subtracting two Taylor series we get the numerical second derivate \cite{computerjensen}
+
+\begin{align}
+  u(x+h) + u(x-h) &= 2u(x) + h^2 f''(x) + O(h^4), \\
+  u(y+h) + u(y-h) &= 2u(y) + h^2 f''(y) + O(h^4), 
+\end{align}
+
+\begin{equation}
+ f''(x) = \frac{u(x+h)-2u(x)+u(x-h)}{h^2} + O(h^2), \\
+ f''(y) = \frac{u(y+h)-2u(y)+u(y-h)}{h^2} + O(h^2).
+ \label{discretize}
+\end{equation}
+%
+For the two-dimensional case the Laplacian becomes
+\begin{equation}
+  \nabla^2  \approx \frac{1}{h_x^2} \left(u_{i-1,j} - 2u_{i,j} + u_{i+1,j} \right) +  \frac{1}{h_y^2} \left(u_{i,j-1} - 2u_{i,j} + u_{i,j+1} \right) + O(h^2).
+  \label{poisson insert}
+\end{equation}
+%
+Where we have used the more compact way of writing $u(x\pm h,y) = u_{i \pm 1, j}$, $u(x,y\pm h) = u_{i, j\pm1}$. An example could be a grid with integration points $n_x = 3$, and step $h=h_x=h_y=\frac{x_{\max}-x_{\min}}{n_x} = \frac{1}{3}$, $x=x_{\min}+ih$, $y=y_{\min}+jh$, where $(i,j)\in\{1,2,3\}$. See Figure \ref{unitgrid}
+%
+\begin{figure}[H]
+\centering
+\input{unitgrid}
+\caption{The discretized unit grid in our example. The indices are arranged in lexical order}
+\label{unitgrid}
+\end{figure}
+%
+Inserting Eq.~(\ref{poisson insert}) into the Schr\"{o}dinger equation Eq.~(\ref{tisl scaled hamilton}), gives
+\begin{equation}
+  d_{ij} u_{i,j} - e u_{i,j-1} - e u_{i,j+1} - e u_{i-1,j} - e u_{i+1,j} = \lambda u_{i,j},
+\end{equation}
+%
+where we have defined
+\begin{equation}
+  d_{ij} = \frac{4}{h^2} + V_{ij} \qquad e = -\frac{1}{h^2}.
+\end{equation}
+%
+The left side is the discretized Poisson equation in two dimensions. This gives us a set of linear equations that can be written as a matrix eigenvalue problem.
+
+\begin{equation}
+ \left[\begin{array}{ccccccccc}
+    -4   &  1  &    0  &   1  &      &      &      &      &     \\
+     1   & -4  &    1  &   0  &   1  &      &      &      &     \\
+     0   &  1  &   -4  &   0  &   0  &   1  &      &      &     \\
+     1   &  0  &    0  &  -4  &   1  &   0  &   1  &      &     \\
+         &  1  &    0  &   1  &  -4  &   1  &   0  &   1  &     \\
+         &     &    1  &   0  &   1  &  -4  &   0  &   0  &   1 \\
+         &     &       &   1  &   0  &   0  &  -4  &   1  &   0 \\
+         &     &       &      &   1  &   0  &   1  &  -4  &   1 \\
+         &     &       &      &      &   1  &   0  &   1  &  -4
+		\end{array}	\right]
+    \left[\begin{array}{c}
+     u_{1,1}    \\
+     u_{2,1}    \\
+     u_{3,1}    \\
+     u_{1,2}    \\
+     u_{2,2}    \\
+     u_{3,2}    \\
+     u_{1,3}    \\
+     u_{2,3}    \\
+     u_{3,3}   
+	\end{array}\right]		
+	=
+	\lambda
+	  \left[\begin{array}{c}
+     u_{1,1}    \\
+     u_{2,1}    \\
+     u_{3,1}    \\
+     u_{1,2}    \\
+     u_{2,2}    \\
+     u_{3,2}    \\
+     u_{1,3}    \\
+     u_{2,3}    \\
+     u_{3,3}   
+	\end{array}\right].
+\end{equation}
+%
+This is a sparse symmetric matrix which is almost tridiagonal. In reality we would choose larger integration points and the number of entries in the matrix grows with $n^4$. A lot of those entries are zero.
+
+Since the $x$-coordinates are separable, i.e.
+
+\begin{align}
+  \hh{H}(x,y) &= \hh{H}_X(x) + \hh{H}_Y(y) \\ \Rightarrow E &= E_X + E_Y,
+\end{align}
+%
+we do not need to discretize in two dimensions, since we already know the eigenvalues for $\hh{H}_Y$, they are the same as for the one-dimensional case, see section \ref{onebodyharmonicoscillatorpotential}. 
+The Laplacian in one dimension is Eq.~(\ref{discretize})
+
+\begin{equation}
+  \frac{d^2}{dx^2} = \frac{u_{i-1} - 2u_i + u_{i+1} }{h^2} + O(h^2),
+  \label{onedimdiscretized}
+\end{equation}
+%
+where $h$ is our step defined as 
+\begin{equation}
+h = \frac{x_{max}-x_{max}}{N},
+  \label{step}
+\end{equation}
+%
+where $N$ is the number of steps or gridpoints. Inserting Eq.~(\ref{onedimdiscretized}) into the one-dimensional Schr\"{o}dinger equation
+%
+\begin{equation}
+-\frac{u_{i+1} - 2u_{i} + u_{i-1}}{h^2} + V_i u_i = E_X u_i.
+\end{equation}
+%
+This can be written as a tridiagonal matrix eigenvalue equation.
+%
+\begin{equation}
+  d_iu_i + e_{i-1}u_{i-1} + e_{i+1}u_{i+1} = \lambda u_i,
+  \label{onedim discrete}
+\end{equation}
+%
+where
+%
+\begin{align}
+  e_i  = -\frac{1}{h^2}, \qquad  d_i  = \frac{1}{h^2} + V_i,
+\end{align}
+
+\begin{equation}
+ \left[\begin{array}{ccccccc}
+    d_1   &  e_1   &  0  &   0  &  \cdots  &   0  &   0\\
+    e_1   & d_2  &  e_2  &   0  &  \cdots  &   0   &  0 \\
+     0    & e_2  &  d_3  &  e_3  &  \cdots  &   0   &  0 \\
+ \vdots   & \vdots  &  \ddots  &   \ddots  &  \ddots  &   0   &  0 \\
+     0    & 0  &  0  &   0  &  \cdots  &   d_{N-2}   &  e_{N-1}  \\		
+     0    & 0  &  0  &   0  &  \cdots  &   e_{N-1}   &  d_N	
+		\end{array}	\right]
+    \left[\begin{array}{c}
+     u_{1}    \\
+     u_{2}    \\
+     u_{3}    \\
+    \vdots    \\	
+     u_{N-1}   
+	\end{array}\right]		
+	=
+	E_X
+	  \left[\begin{array}{c}
+    u_{1}    \\
+     u_{2}    \\
+     u_{3}    \\
+    \vdots    \\	
+     u_{N-1}   
+	\end{array}\right].
+\label{tridiagonal}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  QM FOR MANY-BODY SYSTEMS       %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \include{ch-manybodyqm}
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   PART MANY-BODY METHODS        %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \part{MANY-BODY METHODS}
+% \include{ch-hartreefock}
+
+% 
+% Assume that we have a hermitian Hamiltonian operator that can be separated into two parts
+% 
+% \begin{equation}
+% \hat{H} = \hat{H}_0 + \lambda\hat{V} 
+%  \label{def: two part Hamiltonian}
+% \end{equation}
+% %
+% Where $H_0$ is the zero-order and $\lambda\hat{V}$ the perturbation. $\lambda$ is called an \emph{order parameter} which is used to classify the order of the contributions. We assume that $\Psi_n$ is the eigenstate to (\ref{def: two part Hamiltonian}), and $\Phi_n$ the eigenstate for the zero-order $H_0$. And that they are ortonormal.
+% 
+% \begin{theorem}
+% \emph{(Bartlett)}
+% \label{thm:Lagrange}
+% If $\Phi_n$ is nondegenerate, then its possible to find the solutions 
+% \begin{equation}
+%  \lim_{\lambda \rightarrow 0} \Psi_n = \Phi_n, \qquad  \lim_{\lambda \rightarrow 0} E_n = E_n^{(0)}
+% \end{equation}
+% \end{theorem}
+% 
+% \subsection{Projection Operators}
+% We define the projection operators
+% 
+% \begin{align}
+% \hat{P} &= \ket{\Phi_0}\bra{\Phi_0} \\
+% \hat{Q} &= \hat{1} - \hat{P} = \sum_{i=1} \ket{\Phi_i}\bra{\Phi_i}
+%  \label{def:projection operators}
+% \end{align}
+% %
+% Rayleigh-Schr\"{o}dinger perturbation theory (RSPT) is extensive order by order. This is related to the fact that RSPT is a true order-by-order expansion, unlike BWPT, which has the infinite-order energy in all denominators \cite{bartlett} ????.
+% 
+% Time-independent perturbation theory Heinnonen 197 kapt 17
+% 
+% \subsection{Rayleigh-Schr\"{o}dinger Perturbation Theory}
+% \subsection{Brioullin-Wigner Perturbation Theory}
+% \subsection{Introduction to Diagrammatic notation}
+% % 
+% 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CCSD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \include{ch-coupledcluster}
+% 
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Implementation%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \part{Implementation and Results}
+% \include{ch-implementation}
+
+\section{Implementation of the double dot}
+We will in this section outline the numerical methods and alogrithms related to finding the one-electron eigenvalues of double dot potential, see section \ref{section:the double dot potential}. The code can take a general potential in two dimensions, and find the eigenvalues and eigenvectors. But for our particular problem, we only diagonalize in $x$-direction, find the eigenvalues and eigenvectors. Then find the overlap coefficients with an harmonic oscillator basis
+% 
+\begin{equation}
+  C_{n_x',n_X m_X} = \sum_{n_x}^N \braket{n_x'}{n_X m_X} \ket{n_X m_X} 
+\end{equation}
+%
+Where $n_X$ and $m_X$ are the radial and angular quantum numbers from a polar basis solution, see Eq.~(\ref{total eigenstate}). Since there is no barrier in the $y$-direction, the hamiltonian \ref{rerescaled Hamiltonian} is separable and we get 
+\begin{equation}
+  C_{n_Y' m_Y', n_Y m_Y}  = \delta_{n_Y' m_Y', n_Y m_Y}  \ket{n_X m_X} 
+\end{equation}
+%
+The relations between cartesian quantum numbers $(n_x,n_y)$ and $n,m$ are as follows 
+\begin{equation}
+ E = n_x + n_y + 1 = 2n + |m| + 1
+\end{equation}
+%
+Then our new basis states can be expressed as linear combination of harmonic oscillator states 
+%
+\begin{equation}
+ \ket{a} = \sum_{\alpha} C_\alpha \ket{\alpha} , \qquad C_\alpha =  C_{n_x',n_X m_X} C_{n_Ym_Y} 
+ \label{new spinorbitals}
+\end{equation}
+%
+Our goal is to find the two-particle interaction elements in the new basis
+%
+\begin{equation}
+ \bra{ab}v\ket{cd} = \sum_{\alpha\beta\gamma\delta} C_\alpha^*C_\beta^*C_\gamma C_\delta \bra{\alpha\beta}v\ket{\gamma\delta}
+ \label{new interactions}
+\end{equation}
+%
+The interaction elements for the parabolic qunatum dot Eq.~\ref{Hamiltonian for QD} $\bra{\alpha\beta}v\ket{\gamma\delta}$ can be obtained from Simen Kvaal's Open FCI code for quantum dots \cite{kvaalOpenFCI}. 
+%
+This is a transformation of the interaction elements from a polar basis to a cartesian basis. And these basis transformations are costly to calculate, we have tried optimalize as much as we could. 
+
+These new interaction elements Eq.~\ref{new interactions}, together with the new spinorbital quantum numbers Eq.~\ref{new spinorbitals} $\ket{a}$ and single-particle energies $\braket{a}{b}$ are used as an input in our CCSD and Hartree-Fock. 
+
+\subsection{Scaling the Hamiltonian}
+One of the potentials we wish to study \cite{doubledot}
+
+\begin{equation}
+V(x,y) = \frac{1}{2} m^* \omega_0^2 [x^2 + y^2 -2L_x|x| + L_x^2]
+\end{equation}
+%
+We want our potential to dimensionless in our calculation. Introducing the scaled variables
+\begin{align}
+ L_x & = L_c \bar{L}_x \\
+   x & = x_c \bar{x}   \\ 
+   y & = y_c \bar{y}   \\
+   \omega_0 &= \omega_c \bar{\omega}
+\end{align}
+Setting 
+\begin{align}
+ L_c & = x_c = y_c = l_0 \\
+\end{align}
+We get
+\begin{equation}
+  \bar{V} = \frac{1}{2} m^* \omega_0 l_0^2 \left[\bar{x}^2 + \bar{y}^2 - 2|\bar{x}| + \bar{L}_x \right]
+\end{equation}
+%
+And setting
+\begin{equation}
+l_0 = \sqrt{\frac{\hbar}{m^* \omega_c \bar{\omega}}}
+\end{equation}
+%
+Which gives
+\begin{equation}
+  \bar{V}_C  =  \frac{\hbar}{2} \omega_c \bar{\omega} \left[\bar{x}^2 + \bar{y}^2 - 2|\bar{x}| + \bar{L}_x \right]
+    \label{Vabs}
+\end{equation}
+%
+Defining $E_h$
+
+\begin{equation}
+ E_h = \frac{m^*}{\epsilon^2} \qquad \kappa = \frac{e^2}{4\pi \epsilon_0 \epsilon_r \hbar}
+\end{equation}
+%
+Scaling the Hamiltonian $\hh{H} = E_h \bar{H}$, where $E_h$ is effective Hartrees.
+ 
+\begin{equation}
+  \bar{H} = -\frac{\omega_c \bar{\omega} \hbar \kappa^2}{2m^*} \bar{\nabla}^2 + \frac{\hbar\kappa^2}{2m^*}\omega_c\bar{\omega} \left[\bar{x}^2 + \bar{y}^2 - 2|\bar{x}| + \bar{L}_x \right]
+\end{equation}
+%
+Setting 
+\begin{equation}
+ \frac{\hbar \kappa^2  \omega_c}{m^*} = 1
+\end{equation}
+%
+We then get the one-body Hamiltonian
+%
+\begin{equation}
+ \bar{H} = -\frac{\bar{\omega}}{2} \nabla + \frac{1}{2} \bar{\omega} \left[ \bar{x}^2 + \bar{y}^2 - 2|\bar{x}| + \bar{L}_x \right]
+ \label{doublepotential abs}
+\end{equation}
+%
+The two-body interaction is the same as in Eq.~\ref{N-body Hamiltonian scaled}. And the total Hamiltonian for our model becomes
+%
+\begin{equation}
+ \bar{H} = -\frac{\bar{\omega}}{2} \nabla + \frac{1}{2} \bar{\omega} \left[ \bar{x}^2 + \bar{y}^2 - 2|\bar{x}| + \bar{L}_x \right] + \sqrt{\bar{\omega}}\sum_{i<j}^N \frac{1}{\bar{r}_{ij}}
+  \label{total hamiltonian double dot}
+\end{equation}
+%
+In the article \cite{doubledot}, they set $L_x = 50$ nm , then we can choose $L_c = 50$ nm and setting $\bar{L}_x = 1$, $\bar{\omega}=1$. 
+%
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{Doubledot3D.eps}}
+\caption{Confinement potential for Eq.~\ref{Vabs} $V(\bar{x},\bar{y})$, $\bar{L}_x = 10$ and $\bar{\omega} = 1$}
+\end{figure}
+%
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{Doubledot2D.eps}}
+\caption{Confinement potential for Eq.~\ref{Vabs} $V(\bar{x},0)$, $\bar{L}_x = 10$ and $\bar{\omega} = 1$}
+\end{figure}
+%
+The code is so general that we can change the potential, instead of the absolute value barrier $|\bar{x}|$, we can choose a gaussian curve barrier which is smoother. An example could be 
+%
+\begin{equation}
+\bar{V}_G = \frac{1}{2}\bar{\omega}\left[\bar{x}^2 + \bar{y}^2 \right] + V_0 \exp\left(-\frac{\bar{x}^2}{2\sigma}\right)
+  \label{Vgauss}
+\end{equation}
+%
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{Doubledot3D_gaussian.eps}}
+\caption{Confinement potential for Eq.~\ref{Vgauss} $V(\bar{x},\bar{y})$, $V_0 = 100$ and $\sigma=1, \omega = 1$}
+\label{fig:Vgauss3D}
+\end{figure}
+%
+\begin{figure}[H]
+\centering
+\scalebox{0.7}{\includegraphics{Doubledot2D_gaussian.eps}}
+\caption{Confinement potential for Eq.~\ref{Vgauss} $V(x,0)$, $V_0 = 20,\sigma=1$ and $\bar{\omega} = 1$}
+\label{fig:Vgauss2D}
+\end{figure}
+%
+
+\subsection{Finding the eigenvectors and eigenvalues}
+%
+We diagonalize the one-body Hamiltonian in $x$-direction
+\begin{equation}
+\hh{H}_X = -\frac{\bar{\omega}}{2}\frac{d}{d\bar{x}^2} + V(\bar{x}) 
+  \label{we want to diagonalize}
+\end{equation}
+%
+In order to find the eigenvalues and the eigenvectors we can use the technique of discretization described in section \ref{section:the double dot potential}. We use the algorithm (Listing \ref{list:fillingtridiagonal}) to create the tridiagonal matrix Eq.~\ref{tridiagonal}
+
+\begin{lstlisting}[label={list:fillingtridiagonal},caption={Filling the tridiagonal matrix}]
+    double e = 0.5 * (-1.0) / (xstep * xstep);
+    double f = 1.0 / (xstep * xstep);
+    double V = 0;
+    for (int i = 0; i < N - 1; i++) {
+        x = xmin + i*xstep;
+        V = potential(x);
+
+        //Filling the diagonal
+        T[i][i] = f + V;
+
+        //Filling the off diagonal;
+        T[i][i + 1] = e;
+        T[i + 1][i] = e;
+    }
+    //Filling the last diagonal element
+    x = xmin + (N - 1) * xstep;
+    V = potential(x);
+    T[N - 1][N - 1] = f + V;
+\end{lstlisting}
+ %
+We use the \texttt{LAPACK} routine for solving a symmetric dense matrix, \texttt{dsyev()}, which basically use the accelerated QR-Algorithm, section \ref{section:The QR-Algorithm}. The eigenvalues $E_{n_x'}$ are then sorted in ascending order,
+
+\begin{equation}
+ n_{x}' = 0,1,2...N \qquad E_{0} \geq E_1 \geq E_2 \geq ... \geq E_{n_x' = N}
+ \label{eigenvalues found by diag}
+\end{equation}
+
+
+\begin{equation}
+  \psi_{n_x'} = \begin{bmatrix} \psi_{n_x'}(x_{\min}) \\ \psi_{n_x'}(x_1) \\ \vdots \\ \psi_{n_x}(x_N) \end{bmatrix}, \qquad x_j = x_{\min} + j\cdot h, \qquad j \in \{0,1,..,N\}                           
+\end{equation}
+%
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.1in]{1D_Lx=5_0} & \includegraphics[width=2.1in]{1D_Lx=5_1} \\ \includegraphics[width=2.1in]{1D_Lx=5_2} & \includegraphics[width=2.1in]{1D_Lx=5_3}
+\end{array}$
+\caption{The probability density of the four lowest eigenstates for $L_x = 5,\, \omega = 1$.}
+\label{wavefunctions1}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.1in]{1D_V=20_0} & \includegraphics[width=2.1in]{1D_V=20_1} \\ \includegraphics[width=2.1in]{1D_V=20_2} & \includegraphics[width=2.1in]{1D_V=20_3}
+\end{array}$
+\caption{The probability density of the four lowest eigenstates for $V_0 = 20,\, \omega = 1$.}
+\label{wavefunctions2}
+\end{figure}
+
+
+\subsection{Finding the coefficients}
+We want to find the overlap coefficients
+\begin{equation}
+C_{n_x',n} = \braket{\psi_{n_x'}}{n} = \sum_{n}^N \psi_{n_x'}(x_i) \psi_n(x_i) \qquad n = 0,1,2,...N
+  \label{overlap}
+\end{equation}
+%
+\begin{equation}
+x_i = x_{\min} + i \cdot h \qquad h = \frac{x_{\max} - x_{\min}}{N} 
+\end{equation}
+
+Where $\psi_n(x)$ are the harmonic oscialltor eigenfuncions in one dimension:
+%
+\begin{align}
+  \psi_n(x) & = \left(\frac{\beta}{\pi}\right)^{1/4} \frac{1}{\sqrt{2^n n!}} H_n(x)e^{\frac{\beta x^2}{2}}
+\end{align}
+%
+\begin{equation}
+ \beta = \frac{m \omega}{\hbar}
+\end{equation}
+%
+$H_n(x)$ are the Hermite polynomials \cite{boas}. Using the recursive relation for the Hermite polynomials 
+%
+\begin{align}
+H_{n+1}(x) = 2xH_n(x) - 2nH_{n-1}(x)
+\end{align}
+%
+We get
+\begin{align}
+  \psi_{n+1} & = \left(\frac{1}{\pi}\right)^{1/4} \frac{1}{\sqrt{2^{n+1} (n+1)!}} H_{n+1}e^{\frac{1 x^2}{2}} \\
+             & = \left(\frac{1}{\pi}\right)^{1/4} \frac{1}{\sqrt{2^{n+1} (n+1)!}} \left( 2xH_n - 2nH_{n-1} \right) \\
+             & = x\sqrt{\frac{2}{n+1}}\psi_n - \sqrt{\frac{n}{n+1}}\psi_{n-1} 
+\end{align}
+%
+Or 
+%
+\begin{align}
+  \psi_{n} &= x\sqrt{\frac{2}{n}}\psi_{n-1} - \sqrt{\frac{n-1}{n}}\psi_{n-2} 
+\end{align}
+%
+Where
+%
+\begin{align}
+  \psi_0 & = \left(\frac{1}{\pi}\right)^{1/4} e^{-\frac{ x^2}{2}} \\
+  \psi_1 & = \left(\frac{1}{\pi}\right)^{1/4} \frac{1}{\sqrt{2}} 2x e^{-\frac{ x^2}{2}}
+\end{align}
+%
+The algorithm for generating the harmonic oscillator wavefunctions and evalute at $x$, $\beta = 1$
+%
+\begin{lstlisting}
+double wf(int n, double x) {
+    double *W = new double[n + 2];
+    double a = (1.0 / pow(pi, 0.25));
+    double b = (1.0 / sqrt(2));
+
+    W[0] = 1.0 * a; //psi_0(x)
+
+    if (n == 0) {
+        return W[0] * exp(-0.5 * x * x);
+    } else {
+        W[1] = sqrt(2) * x * a; //psi_1(x)
+        for (int i = 1; i <= n - 1; i++) {
+
+            W[i + 1] = (sqrt(2.0 / (i + 1)) * x * W[i] - sqrt(double(i) / (i + 1)) * W[i - 1]);
+        }
+        return W[n] * exp(-0.5 * x * x);
+    }
+
+    delete [] W;
+\end{lstlisting}
+%
+The coefficients are then calculated by the following algorithm
+%
+\begin{lstlisting}
+    for (int nxprime = 0; nxprime < nxprime_max; nxprime++) {
+        for (int n = 0; n < nmax; n++) {
+            innerprod = 0;
+            for (int i = 0; i < N; i++) {
+                innerprod += xstep * Evecs[i][nxprime] * H[i][n];
+            }
+            Coeff[n][nxprime] = innerprod;
+        }
+    }
+\end{lstlisting}
+
+\subsubsection{Validation}
+%
+One way to validate the coefficients is to check if it preserve the probability.
+\begin{equation}
+  P(n_x') = \sum_{i}^N C_{i,n_x'}^*C_{i,n_x'} \approx 1
+\end{equation}
+%
+Another check is to plot the diagonalized curve against the linear expansion and see if the $L_2$-norm of the function is a small number
+\begin{equation}
+  ||\psi_{n_x'} - \psi_{n_x}||_{2} = \sqrt{ \sum_i^N |\psi_{n_x'}(x_i) - \psi_{n_x}(x_i)|^2} < \epsilon
+\end{equation}
+
+For the $L_x = 5, \omega = 1$ we need $n_x > 30$ in order to get reasonable amount of non-zero coefficients $C_{n_x',n_x}$. But our calculation is with a max $n_x=20$ due to the heavy time consumption of generating the transformed interaction elements. Besides we are studing small model spaces and only need $n_x' < 10$, in that regard $C_{n_x',n_x}$ falls off quickly and it is sufficient to have maximal $n_x = 20$ 
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{wf_fit_nx=4} & \includegraphics[width=2.5in]{wf_fit_nx=10}
+\end{array}$
+\caption{Plot of the fitted curve for $L_x=5$, $\omega=1$, and the max value of $n_x=20$. The $L_2$-norm for $n_x'=10$  was 5.8E-4, while the $L_2$-norm for $n_x'=10$ was 0.0118. Which is a reasonable fit}
+\end{figure}
+
+
+\subsection{Transformation from polar to cartesian representation}
+\label{sec:cartesian basis transform}
+
+Harmonic oscillator wavefunctions in two dimensions for som selected values
+%
+\begin{align}
+\psi^{\text{\tiny HO}}_{n_x,n_y}(x,y) & = \psi^{\text{\tiny HO}}_{n_x}(x)\psi^{\text{\tiny HO}}_{n_y}(y)   
+  \label{Harmonic Oscillator Wavefunctions Cartesian}
+\end{align}
+%
+\begin{align}
+\psi^{\text{\tiny HO}}_{n_x,n_y}(x,y) = H_{n_x}(x)H_{n_y}(y) e^{-x^2} e^{-y^2}  
+  \label{Harmonic Oscillator Wavefunctions Cartesian Explicit}
+\end{align}
+In cartesian representation (not normalized): 
+\begin{align*}
+\psi^{\text{\tiny HO}}_{0,0}(x,y) & =  e^{-x^2}e^{-y^2}   & (\epsilon = 1) \\
+\psi^{\text{\tiny HO}}_{1,0}(x,y) & =  xe^{-x^2}e^{-y^2} & (\epsilon = 2) \\
+\psi^{\text{\tiny HO}}_{0,1}(x,y) & =  ye^{-x^2}e^{-y^2} & (\epsilon = 2) \\
+\psi^{\text{\tiny HO}}_{1,1}(x,y) & =  yxe^{-x^2/2}e^{-y^2} & (\epsilon = 3) \\ 
+\end{align*}
+%
+Where $\epsilon = n_x + n_y + 1$.
+%
+In polar coordinate representation (not normalize):
+\begin{align}
+\psi^{\text{\tiny HO}}_{n,m}(r,\theta) & = R(r)\phi(\theta)  
+  \label{Harmonic Oscillator Wavefunctions Polar}
+\end{align}
+%
+\begin{align}
+\psi^{\text{\tiny HO}}_{n,m}(r,\theta) & = r^{|m|}e^{-r^2}L_n^{|m|}e^{im\theta}  
+  \label{Harmonic Oscillator Wavefunctions Polar Explicit}
+\end{align}
+\begin{align*}
+\psi^{\text{\tiny HO}}_{0,0}(r,\theta)   & =  e^{-r^2}   & (\epsilon = 1) \\
+\psi^{\text{\tiny HO}}_{0,1}(r,\theta)   & =  r e^{-r^2}e^{i\theta} & (\epsilon = 2) \\
+\psi^{\text{\tiny HO}}_{0,-1}(r,\theta)  & =  r e^{-r^2}e^{-i\theta} & (\epsilon = 2) \\
+\psi^{\text{\tiny HO}}_{1,0}(r,\theta)   & =  (-r^2+1)e^{-r^2} & (\epsilon = 3) \\ 
+\end{align*}
+%
+Where $\epsilon = 2n + |m| + 1$. We transformation between the representation by the following
+\begin{align*}
+x & = r \cos(\theta) \\
+y & = r \sin(\theta) \\
+r^2 & = x^2 + y^2
+  \label{def:CartesianPolarMapping}
+\end{align*}
+%
+We have that
+%
+\begin{equation}
+\cos(\theta) = \frac{e^{i\theta} + e^{i\theta}}{2} \qquad \cos(\theta) = \frac{e^{i\theta} - e^{i\theta}}{2i}
+  \label{cosinus relation}
+\end{equation}
+%
+We see that (normalized):
+\begin{align}
+\psi^{\text{\tiny HO}}_{0,0}(x,y) & = \psi^{\text{\tiny HO}}_{0,0}(r,\theta)\\
+\psi^{\text{\tiny HO}}_{1,0}(x,y) & = \frac{1}{\sqrt{2}}\psi^{\text{\tiny HO}}_{1,1}(r,\theta) +   \frac{1}{\sqrt{2}}\psi^{\text{\tiny HO}}_{1,-1}(r,\theta)\\
+\psi^{\text{\tiny HO}}_{0,1}(x,y) & =  \frac{i}{\sqrt{2}}\psi^{\text{\tiny HO}}_{1,-1}(r,\theta) -   \frac{i}{\sqrt{2}}\psi^{\text{\tiny HO}}_{1,1}(r,\theta)\\
+  \label{we see mapping} 
+\end{align}
+%
+The Transformation matrix $T^{N}$, $N = n_x + n_y$ :
+
+\begin{align}
+T^{0}  & = 1 \\
+T^{1}  & = \begin{bmatrix*}[r] \frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+ \end{bmatrix*} \\
+T^{2}  & = \begin{bmatrix*}[r] \frac{1}{2} & \frac{1}{\sqrt{2}} & \frac{1}{2} \\ \frac{1}{\sqrt{2}} & 0 & -\frac{1}{\sqrt{2}} \\ \frac{1}{2} & -\frac{1}{\sqrt{2}} & \frac{1}{2} \end{bmatrix*} \\
+T^{N} & = ...
+\end{align}
+%
+These transformation matrices are obtained from Simen Kvaals PhD-thesis \cite{kvaalphd}
+Our transformation from a polar basis to a cartesian one are defined,
+\begin{equation}
+\ket{a} \equiv \ket{n_x'(a), n_y'(a)}^{CAR} = \sum_{n_x(a)} C_{n_x(a), n_x'(a)} \sum_{n_+(a)}^{N_a} i^{-n_y'(a)} T_{n_+(a),n_x(a)}^{N_a}
+  \label{DoubleDot}
+\end{equation}
+%
+Where $N_a = n_x(a) + n_y'(a)$. 
+%
+Then the interaction elements in the cartesian space represented by 
+%
+\begin{align*}
+\bra{ab}v\ket{cd}^{CAR} &= \sum_{n_x(a)}\sum_{n_x(b)}\sum_{n_x(c)}\sum_{n_y(d)} C_{n_x(a), n_x'(a)} C_{n_x(b), n_x'(b)} C_{n_x(c), n_x'(c)} C_{n_x(d), n_x'(d)} \\
+&\times \sum_{n_+(a)}^{N_a}\sum_{n_+(b)}^{N_b}\sum_{n_+(c)}^{N_c}\sum_{n_+(d)}^{N_d} T_{n_+(a),n_x(a)}^{N_a} T_{n_+(b),n_x(b)}^{N_b} T_{n_+(c),n_x(c)}^{N_c} T_{n_+(d),n_x(d)}^{N_d} \\
+&\times \bra{\underbrace{n_+(a)n_-(a)}_{a}|\underbrace{n_+(b)n_-(b)}_b}v\ket{\underbrace{n_+(c)n_-(c)}_c|\underbrace{n_+(d)n_-(d)}_d}^{POL} \\
+&\times i^{n_y'(a)} i^{n_y'(b)} i^{-n_y'(c)} i^{-n_y'(d)}
+\label{cartesian interaction element representation}
+\end{align*}
+%
+Where 
+\begin{align}
+  m = n_+ - n_- \qquad n = \frac{n_+ + n_- - |m|}{2} 
+\end{align}
+%
+Think of it as a ladder, where number of $n_+$, defines how high to the right you move on the ladder, and $n_-$ defines how high to the left.
+%
+Therefore each of the subshells will be defined by a set of $\{n_+,n_-\}$. Notice that we have a imaginare part. Our interaction elements in the polar basis are real, and the transformation will not change this, therefore the transformations will have the condition. 
+%
+\begin{equation}
+\left[ n_y(a) + n_y(b) - n_y(c) - n_y(d) \right] = 2n+1 \iff  \bra{ab}v\ket{cd}^{CAR} = 0, \qquad n\in \mathcal{N}
+\end{equation}
+
+
+%
+\begin{figure}
+\centering
+\input{simenmap}
+\caption{Shell structure of the quantum dot, and the relations to the quantum number $n_+$, $n_-$. There is a 1-1 map between the radial quantum number $n$ and angular momentum quantum number $m_s$ to $\{n_+,n_-\}$ }
+\label{fig:simenmap}
+\end{figure}
+
+
+We can do a simple example using the parabolic harmonic oscillator potential, i.e. $L_x=0$ and $V_0 = 0$. Our system is a harmonic oscillator with 2 shell level, and the basis states are:
+\begin{align*}
+\ket{0} \rightarrow &n_x'=0, n_y'=0, m_s' = -0.5, &E = 0.99988 \\  
+\ket{1} \rightarrow &n_x'=0, n_y'=0, m_s' = 0.5,  &E = 0.99988 \\  
+\ket{2} \rightarrow &n_x'=1, n_y'=0, m_s' = -0.5, &E = 1.99943 \\  
+\ket{3} \rightarrow &n_x'=1, n_y'=0, m_s' =  0.5, &E = 1.99943 \\  
+\ket{4} \rightarrow &n_x'=0, n_y'=1, m_s' = -0.5, &E = 1.99988 \\  
+\ket{5} \rightarrow &n_x'=0, n_y'=1, m_s' =  0.5, &E = 1.99988  
+\end{align*}
+Polar basis:
+\begin{align*}
+  \ket{0} & = \{n=0, m=0, m_s = -0.5\} \\ 
+  \ket{1} & = \{n=0, m=0, m_s = 0.5\} \\
+  \ket{2} & = \{n=0, m=-1, m_s = -0.5\} \\
+  \ket{3} & = \{n=0, m=-1, m_s = 0.5\} \\
+  \ket{4} & = \{n=0, m=+1, m_s = -0.5\} \\
+  \ket{5} & = \{n=0, m=+1, m_s = 0.5\}   
+\end{align*}
+Talmi matrix:
+\begin{align}
+  T^{(1)} &= 1 \\
+  T^{(2)} &= \begin{bmatrix}\frac{1}{\sqrt{2}} & \frac{1}{\sqrt{2}} \\ \frac{1}{\sqrt{2}} &- \frac{1}{\sqrt{2}} \end{bmatrix}                             
+\end{align}
+%
+Want to find the interaction element $\bra{45}v\ket{45}^{CAR}$:
+%
+\begin{equation}
+  \ket{n_x' n_y'}^{CAR} = \sum_{n_x} C_{n_x',n_x} \sum_{n_+}^{n_x+n_y'} T_{n_+,n_x}^{n_x+n_y'} \ket{n_+,n_-}^{POL}
+\end{equation}
+
+\begin{align}
+  \ket{4}^{CAR} & = T_{0,0}^{(1)} \ket{(n_+=0,n_-=1)}^{POL} + T_{1,0}^{(1)} \ket{(n_+=1,n_-=0)}^{POL} \\
+  \ket{5}^{CAR} & = T_{0,0}^{(1)} \ket{(n_+=0,n_-=1)}^{POL} + T_{1,0}^{(1)} \ket{(n_+=1,n_-=0)}^{POL}  
+\end{align}
+%
+If we translate these states into the Polar basis quantum numbers we get, and remember that $\ket{4}$ is a spin down states, so $\{n_+,n_-\}$ must map to a state which is spin down:
+\begin{align}
+  \ket{4}^{CAR} & = T_{0,0}^{(1)} \ket{4}^{POL} + T_{1,0}^{(1)} \ket{2}^{POL} \\
+  \ket{5}^{CAR} & = T_{0,0}^{(1)} \ket{5}^{POL} + T_{1,0}^{(1)} \ket{3}^{POL}  
+\end{align}
+%
+Then 
+\begin{align}
+  \ket{45}^{CAR} & = (T_{0,0}^{(1)})^2 \ket{4 5}^{POL} + T_{0,0}^{(1)}T_{1,0}^{(1)} \ket{43}^{POL} + T_{1,0}^{(1)}T_{0,0}^{(1)} \ket{25}^{POL} + (T_{1,0}^{(1)})^2 \ket{23}^{POL}  
+\end{align}
+%
+Then 
+\begin{align}
+  \bra{45}v\ket{45}^{CAR} & = \frac{1}{2}\frac{1}{2} \bra{45}v\ket{45}^{POL} + \frac{1}{2}\frac{1}{2} \bra{43}v\ket{25}^{POL}  + \frac{1}{2}\frac{1}{2} \bra{43}v\ket{43}^{POL} \\
+  &+ \frac{1}{2}\frac{1}{2} \bra{25}v\ket{25}^{POL} + \frac{1}{2}\frac{1}{2} \bra{25}v\ket{43}^{POL}+ \frac{1}{2}\frac{1}{2} \bra{23}v\ket{23}^{POL}  
+\end{align}
+%
+List of interaction elements from \texttt{tabulate.x} with $\omega = 1.0$ and standard v.v.:
+%
+\begin{align}
+\bra{45}v\ket{45}^{POL} & =  0.86165\\
+\bra{43}v\ket{25}^{POL} & =  0.23499\\
+\bra{43}v\ket{43}^{POL} & =  0.86165\\
+\bra{25}v\ket{25}^{POL} & =  0.86165\\
+\bra{25}v\ket{43}^{POL} & =  0.23499\\
+\bra{23}v\ket{23}^{POL} & =  0.86165
+\end{align}
+%
+The our interaction element becomes
+\begin{align}
+  \bra{45}v\ket{45}^{CAR} & = 0.86165 + \frac{1}{2}0.23499 = 0.97915
+\end{align}
+%
+\begin{align}
+  \bra{45}v\ket{45}^{POL} & = 0.86165
+\end{align}
+
+\subsection{Tabulating new quantum numbers}
+In our cartesian basis, the two-particle interaction still does not change spin. Therefore the total spin is conserved.
+ 
+\begin{equation}
+  \bra{M_s}v\ket{M_s'} = \delta_{M_s,M_s'} \qquad M_s = m_{1s} + m_{2s} 
+\end{equation}
+
+\begin{table}[H]
+\centering
+\begin{minipage}[b]{0.3\linewidth}\centering 
+\begin{tabular}{ccc}
+\toprule
+$M_s$ & $\alpha$ & State\\
+\midrule
+ -1 &  0  &$\ket{0,2}$ \\
+ -1 &  0  &$\ket{0,4}$ \\
+ -1 &  0  &$\ket{2,4}$ \\
+\bottomrule
+\end{tabular}
+\caption{Tabulated two-particle basis for $M_s=-1$}
+\end{minipage}
+\hspace{0.2cm}
+\begin{minipage}[b]{0.3\linewidth}
+\begin{tabular}{ccc}
+\toprule
+$M_s$ & $\alpha$ & State\\
+\midrule
+  0 &  1  &$\ket{0,1}$ \\
+  0 &  1  &$\ket{0,3}$ \\
+  0 &  1  &$\ket{0,5}$ \\
+  0 &  1  &$\ket{1,2}$ \\
+  0 &  1  &$\ket{1,4}$ \\
+  0 &  1  &$\ket{2,3}$ \\
+  0 &  1  &$\ket{2,5}$ \\
+  0 &  1  &$\ket{3,4}$ \\
+  0 &  1  &$\ket{4,5}$ \\
+  0 &  1  &$\ket{1,3}$ \\
+\bottomrule
+\end{tabular}
+\caption{Tabulated two-particle basis for $M_s=0$}
+\end{minipage}
+\hspace{0.2cm}
+\begin{minipage}[b]{0.3\linewidth}
+\begin{tabular}{ccc}
+\toprule
+$M_s$ & $\alpha$ & State\\
+\midrule
+  1 &  2  &$\ket{3,4}$ \\
+  1 &  2  &$\ket{1,5}$ \\
+  1 &  2  &$\ket{3,5}$ \\
+\bottomrule
+\end{tabular}
+\caption{Tabulated two-particle basis for $M_s=1$}
+\end{minipage}
+\end{table}
+%
+Every odd number is now a spin up state, and even number are spin down. The energy is thereby degenerate in spin.
+%
+\begin{equation}
+\ket{a} = \left\{ \begin{array}{lcl} a = 2n & \mbox{if} & m_s=-0.5\\ 
+ a = 2n+1 & \mbox{if} & m_s = 0.5
+\end{array}\right.
+\end{equation}
+%
+In section \ref{parabolic quantum dot} we discussed the shell structure of the parabolic quantum dot. We have the same situasjon now but with a different kind of subshells. We define a subshell with the set of quantum numbers $\{n_x',n_y'\}$, where each subshell have the energy
+
+\begin{equation}
+E_{sub} = E_{n_x'} + E_{n_y'}
+  \label{subshell energy}
+\end{equation}
+%
+And $E_{n_x'}$ are the eigenvalues found by diagonalization Eq.~\ref{eigenvalues found by diag} and Fig.~\ref{fig:Vgauss2D}, Fig. ~\ref{fig:Vgauss3D}. While $E_{n_y'} = (0.5 + n_y')$ are the one-dimensional solution to the harmonic oscillator potential. Example for the potential \ref{Vgauss}, $V=20,\sigma=1$, with $N=500$.
+
+\begin{table}[H]
+\centering
+\begin{minipage}[b]{0.4\linewidth}\centering 
+\begin{tabular}{cc}
+\toprule
+${n_x'}$ & $E_{n_x'}$\\
+\midrule
+  0 &  0  5.68161 \\
+  1 &  0  5.68162 \\
+  2 &  0  7.42767 \\
+\bottomrule
+\end{tabular}
+\caption{Energyeigenvalues for $n_x'$}
+\end{minipage}
+\hspace{1cm}
+\begin{minipage}[b]{0.4\linewidth}
+\begin{tabular}{cc}
+\toprule
+$n_y'$ & $E_{n_y'}$\\
+\midrule
+  0 & 0.5   \\
+  1 &  1   \\
+  2 &  2   \\
+\bottomrule
+\end{tabular}
+\caption{Energyeigenvalues for $n_y'$}
+\end{minipage}
+\end{table}
+The first 6 spinorbitals are tabulated as
+
+\begin{align*}
+  \ket{0} & = \{n_x'=0, n_y'=0, m_s = \downarrow\} & E =  5.68161 \\ 
+  \ket{1} & = \{n_x'=0, n_y'=0, m_s = \uparrow \}  & E =  5.68161 \\
+  \ket{2} & = \{n_x'=1, n_y'=0, m_s = \downarrow\} & E = 5.68161 \\
+  \ket{3} & = \{n_x'=1, n_y'=0, m_s = \uparrow \}  & E =  5.68161 \\
+  \ket{4} & = \{n_x'=1, n_y'=1, m_s = \downarrow\} & E = 6.68162\\
+  \ket{5} & = \{n_x'=1, n_y'=1, m_s = \uparrow \}  & E = 6.68162 
+\end{align*}
+
+
+
+\subsection{Validation of the Code}
+One of the test we can do is to drop the barrier in the $x$-direction, i.e. $L_x = 0$ in Eq.~(\ref{doublepotential abs}). Then we get a harmonic oscillator potential. And we want to do a diagonalization for the 2-shell case. We get 6 single-particle states with eigenvalues in the cartesian basis:
+
+\begin{align*}
+\ket{0} \rightarrow &\{n_x'=0, n_y'=0, m_s' = \downarrow\} &E = 0.99988 \\  
+\ket{1} \rightarrow &\{n_x'=0, n_y'=0, m_s' = \uparrow \} &E =  0.99988 \\  
+\ket{2} \rightarrow &\{n_x'=1, n_y'=0, m_s' = \downarrow\} &E = 1.99943  \\  
+\ket{3} \rightarrow &\{n_x'=1, n_y'=0, m_s' =  \uparrow\} &E =  1.99943  \\  
+\ket{4} \rightarrow &\{n_x'=0, n_y'=1, m_s' = \downarrow\} &E = 1.99988 \\  
+\ket{5} \rightarrow &\{n_x'=0, n_y'=1, m_s' =  \uparrow\} &E =  1.99988  
+\end{align*}
+
+If we start with the case $M_s = -1$
+\begin{equation*}
+\mathbf{H} = \begin{bmatrix}
+\bra{\Phi_{02}}H_0\ket{\Phi_{02}} + \bra{\Phi_{02}}V\ket{\Phi_{02}} & 
+\bra{\Phi_{02}}H_0\ket{\Phi_{04}} + \bra{\Phi_{02}}V\ket{\Phi_{04}} &  
+\bra{\Phi_{02}}H_0\ket{\Phi_{24}} + \bra{\Phi_{02}}V\ket{\Phi_{24}} \\
+\bra{\Phi_{04}}H_0\ket{\Phi_{02}} + \bra{\Phi_{04}}V\ket{\Phi_{02}} & 
+\bra{\Phi_{04}}H_0\ket{\Phi_{04}} + \bra{\Phi_{04}}V\ket{\Phi_{04}} &  
+\bra{\Phi_{04}}H_0\ket{\Phi_{24}} + \bra{\Phi_{04}}V\ket{\Phi_{24}} \\
+\bra{\Phi_{24}}H_0\ket{\Phi_{02}} + \bra{\Phi_{24}}V\ket{\Phi_{02}} & 
+\bra{\Phi_{24}}H_0\ket{\Phi_{04}} + \bra{\Phi_{24}}V\ket{\Phi_{04}} &  
+\bra{\Phi_{24}}H_0\ket{\Phi_{24}} + \bra{\Phi_{34}}V\ket{\Phi_{24}} \\
+\end{bmatrix}
+  \label{validationDiagonalizationoftheHarmonicOscillator}
+\end{equation*}
+%
+Where the Slater determinant is defined as
+\begin{equation}
+\ket{\Phi_{ab}} \equiv \frac{1}{\sqrt{2}}\left(\ket{ab}-\ket{ba}\right)
+  \label{slater}
+\end{equation}
+%
+Then we get
+\begin{align*}
+\mathbf{H} & \approx \begin{bmatrix}
+2 + \bra{02}v\ket{02}_{\text{AS}} & 
+    \bra{02}v\ket{04}_{\text{AS}} &  
+    \bra{02}v\ket{24}_{\text{AS}} \\
+    \bra{04}v\ket{02}_{\text{AS}} & 
+4 + \bra{04}v\ket{04}_{\text{AS}} &  
+    \bra{04}v\ket{24}_{\text{AS}} \\
+    \bra{24}v\ket{02}_{\text{AS}} & 
+    \bra{24}v\ket{04}_{\text{AS}} &  
+4 + \bra{24}v\ket{24}_{\text{AS}} \\
+\end{bmatrix}\\
+&= \begin{bmatrix}
+    3.6260   &      0    &     0 \\
+         0  &  3.6264     &    0 \\
+         0   &      0   & 4.6260 \\
+\end{bmatrix}\\
+  \label{validationDiagonalizationoftheHarmonicOscillator}
+\end{align*}
+%
+Which is what we get when we diagonalize for $M_s=0$ in polar basis. The case $M_s=1$ is excatly the same, and for 
+the $Ms = 0$ we get the eigvalues 
+
+\begin{align*}
+E_0 &= 3.1523 \qquad E_1 = 3.6260 \qquad E_2 = 3.6264 \\
+E_3 &= 4.2533 \qquad E_4 = 4.2533 \qquad E_5 = 4.6267 \\
+E_6 &= 4.8617 \qquad E_7 = 4.8617 \qquad E_8 = 5.1976 
+\end{align*}
+
+Which is the same as for the polar basis. 
+
+\chapter{Results}
+\begin{quote}
+{\it "I've very often made mistakes in my physics by thinking the theory isn't as good as it really is, thinking that there are lots of complications that are going to spoil it - an attitude that anything can happen, in spite of what you're pretty sure should happen." (From ``Surely you're joking Mr. Feynman'') }
+\\ 
+\mbox{R. P. Feynman}
+\end{quote}
+
+\section*{Optimazation results}
+We have done the following runs for the optimized code and compared to the code from \cite{lohne}
+
+\begin{table}[H]
+\centering 
+\begin{tabular}{cccc}
+\toprule
+Run case & Regular code time [s] & Optimized code time [s] & Improvement [\%]\\
+\midrule 
+$nh=2$,\, $R = 10$ & 1897 & 4 & 4,75E+4 \\
+$nh=6$,\, $R = 7$  & 1595 & 3 & 5,32E+4 \\
+$nh=6$,\, $R = 8$  & 4331 & 6 & 7,22E+4\\
+$nh=6$,\, $R = 9$  & 9697 & 11 & 8,82E+4 \\
+$nh=6$,\, $R = 10$  & 21356  & 20 & 10,68E+4  \\
+$nh=12$,\, $R = 7$  & 11775 & 23 & 5,12E+4 \\
+$nh=12$,\, $R = 8$  & 30834 & 52 & 5,93E+4 \\
+\bottomrule
+\end{tabular}
+\caption{Here the $R$ is defined as the major oscillator shells, see section \ref{parabolic quantum dot}. We have turned on the OpenMP in the optimized code and compared with the regular code from \cite{lohne}. But most of the improvement was due to the fact that we changed from Blitz++ to pointer matrices. We have on average improved the code by a 500 times speed up! And it improves with number of particles.}
+\end{table}
+
+\clearpage
+\subsection*{Benchmark results for $L_x = 0$ and $\omega = 1$}
+We want to test the code for the parabolic harmonic oscillator potential case and see if we get the same results as in \cite{lohne}
+\begin{table}[H]
+\centering 
+\begin{tabular}{cccc|cccc}
+\toprule
+\multicolumn{4}{c|}{$nh=2$} & \multicolumn{4}{c}{$nh=6$} \\
+$R_m$ & $R$ & $HF$ & $CCSD$ & $R_m$ & $R$ & $HF$ & $CCSD$\\
+\midrule 
+2 & 3	  & 3.253314	  &  3.152329 & 2 & 3  &  22.219813 &  22.219813  \\
+4 & 10	  & 3.162691	  &  3.025231 & 4 & 10 &  20.766919 &  20.421321  \\
+6 & 21	  & 3.161921	  &  3.013626 & 6 & 21 &  20.720257 &  20.260893 \\
+8 & 36	  & 3.161909	  &  3.009236 & 8 & 36 &  20.719248 &  20.221750  \\
+10 &55	  & 3.161908      &  3.006938 & 10& 55 &  20.719217 &  20.204344  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for holes states $nh=2$ and $nh=6$ in a circular quantum dot using a standard Coulomb interaction for $L_x=0$. The interaction elements are obtained from a cartesian basis transformation, section \ref{sec:cartesian basis transform}. HF is the Hartree- Fock energy and CCSD is the coupled-cluster energy Eq.~(\ref{Vabs}). $R_m$ is the total number of subshells while $R_m$ stands for the number of major oscillator shells Fig. \ref{fig:shellnumber}}
+\label{table:benchmark}
+\end{table}
+
+\begin{table}[H]
+\centering 
+\begin{tabular}{cccc|cccc}
+\toprule
+\multicolumn{4}{c|}{$nh=2$} & \multicolumn{4}{c}{$nh=6$} \\
+$R_m$ & $R$ & $HF$ & $CCSD$ & $R_m$ & $R$ & $HF$ & $CCSD$\\
+\midrule 
+2 & 3	  & 3.253314	  &  3.152329 & 2 & 3  &  22.212981 &  22.219813  \\
+4 & 10	  & 3.162691	  &  3.025232 & 4 & 10 &  20.766419 &  20.421325  \\
+6 & 21	  & 3.161921	  &  3.013627 & 6 & 21 &  20.720157 &  20.260893  \\
+8 & 36	  & 3.161909	  &  3.009237 & 8 & 36 &  20.719248 &  20.221750  \\
+10 &55	  & 3.161909      &  3.006938 & 10& 55 &  20.719217 &  20.204345  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for holes states $nh=2$ and $nh=6$ in a double quantum dot. These results are taken from \cite{lohne} for us to compare with. As we can see they are almost identical with Table~\ref{table:benchmark}}
+\label{table:benchmark2}
+\end{table}
+%
+We shall define a new shell structure, each subshell consist of quantum numbers $n_x'$ and $n_y'$ and they can be occupied with at most 2 electrons. In the special case where we dont have any perturbation in the middle $L_x=0$ or $V_0=0$, some subshells are part of the major oscillator shells which we have discussed in section \ref{parabolic quantum dot}. The relations are
+%
+\begin{equation}
+R = \frac{R_m(R_m+1)}{2}.
+\label{RmvsR}
+\end{equation}
+%
+We define the total number of single-particle states in our basis as
+\begin{equation}
+  nh+np = 2R,
+  \label{spenergyR}
+\end{equation}
+%
+$nh$ are number of hole states and $np$ are number of particle states in our model.
+\begin{table}[H]
+\small
+\centering 
+\begin{tabular}{cccrc|cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$ & $p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 1 & 55 & 0 & 6 &  1 & 7   \\
+1  & 0 & 0 &  1 & 1 & 56 & 7 & 0 & -1 & 8   \\
+2  & 1 & 0 & -1 & 2 & 57 & 7 & 0 &  1 & 8   \\
+3  & 1 & 0 &  1 & 2 & 58 & 6 & 1 & -1 & 8   \\
+4  & 0 & 1 & -1 & 2 & 59 & 6 & 1 &  1 & 8   \\
+5  & 0 & 1 &  1 & 2 & 60 & 5 & 2 & -1 & 8   \\ 
+6  & 2 & 0 & -1 & 3 & 61 & 5 & 2 &  1 & 8   \\
+7  & 2 & 0 &  1 & 3 & 62 & 4 & 3 & -1 & 8   \\
+8  & 1 & 1 & -1 & 3 & 63 & 4 & 3 &  1 & 8   \\
+9  & 1 & 1 &  1 & 3 & 64 & 3 & 4 & -1 & 8   \\
+10 & 0 & 2 & -1 & 3 & 65 & 3 & 4 &  1 & 8   \\
+11 & 0 & 2 &  1 & 3 & 66 & 2 & 5 & -1 & 8   \\
+12 & 3 & 0 & -1 & 4 & 67 & 2 & 5 &  1 & 8   \\
+13 & 3 & 0 &  1 & 4 & 68 & 1 & 6 & -1 & 8   \\ 
+14 & 2 & 1 & -1 & 4 & 69 & 1 & 6 &  1 & 8   \\
+15 & 2 & 1 &  1 & 4 & 70 & 0 & 7 & -1 & 8   \\
+16 & 1 & 2 & -1 & 4 & 71 & 0 & 7 &  1 & 8   \\
+17 & 1 & 2 &  1 & 4 & 72 & 8 & 0 & -1 & 9   \\
+18 & 0 & 3 & -1 & 4 & 73 & 8 & 0 &  1 & 9   \\
+19 & 0 & 3 &  1 & 4 & 74 & 7 & 1 & -1 & 9   \\
+20 & 4 & 0 & -1 & 5 & 75 & 7 & 1 &  1 & 9   \\
+21 & 4 & 0 &  1 & 5 & 76 & 6 & 2 & -1 & 9   \\
+22 & 3 & 1 & -1 & 5 & 77 & 6 & 2 &  1 & 9   \\
+23 & 3 & 1 &  1 & 5 & 78 & 5 & 3 & -1 & 9   \\
+24 & 2 & 2 & -1 & 5 & 79 & 5 & 3 &  1 & 9   \\
+25 & 2 & 2 &  1 & 5 & 80 & 4 & 4 & -1 & 9   \\ 
+26 & 1 & 3 & -1 & 5 & 81 & 4 & 4 &  1 & 9   \\
+27 & 1 & 3 &  1 & 5 & 82 & 3 & 5 & -1 &	9   \\
+28 & 0 & 4 & -1 & 5 & 83 & 3 & 5 &  1 & 9   \\
+29 & 0 & 4 &  1 & 5 & 84 & 2 & 6 & -1 & 9   \\
+30 & 5 & 0 & -1 & 6 & 85 & 2 & 6 &  1 & 9   \\
+31 & 5 & 0 &  1 & 6 & 86 & 1 & 7 & -1 & 9   \\
+32 & 4 & 1 & -1 & 6 & 87 & 1 & 7 &  1 & 9   \\
+33 & 4 & 1 &  1 & 6 & 88 & 0 & 8 & -1 & 9   \\ 
+34 & 3 & 2 & -1 & 6 & 89 & 0 & 8 &  1 & 9   \\
+35 & 3 & 2 &  1 & 6 & 90 & 9 & 0 & -1 & 10  \\
+36 & 2 & 3 & -1 & 6 & 91 & 9 & 0 &  1 & 10  \\
+37 & 2 & 3 &  1 & 6 & 92 & 8 & 1 & -1 & 10  \\
+38 & 1 & 4 & -1 & 6 & 93 & 8 & 1 &  1 & 10  \\
+39 & 1 & 4 &  1 & 6 & 94 & 7 & 2 & -1 & 10  \\
+40 & 0 & 5 & -1 & 6 & 95 & 7 & 2 &  1 & 10  \\
+41 & 0 & 5 &  1 & 6 & 96 & 6 & 3 & -1 & 10  \\
+42 & 6 & 0 & -1 & 7 & 97 & 6 & 3 &  1 & 10  \\
+43 & 6 & 0 &  1 & 7 & 98 & 5 & 4 & -1 & 10  \\
+44 & 5 & 1 & -1 & 7 & 99 & 5 & 4 &  1 & 10  \\
+45 & 5 & 1 &  1 & 7 &100 & 4 & 5 & -1 & 10  \\
+46 & 4 & 2 & -1 & 7 &101 & 4 & 5 &  1 & 10  \\
+47 & 4 & 2 &  1 & 7 &102 & 3 & 6 & -1 & 10  \\
+48 & 3 & 3 & -1 & 7 &103 & 3 & 6 &  1 & 10  \\
+49 & 3 & 3 &  1 & 7 &104 & 2 & 7 & -1 & 10  \\
+50 & 2 & 4 & -1 & 7 &105 & 2 & 7 &  1 & 10  \\
+51 & 2 & 4 &  1 & 7 &106 & 1 & 8 & -1 & 10  \\
+52 & 1 & 5 & -1 & 7 &107 & 1 & 8 &  1 & 10  \\
+53 & 1 & 5 &  1 & 7 &108 & 0 & 9 & -1 & 10  \\
+54 & 0 & 6 & -1 & 7 &109 & 0 & 9 &  1 & 10  \\
+\hline
+\end{tabular}
+\caption{$L_x=0$,\, $\omega=1.0$, here we have defined $m_s' = 2m_s$, and $m_s=\pm1/2$. $E$ are the energy eigenvalues for the singel-particles.}
+\label{table:L0}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{nh=2_w=1_Lx=0} & \includegraphics[width=3in]{nh=6_w=1_Lx=0}\end{array}$
+\caption{CCSD and HF energy as function of major oscillator shells $R_m$ for the 2- and 6-electron system with $L_x=0$,  $\omega=1$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:L=0 results}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{1D_Lx=0_0} & \includegraphics[width=3in]{1D_Lx=0_1} \\ \includegraphics[width=3in]{1D_Lx=0_2} & \includegraphics[width=3in]{1D_Lx=0_3}
+\end{array}$
+\caption{The probability density of the four lowest eigenvalues for $L_x = 0$, $\omega = 1$ and $V(x,0)$.}
+\label{fig:wf_L=0_1D}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{2D_Lx=0_0} & \includegraphics[width=3in]{2D_Lx=0_1} \\ \includegraphics[width=3in]{2D_Lx=0_2} & \includegraphics[width=3in]{2D_Lx=0_3}
+\end{array}$
+\caption{The probability density of the four lowest eigenvalues for $L_x = 0$, $\omega = 1$ and $V(x,y)$. The energy $E$ is given in units of $[\hbar\omega]$}
+\label{wf_L=0_2D}
+\end{figure}
+
+\clearpage
+\section*{Standard Interaction for $L_x=2.5 \,,\, \omega=0.8$}
+
+\begin{table}[h!]
+\small
+\centering 
+\begin{tabular}{cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 0.9977\\
+1  & 0 & 0 &  1 & 0.9977\\
+2  & 1 & 0 & -1 & 1.0025\\
+3  & 1 & 0 &  1 & 1.0025\\
+4  & 2 & 0 & -1 & 1.9662\\
+5  & 2 & 0 &  1 & 1.9662\\ 
+6  & 0 & 1 & -1 & 1.9970\\
+7  & 0 & 1 &  1 & 1.9970\\
+8  & 1 & 1 & -1 & 2.0025\\
+9  & 1 & 1 &  1 & 2.0025\\
+10 & 3 & 0 & -1 & 2.0245\\
+11 & 3 & 0 &  1 & 2.0245\\
+12 & 4 & 0 & -1 & 2.8722\\
+13 & 4 & 0 &  1 & 2.8722\\ 
+14 & 2 & 1 & -1 & 2.9662\\
+15 & 2 & 1 &  1 & 2.9662\\
+16 & 0 & 2 & -1 & 2.9970\\
+17 & 0 & 2 &  1 & 2.9970\\
+18 & 1 & 2 & -1 & 3.0025\\
+19 & 1 & 2 &  1 & 3.0025\\
+20 & 3 & 1 & -1 & 3.0245\\
+21 & 3 & 1 &  1 & 3.0245\\
+22 & 5 & 0 & -1 & 3.8722\\
+23 & 5 & 0 &  1 & 3.8722\\
+\hline
+\end{tabular}
+\caption{single-particle states for $L_x=2.5$, $E$ is the energy eigenvalues and $m_s' = 2m_s$, where $m_s = \pm 1/2$ }
+\label{table:L2.5}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\input{w=0_8_Lx=2_5_R=12_map}
+\caption{Shellstructure for $L_x=2.5$}
+\label{fig:L2.5map}
+\end{figure}
+
+% \begin{figure}[H]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=2_w=0_8_Lx=2_5_R=1-10.eps}}
+% \caption{Hartree Fock and Coupled Cluster energy for $w=0.8, \, L_x=2.5$}
+% \end{figure}
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{cccl|cccl}
+\toprule
+\multicolumn{4}{c|}{$nh=2$} & \multicolumn{4}{c}{$nh=4$} \\
+$R$ & $nh+np$ & $HF$ & $CCSD$ & $R$ & $nh+np$ & $HF$ & $CCSD$ \\
+\midrule 
+1 & 2	  & 2.8476	  &  2.8466    &1 & 2	  & -		  &  -   	\\
+2 & 4	  & 2.8466	  &  2.7185    &2 & 4	  & 9.5711	  &  9.5719     \\
+3 & 6	  & 2.8337	  &  2.6566    &3 & 6	  & 9.5125	  &  9.6027  	\\
+4 & 8	  & 2.8337	  &  2.6608    &4 & 8	  & 9.5125	  &  9.9226   	\\
+5 & 10	  & 2.8337	  &  2.6407    &5 & 10	  & 9.5125	  &  not conv.  \\
+6 & 12	  & 2.8337	  &  2.6376    &6 & 12	  & 9.3498	  &  not conv.  \\  
+7 & 14	  & 2.8337	  &  2.6373    &7 & 14	  & 9.3498	  &  not conv.  \\
+8 & 16	  & 2.7477	  &  2.5870    &8 & 16	  & 9.0801	  &  not conv.  \\
+9 & 18	  & 2.6978        &  2.5199    &9 & 18	  & 8.8066        &  8.3057  	\\
+10 &20	  & 2.6978        &  not conv. &10 &20	  & 8.6306        &  8.1228  	\\
+11 &22	  & 2.6978        &  not conv. &11 &22	  & 8.6306        &  8.1119  	\\
+12 &24	  & 2.6978        &  not conv. &12 &24	  & 8.6306        &  8.1095  	\\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for hole states $nh=2$ in a double quantum dot using a standard Coulomb interaction for $L_x=2.5$, $\omega=0.8$, where $nh+np$ are the number of holes plus particles in our system.}
+\label{table:w=0.8_L=2.5}
+\end{table}
+
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{nh=2_w=0_8_Lx=2_5} & \includegraphics[width=3in]{nh=4_w=0_8_Lx=2_5}\end{array}$
+\caption{CCSD and HF energy as function of subshells $R$ for the 2- and 4-electron system with $L_x=2.5$,  $\omega=0.8$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:L=2_5 w=0_8 results}
+\end{figure}
+
+
+
+
+\clearpage
+\section*{Standard Interaction for $L_x=2.5 \,,\, \omega=1$}
+
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{cccl|cccl}
+\toprule
+\multicolumn{4}{c|}{$nh=2$} & \multicolumn{4}{c}{$nh=4$} \\
+$R$ & $nh+np$ & $HF$ & $CCSD$ & $R$ & $nh+np$ & $HF$ & $CCSD$ \\
+\midrule 
+1 & 2	  & 3.3932    &  3.3931   & 1 & 2	  &	 -	  &  -  	\\
+2 & 4	  & 3.3931    &  3.2508   & 2 & 4	  & 11.1229	  &  11.1229  	\\ 
+3 & 6	  & 3.3808    &  3.1865*  & 3 & 6	  & 11.0769	  &  not conv.  \\
+4 & 8	  & 3.3808    &  3.1893*  & 4 & 8	  & 11.0769	  &  not conv.  \\
+5 & 10	  & 3.3808    &  3.1634*  & 5 & 10	  & 11.0769	  &  not conv.  \\
+6 & 12	  & 3.3808    &  3.1633*  & 6 & 12	  & 10.9337	  &  not conv.  \\  
+7 & 14	  & 3.3808    &  3.1637*  & 7 & 14	  & 10.9337	  &  not conv.  \\
+8 & 16	  & 3.2918    &  3.1119*  & 8 & 16	  & 10.6236	  &  not conv.  \\
+9 & 18	  & 3.2400    &  3.0716*  & 9 & 18	  & 10.3394       &  not conv.  \\
+10 &20	  & 3.2400    &  3.0715*  & 10 &20	  & 10.1495       &  not conv.  \\
+11 &22	  & 3.2400    &  not conv.& 11 &22	  & 10.1495       &  not conv.  \\
+12 &24	  & 3.2400    &  not conv.& 12 &24	  & 10.1495       &  not conv.  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for $nh=2$ in a double quantum dot using a standard Coulomb interaction for $L_x=2.5$, $\omega=1$. I have marked the CCSD energies with (*) where I have extrapolated due to poor convergence.}
+\label{table:w=1_L=2.5}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3.2in]{nh=2_w=1_Lx=2_5} & \includegraphics[width=3.2in]{nh=4_w=1_Lx=2_5}\end{array}$
+\caption{CCSD and HF energy as function of subshells $R$ for the 2- and 4-electron system with $L_x=2.5$,  $\omega=1$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:L=2_5 w=1 results}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.7in]{1D_Lx=2_5_0} & \includegraphics[width=2.7in]{1D_Lx=2_5_1} \\ \includegraphics[width=2.7in]{1D_Lx=2_5_2} & \includegraphics[width=2.7in]{1D_Lx=2_5_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $L_x = 2.5$, $\omega = 1$ and $V(x,0)$.}
+\label{fig:wf_Lx=2_5_1D}
+\end{figure}
+
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{2D_Lx=2_5_0} & \includegraphics[width=2.5in]{2D_Lx=2_5_1} \\ \includegraphics[width=2.5in]{2D_Lx=2_5_2} & \includegraphics[width=2.5in]{2D_Lx=2_5_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $L_x = 2.5$, $\omega = 1$ and $V(x,0)$.}
+\label{fig:wf_Lx=2_5_2D}
+\end{figure}
+
+\newpage
+\section*{Standard Interaction for $V_0=8 \,,\, \omega=1$}
+
+\begin{table}[h!]
+\small
+\centering 
+\begin{tabular}{cccrc|cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$ & $p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 4.5510 & 20 & 0 & 3 & -1 & 7.5506\\ 
+1  & 0 & 0 &  1 & 4.5510 & 21 & 0 & 3 &  1 & 7.5506\\
+2  & 1 & 0 & -1 & 4.5536 & 22 & 1 & 3 & -1 & 7.5532\\
+3  & 1 & 0 &  1 & 4.5536 & 23 & 1 & 3 &  1 & 7.5532\\
+4  & 0 & 1 & -1 & 5.5510 & 24 & 4 & 0 & -1 & 7.8936\\
+5  & 0 & 1 &  1 & 5.5510 & 25 & 4 & 0 &  1 & 7.8936\\
+6  & 1 & 1 & -1 & 5.5536 & 26 & 5 & 0 & -1 & 8.1525\\
+7  & 1 & 1 &  1 & 5.5536 & 27 & 5 & 0 &  1 & 8.1525\\
+8  & 2 & 0 & -1 & 6.3731 & 28 & 2 & 2 & -1 & 8.3715\\
+9  & 2 & 0 &  1 & 6.3731 & 29 & 2 & 2 &  1 & 8.3715\\
+10 & 3 & 0 & -1 & 6.4135 & 30 & 3 & 2 & -1 & 8.3715\\
+11 & 3 & 0 &  1 & 6.4135 & 31 & 3 & 2 &  1 & 8.3715\\
+12 & 0 & 2 & -1 & 6.5510 & 32 & 0 & 4 & -1 & 8.4118\\
+13 & 0 & 2 &  1 & 6.5510 & 33 & 0 & 4 &  1 & 8.4118\\
+14 & 1 & 2 & -1 & 6.5536 & 34 & 1 & 4 & -1 & 8.5506\\
+15 & 1 & 2 &  1 & 6.5536 & 35 & 1 & 4 &  1 & 8.5506\\
+16 & 2 & 1 & -1 & 7.3731 & 36 & 4 & 1 & -1 & 8.8936\\
+17 & 2 & 1 &  1 & 7.3731 & 37 & 4 & 1 &  1 & 8.8936\\
+18 & 3 & 1 & -1 & 7.4135 & 38 & 5 & 1 & -1 & 9.1525\\
+19 & 3 & 1 &  1 & 7.4135 & 39 & 5 & 1 &  1 & 9.1525\\
+\hline
+\end{tabular}
+\caption{single-particle states for $V_0=8$, $\omega=1$. $E$ is the eigenvalues, and $m_s'$ is defined as $m_s' = 2m_s$, where $m_s=\pm1/2$.}
+\label{table:V8}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\input{V=8_map}
+\caption{Shellstructure for $V_0=8$, the levels are drawn with respect to Table~\ref{table:V8}}
+\label{fig:V8map}
+\end{figure}
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{cccl|cccl}
+\toprule
+\multicolumn{4}{c|}{$nh=4$} & \multicolumn{4}{c}{$nh=8$} \\
+$R$ & $nh+np$ & $HF$ & $CCSD$ & $R$ & $nh+np$ & $HF$ & $CCSD$ \\
+\midrule 
+2 & 4	  & 24.2844	  &  24.2844   & 2 & 4	  & -	  &  -  	      \\
+3 & 6	  & 24.2844	  &  24.2039   & 3 & 6	  & -	  &  -  	      \\
+4 & 8	  & 24.2844	  &  24.0921   & 4 & 8	  & 63.1758	  &  63.1758  \\
+5 & 10	  & 24.2662	  &  24.0452  & 5 & 10	  & 63.1757	  &  63.0789  \\
+6 & 12	  & 24.2661	  &  23.9688  & 6 & 12	  & 63.0706	  &  62.8668  \\  
+7 & 14	  & 23.9971	  &  23.6772  & 7 & 14	  & 62.6058	  &  62.4029  \\
+8 & 16	  & 23.8460	  &  23.4980  & 8 & 16	  & 62.3627	  &  62.1220  \\
+9 & 18	  & 23.8460       &  23.4950  & 9 & 18	  & 62.3066       &  61.9723  \\
+11 &22	  & 23.8460       &  23.4888  & 11 &22	  & 61.7437       &  61.8037  \\
+12 &24	  & 23.8460       &  23.4857  & 12 &24	  & 61.3687       &  61.2238  \\
+13 &26	  & 23.6929       &  23.3370  & 13 &26	  & 60.9041       &  60.8306  \\
+14 &28	  & 23.6074       &  23.2520  & 14 &28	  & 60.6206       &  59.9635  \\
+15 &30	  & 23.6074       &  23.2510  & 15 &30	  & 60.6206       &  59.9283  \\
+16 &32	  & 23.6074       &  23.2497  & 16 &32	  & 60.6200       &  59.8997  \\
+17 &34	  & 23.6074       &  23.2481  & 17 &34	  & 60.6012       &  59.8606  \\
+18 &36	  & 23.6067       &  23.2463  & 18 &36	  & 60.5834       &  59.8198  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for 4 and 8 electrons in a double quantum dot using a standard Coulomb interaction for $V_0=8$, $\omega=1$.}
+\label{table:w=1_V=8}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{nh=4_w=1_V=8} & \includegraphics[width=3in]{nh=8_w=1_V=8}\end{array}$
+\caption{CCSD and HF energy as function of subshells $R$ for the 4- and 8-electron system with $V_0=8$,  $\omega=1$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:V=8 w=1 results}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{1D_V=8_0} & \includegraphics[width=2.5in]{1D_V=8_1} \\ \includegraphics[width=2.5in]{1D_V=8_2} & \includegraphics[width=2.5in]{1D_V=8_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $V_0 = 8$, $\omega = 1$ and $V_G(\bar{x },0)$.}
+\label{fig:wf_V=8}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{2D_V=8_0} & \includegraphics[width=2.5in]{2D_V=8_1} \\ \includegraphics[width=2.5in]{2D_V=8_2} & \includegraphics[width=2.5in]{2D_V=8_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $V_0 = 8$, $\omega = 1$ and $V_G(\bar{x},\bar{y})$.}
+\end{figure}
+
+
+\clearpage
+\section*{Standard Interaction for $V_0=10.66 \,,\, \omega=1$}
+
+\begin{table}[h!]
+\small
+\centering 
+\begin{tabular}{cccrc|cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$ & $p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 4.9123 & 20 & 0 & 3 &  1 & 7.9123   \\
+1  & 0 & 0 &  1 & 4.9123 & 21 & 0 & 3 & -1 & 7.9123   \\
+2  & 1 & 0 & -1 & 4.9127 & 22 & 1 & 3 &  1 & 7.9126   \\
+3  & 1 & 0 &  1 & 4.9127 & 23 & 1 & 3 & -1 & 7.9126   \\
+4  & 0 & 1 & -1 & 5.9123 & 24 & 4 & 0 &  1 & 8.7184   \\
+5  & 0 & 1 &  1 & 5.9123 & 25 & 4 & 0 & -1 & 8.7184   \\ 
+6  & 1 & 1 & -1 & 5.9127 & 26 & 5 & 0 &  1 & 8.7628   \\
+7  & 1 & 1 &  1 & 5.9127 & 27 & 5 & 0 & -1 & 8.7628   \\
+8  & 2 & 0 & -1 & 6.9018 & 28 & 2 & 2 &  1 & 8.9018   \\
+9  & 2 & 0 &  1 & 6.9018 & 29 & 2 & 2 & -1 & 8.9018   \\
+10 & 3 & 0 & -1 & 6.9071 & 30 & 3 & 2 &  1 & 8.9071   \\
+11 & 3 & 0 &  1 & 6.9071 & 31 & 3 & 2 & -1 & 8.9071   \\
+12 & 0 & 2 & -1 & 6.9123 & 32 & 0 & 4 &  1 & 8.9123   \\
+13 & 0 & 2 &  1 & 6.9123 & 33 & 0 & 4 & -1 & 8.9123   \\ 
+14 & 1 & 2 & -1 & 6.9127 & 34 & 1 & 4 &  1 & 8.9127   \\
+15 & 1 & 2 &  1 & 6.9127 & 35 & 1 & 4 & -1 & 8.9127   \\
+16 & 2 & 1 & -1 & 7.9018 & 36 & 4 & 1 &  1 & 9.7184   \\
+17 & 2 & 1 &  1 & 7.9018 & 37 & 4 & 1 & -1 & 9.7184   \\
+18 & 3 & 1 & -1 & 7.9071 & 38 & 5 & 1 &  1 & 9.7628   \\
+19 & 3 & 1 &  1 & 7.9071 & 39 & 5 & 1 & -1 & 9.7628   \\
+\hline
+\end{tabular}
+\caption{Tabulated single-particle basis for $V_0 = 10.66,\,\omega=1.0$, here we have defined $m_s' = 2m_s$, and $m_s=\pm1/2$.}
+\label{table:V10.66}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\input{V=10_66_map}
+\caption{Shellstructure for $\omega=1,\,V_0=10.66$ with respect to the single particle energies in Table \ref{table:V10.66}}
+\label{fig:V10.66map}
+\end{figure}
+
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{cccl|cccl}
+\toprule
+\multicolumn{4}{c}{$nh=8$} & \multicolumn{4}{c}{$nh=4$}  \\
+$R$ & $nh+np$ & $HF$ & $CCSD$ & $R$ & $nh+np$ & $HF$ & $CCSD$ \\
+\midrule 
+2 & 4	  & 65.6857 	  &  65.6857   &  2 & 4	  & 25.6188 	  &  25.6188  \\ 
+4 & 8	  & 65.5764	  &  65.3979   &  4 & 8	  & 25.6188	  &  25.4430  \\
+6 & 12	  & 64.8985	  &  64.6806   &  6 & 12  & 25.5957	  &  25.3295  \\
+8 & 16	  & 63.9310	  &  63.4484   &  8 & 16  & 25.1959	  &  24.8764  \\
+12 & 24	  & 63.9310	  &  62.6858   &  12 & 24 & 25.1959	  &  24.8653  \\
+14 & 28	  & 63.2738	  &  62.6309   &  14 & 28 & 24.9871	  &  24.6589  \\  
+16 & 32	  & 63.2729       &  62.5532   &  16 & 32 & 24.9872       &  24.6569  \\
+18 & 36	  & 63.2372	  &  62.5532   &  18 & 36 & 24.9858	  &  24.6535  \\
+20 & 40	  & 62.8530       &  62.1496   &  20 & 40 & 24.9858       &  24.6511  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for $nh=4$ and $nh=8$ in a double quantum dot using a standard Coulomb interaction for $V_0=10.66$, $\omega=1$.}
+\label{table:w=1_V=10.66}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{nh=4_w=1_V=10_66} & \includegraphics[width=3in]{nh=8_w=1_V=10_66}\end{array}$
+\caption{CCSD and HF energy as function of subshells $R$ for the 4- and 8-electron system with $V_0=10.66$,  $\omega=1$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:V=10.66 w=1 results}
+\end{figure}
+
+
+\clearpage
+\section*{Standard Interaction for $V_0=20 \,,\, \omega=1$}
+
+\begin{table}[h!]
+\small
+\centering 
+\begin{tabular}{cccrc|cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$ & $p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 5.6822 & 16 & 0 & 3 & -1 & 8.6822\\
+1  & 0 & 0 &  1 & 5.6822 & 17 & 0 & 3 &  1 & 8.6822\\
+2  & 1 & 0 & -1 & 5.6822 & 18 & 1 & 3 & -1 & 8.6822\\
+3  & 1 & 0 &  1 & 5.6822 & 19 & 1 & 3 &  1 & 8.6822\\
+4  & 0 & 1 & -1 & 6.6822 & 20 & 2 & 1 & -1 & 8.9303\\ 
+5  & 0 & 1 &  1 & 6.6822 & 21 & 2 & 1 &  1 & 8.9303\\
+6  & 1 & 1 & -1 & 6.6822 & 22 & 3 & 1 & -1 & 8.9303\\
+7  & 1 & 1 &  1 & 6.6822 & 23 & 3 & 1 &  1 & 8.9303\\
+8  & 0 & 2 & -1 & 7.6822 & 24 & 0 & 4 & -1 & 9.6822\\
+9  & 0 & 2 &  1 & 7.6822 & 25 & 0 & 4 &  1 & 9.6822\\
+10 & 1 & 2 & -1 & 7.6822 & 26 & 1 & 4 & -1 & 9.6822\\
+11 & 1 & 2 &  1 & 7.6816 & 27 & 1 & 4 &  1 & 9.6816\\
+12 & 2 & 0 & -1 & 7.9303 & 28 & 2 & 2 & -1 & 9.9303\\
+13 & 2 & 0 &  1 & 7.9303 & 29 & 2 & 2 &  1 & 9.9303\\
+14 & 3 & 0 & -1 & 7.9303 & 30 & 3 & 2 & -1 & 9.9303\\
+15 & 3 & 0 &  1 & 7.9303 & 31 & 3 & 2 &  1 & 9.9303\\
+\hline
+\end{tabular}
+\caption{single-particle states for $V_0=8$, and $E$ is the eigenvalues, $m_s'=2m_s$ where $m_s$ is defined as $m_s=\pm1/2$.}
+\label{table:V20}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\input{V=20_map}
+\caption{Shellstructure for $V_0=20$, the levels are drawn with respect to Table~\ref{table:V20}}
+\label{fig:V20map}
+\end{figure}
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{cccl|cccl}
+\toprule
+\multicolumn{4}{c|}{$nh=4$} & \multicolumn{4}{c}{$nh=8$} \\
+$R$ & $nh+np$ & $HF$ & $CCSD$ & $R$ & $nh+np$ & $HF$ & $CCSD$ \\
+\midrule 
+2  & 4	  & 28.5229	  &  28.5229   & 2  & 4	  & -	  	  &  -  \\
+4  & 8	  & 28.5229	  &  28.3691   & 4  & 8	  & 71.2361	  &  71.2361  \\
+6  & 12	  & 28.1446	  &  27.9108   & 6  & 12  & 70.5689	  &  70.4711  \\  
+8  & 16	  & 28.1171	  &  27.8315   & 8  & 16  & 70.4506	  &  70.2593  \\
+10 & 20   & 28.1171	  &  27.8315   & 10 & 20  & 69.5845       &  69.2638  \\
+12 & 24	  & 28.1171       &  27.8256   & 12 & 24  & 69.5121       &  69.0910  \\
+14 & 28	  & 28.1153       &  27.8217   & 14 & 28  & 69.4645       &  68.9951  \\
+16 & 32	  & 28.1153       &  27.8204   & 16 & 32  & 69.4616       &  68.9481  \\
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for 4 and 8 electrons in a double quantum dot using a standard Coulomb interaction for $V_0=20$, $\omega=1$.}
+\label{table:w=1_V=20}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3.1in]{nh=4_w=1_V=20} & \includegraphics[width=3.1in]{nh=8_w=1_V=20}\end{array}$
+\caption{CCSD and HF energy as function of subshells $R$ for the 4-and 8-electron system with $V_0=20$,  $\omega=1$. The energy is measured in effective Hartrees ($E_H$)}
+\label{fig:V=20 w=1 results}
+\end{figure}
+
+\clearpage
+\section*{Potentials}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=5in]{VCpotentials} \\ \includegraphics[width=5in]{VGpotentials}\end{array}$
+\caption{The top figure is a plot of the potential Eq.~(\ref{Vabs}) for different $\omega$ values and $L_x=2.5$, while the bottom figure show the potential Eq.~(\ref{Vgauss}) for different $V_0$ values and $\omega=1$.}
+\label{fig:VC and VG potentials}
+\end{figure}
+
+
+\clearpage
+\section*{Standard Interaction for $V_0=10$, $\omega=1$, $a=1.449$, $\sigma=1$}
+We want to look at a special potential where the may have 6 electrons in the ground state, a triple quantum dot. 
+
+\begin{equation}
+  V_S = \frac{1}{2}\bar{\omega}\left[\bar{x}^2 + \bar{y}^2 \right] + V_0 \exp\left(-\frac{(\bar{x}-a)^2}{2\sigma}\right)+V_0 \exp\left(-\frac{(\bar{x}+a)^2}{2\sigma}\right)
+  \label{Vspecial}
+\end{equation}
+%
+Where we have set: $V_0=10$, $\omega=1$, $a=1.449$, $\sigma=1$.
+
+\begin{figure}[h!]
+\centering
+\scalebox{0.6}{\includegraphics{tripledot}}
+\caption{Plot of the potential Eq.~(\ref{Vspecial}) with $V_G(\bar{x},0)$ and $V_0=10$, $\omega=1$, $a=1.449$, $\sigma=1$.}
+\end{figure}
+
+\begin{table}[h!]
+\small
+\centering 
+\begin{tabular}{cccrc|cccrc}
+\hline
+$p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$ & $p$ & $n_x'$ & $n_y'$ & $m_s'$ & $E$\\
+\hline
+0  & 0 & 0 & -1 & 8.8186 & 20 & 0 & 3 &  1 & 10.8567   \\
+1  & 0 & 0 &  1 & 8.8186 & 21 & 0 & 3 & -1 & 10.8567   \\
+2  & 1 & 0 & -1 & 8.8397 & 22 & 1 & 3 &  1 & 11.1972   \\
+3  & 1 & 0 &  1 & 8.8397 & 23 & 1 & 3 & -1 & 11.1972   \\
+4  & 0 & 1 & -1 & 8.8504 & 24 & 4 & 0 &  1 & 11.7849   \\
+5  & 0 & 1 &  1 & 8.8504 & 25 & 4 & 0 & -1 & 11.7849   \\ 
+6  & 1 & 1 & -1 & 9.8186 & 26 & 5 & 0 &  1 & 11.8186   \\
+7  & 1 & 1 &  1 & 9.8186 & 27 & 5 & 0 & -1 & 11.8186   \\
+8  & 2 & 0 & -1 & 9.8397 & 28 & 2 & 2 &  1 & 11.8397   \\
+9  & 2 & 0 &  1 & 9.8397 & 29 & 2 & 2 & -1 & 11.8397   \\
+10 & 3 & 0 & -1 & 9.8504 & 30 & 3 & 2 &  1 & 11.8504   \\
+11 & 3 & 0 &  1 & 9.8504 & 31 & 3 & 2 & -1 & 11.8504   \\
+12 & 0 & 2 & -1 & 10.7849 & 32 & 0 & 4 &  1 & 11.8567   \\
+13 & 0 & 2 &  1 & 10.7849 & 33 & 0 & 4 & -1 & 11.8567   \\ 
+14 & 1 & 2 & -1 & 10.8186 & 34 & 1 & 4 &  1 & 12.1972   \\
+15 & 1 & 2 &  1 & 10.8186 & 35 & 1 & 4 & -1 & 12.1972   \\
+16 & 2 & 1 & -1 & 10.8397 & 36 & 4 & 1 &  1 & 12.2962   \\
+17 & 2 & 1 &  1 & 10.8397 & 37 & 4 & 1 & -1 & 12.2962   \\
+18 & 3 & 1 & -1 & 10.8504 & 38 & 5 & 1 &  1 & 12.7849   \\
+19 & 3 & 1 &  1 & 10.8504 & 39 & 5 & 1 & -1 & 12.7849   \\
+\hline
+\end{tabular}
+\caption{Tabulated single-particle basis for $V_0 = 10,\,\omega=1.0,\,a=1.449$, $E$ is the eigenvalues, and $m_s'$ is defined as $m_s=\pm1/2$.}
+\label{table:tripledot}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{1D_a=1_4_0} & \includegraphics[width=2.5in]{1D_a=1_4_1} \\ \includegraphics[width=2.5in]{1D_a=1_4_2} & \includegraphics[width=2.5in]{1D_a=1_4_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $V_0 = 10$, $\omega = 1$ and $a=1.449$ for the potential $V_S(\bar{x},0)$.}
+\label{fig:wf_V=8_1D}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{2D_a=1_4_0} & \includegraphics[width=2.5in]{2D_a=1_4_1} \\ \includegraphics[width=2.5in]{2D_a=1_4_2} & \includegraphics[width=2.5in]{2D_a=1_4_3}
+\end{array}$
+\caption{The probability density of the six lowest eigenstates for $V_0 = 10$, $\omega = 1$ and  $a=1.449$ for the potential $V_S(\bar{x},\bar{y})$.}
+\label{wf_V=8_2D}
+\end{figure}
+
+\begin{table}[h!]
+\centering 
+\begin{tabular}{ccl|ccl|ccl}
+\toprule
+\multicolumn{3}{c|}{$nh=2$} & \multicolumn{3}{c|}{$nh=4$} & \multicolumn{3}{c}{$nh=6$}\\
+$R$ & $nh+np$ & $CCSD$ & $R$ & $nh+np$ & $CCSD$ & $R$ & $nh+np$ & $CCSD$\\
+\midrule 
+2  & 4	  & 18.6711  & 2  & 4  & 41.5660  &  2 &  4 & -         \\
+4  & 8	  & 18.7212  & 4  & 8  & no conv. &  4 &  8 & 67.2539   \\  
+6  & 12	  & 18.6911  & 6  & 12 & no conv. &  6 & 12 & no conv.  \\
+8  & 16	  & 18.3337  & 8  & 16 & no conv. &  8 & 16 & no conv.  \\
+10 & 20	  & 22.8665  & 10 & 20 & no conv. & 10 & 20 & no conv.  \\
+14 & 28	  & 24.5351  & 14 & 28 & no conv. & 10 & 20 & no conv.  \\
+16 & 32	  & 18.4136  & 16 & 32 & no conv. & 16 & 32 & no conv.  \\
+20 & 40	  & 26.4021  & 20 & 40 & no conv. & 20 & 40 & no conv.  \\  
+\bottomrule
+\end{tabular}
+\caption{Ground-state energies for 2,4,6-electrons in a triple quantum dot using a standard Coulomb interaction for $V_0=10$, $\omega=1$, $a=1.449$. Here $nh+np$ are the total number of particles for a given $R$, Eq.~(\ref{spenergyR}). We have no convergence in most of the cases.}
+\label{table:special}
+\end{table}
+
+
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=2_w=1_V=20_R=1-16_std.eps}}
+% \caption{$w=1.0, \, V_0=20$}
+% \end{figure}
+
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{V=8_vs_V=10_66_vs_V=20.eps}}
+% \caption{The potential for $w=1.0, \, V_0=8$ and $V_0 = 10.66$}
+% \end{figure}
+% 
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=2_w=1_V=0-0_5_R=10_std.eps}}
+% \caption{$w=1.0$,$V_0 = 0$ to $V_0 = 0.5$}
+% \end{figure}
+% 
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=2_w=1_V=8-20_R=12_std.eps}}
+% \caption{$w=1.0$,$V_0 = 8$ to $V_0 = 20$}
+% \end{figure}
+% 
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=2_w=0_25-1_V=15_R=12_std.eps}}
+% \caption{$w=1.0$,$V_0 = 0$ to $V_0 = 0.5$}
+% \end{figure}
+% 
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=4_vs_8_w=0_25-1_V=15_R=12_std.eps}}
+% \caption{$w=1.0$,$V_0 = 0$ to $V_0 = 0.5$}
+% \end{figure}
+% 
+% \begin{figure}[h!]
+% \centering
+% \scalebox{0.7}{\includegraphics{nh=4_w=0_25-1_V=15_R=12_std.eps}}
+% \caption{$w=1.0$,$V_0 = 0$ to $V_0 = 0.5$}
+% \end{figure}
+
+\clearpage
+\section{General Analysis and Discussion}
+We start by considering the HF and CCSD results for 2-electron and 6-electron quantum dot in Tables \ref{table:benchmark} and \ref{table:benchmark2}, and observe that the differences are of the order 1E-6. This could be caused by the tolerence in the CCSD and HF calculation. I have used a tolerence of 1E-8 in my HF calculation and a tolerence of 1E-7 in the CCSD calculation. While I'm uncertain of what the tolerence of the CCSD and HF calculation are in \cite{lohne}. But overall the code for  the transformations of the interactions elements from a polar to a cartesian basis seem to work. 
+
+Next we consider the double quantum dot potential Eq.~(\ref{Vabs}), with $L_x=2.5$ and $\omega=1$, see Table \ref{table:w=1_L=2.5}. For the 2-electron system we see that the CCSD calculation have a poor convergence and does not converge at all for $R=11$ and $R=12$. If we look at the possibilites for placing two electron in the lowest single-particle states, Table \ref{table:L2.5} and Fig. \ref{fig:L2.5map}. In addition we have assumed that the subshells $R_1$ and $R_2$ are degenerate, but in reality they differ in the fourth decimal place.
+
+\begin{figure}[h!]
+\centering
+\input{electrons}
+\caption{Different SD for the single-particle basis in Table \ref{table:L2.5}. The blue spheres represent the electrons and the spin configurations of those are denoted beneath.}
+\label{fig:electrons}
+\end{figure}
+%
+The we get a total of six slater determinants for this system. A proper way of dealing with this is using a multireference coupled-cluster theory \cite{multiCCSD}. Which means that the ground state slater determinant are a linear combination of those six possibilites with a probability amplitude for each. Our calculation in Table \ref{table:w=1_L=2.5} for the 2-electron system are with the SD no. 3 in Fig. \ref{fig:electrons}. 
+The same problem applies to the HF energy as well. In the calculation in Table \ref{table:w=1_L=2.5} we are assuming that the ground-state slater determinant is no. 3 in Fig. \ref{fig:electrons}. But we have to take into account the other slater determinants as well which then gives us new coefficients for us to minimize. This is the multi-configurational Hartree-Fock method \cite{multiHF}. 
+
+For the 4-electron system we have only one possible slater determinant which have total spin 0, see Table \ref{table:w=1_L=2.5}. We have convergence for the HF energy after $R=10$. But there is no convergence for the CCSD energy at all. This is beacuse that we dont have a big enough harmonic oscillator basis due to the cusp of the absolute value, remember that our maximal $n_x$ is only 20. Together with the fact that we are using Newton's method when we search for the energy minimum in CCSD makes the calculation unstable. However, when we apply a lower $\omega$-value we see that the ground-state energy goes a down for HF-energy and the 4-electron system. This makes sense since an increased frequency $\omega$, means a steeper potential Fig. \ref{fig:VC and VG potentials}, which means that the electrons are pushed closer together, giving them more kinetic energy. We see this effect in the ciruclar quantum dot ($L_x=0$), see \cite{lohne} and \cite{lars}.
+
+The CCSD energies have good convergence for the potential Eq.~(\ref{Vgauss}) and we see that the ground-state energy increase with the hight of the gaussian $V_0$, see Tables \ref{table:w=1_V=8}, \ref{table:w=1_V=8} and \ref{table:w=1_V=20}. Comparing the HF energy with CCSD energy, we see that the difference does not change much after the energies have converged. This is what we expect since the HF-calculations take into account 1p-1h excitation, while the CCSD have the 2p-2h contribution in addition, this will lower the CCSD-energy compared to the HF-energy with a constant value. 
+%
+We have done an analysis of the ground state energies for a model space with $R=12$. We look at the 4- and 8-electron system with increasing $V_0$ for the gaussian potential Eq.~(\ref{Vgauss})
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=2.5in]{nh=4_Vgauss} & \includegraphics[width=2.5in]{nh=8_Vgauss} \\ \includegraphics[width=2.5in]{nh=4_Vgauss_delta} & \includegraphics[width=2.5in]{nh=8_Vgauss_delta}
+\end{array}$
+\caption{}
+\label{HFvsCCSD}
+\end{figure}
+%
+For the 8-electron system, the CCSD energy does not converge for $V_0=2.5$ to $V_0=5.5$. The explanation for this could be that the slater determinant in that range is wrong. The same problem we saw earlier that we may need a multireference calculation. If we look at the single-particle energies in Fig. \ref{fig:singleparticleenergies}, we see that the single particle states in the range  $V_0=2.5$ to $V_0=5.5$ is overlapping many other excited single-particle states. This is not the case with the 4-electron system. 
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{c}
+\includegraphics[width=5in]{single-particle_energies} 
+\end{array}$
+\caption{}
+\label{fig:singleparticleenergies}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+$\begin{array}{cc}
+\includegraphics[width=3in]{single-particle_hole_energies} & \includegraphics[width=3in]{correlation_energies} \\ 
+\end{array}$
+\caption{}
+\end{figure}
+%
+We define the correlation energy by 
+\begin{equation}
+   E_{corr} = E_{CCSD} - \sum_{ij} \bra{i} \hat{h} \ket{j}
+\end{equation}
+%
+The contribution to the energy that comes from the correlation energy falls off with increasing $V_0$. This is because when $V_0$ increases the tunneling barrier becomes bigger and the electrons will interact less with each other.
+%
+Finally we have looked at the triple quantum dot system. Which is essentially two gaussian functions in the harmonic oscillator well. We tried to adjust the parameters so that we had 6 possible single-orbital states in the ground-state, see Table \ref{table:tripledot}. Here we have the states $p=0$ and $p=1$ that are exactly degenerate, because of spin. But $p=1$ and $p=2$ are not excatly degenerate, they differ in the second decimal place. However $p=2$ and $p=3$ are degenerate because of spin. This makes it difficult to define a possible slater determinant, therefore we have tried to run the CCSD code with 2,4 and 6-electrons. And as we can see they do not converge at all, except for the 2-electron system that convergences poorly. The conclusion must be that the ground state slater we start off with is not the correct ones. The coupled-cluster calculation seem to be very dependent on how close the energy levels are together as we have seen in the case of 8-electrons in Fig. \label{HFvsCCSD}, when $V_0$ are between 2.5 and 5. It would have been interesting to see if we could tune those parameters so that the 6 states becomes even more degenerate. 
+
+\chapter{Conclusions}
+\begin{quote}
+\it
+"My interest in science is to simply find out about the world, and the more I find out the better it is, like, to find out.`` (From ''The pleasure of finding things out``)
+\end{quote}
+\begin{quote}
+R. P. Feynman
+\end{quote}
+
+We have developed a method for studying several interacting electrons in special confined in two-dimensional potential wells. In these type of quantum wells the electrons can tunnel to other excited states and in the litterature this system are dubbed two-dimensional double quantum dot systems. 
+This have never been done with an advanced many-body quantum theory like the CCSD. The model that we have considered was a circular quantum dot with a \emph{bump} in one of the dimensions, in the other dimension we still have the one-dimensional harmonic. The \emph{bump} could be a gaussian curve, or an absolute value. 
+One of the first goals was to find the single-particle eigenfunctions of those potentials and expand them in a harmonic oscillator basis. The reason we do this is because of the known two-particle interaction elements Simen Kvaal \ref{kvaalOpenFCI} developed in his phD thesis for the harmonic oscillator eigenfuntions. The next goal was to transformation his two-particle interaction elements from a polar basis to a cartesian basis representation. His code gives us effective interaction elements as well. We have implement this but not used it to produce our results. We have focused on the. But the effective interaction elements would give us a more precise energy. The main aim was not to give a precise description of our model but proove that our method of transformation and CCSD applied on these new interaction elements works. We have also developed a Restriced Hartree-Fock (RHF) program to check that the CCSD results is not totally wrong, since RHF gives a variational energy. 
+
+We have tried to limit to closed-shell systems. And considered ground-state slater determinants based on the lowest single-particle energies, but sometimes what a closed shell is very diffuse and unclear, like in the triple dot. But for a systems where the ground-state have a single welldefined slater determinants the CCSD calculations works. Other methods for solving the double have been cumbersome and the dimensionality quickly raises when we try to diagonalize it \ref{doubledot}. A VMC calculation for this system is possible, but then again, finding the Jastrow-factor would be a factor. We could instead use our CCSD method use the found ground-state energies as an input in a DMC calculation.    
+
+\section{Continuation of this thesis}
+The first improvement we could do is to do a HF-calculation, which gives us new single-particle states and two-particle interaction elements. This will give a better convergence for the CCSD code. Another improvement is to include the option of chosing the analytical coulomb interaction elements \ref{rontani}, when using standard interaction. This would speed up the part for generating the interaction elements. 
+
+We have used a simple difference method when finding the singleparticle eigenvectors and eigenvalues, but we could used a the better Richardson's deferred extrapolation method \ref{computerjensen}.
+
+
+
+\clearpage
+\begin{figure}
+\begin{quote}
+\it
+"There's beauty not just at the dimension of one centimeter; there's also a beauty at smaller dimensions."   
+\end{quote}
+\begin{quote}
+R. P. Feynman
+\end{quote}
+\end{figure}
+
+
+\appendix
+\chapter{Derivation of the Baker-Campbell-Hausdorff formula }
+\label{dix:derivation of baker-campbell-hausdorff}
+
+We will now derive the following relation:
+
+\begin{align}
+e^{-\lambda \hh{A}}\hh{B}e^{-\lambda\hh{A}} &= \hh{B} + \lambda \ql[\hh{B}, \hh{A}  \qr] + \frac{\lambda^2}{2!} \ql[\ql[\hh{B}, \hh{A}  \qr],\hh{A} \qr] + \frac{\lambda^3}{3!} \ql[ \ql[\ql[\hh{B}, \hh{A}  \qr],\hh{A} \qr],\hh{A} \qr] +...
+\nonumber \\
+&= \sum_{n=0}^{\infty} \frac{1}{n!} (\text{ad}(\hh{B}))^n \hh{A}, \qquad (\text{ad}(\hh{B}))^n \hh{A} = \ql[ \ql[\ql[\hh{B}..., \hh{A}  \qr],\hh{A} \qr],\hh{A} \qr]\,\,\,(\text{n times})
+\label{app:show this relation} 
+\end{align}
+%
+We define 
+
+\begin{equation}
+\hh{G}(\lambda) = e^{-\lambda \hh{A}}\hh{B}e^{\lambda \hh{A}}
+ \label{app:G(lambda)}
+\end{equation}
+%
+We want to do a Taylor series expansion with this function around $\lambda = 0$,
+
+\begin{equation}
+\hh{G}(\lambda) = \hh{G}(0) + \ql .\frac{d\hh{G}}{d\lambda} \qr|_{\lambda = 0} (\lambda-0) + \frac{1}{2!} \ql .\frac{d^2\hh{G}}{d^2\lambda} \qr|_{\lambda = 0} (\lambda-0)^2 + \frac{1}{3!} \ql .\frac{d^3\hh{G}}{d^3\lambda} \qr|_{\lambda = 0} (\lambda-0)^3 + ...
+ \label{app:Taylor expansion}
+\end{equation}
+%
+{\bf{0th order}}:
+\begin{equation}
+\hh{G}(0) = \hh{B} 
+ \label{app:0th order}
+\end{equation}
+%
+{\bf{1th order}}:
+\begin{equation}
+\ql.\frac{d\hh{G}}{d\lambda} \qr|_{\lambda = 0} = \ql[ -\hh{A}e^{-\lambda \hh{A}}\hh{B}e^{\lambda \hh{A}} + e^{-\lambda \hh{A}}\hh{B}e^{\lambda \hh{A}}\hh{A} \qr]_{\lambda = 0} = \ql[\hh{G}(0),\hh{A}\qr] = \ql[\hh{B},\hh{A}\qr] 
+ \label{app:1th order}
+\end{equation}
+%
+{\bf{2nd order}}:
+\begin{equation}
+\frac{d^2\hh{G}}{d^2\lambda} = \frac{d\hh{G}}{d\lambda} \ql[\hh{G},\hh{A}\qr] = \ql[ \frac{d\hh{G}}{d\lambda},\hh{A}\qr] =  
+\ql[ \ql[ \hh{G},\hh{A}\qr] ,\hh{A}\qr] \label{app:2th order} 
+\end{equation}
+%
+\begin{equation}
+\Rightarrow \ql.\frac{d^2\hh{G}}{d^2\lambda}\qr|_{\lambda=0} = \ql[ \ql[ \hh{B},\hh{A}\qr] ,\hh{A}\qr] \label{defapp:2th order 2} 
+\end{equation}
+%
+{\bf{3rd order}}:
+\begin{equation}
+\frac{d^3\hh{G}}{d^3\lambda} = \frac{d\hh{G}}{d\lambda} \ql[\ql[\hh{G},\hh{A}\qr],\hh{A}\qr] = \ql[\ql[\frac{d\hh{G}}{d\lambda} ,\hh{A}\qr],\hh{A}\qr] =  
+\ql[ \ql[ \ql[ \hh{G},\hh{A}\qr],\hh{A}\qr] ,\hh{A}\qr] \label{app:3th order} 
+\end{equation}
+%
+\begin{equation}
+\Rightarrow \ql.\frac{d^3\hh{G}}{d^3\lambda}\qr|_{\lambda=0} = \ql[ \ql[\ql[ \hh{B},\hh{A}\qr],\hh{A}\qr] ,\hh{A}\qr] \label{defapp:3th order 2} 
+\end{equation}
+%
+{\bf{n-th order}}:
+\begin{equation}
+\frac{d^n\hh{G}}{d^n\lambda} = \frac{d\hh{G}}{d\lambda} \underbrace{\ql[ \ql[\ql[\hh{G}..., \hh{A}  \qr],\hh{A} \qr],\hh{A} \qr]}_{\text{$(n-1)$ nested commutators}} =  \underbrace{\ql[ \ql[\ql[\hh{G}..., \hh{A}  \qr],\hh{A} \qr],\hh{A} \qr]}_{\text{$n$ nested commutators}} \nonumber 
+\end{equation}
+
+
+
+
+
+
+
+\bibliographystyle{plain}% sorting of plainnat A = Author, C = Where in the text its sorted
+\bibliography{minbib}
+
+
+\end{document}
+

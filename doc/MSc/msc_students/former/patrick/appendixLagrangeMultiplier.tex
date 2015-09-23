@@ -1,0 +1,75 @@
+\chapter{The method of Lagrange Multipliers}
+\label{sec:lagMultipliers}
+
+In mathematical optimization, the method of Lagrange multipliers (named after Joseph Louis Lagrange) provides a strategy for finding the stationnary points of a function (and among them maxima/minima if the derivative of the function is defined for those points) subject to some constraints~\cite{wiki:lagrange}.
+\subsection{General approach of the method}
+
+\begin{figure}
+\centering
+\begin{tabular}{cc}
+% \includegraphics[width=0.5\textwidth]{IMAGES/800px-LagrangeMultipliers3D.eps} &
+%\includegraphics[width=0.4\textwidth]{IMAGES/LagrangeMultipliers2D.eps}
+\includegraphics[width=0.5\textwidth]{IMAGES/800px-LagrangeMultipliers3D} &
+\includegraphics[width=0.4\textwidth]{IMAGES/LagrangeMultipliers2D}
+\end{tabular}
+ % 800px-LagrangeMultipliers3D.eps: 0x0 pixel, 300dpi, 0.00x0.00 cm, bb=0 0 800 520
+ \caption{Find $x$ and $y$ to maximize $f(x,y)$ subject to a constraint (shown in red) $g(x,y) = c$.}
+ \label{fig:ex3D}
+\end{figure}
+
+For example (see figure~\ref{fig:ex3D}), consider the following optimization problem:
+\begin{itemize}
+ \item maximize the \textbf{functional} $f(x,y)$
+\item subject to the \textbf{constraint} $g(x,y)=c$
+\end{itemize}
+
+
+We introduce a new variable ($\lambda$) called a Lagrange multiplier, and study the \textbf{Lagrange function} (or \textit{Lagrangian}) defined by
+\begin{equation}
+ \Lambda (x,y,\lambda) = f(x,y) - \lambda \left( g(x,y)-c \right)
+\end{equation} 
+
+
+If $(x,y)$ is a maximum for the original constrained problem, then there exists a $\lambda$ such that  $(x,y,\lambda)$ is a stationary point for the Lagrange function (stationary points are those points where the partial derivatives of $\Lambda$ are zero). However, not all stationary points yield a solution of the original problem. Thus, the method of Lagrange multipliers yields a necessary condition for optimality in constrained problems.
+
+\subsection{Example}
+
+Let's use the method for a simple example:
+
+Suppose you wish to maximize $f(x,y) = x + y$ subject to the constraint $x^2 + y^2 = 1$. The constraint is the unit circle as shown on figure~\ref{fig:exSimple}, and the level sets of $f$ are diagonal lines (with slope $-1$), so one can see graphically that the maximum occurs at ($\sqrt{2}/2$,$\sqrt{2}/2$) (and the minimum occurs at ($-\sqrt{2}/2$,$-\sqrt{2}/2$))
+
+Formally, we get from the constraint that $g(x,y)-c = x2+y2-1$, and the Lagrange function reads
+\begin{equation}
+    \Lambda(x,y,\lambda) = f(x,y)+\lambda(g(x,y)-c) = x+y+\lambda(x^2+y^2-1)
+\end{equation} 
+
+
+
+\begin{figure}
+ \centering
+%\includegraphics[width=0.5\textwidth]{IMAGES/Lagrange_very_simple.eps}
+ \includegraphics[width=0.5\textwidth]{IMAGES/Lagrange_very_simple}
+ % Lagrange_very_simple.eps: 685x597 pixel, 96dpi, 18.12x15.80 cm, bb=0 0 514 448
+ \caption{Illustration of the constrained optimization problem.}
+ \label{fig:exSimple}
+\end{figure}
+Set the derivative $\partial \Lambda = 0$, which yields the system of equations:
+\begin{equation}
+  \left\{
+      \begin{aligned}
+	\frac{\partial \Lambda}{\partial x} &= 1 + 2 \lambda x = 0, \qquad &&\text{(i)} \\
+	\frac{\partial \Lambda}{\partial y} &= 1 + 2 \lambda y = 0, \qquad &&\text{(ii)} \\
+	\frac{\partial \Lambda}{\partial \lambda} &= x^2 + y^2-1 = 0, \qquad &&\text{(iii)} \\
+      \end{aligned}
+    \right.
+\end{equation}
+
+
+As always, the $\partial \lambda$ equation is the original constraint.
+
+Combining the first two equations yields $x = y$ (explicitly, $\lambda \neq 0$, otherwise ($i$) yields $1 = 0$, so one has $x = -1 / (2\lambda) = y$).
+
+Substituting into ($iii$) yields $2x^2 = 1$, so $x=\pm \sqrt{2}/2$ and the stationary points are ($\sqrt{2}/2$,$\sqrt{2}/2$) and ($-\sqrt{2}/2$,$-\sqrt{2}/2$).
+Evaluating the objective function $f$ on these yields  $f(\sqrt{2}/2,\sqrt{2}/2)=\sqrt{2}$  and $f(-\sqrt{2}/2, -\sqrt{2}/2)=-\sqrt{2}$,
+
+thus the maximum is $\sqrt{2}$, which is attained at ($\sqrt{2}/2$,$\sqrt{2}/2$) and the minimum is $-\sqrt{2}$, which is attained at ($-\sqrt{2}/2$,$-\sqrt{2}/2$).

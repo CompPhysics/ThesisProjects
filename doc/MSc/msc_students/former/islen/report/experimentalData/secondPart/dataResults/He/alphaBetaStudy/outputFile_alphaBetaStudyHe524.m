@@ -1,0 +1,12 @@
+nsd           = 3;
+nel           = 2;
+potpar        = 2.00;
+nmc           = 10000000;
+nth           = 1000000;
+nvp           = 2;
+alpha = 2.3000;
+beta = 0.20000;
+percentAccept = 98.58;
+energy        =      -2.7332741;
+variance      =      0.99744313;
+error         =   0.00031582323;

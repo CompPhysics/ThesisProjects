@@ -1,0 +1,341 @@
+\newcommand{\br}{\mathbf r}
+\newcommand{\bA}{\mathbf A}
+\newcommand{\bj}{\mathbf j}
+\renewcommand{\t}[1]{\textrm{#1}}
+\chapter{Shell-model calculations}
+
+We have now seen how we have reduced the full two-particle Hamiltonian in the
+Hilbert space to a corresponding one in our model space. We now need to solve
+the real, symmetric $m\times m$ matrix eigenvalue equation
+\begin{align}
+	\he\ket{\phi_k} = E_k\ket{\phi_k},
+	\label{eq:Hm}
+\end{align}
+where $k = 1,\dots,m$.
+
+In most situations one is only interested in the states with the lowest energy,
+and their corresponding eigenvectors. Since the dimension of the configuration
+space often is quite large, we do not want to diagonalize the whole matrix.
+Most diagonalization methods, however, requires one to diagonalize the complete
+Hamiltonian.
+
+A diagonalization method that does not require one to diagonalize the whole
+matrix is the Lanczos method. We discuss this method in section 2, and in
+section 3 we will look at how we can find the $E2$ transition strength from the
+diagonalized matrix. First, however, we will look at the so-called m-scheme
+representation of the basis states we use.
+
+\section{m-scheme representation}
+
+The m-scheme representation of the basis states makes numerical calculations of
+the eigenvalue problem relatively easy. It involves grouping the basis states
+after the total spin projection $M$, instead of grouping them after the total
+spin $J$ and isospin projection $T_z$. I have taken much of the information
+here from \citep{HBmaster}.
+
+When we do this we ignore rotation symmetry in the coordinate- and isospin-
+space. This will make our Hamiltonian much larger. The Hamiltonian will,
+however, still have rotational symmetry, and commute with $J^2$ and $T_z$. This
+ensures that the eigenvalues will have good $J$ and $T_z$ values.
+
+We want to write the eigenstates of equation \ref{eq:Hm} as a linear
+combination of Slater determinants, which are given by
+\begin{align}
+	\ket{\textrm{SD}_\nu} = \prod_{jm\in\nu}a_{jm}^\dagger\ket c,
+	\label{SD}
+\end{align}
+where $\ket c$ is the reference vacuum state given by equation \ref{eq:core}.
+
+We get the full basis-set by distributing the nucleons we have in every
+possible way over our model space, with the restriction that the total angular
+momentum projection $M$ must be $0$ for even nuclei and $\frac12$ for odd nuclei. The
+number of states we have becomes very large for large model spaces. See table \ref{tab:dim} for the dimensions of the model spaces for the different nuclei.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+	\hline
+	& $^{14}$C & $^{15}$C & $^{15}$B & $^{16}$C \\
+	\hline
+	$0p\frac32-0d\frac32$ & $3.2\cdot10^6$ & & $2.0\cdot10^6$ & $7.4\cdot10^6$ \\
+	\hline
+	$0p\frac32-0f\frac72$ & $9.7\cdot10^6$ & $52.8\cdot10^6$ & $76.7\cdot10^6$ & $95.7\cdot10^6$ \\
+	\hline
+\end{tabular}
+\caption{Table over the dimensions of the model spaces for the different nuclei. The first coloumn lists the model spaces, while the first row lists the nuclei.}
+\label{tab:dim}
+\end{center}
+\end{table}
+
+
+The Slater determinants in the m-scheme can be expressed very efficiently
+numerically, requiring one integer? variable for each Slater determinant.
+Numerically a Slater determinant can be coded as
+\begin{align}
+	\ket{\textrm{SD}} \rightarrow (010011101000\dots),
+\end{align}
+where there is one digit (bit) for every available single particle state in our
+Slater determinant.
+
+The bits represent the occupancy of a state. Bit 1 indicates a state is
+occupied, and bit 0 indicates a state is unoccupied. The states are sorted
+first after spin projection $m$, then angular momentum $j$, then orbital spin l
+and last total spin n.
+
+I will illustrate this with an example. Table \ref{tab:m} shows the states we
+have in the $1s\frac12$ and $0d\frac32$ orbitals. The number $i$ represents
+which state we talk about, and is unique for each state. For $i = 2$ we look at
+the state with $j = \frac32$ and $m = -\frac12$. Equation \ref{eq:SD3} shows a
+configuration with three particles in the $1s\frac12$ and $0d\frac32$ orbitals.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+	\hline
+	i = & 1 & 2 & 3 & 4 & 5 & 6 \\
+	\hline
+	m = & $-\frac32$ & $-\frac12$ & $-\frac12$ & $\frac12$ & $\frac12$ & $\frac32$ \\
+	\hline
+	j = & $\frac32$ & $\frac32$ & $\frac12$ & $\frac12$ & $\frac32$ & $\frac32$ \\
+	\hline
+\end{tabular}
+\caption{Table showing the available states in the $1s\frac12$ and $0d\frac32$ orbitals. The number $i$ says which state we have.}
+\label{tab:m}
+\end{center}
+\end{table}
+
+\begin{align}
+	\ket{1s_{\frac12},0d_{\frac32}^2} &= a_{j=\frac32,m=\frac32}^\dagger a_{j=\frac32,m=-\frac12}^\dagger a_{j=\frac12,m=-\frac12}^\dagger\ket c\notag\\
+	&= a_2^\dagger a_3^\dagger a_6^\dagger\ket c
+	\label{eq:SD3}
+\end{align}
+
+The calculations used when we let the Hamiltonian operate on a state of this
+type are simple. Let us give an example of this. We write our Hamiltonian as
+\begin{align}
+	\he = \sum_{i=1}^d\epsilon_ia_i^\dagger a_i+\frac14\sum_{ijkl}^d\bra{ij}\ve\ket{kl}a_i^\dagger a_j^\dagger a_la_k.
+\end{align}
+where $d$ is the dimension of the Hamiltonian matrix.
+\\!Tror at det er $d$ istedenfor $A$. $d$ er det samme som $m$ i forklaringen
+til ligning \ref{eq:Hm}.!
+
+We look at the configuration $i=1$, $j=4$, $k=6$, $l=2$. We then get
+\begin{align}
+	a_1^\dagger a_4^\dagger a_2a_6(011001) &= - a_1^\dagger a_4^\dagger(001000)\notag \\
+	&=-(101100).
+\end{align}
+This illustrates the simplicity of calculations in the m-scheme representation.
+
+We have seen that the m-scheme representation will make computations with the
+Slater determinants relatively easy, the drawback being that our Hamiltonian
+matrix gets much larger. We will now go on to discuss how we will actually
+diagonalize our Hamiltonian with the Lanczos method.
+
+%In the m-scheme we represent the basis states by their total? angular momentum
+%quantum numbers $n$, $l$ and $j$, and their projection of the spin j on the
+%z-axis $m$. The quantum numbers $n$, $l$ and $j$ can be denoted by $k \equiv
+%(n,l,j)$. The single particle wavefunctions will then be labeled by $\alpha =
+%(km)$. Each value of $k$ stands for a unique set of $(n,l,j)$ and can, for a
+%given value of $n$, $l$ and $j$, be computed by: !Det her er naermest avskrift
+%av kap. 16 fra Alex Brown's ark. Boer skrives om.!
+%\begin{equation}
+%k = \frac12[(2n+l)(2n+l+3)-2j+3]
+%\end{equation}
+%
+%The advantage of the m-scheme is that calculations are easy and
+%straightforward. The disadvantage is that, since the m-scheme does not take
+%into account rotational symmetry, the dimension of the Hamiltonian matrix gets
+%very large.
+%
+%An alternative to the m-scheme is the J-scheme, where the basis states are
+%given by coupled angular spins $J$. In this scheme the rotational symmetry is
+%taken into account, and the dimension of the Hamiltonian matrix is heavily
+%reduced. However, The calculations are more complicated, involving
+%Clebsch-Gordan coefficients.
+
+\section{Lanczos' method}
+
+We will use the Lanczos method to diagonalize the effective two-particle
+Hamiltonian in the m-scheme basis. One of the main advantages of the Lanczos
+method is that we do not have to diagonalize the whole matrix. I will below
+outline this method. For more details see \citep{lanczo1}, and \citep{lanczo2}
+
+\begin{enumerate}
+
+\item One chooses an initial Lanczos' vector $\ket{lanc_0}$ as a 0th order
+approximation to the eigenvalue equation $H\ket{\psi_k} = E_k \ket{\psi_k}$,
+with $k = 1,\ldots, K$. $K$ is the size of of the $H_{eff}$ matrix. The initial
+Lanczos' vector should not have good angular momentum, as the iteration would
+then terminate too early.
+
+\item A new vector is generated by letting the Hamiltonian work on the Lanczos
+vector: $|new_{p+1}> = H |lanc_p>$, where $p$ goes from $0$ to $K-1$. The
+diagonal matrix elements of $H$ can now be found by
+
+\be
+\bra{lanc_p} H \ket{lanc_p} = \bra{lanc_p} \left . new_{p+1}\right\rangle.
+\label{lanc1}
+\ee
+
+\item We orthogonalize the Lanczos vectors by
+
+\be
+\ket{new_{p+1}^{'}} = \ket{new_{p+1}} - \ket{lanc_p} \cdot
+\bra{lanc_p} \left . new_{p+1} \right \rangle
+	- \sum_{q = 0}^{p-1} \ket{lanc_q} \cdot
+	\bra{lanc_q} \left . new_{p+1} \right \rangle,
+\ee
+and normalize it,
+\be
+\ket{lanc_{p+1}} = \frac{1}{\sqrt{\bra{new_{p+1}^{'}}
+					\left . new_{p+1}^{'} \right \rangle}}
+					\ket{new_{p+1}^{'}}.
+\ee
+This produces a new Lanczos' vector.
+
+\item The off-diagonal matrix elements of $H$ can now be calculated by
+
+\be
+\bra{lanc_{p+1}} H \ket{lanc_p} = \bra{new_{p+1}^{'}}
+								\left . new _{p+1}^{'}\right \rangle.
+\label{off1}
+\ee
+
+The other matrix elements are zero.
+
+\item After n iterations we will have a tri-diagonal matrix of the form
+
+\be
+H_n = 
+\left \{
+\begin{array}{ccccc}
+H_{0,0} & H_{0,1} & 0       & \cdots   & 0  \\
+H_{0,1} & H_{1,1} & H_{1,2} & \cdots   & 0  \\
+0       & H_{2,1} & H_{2,2} & \cdots   & 0  \\
+\vdots  & \vdots  & \vdots  & \vdots   & H_{p-1,p}  \\
+0       & 0       & 0       & H_{p,p-1}   & H_{p,p}\\
+\end{array}
+\right \}.
+\label{matr1}
+\ee
+
+\item This process is repeated until we have a convergence, that is $H_n
+\approx H_{n-1}$.
+
+\end{enumerate}
+
+A problem with the Lanczos method is that it uses a lot of data storage. When
+$m$ gets large, the size of each Lanczos' vector also increases. The storage
+capacity needed gets very large when the number of Lanczos' vectors increases
+beyond 100. However, to get a good convergence, we usually need a big number of
+Lanczos' vectors, as the Lanczos method has a slow rate of convergence.
+
+In our program we stop when we have reached a suitable convergence criteria for
+the angular momenta, or when we reach the maximum number of iterations
+specified at the start of the calculation. If we reach the iteration limit
+before we have a convergence, we then need to look at the angular momentum $J$
+from the program output. If the state we look at has a converged value for the
+angular momentum, then that state has converged. In the energy spectrum
+figures in chapter 4 I have only included those energy states that have a
+converged value for the angular momentum.
+
+The Lanzos method gives us, in addition to the energy for the excited states,
+also their eigenvectors. These eigenvectors can be used to find the
+electromagnetic transitions between the states.
+
+\section{Electromagnetic transitions}
+
+We will here show how to calculate the electromagnetic transitions. We will
+concentrate on the E2 transition for even nuclei.
+
+The electromagnetic transitions can be divided into electric and magnetic
+transitions, and are defined by the spherical harmonics $Y_\mu^L$. For $L = 2$
+both the E2 and the M2 transitions are possible, but they have differing
+parity. The electric transitions are much more probable than the magnetic
+transitions for equal values of $L$.
+
+The theory for electromagnetic transitions is based on Maxwell's equations for
+a propagating electromagnetic field.
+
+The interaction Hamiltonian is given as (see \citet{brussaard} for details)
+\begin{align}
+	H_{e.m.} = \frac1c\int\bj(\br,t)\bA(\br,t)d\br + \int\rho(\br,t)\phi(\br,t)d\br,
+\end{align}
+where $\bj(\br,t)$ represents the current density, and $\rho(\br,t)$ represents
+the charge density, of the nucleus. $\bA(\br,t)$ is a vector potential and
+$\phi(\br,t)$ is a scalar potential.
+
+The transverse gauge condition is
+\begin{align}
+	\nabla \bA(\br,t) = 0.
+	\label{Eq:tg}
+\end{align}
+%we can derive the vector Helmholtz equation
+%%Morse and Feshbach (1953)
+%\begin{align}
+%	\nabla^2\bA(q\br) + q^2\bA(q\br) = 0.
+%\end{align}
+%!Er usikker paa hva denne sier, og om den er viktig. Derfor boer jeg nok ikke
+%ta den med.!
+The transverse gauge condition reflects the fact that the photon only has two
+independent polarization states.
+
+The transition rate $T$, that is the transition probability per time, for a
+transition between an initial state i and final state f, is given as
+\citep{brussaard},
+\begin{align}
+	T(L) = \frac{8\pi(L+1)}{L[(2L+1)!!]^2}\frac{k^{2L+1}}{\hbar}B(L),
+\end{align}
+where B(L) is the "reduced transition probability" defined as
+\begin{align}
+	B(L) = \frac{|\bra{J_f}|\hat O(L)|\ket{J_i}|^2}{2J_i+1}.
+\end{align}
+Here the Wigner-Eckarts theorem has been used to define the reduced matrix
+element
+\begin{align}
+	\bra{njm}T_\mu^\lambda\ket{n'j'm'} = \bra{nj}|T^\lambda|\ket{n'j'}C_{\lambda\mu j'm'}^{jm},
+\end{align}
+where $C_{\lambda\mu j'm'}^{jm}$ is a Clebsch-Gordan coefficient.
+
+The initial and final states for systems where one photon is emitted, as is the
+case in our calculations, can be written as
+\begin{align}
+	\ket I = \ket{J_iM_i}
+\ket F = \ket{J_fM_f,1_{k,\alpha}},
+\end{align}
+where $1_{k,\alpha}$ is a one-photon state.
+
+The electromagnetic transition depends on the reduced matrix elements,
+\begin{align}
+	\bra F \hat O\ket I
+	\label{Eq:Hem}
+\end{align}
+where $\hat O$ is the sum of the electric and magnetic multipole operators
+\begin{align}
+	\hat O = \sum_{L,\mu}\left(\hat O(EL)_\mu + \hat O(ML)_\mu\right).
+\end{align}
+
+The electric transition operator \citep{brussaard} is given by
+\begin{align}
+	O(EL)_\mu = \sum_{k=1}^Ae(k)r^L(k)Y_\mu^L(\br),
+	\label{Eq:EO}
+\end{align}
+where $Y_\mu^L$ are the spherical harmonics and $e(k)$ is the electric charge
+for nucleon $k$. In our calculations the electric charge will be replaced by
+the effective electric charge, as the neutron, while neutral as a whole, feels
+an effective charge from the neutrons and protons in the closed core. The same
+is true for the proton. The value of the effective charges are adjusted to fit
+the experimental data.
+
+The reduced transition probability for E2 transitions can be written as
+\begin{align}
+	B(E2,L) = \frac{1}{2J_i+1}|\bra{J_f}|\sum_ke_kr_k^2Y^2(\theta_i\phi_i)|\ket{J_i}|^2.
+	\label{Eq:BE2}
+\end{align}
+
+The program finds the reduced matrix elements of \ref{Eq:BE2} by using the
+matrix elements that we found with the Lanczos method. It then uses these
+reduced matrix elements to find the transition probability for a given L.
+
+With this we have now briefly discussed the physics behind the program. We will
+in the next chapter go on to look at the results from our computations.

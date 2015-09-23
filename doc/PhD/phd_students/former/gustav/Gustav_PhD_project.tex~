@@ -1,0 +1,133 @@
+\documentclass[prl,superscriptaddress,preprint]{revtex4}
+\usepackage{graphicx,amsmath,amssymb,bm}
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\ba{\begin{eqnarray}}
+\def\ea{\end{eqnarray}}
+\def\bas{\begin{eqnarray*}}
+\def\eas{\end{eqnarray*}}
+
+
+\newcommand{\la}{\Lambda}
+\newcommand{\vlowk}{V_{{\rm low}\,k}}
+\newcommand{\fmi}{\, \text{fm}^{-1}}
+\newcommand{\mev}{\, \text{MeV}}
+\newcommand{\kev}{\, \text{keV}}
+\newcommand{\hw}{\hbar \omega}
+
+\begin{document}
+
+\title{Thesis project for PhD student Gustav Jansen: Spherical Coupled-Cluster theory for open-shell systems}
+
+\author{Gustav Ragnar Jansen, g.r.jansen@fys.uio.no}
+\affiliation{Department of Physics and Center of Mathematics for  
+Applications, University of Oslo, N-0316 Oslo, Norway}
+\author{Advisor I: Morten Hjorth-Jensen, mhjensen@fys.uio.no}
+\affiliation{Department of Physics and Center of Mathematics for  
+Applications, University of Oslo, N-0316 Oslo, Norway}
+\author{Advisor II: G.~Hagen, hageng@ornl.gov} 
+\affiliation{Physics Division, Oak Ridge National
+Laboratory, Oak Ridge, TN 37831, USA} 
+
+\maketitle
+
+
+{\bf Project summary:}
+In the last few years Coupled-Cluster theory has seen a revival in 
+the nuclear structure community. Up until recently Coupled-Cluster 
+theory was implemented in an uncoupled scheme (m-scheme). 
+Although simple in its form, the m-scheme representation puts
+constraints on the size of the model space
+and the number particles considered. Recently, Coupled-Cluster with Singles- and Doubles approximation (CCSD)
+was derived and implemented in a J-coupled scheme. Taking the spherical 
+symmetry of closed shell nuclei into account, and realizing that the
+Coupled-Cluster Singles- and Doubles similarity transformed
+Hamiltonian has at most two-body terms, an efficient spherical CCSD code was implemented. This 
+representation reduces the number of non-linear equations and  the computational cost dramatically, 
+allowing us to reach into the medium mass region of the nuclear
+chart. 
+%Due to the computational cost 
+%of the m-scheme representation, the interactions had to be softened by renormalization procedures in order
+%to achieve convergence within the model-spaces considered. 
+Within the spherical scheme, it is now 
+possible to reach convergence of medium mass nuclei starting from ``bare'' interactions. 
+Single-reference Coupled-Cluster theory works well for nuclei with closed shells such as $^4$He, $^{16}$O
+and $^{40}$Ca, see Ref.~[1]. Extending Coupled-Cluster theory to open-shell nuclei, with one or more particles outside
+a closed shell is a challenging problem and has been a topic of research for several years. There
+exist several, complementary, approaches to open-shell systems. The usual approaches are based on 
+multi-reference Coupled-Cluster theory, where the reference state is
+built from all possible configurations allowed by symmetry. In addition
+to the growth of numerical and mathematical complexity, these approaches often suffer from intruder
+states and in some cases the loss of size-extensivity. In extending
+Coupled-Cluster theory to open-shell system, one would ideally like to keep
+the simplicity of the single-reference Coupled-Cluster theory, and 
+consistently build upon the single-reference
+Coupled-Cluster theory for closed shell systems. Equation-of-Motion 
+Coupled-Cluster (EOM-CC) theory
+provides such a consistent framework. The basic idea behind EOM-CC is
+to construct the similarity transformed Hamiltonian from the
+Coupled-Cluster ground state solution, and then diagonalize it within
+a given sub-space of particle-hole excited reference states. This
+method can obtain both ground- and excited states of closed and
+open-shell nuclei. One-particle attached/removed EOM-CC has been the 
+most common method in order to solve for systems with A $\pm 1$
+particles outside a closed shell. For a given approximation at the
+Coupled-Cluster level, e.g. CCSD, there is a natural truncation of
+n-particle-m-hole excitations. For CCSD, there are only 1p (1h) and
+2p1h (2h1p) excited states, since any higher exciation can not connect
+to the similarity transformed Hamiltonian. There is also a natural
+extension to two-particles attached and removed EOM-CC, and in
+principle any number of particles can be added or removed. 
+
+In this PhD project we intend to derive and implement all diagrams for 
+two-particle attached/removed EOM-CC. At leading order this will
+include excitations of the type 2p (2h) and 3p-1h (3h-1p). It is clear 
+that the number of configurations will be large, and eventually become
+a memory issue 
+when increasing the system size (number of particles and
+model-space). At leading order we have $n_{o}n_{u}^3$ number
+of configurations where $n_{o}$ is the number of occupied and 
+$n_{u}$ the number of unoccupied orbitals. As a first step the
+equations will be implemented in m-scheme. This approach, does however
+slightly violate size-extensivity due to unlinked diagrams, it has
+been shown that this violation affects mostly the high lying
+spectrum. A method which restores size-extensivity and works for
+open-shell systems is the Fock-Space Multireference Coupled-Cluster
+theory by R. Bartlett and M. Musial [2]. We will study how well the 
+two-particle attached/removed EOM-CC approach performs by comparing 
+ground and excited states of $^6$He with exact
+diagonalization. Having assessed the quality of this approach, we
+intend to derive and implement a spherical particle attached/removed
+EOM-CC code. In this way we can target specific states of interest,
+and most importantly the dimensionality of the problem will decrease
+dramatically. Each diagram will be checked against the m-scheme code
+ensuring correct implementation and derivation. With this 
+fully operational a lot of interesting physics problems can be addressed.
+Ab-initio calculation of the whole oxygen chain ( $^{20-28}$O ) will
+be possible. It will be very useful for obtaining a
+microscopic understanding of pairing densities in nuclei. Further, it
+will allow for microscopic calculation of neutrino-less double-beta decay. 
+As a final application this approach will allow for the construction
+of an effective two-body interaction which can be input in shell-model
+approaches where particles move with respect to a closed core. 
+
+
+These topics will form the main part of the PhD thesis, providing thereby an unprecendented 
+level of many-body physics in the derivation of effective interactions for configuration interaction. In addition, the codes will be made flexible enough
+to be able to include studies of hypernuclei, partly studied in Gustav Jansen's Master thesis.
+Furthermore, this flexibility will allow for studies of atomic systems and quantum dots as well.
+
+The main issue of the thesis will deal with two-body interactions and equations at the level of 
+two-particle-two-hole correlations built from an $N$-particle Slater determinant. However, if time allows, the inclusion of triples and three-body interactions, is an important and actual topic.
+
+
+\begin{enumerate}
+\item G.~Hagen, T.~Papenbrock, D.~J.~Dean and M.~Hjorth-Jensen, Phys.~Rev.~Lett.~{\bf 101}, in press (2008).
+\item R.~J.~Bartlett and M.~Musial, Rev.~Mod.~Phys.~{\bf 79}, 291 (2007) and references therein.
+\end{enumerate}
+
+\end{document}
+
+
+

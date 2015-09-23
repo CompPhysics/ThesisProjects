@@ -1,0 +1,269 @@
+\chapter{Results}
+In this chapter we will verify that the implementation is correct by comparing with known analytical cases. The ground state energy of systems with the one and two filled harmonic oscillator 
+shells in both two and three dimensions are computed. 
+With one filled shell (the lowest shell)  this corresponds to a two-particle problem in two and three dimensions. With the two lowest shells filled, this corresponds to a six-electron problem in two dimensions and an eight-electron problem in three dimensions.
+The results are also applicable to quantum dots for weak magnetic fields because the energy splitting will cancel and the only difference in the energy is the shifted harmonic oscillator frequency. We will use atomic units \cite{book:Shankar} where $\hbar=e=4\pi\eps=1$ and drop the normalization factor since we only compute wave function ratios in the Metropolis algorithm. 
+The one particle wave functions that are given by eq.~(\ref{eq:HarmOscBasisFuncDDimensions}) include now the variational parameters $\f \alpha$ by letting $\omega_x \rightarrow \alpha_x\omega_x$ and so forth. The resulting single-particle functions are 
+\be
+\phi_{n_x,n_y}(x,y) = e^{-\frac{1}2 (\alpha_x \omega_x x^2 + \alpha_y \omega_y y^2)}
+H_{n_x}(\sqrt{\alpha_x \omega_x} x) H_{n_y}(\sqrt{\alpha_y \omega_y} y),
+\ee
+in two dimensions and
+\bea
+\phi_{n_x,n_y, n_z}(x,y,z) &=& e^{-\frac{1}2 
+(\alpha_x\omega_x x^2 +\alpha_y\omega_y  y^2 + \alpha_z\omega_z z^2)} \nonumber \\
+&&\times 
+H_{n_x}(\sqrt{\alpha_x\omega_x} x)
+H_{n_y}(\sqrt{\alpha_y\omega_y} y)
+H_{n_z}(\sqrt{\alpha_z\omega_z} z),
+\eea
+in three dimensions. The two Hermite polynomials we need are listed below for easy reference
+\bea
+H_0(\sqrt{\alpha\omega}x) &=& 1, \\
+H_1(\sqrt{\alpha\omega}x) &=& 2\sqrt{\alpha\omega}x. \\
+\eea
+The total variational wave function is the product of the ground state configuration Slater determinant $\psisd(\f X, \f \alpha)$ and the Pade-Jastrow correlation function 
+$\psicorr(\rij, \f \beta, \f \gamma)$
+\be
+\Psi(\f X) = \psisd(\f X, \f \alpha) \psicorr(\rij, \f \beta, \f \gamma).
+\ee
+The linear Pade-Jastrow is used unless otherwise stated. This results in 
+only one variational parameter $\beta$ in the correlation part. The harmonic oscillator frequency is taken to be isotropic which means we only need one variational parameter $\alpha$ in the Slater determinant. The uncorrelated energies are for the case with filled harmonic oscillator 
+shells 
+\begin{table}[h!]
+  \centering
+  \[
+  \begin{array}{r|r|r}
+    N&d&E\\
+    \hline
+    0&2&2\omega\\
+    0&3&3\omega\\
+    1&2&10\omega\\
+    1&3&18\omega\\
+  \end{array}
+\]
+\caption{Energy in atomic units for filled ($N$) harmonic oscillator shells or quantum dot in $d$ dimensions}
+  \label{table:energyHO}
+\end{table}
+This will be compared to the correlated energies below. 
+\section{Two electrons}
+First we did a quick brute force calculation of the energy for the parameters
+\bea
+\alpha &=& 0.1, 0.15, \ldots, 1.6\\
+\beta &=& 0.0, 0.05, \ldots, 1.0
+\eea
+with three random walkers and only $30000$ MC cycles. The oscillator frequency is $\omega=1$ and $\omega=0.5$ in two and three dimensions respectively. The result is shown in fig.~\ref{fig:surfaceplot_2p_2d} and fig.~\ref{fig:surfaceplot_2p_3d}. We see that the energy decreases as $\alpha$ increases to about $1$. The optimal $\beta$ is a bit harder to find as the energy does not seem to vary much in that area. By taking a two-dimensional slice of the same plot shown in fig.~\ref{fig:surfaceplot_2p_2d_beta} and fig.~\ref{fig:surfaceplot_2p_3d_beta} we see that in two dimensions there is clearly a minimum close to $\beta=0.4$ while in three dimensions the energy is nearly constant for $\beta>0.4$. For the optimization we wanted to see how effective the SGA algorithm is when the starting point was far from the minimum and decided to use $[\alpha_0,\beta_0]=[0.2,1]$. The resulting parameter plots are shown in fig.~\ref{fig:sga_2d_2p_alpha} - \ref{fig:sga_3d_2p_beta}. The optimal parameters we found are shown in table \ref{table:OptimalParam2p} together with the energy, uncorrelated variance and error. These energies are extremely close to the analytical result and verifies that our code is correct at least for two particles. The big test is moving on to more particles because that is when the whole Slater determinant machinery is really put to the test. The small variance tell us that the trial wave function is extremely close to the correct one which means the linear Pade-Jastrow function incorporates almost all the correlations that are lost when truncating the expansion of the wave function in the Slater determinant basis. 
+\begin{table}[!h]
+  \centering
+  \[
+  \begin{array}{c|c|c|c|c|c|r}
+    d&\omega&\alpha_{100}&\beta_{100}&E&\sigma^2&\eps\\
+    \hline
+    2&1&0.99044&0.39994&3.00032&0.00183&3.5e-05\\
+    3&0.5&0.99425 &0.20063&2.00009&0.00016&1.5e-05\\
+  \end{array}
+\]
+\caption{Energy for the two electron harmonic oscillator in 2 and 3 dimensions at the optimal variational parameters. The energy optimizations, which is shown in fig.~\ref{fig:sga_2d_2p_alpha} - \ref{fig:sga_3d_2p_beta}, were obtained by using 3 random walkers and 10000 MC cycles at each iteration. The energy is then computed still using 3 random walkers but now increasing the number of MC cycles to 10 million. The error $\eps$ is found from the blocking plot shown in fig.~\ref{fig:blocking_plot_2p_2d} - \ref{fig:blocking_plot_2p_3d}. The energies are in perfect correspondence with the analytical result presented by M.~Taut in \cite{MTautQDotAnalSol} which is also discussed in \ref{TwoParticleSystem}} 
+\label{table:OptimalParam2p}
+\end{table}
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_2p_2d}
+  \end{center}
+  \caption{This is a plot of the energy in a two dimensional harmonic oscillator with $\omega=1/2$, as function of the variational parameters $\alpha$ and $\beta$. The dark area suggests we should look for the energy minimum around $\alpha=1$ while it is not so clear what the optimal $\beta$ is. For $\alpha \approx 1$ the energy seem to have a low $\beta$ dependence. This is confirmed later in fig.~\ref{fig:surfaceplot_2p_2d_beta}}
+  \label{fig:surfaceplot_2p_2d}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_2p_3d}
+  \end{center}
+  \caption{This is a plot of the energy in a three dimensional harmonic oscillator with $\omega=1/2$ as a function of the variational parameters $\alpha$ and $\beta$. It resembles the shape of the two dimensional energy as it goes to infinity when $\alpha \rightarrow 0$ and has a minimum around $\alpha=1$.}
+  \label{fig:surfaceplot_2p_3d}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_2p_2d_beta}
+  \end{center}
+  \caption{Two-dimensional slice of a three-dimensional plot of the energy as a function of the variational parameters from which we only see $\beta$. The green part increases towards the viewer while the red part increases in the opposite direction. The plot clearly shows an energy minimum around $\beta=0.35$ which can be a good starting point for optimizing the energy.}
+\label{fig:surfaceplot_2p_2d_beta}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_2p_3d_beta}
+  \end{center}
+  \caption{2D slice of a 3D plot of the three dimensional energy as a function of the variational parameters rotated to only show $\beta$. Comparing with the two dimensional case in fig.~\ref{fig:surfaceplot_2p_2d_beta} we see that the energy in three dimensions is less sensitive with respect to $\beta$ which is the variational parameter for the correlation part of the wave function. This is both because $\omega$ in our two dimensional computation is twice as large and due to correlations being more important in lower dimensional systems.}
+  \label{fig:surfaceplot_2p_3d_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_2d_2p_alpha}
+  \end{center}
+  \caption{Here we see how $\alpha$ iterates towards the minimum value close to $1$ as indicated in fig.~\ref{fig:surfaceplot_2p_2d}. The method produces a jump like pattern which is due to the adaptive step algorithm were we have a variable that increases or decreases the step length according to the sign of the derivative of the wave function with respect to the variational parameters. This is described in greater detail in \ref{subsection:OptimizationTechniques}. }
+  \label{fig:sga_2d_2p_alpha}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_2d_2p_beta}
+  \end{center}
+  \caption{The optimization of the correlation parameter is pretty fast and converges after about 50 iterations which is quite fast considering we are only using 10000 MC cycles at each iteration. Also we choose a starting point which is quite far away and when also taking into account that the energy is almost constant in that direction, makes the SGA algorithm a worthy candidate for future considerations.}
+  \label{fig:sga_2d_2p_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_3d_2p_alpha}
+  \end{center}
+  \caption{The Slater determinant variational parameter approaches unity.}
+\label{fig:sga_3d_2p_alpha}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_3d_2p_beta}
+  \end{center}
+  \caption{We see the same here as for the two particle case in which the optimal parameter is found quickly.}
+  \label{fig:sga_3d_2p_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{blocking_plot_2p_2d}
+  \end{center}
+  \caption{We see here the standard deviation of the distribution of the average of local energy as a function of the number of blocks the sample is divided into. When the number of blocks increases the distance between the i'th value in each block decreases which increases the sequentially correlation. This is an easy way of finding a good estimate for the error in a correlated data set. More details can be found in \cite{article:Blocking}}
+  \label{fig:blocking_plot_2p_2d}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{blocking_plot_2p_3d}
+  \end{center}
+  \caption{The error here is a bit smaller than in two dimensions because the correlations are less present in higher dimensional system. It represents the physical fact that the less space the electron can occupy the more often will it 'feel' the repulsion of the other electron hence they are more correlated.}
+  \label{fig:blocking_plot_2p_3d}
+\end{figure}
+
+\clearpage
+
+\section{Six and eight electrons}
+We now move to the next full shell system which in two and three dimensions have six and eight electrons, respectively. We have now used $\omega=1$ in both dimensions since there are no analytical answers we can compare with. 
+
+We have first used a brute force calculation as in the two particle case to get a sense of how the energy behaves and this is shown in fig.~\ref{fig:surfaceplot_6p_2d} and fig.~\ref{fig:surfaceplot_8p_3d}. The energy behaves in a similar way as the two particle case as it goes to infinity when the parameters are low. The optimal $\alpha$ seems a bit lower while $\beta$ is again hard to pinpoint. Again we have rotated the previous plot so that it in effect becomes two dimensional with $\beta$ as the only variational parameter, see fig.~(\ref{fig:surfaceplot_6p_2d_beta}) and fig.~(\ref{fig:surfaceplot_8p_3d_beta}). Apart from some rather large statistical fluctuations the $\beta$ dependence of the energies $\beta$ is weaker compared with  the two particle case. 
+
+When searching for the energy minimum we now start at $[\alpha_0,\beta_0]=[1.0,0.2]$. The optimal parameters we get are then used to compute the energy as in the two particle case. The results are displayed in table \ref{table:OptimalParamN=1}. We notice the $100\%$ and $50\%$ increase in energy compared to the non-interacting case.  
+\begin{table}[!h]
+  \centering
+  \[
+  \begin{array}{c|c|c|c|c|c}
+    d&\omega&\alpha_{100}&\beta_{100}&E&\eps\\
+    \hline
+    2&1&0.926273&0.561221&20.1910& 3.5e-4\\
+    3&1&0.961791&0.372215&32.6829& 2.4e-4\\
+  \end{array}
+\]
+\caption{Energy for the six and eight electron harmonic oscillator in 2 and 3 dimensions, respectively. The increase in energy by including electron interactions is over $100\%$ in two dimensions while in three dimensions it is over $50\%$. This is roughly the same increase as in the two particle case. Simen Kvaal \cite{phd:simen} has used the CI method to solve this and obtained an energy of $20.1882$ which is very close to our result and verifies that our code is correct.} 
+\label{table:OptimalParamN=1}
+\end{table}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_6p_2d}
+  \end{center}
+  \caption{We recognize the energy shape from the two particle case as it is quite similar. Again there is this L shaped dark region where the energy is lowest. This makes it easier to choose a starting point for the SGA approximation.}
+  \label{fig:surfaceplot_6p_2d}
+\end{figure}
+
+
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_8p_3d}
+  \end{center}
+  \caption{The energy seems now to increase on both sides of the $\alpha$ minimum while in two dimensions the energy is almost constant for $\alpha>1$.}
+  \label{fig:surfaceplot_8p_3d}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_6p_2d_beta}
+  \end{center}
+  \caption{The energy is almost constant for $\beta>0.4$. We use this information to start our parameter search at $0.2$ to prevent the algorithm getting stuck in a local minima.}
+\label{fig:surfaceplot_6p_2d_beta}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{surfaceplot_8p_3d_beta}
+  \end{center}
+  \caption{The same story here excepts for a rather large statistical spike in the energy. This is due to only using 30000 cycles which is not enough to get a good estimate, though it serves us well as a rough guide in deciding where to start the optimization}
+  \label{fig:surfaceplot_8p_3d_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_2d_6p_alpha}
+  \end{center}
+  \caption{The increase in amount of particles increases the amount of zig-zags before converging. However a certain amount of noise is required because it increases the odds of not getting stuck in a local minima.}
+  \label{fig:sga_2d_6p_alpha}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_2d_6p_beta}
+  \end{center}
+  \caption{Here the optimal $\beta$ is found rather easy.}
+\label{fig:sga_2d_6p_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_3d_8p_alpha}
+  \end{center}
+  \caption{We see a couple of large oscillations in the wrong direction before convergence is achieved. This may suggest decreasing the base step length $\ell_0$ in the algorithm to increase efficiency.}
+\label{fig:sga_3d_8p_alpha}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{sga_3d_8p_beta}
+  \end{center}
+  \caption{The same basic behaviour as for the other cases.}
+  \label{fig:sga_3d_8p_beta}
+\end{figure}
+
+\clearpage
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{blocking_plot_6p_2d}
+  \end{center}
+  \caption{We see that the correlations are much larger than in the two particle case. This is to be expected.}
+  \label{fig:blocking_plot_6p_2d}
+\end{figure}
+
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics[scale=0.9,angle=0]{blocking_plot_8p_3d}
+  \end{center}
+  \caption{The correlations are smaller than in two dimensions even though there are two more particles.}
+  \label{fig:blocking_plot_8p_3d}
+\end{figure}

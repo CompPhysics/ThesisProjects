@@ -1,0 +1,147 @@
+\appendix
+\chapter{}
+
+\section{Statistical analysis}
+\label{section:StatisticalAnalysis}
+This section is devoted to finding the error of the mean of a stochastic sample. This is needed to estimate the error of the energy we compute using the Monte Carlo method. When dealing with random numbers and their probability distributions we assign them a stochastic variable $X$ that is defined in some domain which contains all the possible values of $X$. The domain can be discrete or continuous and the probability distribution function (PDF) $p(x)$ gives us the probability for one of the values in the domain to occur. A common example is the throw of a dice that has a discrete domain and contains the values $\{1,2,3,4,5,6\}$. The corresponding PDF is just $p(x)=1/6$ for all $x$ in the domain because all values are equally probable. If we had two dice the domain would double and the PDF would no longer be equal for all $x$. 
+\newline
+
+In the continuous case we can no longer talk about the probability for one value when the domain contains infinitely many. It would just be zero. We can only talk about the the probability for getting a value in some interval within the domain. We define that the probability for getting a value in the interval $[x,x+dx]$ is $p(x)dx$ and the PDF is actually a probability density function. More generally
+\be
+\mathrm{Prob(a\leq X \leq b)} = \Int_a^b p(x)dx
+\ee
+and it has to fulfill two properties
+\bea
+0\leq p(x) \leq 1,\\
+\Int_{-\infty}^{\infty} p(x) = 1,
+\eea
+which states that all the probabilities must be positive and add up to unity. The expectation value of $X$ is
+\be
+\mu_X = \expval x = \int x p(x) dx
+\ee
+and is also called the mean value. The variance of $X$, denoted $\var(X)$ or $\sigma_X^2 $, is defined as
+\bea
+\sigma_X^2 &\equiv& \expval{(x-\expval x)^2} = \int (x-\expval x)^2 p(x) dx,\\
+&=&\int x^2 -2x \expval x + \expval x^2,\\
+&=& \expval{x^2} -2 \expval x \expval x  + \expval x^2,\\
+&=& \expval{x^2} - \expval x^2 .
+\eea
+and tells us how spread out the distribution is. There are also functions of a stochastic variable $f(X)$ which itself is considered a stochastic variable $Y$ with its own PDF $p_Y(y)$. The mean value is
+\bea
+\mu_Y = \expval y &=& \int y p_Y(y) dy\\
+\label{eq:meanf}
+&=&  \int f(x) p_X(x) dx\\
+&\equiv& \expval f_X
+\eea
+which means that the variance is simply 
+\be
+\sigma_f^2 = \expval{f^2}_X - \expval f_X^2
+\ee
+ 
+A multivariate PDF $P(x_1,\ldots, x_n)=P(\f x)$ is the function for the set of corresponding stochastic variables $\{X_1,\ldots, X_n\} = \f X$. Its mean value is now a multidimensional integral
+\bea
+\mu_{\f X} = \expval{\f x} &=& \int \f x P(\f x) d \f x\\
+&=& \int \cdots \int x_1 \cdots x_n P(x_1,\ldots, x_n) dx_1 \cdots dx_n,
+\eea
+and likewise for the mean value of a the multivariate function $F(\f X)$. The stochastic variables are uncorrelated if the PDF can be written as the product form
+\be
+\label{eq:UnCorrPDF}
+P(x_1,\ldots, x_n) = \Prod_{i=1}^n p_i(x_i)
+\ee
+where $p_i(x_i)$ is the PDF corresponding to $X_i$. In the multivariate case we can define the so called covariance of two stochastic variables as
+\bea
+\cov(X_i,X_j) &\equiv& \expval{(x_i-\expval {x_i})(x_j-\expval{ x_j})},\\
+&=& \expval {x_i x_j} - \expval {x_i \expval {x_j}} - 
+    \expval {x_j \expval {x_i}} + \expval{\expval {x_i} \expval{x_j}},\\
+&=&  \expval {x_i x_j} - \expval {x_i} \expval{x_j}.
+ \eea
+If $X_i$ and $X_j$ are uncorrelated, then by using eq.~(\ref{eq:UnCorrPDF}), we get that $\expval {x_i x_j} = \expval {x_i} \expval{x_j}$ and the covariance is zero. In other words, the covariance is a measure of the correlation between stochastic variables. However, zero covariance does not necessarily imply no correlations. In the special case $X_i = X_j$ then the covariance reduces to the variance. If we put all the covariances in a matrix then it would be symmetric and the diagonal elements equal to the variance. In the special case that a multivariate function $F(\f X)$ is linear
+\be
+F(\f X) = \Sum_i a_i X_i
+\ee
+ then the mean is
+\be
+\expval F_{\f X} =  \Sum_i a_i  \expval{X_i}
+\ee
+and the variance can be shown to be
+\be
+\sigma^2_F = \Sum_i a_i^2 \sigma_{X_i}^2  + 2 \Sum_i \Sum_{j=i+1} a_i a_j \cov(X_i,X_j).
+\ee
+
+We can now move on to consider a stochastic experiment which consists of obtaining a sequence of numbers $\{x_i\}$ that we assume are distributed according to an unknown PDF. We call a certain sequence of numbers for a sample of the PDF and we can of course obtain several different samples by doing more experiments. When we use the word experiment it sounds like something physical like measuring radioactive decay but it also includes numerical experiments. Consider the expectation value of some function $f$ which is given by eq.~(\ref{eq:meanf}). If we know the PDF and we want to compute the mean value numerically, it involves a numerical integration which is always approximated as a discrete sum. The approximation would depend on the discretization method and the number of integration points. The Monte Carlo integration technique could sample the PDF with the Metropolis algorithm which uses Markov chains. A Markov chain is a stochastic random walk and the integral must be considered a stochastic experiment where the sequence of numbers corresponds to the value of $f$ at each point in the random walk. In this thesis the function of interest is the local energy and we need to find how good the MC approximation is. Because the samples are finite, the mean value and variance of the corresponding PDF must be approximated. First we define the mean of a sample of size $n$ to be
+\be
+\bar x \equiv \frac 1 n \Sum_{i=1}^n x_i. 
+\ee
+The sample variance is
+\be
+\sigma_x \equiv \frac 1 n \Sum_{i=1}^n (x_i-\bar x),
+\ee
+while the sample covariance is
+\be
+\cov(x) \equiv \frac 1 n \Sum_{i=1}^n (x_i-\bar x)(x_j-\bar x).
+\ee
+The sample covariance measures the sequential correlation between succeeding measurements in a sample. As the sample size $n$ goes to infinity then the sample mean approaches the true mean. But the big question here is how good of an approximation is the sample mean of the true mean. A good measure of the error $\eps$ in the approximation is the variance of the sample mean $\sigma_{\bar x}$, which must not be confused with the sample variance $\sigma_x$. The sample mean is also a stochastic variable with its own mean value and variance. The straightforward way of computing $\sigma_{\bar x}$ is to do many experiments and use eq.~(\ref{eq:meanf}). If we only have one experiment, then we can divide the sample into $m$ subsamples and treat each subsample as an experiment. This is called blocking and will be discussed in greater detail a bit later. There is another approach which also gives analytic information about the correlation effects. 
+\newline
+
+We can associate each measurement $x_i$ in the sample with its own stochastic variable $X_i$. The stochastic variable for the sample mean is then 
+\be
+\overline X_n = \frac 1 n \Sum_{i=1}^n X_i
+\ee
+The PDF of $\overline X_n$ is
+\be
+p_{\overline X_n} (x) = \int p_X(x_1) \cdots \int p_X(x_n) 
+\delta\left(x-\frac{1}{n}\Sum_{i=1}^n x_i\right) dx_1 \cdots dx_n 
+\ee
+The central limit theorem (referanse?) gives
+\be
+\lim_{n \rightarrow \infty} p_{\overline X_n} (x) = 
+\left (\frac{n}{2\pi \sigma_X^2} \right)^{\frac12} e^{\frac{n(x- \mu_X)^2}{2\sigma_X^2}}
+\ee
+The variance can be shown to be
+\be
+\sigma_{\overline X_n}^2 \approx \frac 1n \cov(x).
+\ee
+If the sample is uncorrelated the variance is
+\be
+\sigma_{\overline X_n}^2 \approx \frac 1n \sigma_x.
+\ee
+A good measure of the correlation is the autocorrelation time
+\be
+\tau = 1 + 2\Sum_{d=1}^{n-1} \kappa_d
+\ee
+where $\kappa_d$ is the autocorrelation function given by
+\be
+\kappa_d = \frac{\sigma_x}n \Sum_{k=1}^{n-d} (x_k -\bar x)(x_{k+d} -\bar x)
+\ee
+This is a costly function to evaluate and quite often it decreases exponentially with time. We could exploit this fact and to find a $d_0$ so that $k_d \approx 0$ for $d > d_0$. This would reduce the computation time a considerable amount but empirical studies have shown that $k_d$ does not die out completely and tends to oscillate around zero.
+\newline
+
+We now shortly explain the blocking method which is an easy an efficient method. It consits of dividing our dataset into $b_s$ blocks and compute the variance of the sample mean. By increasing the blocksize the variance should increase exponentially until it reaches a plateau where the blocks are no longer correlated. This blocksize and variance will be our estimate for the correlation lentgh $d_0$ for the true correlated variance.
+   
+\chapter{Object oriented programming}
+An object is a data structure that contains data members and member functions that operate on them. The blueprint of the object is called the class. An object is an instance of that class. To define a Vector class we write
+\begin{verbatim}
+class Vector 
+{
+	private:
+	  int *v;	
+	int length;	
+	public:
+	  Vector();
+	  ~Vector();
+	int get_Length(){return length;}
+		
+};
+\end{verbatim}
+This class is not very useful yet but serves as an example of how to create a class.  It has two data member that are declared in the private part of the class and is therefore invisible to the rest of the program. The class has three member functions, It can only be accessed indirectly through a member function. 
+ 
+Inheritance and virtual functions
+The 
+
+The cornerstone of OOP is the use of inheritance
+
+Run time polymorphism
+
+Compile time polymorphism
+
+expression templates

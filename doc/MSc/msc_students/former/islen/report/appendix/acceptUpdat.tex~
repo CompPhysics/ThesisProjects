@@ -1,0 +1,77 @@
+\chapter{Derivation the algorithm for updating the inverse Slater matrix}\label{updatingAlgorithmDer}  % use *-form to suppress numbering
+
+\renewcommand{\theequation}{A-\arabic{equation}}
+  
+ \setcounter{equation}{0}  % reset counter 
+
+The following derivation follows the ideas given in Ref.\cite{Williansom}. As starting point we may consider that each time a new position is suggested in the Metropolis algorithm, a row of the current Slater matrix experiences some kind of perturbation. Hence, the Slater matrix with its orbitals evaluated at the new position equals the old Slater matrix plus a perturbation matrix,
+
+\begin{equation}\label{oldSM}
+D_{jk}(\bfv{x^{new}}) = D_{jk}(\bfv{x^{cur}}) + \Delta_{jk}.
+\end{equation}
+
+where
+
+\begin{equation}\label{pertMatrix}
+\Delta_{jk} = \delta_{ik}[\phi_j(\bfv{x_{i}^{new}}) - \phi_j(\bfv{x_{i}^{old}})] = \delta_{ik}(\Delta\phi)_j 
+\end{equation}
+
+Computing $(B^T)^{-1}$ we arrive to
+
+\begin{equation}\label{invDkj}
+ D_{kj}(\bfv{x^{new}})^{-1} = [D_{kj}(\bfv{x^{cur}}) + \Delta_{kj}]^{-1}.
+\end{equation}
+
+The evaluation of the right hand side (rhs) term above is carried out by applying the identity $(A +  B)^{-1} = A^{-1} - (A + B)^{-1} B A^{-1}$. In compact notation it yields
+
+\begin{eqnarray*}
+ [\bfv{D}^{T}(\bfv{x^{new}})]^{-1} & = & [\bfv{D}^{T}(\bfv{x^{cur}}) + \Delta^T]^{-1}\\
+& = & [\bfv{D}^{T}(\bfv{x^{cur}})]^{-1} - [\bfv{D}^{T}(\bfv{x^{cur}}) + \Delta^T]^{-1} \Delta^T [\bfv{D}^{T}(\bfv{x^{cur}})]^{-1}\\
+& = & [\bfv{D}^{T}(\bfv{x^{cur}})]^{-1} - \underbrace{{[\bfv{D}^{T}(\bfv{x^{new}})]^{-1}}}_{\text{By Eq.}{\ref{invDkj}}}  \Delta^T [\bfv{D}^{T}(\bfv{x^{cur}})]^{-1}.
+\end{eqnarray*}
+
+Using index notation, the last result may be expanded by
+% % % % % % % [D^{T}_{jk}(\bfv{x^{new}})]^{-1} & = & [D^{T}_{jk}(\bfv{x^{cur}})]^{-1} +  \sum_{l} \sum_{m} [D^{T}_{mk}(\bfv{x^{new}})]^{-1} \Delta^{T}_{ml}  [D^{T}_{jl}(\bfv{x^{cur}})]^{T}\\
+
+
+\begin{eqnarray*}
+D^{-1}_{kj}(\bfv{x^{new}}) & = & D^{-1}_{kj}(\bfv{x^{cur}}) -  \sum_{l} \sum_{m} D^{-1}_{km}(\bfv{x^{new}}) \Delta^{T}_{ml}  D^{-1}_{lj}(\bfv{x^{cur}})\\
+& = & D^{-1}_{kj}(\bfv{x^{cur}}) -  \sum_{l} \sum_{m} D^{-1}_{km}(\bfv{x^{new}}) \Delta_{lm}  D^{-1}_{lj}(\bfv{x^{cur}})\\
+& = & D^{-1}_{kj}(\bfv{x^{cur}}) -  \sum_{l} \sum_{m} D^{-1}_{km}(\bfv{x^{new}}) \underbrace{\delta_{im} (\Delta \phi)_{l}}_{\text{By Eq. }\ref{pertMatrix}}  D^{-1}_{lj}(\bfv{x^{cur}})\\
+& = & D^{-1}_{kj}(\bfv{x^{cur}}) - D^{-1}_{ki}(\bfv{x^{new}}) \sum_{l=1}^{N}(\Delta \phi)_{l}  D^{-1}_{lj}(\bfv{x^{cur}})\\
+& = & D^{-1}_{kj}(\bfv{x^{cur}}) - D^{-1}_{ki}(\bfv{x^{new}}) \sum_{l=1}^{N}\underbrace{[\phi_{l}(\bfv{r_{i}^{new}}) - \phi_{l}(\bfv{r_{i}^{old}})]}_{\text{By Eq.}\ref{pertMatrix}}  D^{-1}_{lj}(\bfv{x^{cur}}).
+\end{eqnarray*}
+
+From (\ref{inverseDef}), 
+
+$$\bfv{D}^{-1}(\bfv{x^{cur}}) = \frac{adj \bfv{D}}{|\bfv{D}(\bfv{x^{cur}})|} \, \quad \text{and} \, \quad \bfv{D}^{-1}(\bfv{x^{new}}) = \frac{adj \bfv{D}}{|\bfv{D}(\bfv{x^{new}})|}.$$
+
+Dividing these two equations we get
+
+$$\frac{\bfv{D}^{-1}(\bfv{x^{cur}})}{\bfv{D}^{-1}(\bfv{x^{new}})} = \frac{|\bfv{D}(\bfv{x^{new}})|}{|\bfv{D}(\bfv{x^{cur}})|} = R \Rightarrow D^{-1}_{ki}(\bfv{x^{new}}) = \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R}.$$
+
+Therefore,
+
+$$D^{-1}_{kj}(\bfv{x^{new}})  =  D^{-1}_{kj}(\bfv{x^{cur}}) - \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N}[\phi_{l}(\bfv{r_{i}^{new}}) - \phi_{l}(\bfv{r_{i}^{old}})]  D^{-1}_{lj}(\bfv{x^{cur}}),$$
+
+or
+
+\begin{align}
+ D^{-1}_{kj}(\bfv{x^{new}})  =  D^{-1}_{kj}(\bfv{x^{cur}}) \qquad & - & \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N}\phi_{l}(\bfv{r_{i}^{new}})  D^{-1}_{lj}(\bfv{x^{cur}}) \nonumber\\
+  & + &  \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N}\phi_{l}(\bfv{r_{i}^{old}})  D^{-1}_{lj}(\bfv{x^{cur}})\nonumber\\
+                             =  D^{-1}_{kj}(\bfv{x^{cur}}) \qquad & - & \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{new}})  D^{-1}_{lj}(\bfv{x^{cur}}) \nonumber\\
+& + &  \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{cur}}) D^{-1}_{lj}(\bfv{x^{cur}}).\nonumber
+\end{align}
+
+% % % % & = & D^{-1}_{kj}(\bfv{x^{cur}}) - \frac{S_j}{R} D^{-1}_{ki}(\bfv{x^{cur}})
+In this equation, the first line becomes zero for $j=i$ and the second for $j \neq i$. Therefore, the update of the inverse for the new Slater matrix is given by
+
+\begin{eqnarray}
+\boxed{D^{-1}_{kj}(\bfv{x^{new}})  = \left\{ 
+\begin{array}{l l}
+  D^{-1}_{kj}(\bfv{x^{cur}}) - \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{new}})  D^{-1}_{lj}(\bfv{x^{cur}}) & \mbox{if $j \neq i$}\nonumber \\ \\
+ \frac{D^{-1}_{ki}(\bfv{x^{cur}})}{R} \sum_{l=1}^{N} D_{il}(\bfv{x^{cur}}) D^{-1}_{lj}(\bfv{x^{cur}}) & \mbox{if $j=i$}
+\end{array} \right.}
+\end{eqnarray}
+
+\clearemptydoublepage

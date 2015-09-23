@@ -1,0 +1,1388 @@
+\chapter{Many-body theory}
+\label{ch:manybody}
+It is often insufficient to be able to calculate properties in systems with only one particle.
+One would for example be restricted to only hydrogen, if studying atoms.
+Methods for many-particle systems have thus been developed, often theoretically exact, but in practice we must rely on computer programs having a truncation affecting the accuracy of the results.
+Different types of approximations, or many-body methods, exist, where widely used techniques are; full configuration interaction, many-body perturbation theory, Hartree-Fock theory, Monte-Carlo methods and coupled-cluster theory.
+%MHJ forandra litt her
+Even though we will focus mainly on the coupled-cluster approach, the concepts from this chapter are shared by several many-body methods based on wave functions constructed using a single-particle basis.
+
+
+\section{The non-interacting case}
+The natural starting point for many-body theory is to deal with non-interacting particles.
+In this case the Schrödinger equation holds the same form now as it did for one particle in eq. \eqref{eq:qm:schrodingerbraket}.
+Assuming a time-independent Hamiltonian,
+\begin{equation}
+\hat{H} = \sum_k \hat{h}_k =  \sum_k \hat{t}_k  + \sum_k \hat{v}_k ,
+\end{equation}
+with $\hat{t}_k$ and $\hat{v}_k$ being the operators for kinetic and potential energy for particle $k$, the energy is constant in time and we only need to solve the time-independent Schrödinger equation.
+Since the particles are not interacting, this equation is separable, and we assume a total wave function, $|\Psi^{(\lambda)} \rangle$, being a product of different single-particle spin orbitals $|\psi_k^{(\lambda)}\rangle$, with a total energy $E^{(\lambda)}=\sum_k E_k^{(\lambda)}$,
+\begin{equation}
+\hat{H}|\Psi^{(\lambda)} \rangle = 
+\left(\sum_k \hat{h}_k\right) \left(|\psi_1^{(\lambda)}\rangle \otimes |\psi_2^{(\lambda)}\rangle 
+\cdots \otimes |\psi_N^{(\lambda)}\rangle \right)
+=  \sum_k E_k^{(\lambda)} |\Psi^{(\lambda)} \rangle .
+\end{equation}
+Here $E_k^{(\lambda)}$ is the energy of particle $k$, satisfying the single-particle eigenvalue equation,
+\begin{equation}
+\label{eq:manybody:nonInter}
+\hat{h}_k |\psi_k^{(\lambda)} \rangle = E_k^{(\lambda)} |\psi_k^{(\lambda)} \rangle .
+\end{equation}
+It is important to note how the subscript refers to the different particles, whereas the superscript denotes different eigenstates inside a spectrum of energies.
+
+Electrons are, although it complicates our calculations, interacting through the coulomb interaction. 
+%MHJ retting
+For this reason we keep this simple separable calculation in memory when we move on to interacting 
+many-body systems, where correlations play an important  as corrections to the non-interacting reference energy.
+
+
+\section{Indistinguishable and identical particles}
+An important aspect when considering systems with more than one particle is that electrons are identical and indistinguishable particles.
+In quantum mechanics it makes no sense talking about different particles, they are truly identical and impossible to track one at a time.
+As a consequence of this, interchanging the coordinates of two particles should not alter the probability distribution, i.e.
+\begin{equation}
+\label{eq:manybody:interchange}
+| \Psi |^2
+=
+|\hat{P}_{ij} \Psi |^2 .
+\end{equation}
+This compact notation is due to the introduction of the permutation operator $\hat{P}_{ij}$, which interchanges particles $i$ and $j$. Equation~\eqref{eq:manybody:interchange} holds only if
+\begin{equation}
+\hat{P}_{ij} = \pm 1 ,
+\end{equation}
+where particles with a symmetric wave function, that is $\hat{P}_{ij} = 1$, are called bosons, while particles having an antisymmetric wave function, $\hat{P}_{ij} = -1$, are called fermions.
+
+\paragraph*{}
+Since electrons are fermions we need to construct wave functions that are antisymmetric.
+The simple product of single-particle wave functions 
+we assumed in the non-interacting case is thus not correct.
+Antisymmetric wave functions are usually expressed as determinants, as proposed by John C. Slater, therefore called Slater determinants \cite{PhysRev.34.1293}.
+Having a complete, orthonormal, single-particle basis where $N$ functions,  $\phi_{\alpha}, \phi_{\beta}, \cdots \phi_{\delta}$, are occupied by $N$ particles at different positions, $\vec{r_1}, \cdots , \vec{r_N}$, an $N$-particle wave function reads
+\begin{equation}
+\label{eq:manybody:slater}
+\Phi_{\alpha,\beta,\cdots,\delta}(\vec{r_1},\cdots,\vec{r_N})
+=
+\frac{1}{\sqrt{N!}}
+\left|
+\begin{matrix}
+\phi_{\alpha}(\vec{r_1}) & \phi_{\beta}(\vec{r_1}) & \cdots & \phi_{\delta}(\vec{r_1}) \\
+\phi_{\alpha}(\vec{r_2}) & \phi_{\beta}(\vec{r_2}) & \cdots & \phi_{\delta}(\vec{r_2}) \\
+\vdots                   & \vdots                  & \ddots & \vdots \\
+\phi_{\alpha}(\vec{r_N}) & \phi_{\beta}(\vec{r_N}) & \cdots & \phi_{\delta}(\vec{r_N})\\
+\end{matrix}
+\right| .
+\end{equation}
+The notation here is of importance.
+Up to now we have looked at the exact solution, denoted $\Psi$.
+In this step the single particle basis $\phi$ can be any complete basis, and therefore $\Phi$ is in general not the exact solution.
+The solution can however be expressed as a linear combination of slater determinants, 
+\begin{equation}
+|\Psi^{(\lambda)} \rangle = 
+\sum_{\alpha,\beta,\cdots,\delta} C_{\alpha,\beta,\cdots,\delta}^{(\lambda)}
+|\Phi_{\alpha,\beta,\cdots,\delta} \rangle ,
+\end{equation}
+due to the completeness of our basis functions.
+Determinants have the property of being zero whenever two columns are equal.
+This is a manifestation of the exclusion principle formulated by Wolfgang Pauli in 1925~\cite{springerlink:10.1007/BF02980631}, two fermions cannot share the same set of quantum numbers, 
+for which he later received the Nobel prize for in 1945~\cite{nobelPauli}.
+Including the two spin states available for each electron, no more than two electrons can share the same orbital.
+
+\paragraph*{}
+To incorporate interactions between the electrons, we add an extra term, $\hat{v}_{kl}$, to $\hat{H}$,
+\begin{equation}
+\label{eq:manybody:hamiltonnbody}
+\hat{H} = \sum_k \hat{t}_k  + \sum_k \hat{v}_k + \frac{1}{2}\sum_{kl} \hat{v}_{kl} ,
+\end{equation}
+which is a two-body potential between electron $k$ and $l$, and the
+factor of $\frac{1}{2}$ comes from the fact that all contributions are counted
+twice, assuming $\hat{v}_{kl} = \hat{v}_{lk}$.
+In the case of electron structures, these terms are simply all pairs of Coulomb interactions.
+It is possible to continue this, by adding three-, four-, up to N-body forces.
+Three-body forces are often needed in nuclear physics, but the two-body nature of the coulomb interaction limits our calculations to only two.
+
+
+
+
+\section{Second quantization}
+Limiting ourself to systems of electrons only, we recall the antisymmetric Slater determinant, eq.~\eqref{eq:manybody:slater}, and assuming orthonormal single-particle states,
+\begin{equation}
+\label{eq:manybody:orthonormalsp}
+\langle \phi_r | \phi_s \rangle = \delta_{rs} ,
+\end{equation}
+we fill the determinant with the $N$ lowest lying states.
+This is called the reference state, or ground state, having all $N$ particles in states with the lowest possible energies, still obeying the exclusion principle.
+From now on, all single-particle states within the reference determinant will
+be labeled $i,j,...$, whereas states with higher energies are labeled $a,b,...$~.
+The border between states within the determinant and higher states is called the Fermi level.
+When referring to states without knowing whether they are above or below the Fermi level, we will label them $p,q,...$~.
+In this representation, the ground state can be written in the occupancy notation,
+\begin{equation}
+| \Phi \rangle = | ijkl... \rangle .
+\end{equation}
+
+
+\paragraph*{}
+We will now introduce creation and annihilation operators, similar to the ladder operators in section~\ref{sec:qm:ladder}.
+Instead of raising/lowering the energy of one electron, these operators add or remove one electron from the Slater determinant.
+Denoting an empty determinant as `$|\rangle$', we can fill it to the reference state by adding one electron at a time using creation operators,
+\begin{equation}
+|\Phi \rangle = \hat{i}^{\dagger}\hat{j}^{\dagger}\hat{k}^{\dagger} \cdots |\rangle .
+\end{equation}
+This ground state is sometimes written as $| 0 \rangle$ for simplicity.
+It is also possible to remove one electron by the annihilation operator, e.g.
+\begin{equation}
+\hat{j} | \Phi \rangle = 
+\hat{j} | ijk\cdots \rangle = 
+- \hat{j} | jik\cdots \rangle =
+- | ik\cdots \rangle .
+\end{equation}
+The minus sign here comes from the fact that these operators only alter the left-most state, and being antisymmetric one needs to multiply a factor of $-1$ for each permutation it takes to bring $j$ to the left side of the determinant.
+
+It should not be allowed to annihilate an electron that is not present in the determinant, neither create an already present one.
+With this in mind, it is clear that the following two statements must be true;
+\begin{equation}
+\label{eq:manybody:particlehole}
+\begin{split}
+\hat{p}^{\dagger} |\Phi \rangle &=
+\left\lbrace
+\begin{matrix}
+|\Phi^{p} \rangle & \textrm{ if } p \in a,b,c,\cdots \\
+0	                & \textrm{ if } p \in i,j,k,\cdots \\
+\end{matrix}
+\right. 
+\\
+\hat{p} |\Phi \rangle &=
+\left\lbrace
+\begin{matrix}
+0                   & \textrm{ if } p \in a,b,c,\cdots \\
+|\Phi_p \rangle     & \textrm{ if } p \in i,j,k,\cdots  \\
+\end{matrix}
+\right. 
+\end{split}
+\end{equation}
+where $| \Phi_p \rangle$ means the reference state without $p$, and $| \Phi^p \rangle$ means the reference state with $p$ added.
+In the particle-hole formalism everything is relative to the reference, where
+an added electron is called a particle and a removed one referred to as a hole.
+Generalizing this one can have multiple particles and holes. 
+To prevent from creating a $0$-determinant, the hole states must be in $i,j,...$, and the particle states in $a,b,...$~.
+An example could be
+\begin{equation}
+|\Phi_{ijk}^{ab} \rangle =
+\hat{a}^{\dagger} \hat{b}^{\dagger} \hat{k} \hat{j} \hat{i} |\Phi \rangle .
+\end{equation}
+Having two particles and three holes, we call this a 2p-3h excitation.
+
+
+\paragraph*{}
+Because of the orthonormal single particle basis~(\ref{eq:manybody:orthonormalsp}), the determinants will be orthonormal too.
+To be consistent, we define the empty vacuum state to be normalized as well,
+\begin{equation}
+\langle | \rangle = 1 .
+\end{equation}
+We see the importance of this when using the fact that creation and annihilation operators are each others adjoint,
+\begin{equation}
+\langle \Phi | \Phi \rangle = 
+\left( \langle | \cdots \hat{j} \hat{i} \right) \left( \hat{i}^{\dagger} \hat{j}^{\dagger} \cdots | \rangle \right) =
+ \langle | \left(  \cdots \hat{j} \hat{i}\hat{i}^{\dagger} \hat{j}^{\dagger} \cdots | \rangle \right)  .
+\end{equation}
+Since we first add $i,j,...$ to the vacuum before we remove the same particles, we end out with a vacuum state again,
+\begin{equation}
+ \langle | \left(  \cdots \hat{j} \hat{i}\hat{i}^{\dagger} \hat{j}^{\dagger} \cdots | \rangle \right) = 
+ \langle | \rangle = 1 .
+\end{equation}
+
+\paragraph*{}
+More rigorously, one may calculate the above using the  anti-commutation rules. 
+Similar to the commutator, the anti-commutator is defined as 
+\begin{equation}
+[\hat{A},\hat{B}]_+ = \hat{A} \hat{B} + \hat{B} \hat{A} .
+\end{equation}
+We will start out with the annihilation operators by considering 
+\begin{equation}
+\begin{split}
+\hat{p}\hat{q} | qpij\cdots \rangle &= |ij\cdots \rangle
+\\
+\hat{q}\hat{p} | qpij\cdots \rangle &= - \hat{q}\hat{p} | pqij\cdots \rangle = - | ij\cdots \rangle .
+\end{split}
+\end{equation}
+One permutation is required for $\hat{q}\hat{p}$ since the operators only can act on the leftmost particle.
+If neither $p$ nor $q$ is in the determinant then both of the expressions return zero.
+In all cases the anti-commutator should be zero, thus
+\begin{equation}
+[\hat{p},\hat{q}]_+ = 0 .
+\end{equation}
+Considering two creation operators using the same procedure, we find that
+$\hat{p}^{\dagger} \hat{q}^{\dagger} = - \hat{q}^{\dagger} \hat{p}^{\dagger}$
+if neither $p$ nor $q$ is present in the determinant. If at least one of the
+two is already present we get zero. Again the anti-commutator is zero, 
+\begin{equation}
+[\hat{p}^{\dagger},\hat{q}^{\dagger}]_+ = 0 .
+\end{equation}
+The last step is to look at one creation, and one annihilation operator.
+If these two represent two different states ($p \neq q$), we have
+\begin{equation}
+\begin{split}
+\hat{p}^{\dagger} \hat{q} |q ij\cdots \rangle &= |pij\cdots \rangle
+\\
+\hat{q} \hat{p}^{\dagger} |q ij\cdots \rangle &= 
+\hat{q} |pqij\cdots \rangle = - |pij\cdots \rangle .
+\end{split}
+\end{equation}
+With $q$ missing, or $p$ already present in the determinant the anti-commutator is zero, leading to 
+\begin{equation}
+[\hat{p}^{\dagger},\hat{q}]_+ = 0 \hspace{3mm}\textrm{ if }\hspace{1mm} p \neq q .
+\end{equation}
+If $p = q$, we need to investigate both when $p$ is already present and not,
+\begin{equation}
+\begin{split}
+\hat{p} \hat{p}^{\dagger} |p ij\cdots \rangle &= 0 \\
+\hat{p}^{\dagger} \hat{p} |p ij\cdots \rangle &= |pij\cdots \rangle \\
+\hat{p} \hat{p}^{\dagger} |ij\cdots \rangle &= |ij\cdots \rangle \\
+\hat{p}^{\dagger} \hat{p} |ij\cdots \rangle &= 0  ,
+\end{split}
+\end{equation}
+which leads to the relation
+\begin{equation}
+[\hat{p}^{\dagger}, \hat{p}]_+ = 1 .
+\end{equation}
+All together we summarize to,
+\begin{equation}
+\label{eq:manybody:anticommutators}
+\begin{split}
+[\hat{p},\hat{q}]_+ &= 0 \\
+[\hat{p}^{\dagger},\hat{q}^{\dagger}]_+ &= 0 \\
+[\hat{p}^{\dagger},\hat{q}]_+ &= \delta_{pq} .
+\end{split}
+\end{equation}
+
+Using the tools that the anti-commutators present, we could once again look at the normalized inner product
+\begin{equation}
+\langle i | i \rangle = \langle | \hat{i}\hat{i}^{\dagger} | \rangle
+= \langle | -\hat{i}^{\dagger} \hat{i} + 1 | \rangle
+= \langle | -\hat{i}^{\dagger} \hat{i} | \rangle + \langle | \rangle
+= \langle | \rangle = 1 .
+\end{equation}
+The trick here was to switch place for $\hat{i}$ and $\hat{i}^{\dagger}$ by using the anti-commutation relation, and in the end reason that $\hat{i}|\rangle$ must be zero. 
+For a general (wider) string of operators the same can be applied, but it is tedious, and better methods exist.
+
+
+
+\subsection{Operators}
+\label{sec:manybody:operators}
+Suppose we rewrite the Hamiltonian from eq.~\eqref{eq:manybody:hamiltonnbody} as a sum of two terms, $\hat{H}^{(0)}$ and $\hat{H}^{(1)}$, where the first term contains all one-body terms and the second incorporates only the two body potential between electrons,
+\begin{equation}
+\begin{split}
+\hat{H}^{(0)} &= \sum_{k=0}^N \left( \hat{t}_k + \hat{v}_k \right)
+= \sum_{k=0}^N \hat{h}^{(0)}(x_k)
+\\
+\hat{H}^{(1)} &= \frac{1}{2} \sum_{kl}^N \hat{v}_{kl} (x_k, x_l) .
+\end{split}
+\end{equation}
+Introducing atomic units, that is setting $\hbar = m_{e} = e = 1$, these operators can be expressed neatly as
+\begin{equation}
+\begin{split}
+\hat{t}_k &= - \frac{1}{2} \nabla^2 \\ 
+\hat{v}_{k} &= \frac{1}{2} \omega^2 x_k^2 \hspace{3mm}\textrm{ (for harmonic oscillator)} \\
+\hat{v}_{kl} &= \frac{1}{|x_k - x_l|} \hspace{3mm}\textrm{ (for electrons)} .
+\end{split}
+\end{equation}
+
+
+Before we express the operators in second quantization, using the creation and annihilation operators, we will define the number operator, which counts the number of occupied states in a determinant, hence the number of particles,
+\begin{equation}
+\label{eq:manybody:numberoperator}
+\hat{N} = \sum_p \hat{p}^{\dagger} \hat{p} .
+\end{equation}
+This is the first example of a second quantized operator, and the most striking is the unrestricted sum, with $p$ looping through all values in our basis. In principle, this sum runs over infinitely many single-particle states.
+Extending this for the different parts of our Hamiltonian, the one-body operator becomes
+\begin{equation}
+\hat{H}^{(0)} = \sum_{pq} \langle p| \hat{h}^{(0)} |q\rangle \hat{p}^{\dagger} \hat{q},
+\end{equation}
+and the two-body operator reads
+\begin{equation}
+\label{eq:manybody:twobody}
+\begin{split}
+\hat{H}^{(1)} &= \frac{1}{2} \sum_{pqrs} \langle pq | \hat{v} | rs \rangle 
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s}\hat{r} \\
+&= \frac{1}{4} \sum_{pqrs} \langle pq ||rs \rangle \hat{p}^{\dagger}
+\hat{q}^{\dagger} \hat{s} \hat{r} .
+\end{split}
+\end{equation}
+A usual interpretation is that $\hat{H}^{(0)}$ excites one particle from $q$ into a state
+$p$ with a probability of
+\begin{equation}
+\langle p| \hat{h}^{(0)} |q\rangle = \int \phi_p^{*}(x_1) \hat{h}^{(0)}(x_1)
+\phi_q(x_1) dx_1 ,
+\end{equation}
+whereas the two-body operator excites two particles from the states $r$ and $s$ into
+$p$ and $q$, with a probability amplitude of
+\begin{equation}
+\langle pq | \hat{v} | rs \rangle =
+\int \int \phi_p^{*}(x_1)\phi_q^{*}(x_2) \hat{v}(x_1,x_2) \phi_r(x_1)
+\phi_s(x_2) dx_1 dx_2 .
+\end{equation}
+In the two-body case the probability amplitude is written directly as an integral,
+without taking $|rs\rangle$ as an antisymmetric determinant.
+To account for this, one often use the antisymmetric element instead, defined as
+\begin{equation}
+\label{eq:manybody:v_elem}
+\langle pq | | rs \rangle = \langle pq |v| rs \rangle - \langle pq |v| sr
+\rangle .
+\end{equation}
+This expression will still not account for the factor $\frac{1}{\sqrt{2}}$ in
+front of a slater determinant, which is why we need a factor $\frac{1}{4}$ when
+using this in equation~\eqref{eq:manybody:twobody}.
+
+\paragraph*{}
+With these forms of our operators, we can calculate expectation values in a
+general way between two determinants.
+For instance $\langle ij|\hat{V}|kl \rangle$ can be calculated using anticommutators,
+\begin{equation}
+\label{eq:manybody:anticomEval}
+\begin{split}
+\langle ij|\hat{V}|kl \rangle &= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle 
+\langle | \hat{j}\hat{i} 
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r}
+\hat{k}^{\dagger} \hat{l}^{\dagger} | \rangle 
+= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle 
+\langle | \hat{j}
+\left(\delta_{ip} -  \hat{p}^{\dagger} \hat{i} \right)
+\hat{q}^{\dagger} \hat{s} \hat{r}
+\hat{k}^{\dagger} \hat{l}^{\dagger} | \rangle \\
+%
+&= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle \langle |
+ \delta_{ip}  \hat{j}\hat{q}^{\dagger} \hat{s} \hat{r}\hat{k}^{\dagger}\hat{l}^{\dagger} -
+\hat{j}  \hat{p}^{\dagger} \hat{i} \hat{q}^{\dagger} \hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
+| \rangle  \\
+&= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle \langle |
+\delta_{ip} \delta_{jq} \hat{s} \hat{r}\hat{k}^{\dagger}\hat{l}^{\dagger} +
+\delta_{ip} \hat{q}^{\dagger}  \hat{j}\hat{s} \hat{r}\hat{k}^{\dagger}\hat{l}^{\dagger} -
+\hat{j}  \hat{p}^{\dagger} \hat{i} \hat{q}^{\dagger} \hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
+| \rangle .
+\end{split}
+\end{equation}
+The second term on the last line of eq.~\eqref{eq:manybody:anticomEval} has $\hat{q}^{\dagger}$ as the leftmost operator.
+Acting from the left on a vacuum bra state, this leads to zero.
+The philosophy is to continue this process, moving creation operators
+to the left in all terms.
+The only contributing terms will then have Kronecker deltas only, i.e.
+\begin{equation}
+\label{eq:manybody:evaluationanticom}
+\begin{split}
+\langle ij|\hat{V}|kl \rangle &= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle \langle |
+\delta_{ip} \delta_{jq} \delta_{rk} \delta_{sl}
+- \delta_{ip} \delta_{jq} \delta_{sk} \delta_{rl}
++ \delta_{jp} \delta_{iq} \delta_{sk} \delta_{rl}
+- \delta_{jp} \delta_{iq} \delta_{rk} \delta_{sl}
+|\rangle \\
+&=
+\frac{1}{4} \left[
+ \langle ij||kl \rangle
+-\langle ij||lk \rangle
++\langle ji||lk \rangle
+-\langle ji||kl \rangle
+\right]
+=
+\langle ij||kl \rangle .
+\end{split}
+\end{equation}
+The last step here was to see that all terms are exactly the same, due to the
+antisymmetric elements, where
+\begin{equation}
+ \langle ij||kl \rangle =
+-\langle ij||lk \rangle =
+\langle ji||lk \rangle =
+-\langle ji||kl \rangle .
+\end{equation}
+
+
+\subsection{Wick's theorem}
+Anticommutators, as seen in the previous section, are powerful, yet
+tedious, constructs for calculation of expectation values.
+Any state can be transformed into a string of operators acting on the vacuum,
+which we can transform further by anticommutators.
+For strings of more operators one could automate this process, by using sympy~\cite{sympy}
+or similar software, but for closed-form 
+calculations, Wick's time-independent theorem allows for substantial  simplifications.
+
+\paragraph*{}
+Having a string of operators $\hat{A} \hat{B} \hat{C} ...$, we define the
+normal-ordered product 
+\begin{equation}
+\left\lbrace  \hat{A} \hat{B} \hat{C} ...  \right\rbrace ,
+\end{equation}
+as a reordered product, with all creation operators moved to the left, and
+annihilation operators to the right.
+A phase phactor of $-1$ will arise whenever an odd number of permutations is
+needed in the reordering.
+Such a product is extremely usefull due to the fact that all expectation values
+in vacuum yields zero.
+Furthermore we define a contraction between two operators as the difference between the original
+ordering and the normal ordering,
+\begin{equation}
+\contraction[1ex]{}{\hat{A}}{}{\hat{B}}
+\hat{A}\hat{B}
+=
+\bcontraction[1ex]{}{\hat{A}}{}{\hat{B}}
+\hat{A}\hat{B}
+=
+\hat{A}\hat{B} - \left\lbrace \hat{A}\hat{B} \right\rbrace .
+\end{equation}
+With this approach, four contractions are possible;
+\begin{equation}
+\label{eq:manybody:vacuumcontractions}
+\begin{split}
+\contraction[1ex]{}{\hat{p}}{}{\hat{q}}
+\hat{p}\hat{q} &= \hat{p}\hat{q} - \hat{p}\hat{q} = 0 \\
+%
+\contraction[1ex]{}{\hat{p}}{}{\hat{q}^{\dagger}}
+\hat{p}\hat{q}^{\dagger} &= \hat{p}\hat{q}^{\dagger} -(-\hat{q}^{\dagger}
+\hat{p}) = \delta_{pq}\\
+%
+\contraction[1ex]{}{\hat{p}^{\dagger}}{}{\hat{q}}
+\hat{p}^{\dagger}\hat{q} &= \hat{p}^{\dagger}\hat{q} - \hat{p}^{\dagger}\hat{q}
+= 0\\
+%
+\contraction[1ex]{}{\hat{p}^{\dagger}}{}{\hat{q}^{\dagger}}
+\hat{p}^{\dagger}\hat{q}^{\dagger} &= \hat{p}^{\dagger}\hat{q}^{\dagger} -
+\hat{p}^{\dagger}\hat{q}^{\dagger} = 0  .
+\end{split}
+\end{equation}
+If contractions occur within a normal product, a phase factor of $-1$ will
+arise from each permutation that is needed to bring the contracted operators
+besides each other.
+
+Wick's theorem~\cite{PhysRev.80.268} states that any string of operators can be rewritten as a sum,
+where the first term is the normal-ordered string.
+The second term is a sum of all possible normal products with contractions between two operators only.
+The next term is a sum of possible contractions between four operators, and so
+on up to a sum of all possibilities where all operators are contracted.
+The nice feature of this theorem is that all products with normal ordered
+strings will not give a contribution when evaluated between vacuum states.
+In this case only terms that are fully contracted will contribute.
+
+If we have a product of two already normal-ordered operator strings, this is rewritten as the normal-ordered string off all operators plus all possible contractions between the first and the second string.
+As an example we will return to the transition probability from
+equation~\eqref{eq:manybody:evaluationanticom}, using Wick's theorem instead,
+%THIS SIMPLE WICK LOOKS FISHY
+\begin{equation}
+\begin{split}
+\label{eq:manybody:evaluationwick}
+&\langle ij|\hat{V}|kl \rangle = 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle 
+\langle | \hat{j}\hat{i} 
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r}
+\hat{k}^{\dagger} \hat{l}^{\dagger} | \rangle \\
+%
+&= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle \langle | 
+\contraction[1ex]{}{\hat{j}}{\hat{i}}{ \hat{p}}
+\contraction[1.6ex]{\hat{j}}{\hat{i}}{\hat{p}^{\dagger}}{\hat{q}}
+\hat{j}\hat{i} \hat{p}^{\dagger} \hat{q}^{\dagger} 
+\contraction[1ex]{}{\hat{s}}{\hat{r}}{\hat{k}}
+\contraction[1.6ex]{\hat{s}}{\hat{r}}{\hat{k}^{\dagger}}{\hat{l}}
+\hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
++
+\contraction[1ex]{}{\hat{j}}{\hat{i}}{ \hat{p}}
+\contraction[1.6ex]{\hat{j}}{\hat{i}}{\hat{p}^{\dagger}}{\hat{q}}
+\hat{j}\hat{i} \hat{p}^{\dagger} \hat{q}^{\dagger} 
+\contraction[1ex]{\hat{s}}{\hat{r}}{}{\hat{k}}
+\contraction[1.6ex]{}{\hat{s}}{\hat{r}\hat{k}^{\dagger}}{\hat{l}}
+\hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
++
+\contraction[1ex]{\hat{j}}{\hat{i}}{}{ \hat{p}}
+\contraction[1.6ex]{}{\hat{j}}{\hat{i}\hat{p}^{\dagger}}{\hat{q}}
+\hat{j}\hat{i} \hat{p}^{\dagger} \hat{q}^{\dagger} 
+\contraction[1ex]{\hat{s}}{\hat{r}}{}{\hat{k}}
+\contraction[1.6ex]{}{\hat{s}}{\hat{r}\hat{k}^{\dagger}}{\hat{l}}
+\hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
++
+\contraction[1ex]{\hat{j}}{\hat{i}}{}{ \hat{p}}
+\contraction[1.6ex]{}{\hat{j}}{\hat{i}\hat{p}^{\dagger}}{\hat{q}}
+\hat{j}\hat{i} \hat{p}^{\dagger} \hat{q}^{\dagger} 
+\contraction[1ex]{}{\hat{s}}{\hat{r}}{\hat{k}}
+\contraction[1.6ex]{\hat{s}}{\hat{r}}{\hat{k}^{\dagger}}{\hat{l}}
+\hat{s} \hat{r}\hat{k}^{\dagger} \hat{l}^{\dagger} 
+| \rangle \\
+%
+&= 
+\frac{1}{4} \sum_{pqrs} \langle pq||rs \rangle \langle |
+ \delta_{jp} \delta_{iq} \delta_{sk} \delta_{rl}
+- \delta_{jp} \delta_{iq} \delta_{rk} \delta_{sl}
++ \delta_{ip} \delta_{jq} \delta_{rk} \delta_{sl}
+- \delta_{ip} \delta_{jq} \delta_{sk} \delta_{rl}
+|\rangle .
+%
+\end{split}
+\end{equation}
+This is not all fully contracted terms, but with a little reasoning it seems
+clear that the other terms have at least one contraction that is equal to zero.
+It is possible to count the number of crossing lines, instead of 
+moving operators close to each other, to get the correct phase factor.
+The number of crossings are $(2,1,0,1)$ in the four terms, leading to a minus
+sign in the second and the last term, due to an odd number of crossings.
+Comparing \eqref{eq:manybody:evaluationwick} with
+%MHJ forandring
+\eqref{eq:manybody:evaluationanticom}, we see that both yield the correct result, however,
+using Wick's theorem simplifies considerably the algebra.
+
+
+\paragraph*{}
+To further optimize this theorem, one may redefine the normal ordering with
+moving all creation operators above the fermi level, and all annihilation
+operators below the fermi level, to the left.
+%MHJ
+With this reordering, all expectation values yield zero when evaluated with respect to the
+reference state, as a pure consequence of
+equation~\eqref{eq:manybody:particlehole}, that is
+\begin{equation}
+\langle \Phi |\hat{a}^{\dagger} \cdots \hat{b} | \Phi \rangle = 0
+\hspace{3mm}\textrm{ or }\hspace{3mm}
+\langle \Phi | \hat{i} \cdots \hat{j}^{\dagger}| \Phi \rangle = 0 .
+\end{equation}
+The contractions in eq.~\eqref{eq:manybody:vacuumcontractions} are altered
+to only two nonzero contractions,
+\begin{equation}
+\label{eq:manybody:referencecontractions}
+\begin{split}
+\contraction{}{\hat{i}}{{}^{\dagger}}{\hat{j}}
+\hat{i}^{\dagger}\hat{j}
+&= \hat{i}^{\dagger}\hat{j} -\left( -  \hat{j} \hat{i}^{\dagger} \right) =
+\delta_{ij} \\
+%
+\contraction{}{\hat{a}}{}{\hat{b}}
+\hat{a}\hat{b}^{\dagger}
+&=
+\hat{a}\hat{b}^{\dagger} - \left(- \hat{b}^{\dagger} \hat{a} \right) =
+\delta_{ab}   .
+\end{split}
+\end{equation}
+Apart from the redefinition of the normal product, Wick's theorem is unaltered.
+
+
+
+
+
+\section{Diagrams}
+%MHJ
+Although Wick's theorem adds considerable simplifications to the calculation of various expectation values, the human brain is, sadly, not well suited for finding complicated combinations of
+contractions using Wick's theorem.
+As an example, we present a string of operators
+arising from the evaluation of the transition probability from a 1p-1h excitation
+to another 1p-1h excitation for the two-body potential, 
+\begin{equation}
+\label{eq:manybody:example}
+\langle \Phi_i^a | \hat{V} | \Phi_j^b \rangle
+\rightarrow
+\hat{i}^{\dagger} \hat{a} \hspace{2mm} \hat{p}^{\dagger} \hat{q}^{\dagger}
+\hat{s} \hat{r} \hspace{2mm} \hat{b}^{\dagger} \hat{j} .
+\end{equation}
+Although this expression only contains eight operators, it leads to fourteen nonzero,
+fully contracted, terms.
+One needs to be focused and systematic in order to calculate all terms correctly.
+However, the brain seems to be good at visualizing mental images, and therefore a
+graphical presentation of the formulas could serve us well.
+
+%MHJ
+The graphical approach presented here originated in quantum field theory,
+developed by Richard Feynman {\bf referanse her!!!!}.
+Although originally meant to be used on time dependent transitions from one
+state to another, it is presented here without a time ordering (following~\cite{shavitt2009many}).
+It does, however, restrict the order in which operators are applied.
+
+\paragraph*{}
+Diagrams start out with the reference ket state, denoted by two horizontal lines at
+the bottom, and end out with the reference bra state, as two horizontal lines
+at the top. 
+Particle operators are lines pointing upwards, whereas holes point downwards.
+In this fashion, determinants with excitations from the reference state can be visualized as
+\begin{eqnarray}
+\langle \Phi_i^a | = \langle \Phi | \hat{i}^{\dagger}\hat{a} =& 
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-oneponehbra}
+        \begin{fmfgraph*}(50,50)
+            \fmfbottom{i1,i2} \fmftop{o1,o2}
+            \fmf{phantom}{i1,hb,pb,i2}
+            \fmf{double}{o1,ht,pt,o2}
+            \fmffreeze
+            \fmf{electron,label=$i$}{ht,hb}
+            \fmf{electron,label=$a$}{pb,pt}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+|\Phi_{ij}^{ab} \rangle = \hat{a}^{\dagger}\hat{b}^{\dagger}\hat{j}\hat{i}|\Phi \rangle =& 
+\parbox{40mm}{
+    \textrm{
+    \begin{fmffile}{fmf-twoptwohket}
+        \begin{fmfgraph*}(100,50)
+            \fmfbottom{i1,i2} \fmftop{o1,o2}
+            \fmf{double}{i1,h1b,p1b,dummyb,h2b,p2b,i2}
+            \fmf{phantom}{o1,h1t,p1t,dummyt,h2t,p2t,o2}
+            \fmffreeze
+            \fmf{electron,label=$i$}{h1t,h1b}
+            \fmf{electron,label=$a$}{p1b,p1t}
+            \fmf{electron,label=$j$}{h2t,h2b}
+            \fmf{electron,label=$b$}{p2b,p2t}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} .
+\end{eqnarray}
+
+
+One-body operators are presented as two electron lines connected to a dashed line with a cross,
+\begin{equation}
+\hat{H^{(0)}} = \sum_{pq} \langle p | \hat{h^{(0)}} | \hat{q} \rangle \hat{p}^{\dagger}\hat{q} =
+\parbox{30mm}{
+	\textrm{
+	\begin{fmffile}{fmf-onebodyoperator}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			\fmf{electron,label=$q$}{i1,f1}
+			\fmf{electron,label=$p$}{f1,o1}
+			\fmf{dashes}{f1,f2}
+			\fmfv{decor.shape=cross}{f2}
+			\fmf{phantom}{i2,f2}
+			\fmf{phantom}{f2,o2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+\end{equation}
+Two-body operators are represented similarly, but have two incoming and two outgoing lines due to the two-body nature,
+\begin{equation}
+\hat{H}^{(1)} = \frac{1}{4}\sum_{pqrs} \langle pq | | rs \rangle \hat{p}^{\dagger}\hat{q}^{\dagger} \hat{s} \hat{r} =
+\parbox{30mm}{
+	\textrm{
+	\begin{fmffile}{fmf-twobodyoperator}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			\fmf{electron,label=$r$}{i1,f1}
+			\fmf{electron,label=$p$}{f1,o1}
+			\fmf{dashes}{f1,f2}
+			\fmf{electron,label=$s$}{i2,f2}
+			\fmf{electron,label=$q$}{f2,o2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} .
+\end{equation}
+
+
+The idea now is to represent contractions by connecting lines, and because only fully contracted terms are nonzero within the reference state, all lines should be connected.
+All \textit{free} indexes are meant to be summed over, and the matrix elements are found by replacing $q$ with the label of incoming line and $p$ with the outgoing label in the one-body case.
+In the two-body case we replace $r/s$ with left/right incoming line and $p/q$ with left/right outgoing line.
+To determine the correct phase factor, one needs to count the number of hole lines and the number of closed paths.
+When counting the number of closed paths we will consider associated particle-hole pairs as if they were connected in the reference states.
+The phase factor will in the end be $(-1)^{l + h}$, where $l$ is the number of closed paths (loops) and $h$ is the number of hole lines.
+
+
+To illustrate the use of diagrams, we return to the example in the introduction, eq.~\eqref{eq:manybody:example}.
+This expression is evaluated to four unique ways of connecting the diagrams;
+
+\begin{equation}
+\label{eq:manybody:iavbjDiag}
+\begin{split}
+\langle \Phi_i^a | \hat{V} | \Phi_j^b \rangle
+&= 
+\overbrace{
+\parbox{35mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term1}
+		\begin{fmfgraph*}(80,80) \fmfkeep{fmf-example-term1}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			%Electrons		
+			\fmf{electron,label=$j$}{g1,b1}
+			\fmf{electron,label=$b$}{b2,g2}
+			\fmf{electron,label=$i$}{t1,g1}
+			\fmf{electron,label=$a$}{g2,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+}^{(a)}
++
+\overbrace{
+\parbox{35mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term2}
+		\begin{fmfgraph*}(80,80) \fmfkeep{fmf-example-term2}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b1,loop}
+			\fmf{phantom}{t1,loop}
+			%Electrons		
+			\fmf{electron,label=$b$}{b2,g2}
+			\fmf{electron,label=$a$}{g2,t2}
+			\fmf{electron,label=$i$}{t1,holeconnect}
+			\fmf{electron,label=$j$}{holeconnect,b1}
+			%Electron hole loop
+			\fmf{electron,right,tension=0.3,label=$k$}{g1,loop}
+			\fmf{electron,right,tension=0.3}{loop,g1}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+}^{(b)} \\
+&+
+\underbrace{
+\parbox{35mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term3}
+		\begin{fmfgraph*}(80,80) \fmfkeep{fmf-example-term3}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b2,loop}
+			\fmf{phantom}{t2,loop}
+			%Electrons		
+			\fmf{electron,label=$b$}{b2,partconnect}
+			\fmf{electron,label=$a$}{partconnect,t2}
+			\fmf{electron,label=$i$}{t1,g1}
+			\fmf{electron,label=$j$}{g1,b1}
+			%Electron hole loop
+			\fmf{electron,left,tension=0.3}{g2,loop}
+			\fmf{electron,left,tension=0.3,label=$k$}{loop,g2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+}_{(c)}
++
+\underbrace{
+\parbox{35mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term4}
+		\begin{fmfgraph*}(80,80) \fmfkeep{fmf-example-term4}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,b2,b3,b4,b5,i2}
+			\fmf{double}{o1,t1,t2,t3,t4,t5,o2}
+			\fmffreeze
+			%Connecting points for hole loops
+			\fmf{phantom}{b3,loop1,t3}
+			\fmf{phantom}{i2,loop2,o2}
+			\fmffreeze
+			%Operator
+			\fmf{dashes}{g1,g2}
+			%Hole loops
+			\fmf{electron,right,label=$k$,tension=0.3}{g1,loop1}
+			\fmf{electron,right,tension=0.3}{loop1,g1}
+			\fmf{electron,left,label=$l$,tension=0.3}{g2,loop2}
+			\fmf{electron,left,tension=0.3}{loop2,g2}
+			%Electronlines
+			\fmf{electron,label=$i$}{t1,holeconnect}
+			\fmf{electron,label=$j$}{holeconnect,b1}
+			\fmf{electron,label=$b$}{b2,partconnect}
+			\fmf{electron,label=$a$}{partconnect,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} 
+}_{(d)}
+.
+\end{split}
+\end{equation}
+\begin{enumerate}[{\bf Term (\ref{eq:manybody:iavbjDiag}a)}]
+\item has no free indexes since all lines are connected to the particle and hole indices already defined in the reference states.
+The corresponding matrix element is $\langle ja || ib \rangle$.
+Having two hole lines, one closed loop, and in total four equal terms, 
+\begin{equation}
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term1-1}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			%Electrons		
+			\fmf{electron}{g1,b1}
+			\fmf{electron}{b2,g2}
+			\fmf{electron}{t1,g1}
+			\fmf{electron}{g2,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term1-2}
+		\begin{fmfgraph*}(50,50) \fmfkeep{fmf-example-term1-2}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{g1,b1}
+			\fmf{phantom}{b2,g2}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{g2,t2}			
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{g2,b1}
+			\fmf{electron}{b2,g1}
+			\fmf{electron}{t1,g2}
+			\fmf{electron}{g1,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term1-3}
+		\begin{fmfgraph*}(50,50) \fmfkeep{fmf-example-term1-3}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{g1,b1}
+			\fmf{phantom}{b2,g2}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{g2,t2}			
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{g1,b1}
+			\fmf{electron}{b2,g1}
+			\fmf{electron}{t1,g2}
+			\fmf{electron}{g2,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term1-4}
+		\begin{fmfgraph*}(50,50) \fmfkeep{fmf-example-term1-4}
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{g1,b1}
+			\fmf{phantom}{b2,g2}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{g2,t2}			
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{g2,b1}
+			\fmf{electron}{b2,g2}
+			\fmf{electron}{t1,g1}
+			\fmf{electron}{g1,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} ,
+\end{equation}
+the total factor in front should be $(-1)^{2+1} \cdot 4 \cdot \frac{1}{4} = -1$.
+\item corresponds to the element $\delta_{ij} \langle ka || kb \rangle$, where the Kronecker delta function follows from the contracted hole lines between $i$ and $j$.
+There are two hole lines, two loops, and in total four equal terms,
+\begin{equation}
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term2-1}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b1,loop}
+			\fmf{phantom}{t1,loop}
+			%Electrons		
+			\fmf{electron}{b2,g2}
+			\fmf{electron}{g2,t2}
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			%Electron hole loop
+			\fmf{electron,right,tension=0.3}{g1,loop}
+			\fmf{electron,right,tension=0.3}{loop,g1}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term2-2}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b1,g1}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{g2,loop}
+			\fmf{phantom}{i2,loop,o2}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,g1}
+			\fmf{electron}{g1,t2}
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			%Electron hole loop
+			\fmf{electron,right,tension=0.3}{g2,loop}
+			\fmf{electron,right,tension=0.3}{loop,g2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term2-3}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,gmiddle,g2}
+			\fmf{phantom}{b1,g1}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{i2,g2,o2}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,g2}
+			\fmf{electron}{g1,t2}
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			%Electron hole loop
+			\fmf{electron,right,tension=0.5}{g2,gmiddle}
+			\fmf{electron,left,tension=0.5}{gmiddle,g1}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term2-4}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,gmiddle,g2}
+			\fmf{phantom}{b1,g1}
+			\fmf{phantom}{t1,g1}
+			\fmf{phantom}{i2,g2,o2}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,g1}
+			\fmf{electron}{g2,t2}
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			%Electron hole loop
+			\fmf{electron,left,tension=0.5}{g1,gmiddle}
+			\fmf{electron,right,tension=0.5}{gmiddle,g2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} .
+\end{equation}
+\item is similar to (\ref{eq:manybody:iavbjDiag}b), except how the Kronecker delta connects the particle lines $a$ and $b$ instead. There are now three hole lines, two loops and four  equal terms;
+\begin{equation}
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term3-1}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b2,loop}
+			\fmf{phantom}{t2,loop}
+			%Electrons		
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+			\fmf{electron}{t1,g1}
+			\fmf{electron}{g1,b1}
+			%Electron hole loop
+			\fmf{electron,left,tension=0.3}{g2,loop}
+			\fmf{electron,left,tension=0.3}{loop,g2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term3-2}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,g2}
+			\fmf{phantom}{b2,g2}
+			\fmf{phantom}{t2,g2}
+			\fmf{phantom}{g1,loop}
+			\fmf{phantom}{i1,loop,o1}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+			\fmf{electron}{t1,g2}
+			\fmf{electron}{g2,b1}
+			%Electron hole loop
+			\fmf{electron,left,tension=0.3}{g1,loop}
+			\fmf{electron,left,tension=0.3}{loop,g1}			
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term3-3}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,gmiddle,g2}
+			\fmf{phantom}{i1,g1,o1}
+			\fmf{phantom}{b2,g2,t2}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+			\fmf{electron}{t1,g2}
+			\fmf{electron}{g1,b1}
+			%Electron hole loop
+			\fmf{electron,left,tension=0.5}{g2,gmiddle}
+			\fmf{electron,right,tension=0.5}{gmiddle,g1}			
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term3-4}
+		\begin{fmfgraph*}(50,50)
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,dummy1,b2,i2}
+			\fmf{double}{o1,t1,dummy2,t2,o2}
+			\fmffreeze
+			%Operator line
+			\fmf{dashes}{g1,gmiddle,g2}
+			\fmf{phantom}{i1,g1,o1}
+			\fmf{phantom}{b2,g2,t2}
+			\fmffreeze
+			%Electrons		
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+			\fmf{electron}{t1,g1}
+			\fmf{electron}{g2,b1}
+			%Electron hole loop
+			\fmf{electron,right,tension=0.5}{g1,gmiddle}
+			\fmf{electron,left,tension=0.5}{gmiddle,g2}			
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} .
+\end{equation}
+\item has three hole lines, three loops, but only two equal diagrams can be created, namely
+\begin{equation}
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term4-1}
+		\begin{fmfgraph*}(50,50) 
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,b2,b3,b4,b5,i2}
+			\fmf{double}{o1,t1,t2,t3,t4,t5,o2}
+			\fmffreeze
+			%Connecting points for hole loops
+			\fmf{phantom}{b3,loop1,t3}
+			\fmf{phantom}{i2,loop2,o2}
+			\fmffreeze
+			%Operator
+			\fmf{dashes}{g1,g2}
+			%Hole loops
+			\fmf{electron,right,tension=0.3}{g1,loop1}
+			\fmf{electron,right,tension=0.3}{loop1,g1}
+			\fmf{electron,left,tension=0.3}{g2,loop2}
+			\fmf{electron,left,tension=0.3}{loop2,g2}
+			%Electronlines
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+}
+=
+\parbox{23mm}{
+	\textrm{
+	\begin{fmffile}{fmf-example-term4-2}
+		\begin{fmfgraph*}(50,50) 
+			\fmfbottom{i1,i2} \fmftop{o1,o2}
+			%Reference states
+			\fmf{double}{i1,b1,b2,b3,b4,i2}
+			\fmf{double}{o1,t1,t2,t3,t4,o2}
+			\fmffreeze
+			%Operator
+			\fmf{phantom}{i2,g2,o2}
+			\fmffreeze
+			\fmf{dashes}{g1,gmiddle,g2}
+			\fmf{phantom}{b2,g1,t2}
+			\fmffreeze
+			%Hole loops
+			\fmf{electron,left,tension=0.5}{g1,gmiddle}
+			\fmf{electron,right,tension=0.5}{gmiddle,g2}
+			\fmf{electron,right,tension=0.5}{g2,gmiddle}
+			\fmf{electron,left,tension=0.5}{gmiddle,g1}
+			%Electronlines
+			\fmf{electron}{t1,holeconnect}
+			\fmf{electron}{holeconnect,b1}
+			\fmf{electron}{b2,partconnect}
+			\fmf{electron}{partconnect,t2}
+		\end{fmfgraph*}
+	\end{fmffile}
+	}
+} .
+\end{equation}
+\end{enumerate}
+
+We then have in total
+\begin{equation}
+\begin{split}
+\langle \Phi_i^a | \hat{V} | \Phi_j^b \rangle
+&=
+\overbrace{(-1)^{1+2}\cdot 4 \cdot \frac{1}{4} \langle ja || ib \rangle}^{(a)}
++
+\overbrace{(-1)^{2+2} \cdot 4 \cdot \frac{1}{4} \sum_k \delta_{ij} \langle ka || kb \rangle}^{(b)} \\
+&+
+\underbrace{(-1)^{2+3} \cdot 4 \cdot \frac{1}{4} \sum_k \delta_{ab} \langle jk || ik \rangle}_{(c)}
++
+\underbrace{(-1)^{3+3} \cdot 2 \frac{1}{4} \sum_{kl} \delta_{ab} \delta_{ij} \langle kl || kl \rangle }_{(d)}\\
+&=  - \langle ja || ib \rangle
++  \sum_k \delta_{ij} \langle ka || kb \rangle 
+- \sum_k \delta_{ab} \langle jk || ik \rangle
++ \frac{1}{2} \sum_{kl} \delta_{ab} \delta_{ij} \langle kl || kl \rangle  .
+\end{split}
+\end{equation}
+We will return to diagrams 
+when we derive the coupled cluster equations, but then 
+presented with a more explicit set of rules for interpretation.
+
+
+
+
+
+\section{Normal-ordered Hamiltonian}
+Based on the second quantized expression for the Hamiltonian from section~\ref{sec:manybody:operators}, we can apply Wick's theorem.
+Defining $\delta_{pq<F}$ to be a Kronecker delta function where $p$ and $q$ are below the Fermi level, the string of operators from $\hat{H}^{(0)}$ becomes
+\begin{equation}
+\hat{p}^{\dagger} \hat{q}
+=
+\left\lbrace \hat{p}^{\dagger} \hat{q}\right\rbrace
++
+\contraction[1ex]{}{\hat{p}^{\dagger}}{}{\hat{q}}
+\hat{p}^{\dagger}\hat{q} 
+=
+\left\lbrace \hat{p}^{\dagger} \hat{q}\right\rbrace
++
+\delta_{pq < F} ,
+\end{equation}
+yielding a new expression for the single-particle interactions,
+\begin{equation}
+\hat{H}^{(0)}
+= 
+\sum_{pq} \langle p|\hat{h}^{(0)} | q\rangle 
+\left\lbrace \hat{p}^{\dagger} \hat{q} \right\rbrace
++
+\sum_i \langle i | \hat{h}^{(0)} | i \rangle .
+\end{equation}
+Similarly for $\hat{H}^{(1)}$ we get 
+\begin{equation}
+\begin{split}
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r}
+&=
+\left\lbrace \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\left\lbrace
+\contraction[1ex]{}{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{ \hat{s}} \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\left\lbrace
+\contraction[1ex]{}{\hat{p}^{\dagger}}{\hat{q}^{\dagger} \hat{s}}{\hat{r}} \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\left\lbrace
+\contraction[1ex]{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{}{ \hat{s}} \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace  \\
+&+
+\left\lbrace
+\contraction[1ex]{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{ \hat{s}}{\hat{r}} \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace 
++
+\left\lbrace
+\contraction[0.7ex]{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{ \hat{s}}{\hat{r}}
+\contraction[1.3ex]{}{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{\hat{s}}
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\left\lbrace
+\contraction[0.7ex]{\hat{p}^{\dagger}}{\hat{q}^{\dagger}}{}{\hat{s}}
+\contraction[1.3ex]{}{\hat{p}^{\dagger}}{\hat{q}^{\dagger}\hat{s}}{\hat{r}}
+\hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace \\
+&=
+\left\lbrace \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
+-
+\delta_{ps <F} \left\lbrace \hat{q}^{\dagger} \hat{r} \right\rbrace
++ 
+\delta_{pr <F} \left\lbrace \hat{q}^{\dagger} \hat{s} \right\rbrace
++
+\delta_{qs <F} \left\lbrace \hat{p}^{\dagger} \hat{r} \right\rbrace \\
+&-
+\delta_{qr <F} \left\lbrace \hat{p}^{\dagger} \hat{s} \right\rbrace
+-
+\delta_{ps <F} \delta_{qr <F}
++
+\delta_{pr <F} \delta_{qs <F} ,
+\end{split}
+\end{equation}
+and put back into the second-quantized operator we find
+\begin{equation}
+\begin{split}
+\hat{H}^{(1)}
+=&
+\frac{1}{4} \sum_{pqrs} \langle pq || rs \rangle \left\lbrace
+ \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
+-
+\frac{1}{4} \sum_{qri} \langle iq || ri \rangle 
+ \left\lbrace \hat{q}^{\dagger} \hat{r} \right\rbrace
++ 
+\frac{1}{4} \sum_{qsi} \langle iq || is \rangle 
+ \left\lbrace \hat{q}^{\dagger} \hat{s} \right\rbrace \\
++&
+\frac{1}{4} \sum_{pri} \langle pi || ri \rangle 
+ \left\lbrace \hat{p}^{\dagger} \hat{r} \right\rbrace  
+-
+\frac{1}{4} \sum_{psi} \langle pi || is \rangle 
+ \left\lbrace \hat{p}^{\dagger} \hat{s} \right\rbrace
+-
+\frac{1}{4} \sum_{ij} \langle ij || ji \rangle
++
+\frac{1}{4} \sum_{ij} \langle ij || ij \rangle .
+\end{split}
+\end{equation}
+Indices are merely dummy variables summed freely over, and together with the properties of antisymmetric interaction elements this can be compressed to 
+\begin{equation}
+\hat{H}^{(1)}
+=
+\frac{1}{4} \sum_{pqrs} \langle pq || rs \rangle \left\lbrace
+ \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\sum_{pqi} \langle pi || qi \rangle 
+ \left\lbrace \hat{p}^{\dagger} \hat{q} \right\rbrace  
++
+\frac{1}{2} \sum_{ij} \langle ij || ij \rangle .
+\end{equation}
+
+\paragraph*{}
+Gathering all terms, we have a normal-ordered expression for the Hamiltonian,
+\begin{equation}
+\label{eq:manybody:Hnormalterms}
+\begin{split}
+\hat{H} 
+=
+\sum_{pq} \langle p|\hat{h}^{(0)} | q\rangle 
+\left\lbrace \hat{p}^{\dagger} \hat{q} \right\rbrace
+&+
+\frac{1}{4} \sum_{pqrs} \langle pq || rs \rangle \left\lbrace
+ \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace
++
+\sum_{pqi} \langle pi || qi \rangle 
+ \left\lbrace \hat{p}^{\dagger} \hat{q} \right\rbrace  \\
+&+
+\sum_i \langle i | \hat{h}^{(0)} | i \rangle
++
+\frac{1}{2} \sum_{ij} \langle ij || ij \rangle .
+\end{split}
+\end{equation}
+The last two terms in \eqref{eq:manybody:Hnormalterms} are simple constants whereas the first three are all normal-ordered.
+Evaluating the energy within the reference state, the first three terms would be zero leaving us with the last two, i.e.
+\begin{equation}
+\label{eq:manybody:Eref}
+E_{ref} \equiv \langle \Phi_0 | \hat{H} | \Phi_0 \rangle 
+= 
+\sum_i \langle i | \hat{h}^{(0)} | i \rangle
++
+\frac{1}{2} \sum_{ij} \langle ij || ij \rangle .
+\end{equation}
+Normal-ordered terms are expressed through a one-particle operator $\hat{F}_N$ and a two-particle operator $\hat{V}_N$,
+\begin{equation}
+\label{eq:manybody:normhamil}
+\hat{H}_N \equiv \hat{H} - E_{ref} 
+=
+\hat{F}_N + \hat{V}_N
+= 
+\sum_{pq} f_{pq} \lbrace \hat{p}^{\dagger} \hat{q} \rbrace
++
+\sum_{pqrs} \langle pq||rs \rangle 
+\left\lbrace \hat{p}^{\dagger} \hat{q}^{\dagger} \hat{s} \hat{r} \right\rbrace ,
+\end{equation}
+where 
+\begin{equation}
+\label{eq:manybody:f_elem}
+f_{pq} = \langle p | \hat{h}^{(0)} | q \rangle + \sum_i \langle pi||qi \rangle .
+\end{equation}
+
+
+
+
+
+
+

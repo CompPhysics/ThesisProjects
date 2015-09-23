@@ -1,0 +1,595 @@
+\chapter{Computational experiments and discussion}\label{results}
+
+This chapter is divided into two parts. The first part deals with the evaluation of the computational performance of the high level programming language Python. Here, we discuss the task of evaluating the ground state energy of a quantum mechanical system by the Quantum Variational Monte Carlo (QVMC) method. In the second part, we use an optimized version of the QVMC simulator to evaluate the ground state energies of He, Be and two dimensional quantum dots with two and six electrons.
+
+\section{Comparing high to low level programming languages in a QVMC application}
+
+A prototype in Python capable of computing the ground state energy of the helium (He) atom 
+by the QVMC method with importance sampling was developed and discussed in section \ref{PythonPrototype}. Results of simulations for a similar implementation in C++ are shown figure \ref{energyHePlainCpp}. The experiment was carried out with 10 millions Monte Carlo cycles using importance sampling. \\
+\\
+To determine the ground state energy of the system, the variational parameter $\alpha$ was set equal to the effective nuclear charge\footnote{The effective charge is the net positive charge experienced by an electron in a multi-electron atom. Because of the presence of other electrons, the ones in higher orbitals do not experience the full nuclear charge due to the shielding effect. The value $Z_{eff} = 1.6785$ is taken from Clementi(1963)\cite{Clementi1963}}. Then, 40 variations of $\beta$ in the range $0.1-1.2$ were carried out. The ground state energy was estimated to be $E_0 = -2.8731096 \pm 1.9705\times10^{-4} \, au$ with $\beta_{optimum} \approx 0.45$ by selecting the point with the lowest variance. The given value should be compared with table \ref{energiesHePythonVsRef}. We should pay attention to the fact that the lowest energy does not necessarily means that we obtain lowest variance as well, as indicated by the error bars appearing in the box inside figure \ref{energyHePlainCpp}.\\
+
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/energiesHeCppPlain/plotEnergiesHePlainCppdBeta003.tex}}
+\caption{Energies for the He atom as a function of the variational parameter $\beta$ executing a plain C++ simulator. The experiment was carried out with $1\times 10^{7}$ cycles, $dt=0.1$ and $\alpha = 1.6785$.}
+\label{energyHePlainCpp}
+\end{figure}
+\noindent
+The time taken by the C++ code to run this experiment was about 20 minutes. Doing the same experiment in Python would take more than a week. However, a test with only one million Monte Carlo cycles and 20 variations of the variational parameter $\beta$ was carried out. Figure \ref{energyHePlainPy} shows that  Python can compute energies for a single Helium atom in the range of the output from the C++ implementation, but with a higher variance due to the lower number of Monte Carlo cycles used in the simulation, and possibly because of the kind of random number generator used.\\
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/energiesHePy/plotEnergiesHePython.tex}}
+\caption{Energies for the He atom as a function of the variational parameter $\beta$ executing a plain Python simulator. The experiment was carried out with $1\times 10^{6}$ cycles, $dt=0.1$ and $\alpha = 1.6785$.}
+\label{energyHePlainPy}
+\end{figure}
+
+\begin{table}
+\centering
+\begin{tabular}{rl}
+\toprule[1pt]
+\textbf{Method} & \textbf{$\langle E \rangle$}, au \\
+\midrule[1pt]
+Hartree-Fock	 & -2.8617 \\
+DFT						 & -2.83 \\
+Exact					 & -2.9037\\
+\bottomrule[1pt]
+\end{tabular}\caption{Ground state energies for He atom obtained from reference \cite{Thijssen}.}
+\label{energiesHePythonVsRef}
+\end{table}
+
+
+\subsection{Comparative performance of Python vs C++}
+A question of interest in computational physics is the performance\footnote{All the serial experiments reported in this thesis were carried out on a laptop with a processor Pentium IV running at 2.4 GHz (performance mode). Moreover, the plain C++ code in this particular experiment was compiled using optimization \citecode{-O3}.} of the simulators, both because of the quantity of degrees of freedom involved in quantum mechanics problems and for the need of identifying bottlenecks of codes. The time used by Python and C++ to execute the QVMC simulator for He atom was compared, measured for a set of runs with the number of Monte Carlo cycles varying from 10000 to 100000 with the rest of the paramaters kept fixed. The results are summarized in figures \ref{executionTimeHePyCpp} to \ref{delayExecutionTimeHePyCpp}. \\
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/executionTime/plotExecTimeHePyCpp.tex}}
+\caption{Execution time as a function of the number of Monte Carlo cycles for a Python (blue) and C++ (green) simulators implementing the QVMC method with importance sampling for the He atom.}
+\label{executionTimeHePyCpp}
+\end{figure}
+
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/executionTime/plotExecTimeCppAlone.tex}}
+\caption{Details of the execution time for QVMC C++ simulator at the bottom of figure (\ref{executionTimeHePyCpp}.}
+\label{detailsExecutionTimeHeCpp}
+\end{figure}
+
+\noindent
+Figures \ref{executionTimeHePyCpp} and \ref{detailsExecutionTimeHeCpp} show a clear delay in execution time for Python in relation to the corresponding implementation in C++. Such a behaviour follows from the fact that C++ is a compiled language. The delay in time of Python with respect to C++ is, according to figure \ref{delayExecutionTimeHePyCpp}, of about $18\times10^{-4}$ seconds per Monte Carlo cycle for the current application.
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/executionTime/plotDiffTimePyCpp.tex}}
+\caption{Evolution of the time delay of the Python implementation with respect to the C++ code as a function of the number of Monte Carlo cycles.}
+\label{delayExecutionTimeHePyCpp}
+\end{figure}
+
+\subsection{Profiling Python to detect bottlenecks}
+
+Profilers are useful for creating a ranked list of the computing time spent in the various functions of a program. In order to identify bottlenecks in the pure Python code implemented for He and Be atoms, a profile using 50000 Monte Carlo cycles was carried out. 
+
+\begin{table}
+\centering
+\begin{tabular}{rrrl}
+\toprule[1pt]
+\textbf{\# calls} & \textbf{Total time} & \textbf{Cum. time} & \textbf{Class:function}\\
+\midrule[1pt]
+			1  &  9.153 &   207.061  & \footnotesize{MonteCarlo.py:(doMCISampling)}\\
+			1  &  0.000 &   207.061  & \footnotesize{VMC.py:(doVariationalLoop)}\\
+1910014  & 23.794 &   159.910  & \footnotesize{Psi.py:(getPsiTrial)}\\
+	100001 & 12.473 &   117.223  & \footnotesize{Psi.py:(getQuantumForce)}\\
+1910014  & 58.956 &   71.704   & \footnotesize{Psi.py:(getModelWaveFunctionHe)}\\
+	50000  &  0.864 &  66.208    & \footnotesize{Energy.py:(getLocalEnergy)}\\
+1910014  & 57.476 &   64.412   & \footnotesize{Psi.py:(getCorrelationFactor)}\\
+	50000  &  8.153 &  62.548    & \footnotesize{Energy.py:(getKineticEnergy)}\\
+\textcolor{red}{6180049}  &  \textcolor{red}{21.489} & \textcolor{red}{21.489}    & \textcolor{red}{\footnotesize{:0(sqrt)}}\\
+	900002  &  4.968 &  4.968    & \footnotesize{:0(copy)}\\
+	300010  &  2.072 &  2.072    & \footnotesize{:0(zeros)}\\
+	50000  &  2.272  &  2.796    & \footnotesize{Energy.py:(getPotentialEnergy)}\\
+\bottomrule[1pt]
+\end{tabular}\caption{Profile of a QVMC simulator with importance sampling for the He atom implemented in Python. The run was done with 50000 Monte Carlo cycles.}
+\label{profileHe}
+\end{table}
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{rrrl}
+\toprule[1pt]
+\textbf{\# calls} & \textbf{Total time} & \textbf{Cum. time} & \textbf{Class:function}\\
+\midrule[1pt]
+			1  & 17.985  & 2417.743 & \footnotesize{MonteCarlo.py:(doMCISampling)}\\
+			1  &  0.000  & 2417.743 & \footnotesize{VMC.py:(doVariationalLoop)}\\
+6220026  & 81.841  & 2305.124 & \footnotesize{Psi.py:(getPsiTrial)}\\
+	200001 &  41.787 & 1828.758 & \footnotesize{Psi.py:(getQuantumForce)}\\
+6220026  & 532.861 & 1171.609 & \footnotesize{Psi.py:(getModelWaveFunctionBe)}\\
+6220026  & 921.182 & 1051.674 & \footnotesize{Psi.py:(getCorrelationFactor)}\\
+	50000  &  0.912  & 477.214  & \footnotesize{Energy.py:(getLocalEnergy)}\\
+	50000  & 15.313  & 467.341  & \footnotesize{Energy.py:(getKineticEnergy)}\\
+24880104 & 295.931 & 295.931  & \footnotesize{Psi.py:(phi2s)}\\
+\textcolor{red}{63300273} & \textcolor{red}{220.166} & \textcolor{red}{220.166}  & \textcolor{red}{\footnotesize{:0(sqrt)}}\\
+24880104 & 215.998 & 215.998  & \footnotesize{Psi.py:(phi1s)}\\
+6820036  & 45.579  & 45.579   & \footnotesize{:0(zeros)}\\
+1700002  & 9.369   & 9.369    & \footnotesize{:0(copy)}\\
+	50000  &  7.108  & 8.961    & \footnotesize{Energy.py:(getPotentialEnergy)}\\
+\bottomrule[1pt]
+\end{tabular}\caption{Profile of a QVMC simulator with importance sampling for the Be atom implemented in Python. The run was done with 50000 Monte Carlo cycles.}
+\label{profileBe}
+\end{table}
+\noindent
+\\
+The profiles\footnote{The CPU time of a Python script increases with some factor (typically five\cite{HPL2008}) when run under the administration of the \citecode{profile} module. It is assumed that the relative CPU time among functions is not affected by this overhead.} for He and Be implementations in tables \ref{profileHe} and \ref{profileBe} show that the \footnote{\emph{Total time} shows the  total time spent in a specific function, while \emph{cum. time} refers to the total time spent in the function and all the functions it calls.} consuming part of a QVMC simulator are related to the evaluation of the trial wave function. For a single He atom, it takes  58.596 and 57.476 seconds for the determinant (\citecode{getModelWaveFunction}) and correlation part (\citecode{getCorrelationFactor}), respectively.\\
+\\
+A function that frequently has to be computed in the QVMC algorithm is the \emph{square root}, because of the dependence of the Slater determinant, Jastrow correlation function, kinetic and potential energies on the inter-electronic and electron-nucleus distances. In general, the evaluation of this quantity in Python is expensive, especially when it is not used correctly. Reference\cite{HPL2008} recommends using \citecode{math.sqrt()} and \citecode{numpy.sqrt()} for scalar and vectorial arguments, respectively. Improvements of the actual algorithm in this sense are limited.\\
+\\
+The fact that only one particle is moved at a time leads inevitably to an evaluation of the square root each time such a move happens, making the vectorization of the for-loops difficult. An alternative is to let Python run only the administrative part and move the rest of the simulator to C++. An advantage with this approach is that we do not need many functions to convert data transfered between Python and C++. Moreover, we can use the administrator class in Python to create objects in C++, introducing automatic garbage collection at a high level.
+
+
+\subsection{Comparing execution time of pure C++ vs mixed languages implementation}
+
+In this section we examine the perfomance of the pure C++ implementation with respect to the mixed Python/C++ code. We are interested in finding a possible delay in the execution time as a function of the number of Monte Carlo cycles, using codes compiled with different optimization options. For the experiments we fix the variational parameters and set the time step $dt = 0.1$.  During the timing of the mixed Python/C++ code, we only consider the time taken to make a variational loop, not the initialization of objects.\\
+
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/timingMixedVsCpp/plotExecTimeMixedVsPlainSmall.tex}}
+\caption{Execution time as a function of the number of Monte Carlo cycles for mixed Python/C++ and pure C++ simulators implementing the QVMC method with importance sampling for He atom.}
+\label{execTimeCppVsMixedSmall}
+\end{figure}
+
+\noindent
+Figures \ref{execTimeCppVsMixedSmall} and \ref{execTimeCppVsMixedBig} show that the delay between C++ and mixed code is not significant neither when increasing the number of Monte Carlo cycles nor when changing the optimization option used during compilation. The time used by Python to call compiled C++ code during one variational loop in the mixed code is negligible for this particular problem. In other applications, however, the effects of the optimization during compilation can be observable, and the advantage of mixed Python/C++ with respect to plain Python could be evident.\\
+\\
+\begin{figure}
+\centering
+\scalebox{0.75}{\input{experimentalData/timingMixedVsCpp/plotExecTimeMixedVsPlainBig.tex}}
+\caption{Execution time as a function of the number of Monte Carlo cycles for mixed Python/C++ and pure C++ simulators implementing the QVMC method with importance sampling for He atom.}
+\label{execTimeCppVsMixedBig}
+\end{figure}
+
+\noindent
+Because SWIG misses some functionalities for doing Python-C++ 100 \% compatible, extra work was required to do the Python-C++ interface to work between the two languages. It can be tricky when combining Python with big libraries written in an ancient fashion or using constructs like operator overloading\cite{LangtangenMardal2003}. Moreover, the use of local variables inside functions called by for-loops leads to segmentation faults which were not observed with the original C++ code. This means that a developer of mixed code should be prepared for this kind of challenges.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% SECOND PART %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Validation of the optimized QVMC simulator implemented in pure C++}
+
+\subsection{Dependence of the uncorrelated energy on the variational parameter $\alpha$}
+
+We test the capability of the simulator to follow the variational principle when no Coulomb interaction nor correlation functions (Jastrow factor) are included in the models of He, Be and  quantum dots (two dimensional harmonic oscillator) with two and six electrons (2DQDot2e and 2DQDot6e, in the following). For the experiment we use the setup of table \ref{expSetUpAlpha}, and compute the variational energy as a function of the parameter $\alpha$. The step length $dt$ was set to give an acceptance around $98$ \%.\\
+
+\begin{table}
+\centering
+\begin{tabular}{lccc}
+\toprule[1pt]
+\textbf{System} & \textbf{dt} & \textbf{Monte Carlo cycles} & \textbf{Equilibration cycles} \\
+\midrule[1pt]
+He  										&  0.01 		&   $1\times10^7$ & 10 \% \\
+Be  										&  0.01 	&   $1\times10^7$ & 10 \%	\\
+2DHO2e ($\omega=1.0$)		&  0.01 	&   $1\times10^7$ & 10 \%	\\
+2DHO6e ($\omega = 1.0$)	&  0.01  	& 	$1\times10^7$ & 10 \% \\
+\bottomrule[1pt]
+\end{tabular}\caption{Experimental setup used to compute the dependence of the energy on the variational parameter $\alpha$ when no correlation and Coulomb interation are included. All runs were carried out on one computer, that is only the serial version of the code was used.}
+\label{expSetUpAlpha}
+\end{table}
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{cc}
+      \resizebox{70mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/alphaStudies/alphaHe}} &
+      \resizebox{70mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/alphaStudies/alphaBe}} \\
+      \end{tabular}
+    \caption{Dependence of the energy on the parameter $\alpha$ for He(left) and Be(right) atoms.}
+    \label{alphaHeBe}
+  \end{center}
+	\end{figure}
+	
+\noindent
+The ground state energies computed in figures \ref{alphaHeBe} to \ref{alpha2DHO2e6e} and table \ref{analyticalEnergyvsAlpha} are in perfect agreement with the analytical values obtained in chapter \ref{cases} section \ref{verification} and fullfil the \emph{zero variance principle} of section \ref{zeroVariancePrinciple}. It is an indication that the Slater determinant part of the simulator works well.
+	
+	\begin{figure}
+    \begin{center}
+			 \begin{tabular}{cc}
+      \resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/alphaStudies/alpha2DHO2e}} &
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/alphaStudies/alpha2DHO6e}}\\
+			 \end{tabular}
+      \caption{Dependence of the energy on the parameter $\alpha$ for a two dimensional harmonic oscillator with two and six electrons electrons, respectively.}
+      \label{alpha2DHO2e6e}
+    \end{center}
+  \end{figure}
+
+	
+\begin{table}
+\centering
+\begin{tabular}{lcc}
+\toprule[1pt]
+\textbf{System} & \textbf{Ground state energy}, $E$ (au) & $\alpha_{optimal}$ \\
+\midrule[1pt]
+He  		&  4.0 	&   2.0 \\
+Be  		& 20.0 	&   4.0 \\
+2DHO2e ($\omega=1.0$)	& 1.0 	&   1.0 \\
+2DHO6e ($\omega = 1.0$)	&  10.0  & 	1.0  \\
+\bottomrule[1pt]
+\end{tabular}\caption{Analytical values of the ground state energy and corresponding variational parameter $\alpha$ computed for the Slater determinant. 2DHO2e stands for two-dimensional harmonic oscillator with two electrons.}
+\label{analyticalEnergyvsAlpha}
+\end{table}
+
+
+\subsection{Graphical estimation of the ground state energies}\label{graphicalOptimization}
+
+To examinate the dependence of energy on the variational parameters $\alpha$ and $\beta$ by graphical methods we set the number of Monte Carlo cycles to $1 \times 10^7$ and used 10 \% of equilibration steps with the same $dt$ given in table \ref{expSetUpAlpha}.\\
+\\
+The estimated values of energy and variational parameters are summarized in table \ref{energiesWithGraphPar}. The relatively big differences observed in energies for atoms and quantum dots are due to the scale length of each of these systems and to the fact that quantum dots do not have a nucleus which the electrons feel. Although these resulst are not exact, they are a good starting point as input parameters for the quasi-Newton method to be used later, and give an insight in which values to expect for energies and optimized variational parameters.\\
+
+\begin{table}[!hbt]
+\centering
+\begin{tabular}{lcccr}
+\toprule[1pt]
+\textbf{System} & $\alpha_{optimal}$ & $\beta_{optimal}$ & \textbf{Energy}, $\langle E \rangle$ (au) \\
+\midrule[1pt]
+He  		&  1.85 	&   0.35 	& $-2.8901 \pm 1.0 \times 10{-4}$ \\
+Be  		&  3.96		&   0.09	& $-14.5043 \pm 4.0 \times 10^{-4}$\\
+2DQDot2e ($\omega=1.0$)	& 0.98	& 0.41  & $3.0003 \pm 1.2 \times 10^{-5}$ \\
+%%%2DQDot6e ($\omega = 1.0$)	& 1.03   & 0.18	& $20.2180 \pm 4.0 \times 10^{-4}$\\
+2DQDot6e ($\omega = 1.0$)	& 0.9   & 0.6	& $20.19 \pm 1.2 \times 10^{-4}$\\
+\bottomrule[1pt]
+\end{tabular}\caption{Values of the ground state (correlated) energy and corresponding variational parameters  $\alpha$ and $\beta$ estimated graphically. The shorthand 2DQDot2e stands for two-dimensional quantum dot with two electrons.}
+\label{energiesWithGraphPar}
+\end{table}
+
+\noindent
+Attempting to optimize in this way is practical just for small systems, where the time of execution for the number of Monte Carlo iterations needed is not critical. Getting an estimate of the variational parameter $\alpha$ in this way is straightforward. For the parameter $\beta$, however, some extra work had to be done. Adjustments of the grids for both $\alpha$ and $\beta$ were necessary to get a good estimate of the last. For systems with more than four electrons, it is not practical because of the computational cost involved.
+
+\begin{figure}[!hbt]
+    \begin{center}
+      \resizebox{100mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/He/alphaBetaStudy/plot3DAlphaBetaHe}}%%%%alphaBetaStudies/alphaBetaPlotHe3D}}
+      \caption{Dependence of energy on the parameters $\alpha$ and $\beta$ for a He atom. The experimental setup is shown in table \ref{expSetUpAlpha}.}
+      \label{alphaBetaHe}
+    \end{center}
+  \end{figure}
+
+	\begin{figure}[!hbt]
+    \begin{center}
+			 \begin{tabular}{cc}
+      \resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/He/alphaBetaStudy/zoomAlphaHe}}&%%%alphaBetaStudies/alphaZoomHe}} &
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/He/alphaBetaStudy/minBetaFixedAlphaHe}}\\%%%%alphaBetaStudies/minBetaHeFixedAlpha1_85}}\\
+			 \end{tabular}
+      \caption{xz-view of $\alpha$ (left) in figure \ref{alphaBetaHe}. To the right we show the dependence of the energy on $\beta$ along the value of $\alpha$ that gives the minimum variational energy for a He atom.  The parameters for these results are shown in table \ref{expSetUpAlpha}.}
+      \label{alphaHe}
+    \end{center}
+  \end{figure}
+	
+	
+	\begin{figure}[!hbt]
+    \begin{center}
+      \resizebox{100mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/Be/alphaBetaStudy/plot3DAlphaBetaBeSim1}}%%%%alphaBetaStudies/alphaBetaPlotHe3D}}
+      \caption{Dependence of energy on the parameters $\alpha$ and $\beta$ for a Be atom. The parameters for these results are shown in table \ref{expSetUpAlpha}.}
+      \label{alphaBetaBe}
+    \end{center}
+  \end{figure}
+
+
+\begin{figure}[!hbt]
+    \begin{center}
+			 \begin{tabular}{cc}
+      \resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/Be/alphaBetaStudy/zoomAlphaBeSim1}}&%%%alphaBetaStudies/alphaZoomHe}} &
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/Be/alphaBetaStudy/minBetaFixedAlphaBeSim2}}\\%%%%alphaBetaStudies/minBetaHeFixedAlpha1_85}}\\
+			 \end{tabular}
+      \caption{An xz-view of $\alpha$ (left) in figure \ref{alphaBetaBe}. To the right we show the dependence of the energy on $\beta$ along the value of $\alpha$ which gives the minumum variational energy for a Be atom.  The parameters for these results are shown in table \ref{expSetUpAlpha}.}
+      \label{alphaBe}
+    \end{center}
+  \end{figure}
+	
+	
+	\begin{figure}[!hbt]
+    \begin{center}
+      \resizebox{100mm}{!}{\includegraphics{experimentalData/plots2DQDot2e/plotAlphaBeta2DQDot2e}}
+      \caption{Dependence of the energy on the parameters $\alpha$ and $\beta$ for a two dimensional quantum dot with two electrons. The experiment was carried out with $10^7$ Monte Carlo cycles, $10 \%$ equilibration steps and $dt = 0.01$.}
+      \label{alphaBeta2DQDot2e}
+    \end{center}
+  \end{figure}
+	
+	
+	\begin{figure}[!hbt]
+    \begin{center}
+			 \begin{tabular}{cc}
+      \resizebox{75mm}{!}{\includegraphics{experimentalData/plots2DQDot2e/zoomAlpha2DQDot2e}} &
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/plots2DQDot2e/zoomBeta2DQDot2e}}\\
+			 \end{tabular}
+      \caption{An xz-view of $\alpha$ (left) in figure \ref{alphaBeta2DQDot2e}. To the right we show the dependence of the energy on $\beta$ along the value of $\alpha$ that gives the minumum variational energy for a two-dimensional quantum dot with two electrons. The parameters for these results are shown in table \ref{expSetUpAlpha}.}
+      \label{alpha2DHO2e}
+    \end{center}
+  \end{figure}
+
+
+\begin{figure}[!hbt]
+    \begin{center}
+      \resizebox{100mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/2DQDot6e/alphaBeta}}
+      \caption{Dependence of energy on the parameters $\alpha$ and $\beta$ for a two dimensional quantum dot with six electrons. The experiment was carried out with $10^7$ Monte Carlo cycles, $10 \%$ equilibration steps and $dt = 0.01$.}
+      \label{alphaBeta2DQDot6e}
+    \end{center}
+  \end{figure}
+	
+	
+	\begin{figure}[!hbt]
+    \begin{center}
+			 \begin{tabular}{cc}
+      \resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/2DQDot6e/zoomAlpha}} &
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/tunningSimulator/2DQDot6e/zoomBeta}}\\
+			 \end{tabular}
+      \caption{An xz-view of $\alpha$ (left) in figure \ref{alphaBeta2DQDot2e}. To the right we show the dependence of the energy on $\beta$ along the value of $\alpha$ that gives  the minumum variational energy for a two-dimensional quantum dot with six electrons.  The parameters for these results are shown in table \ref{expSetUpAlpha}.}
+      \label{alpha2DHO6e}
+    \end{center}
+  \end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Optimization of the variational parameters by the quasi-Newton method.}
+
+This section deals with the validation of the quasi-Newton method as an optimization technique for the QVMC algorithm. All the experiments were performed with $1 \times 10^7$ Monte Carlo cycles, 10 \% of equilibration steps in order to reach the most likely state and  a time step $dt = 0.01$ for atoms and $dt = 0.06$ for quantum dots. The time step is used in the importance sampling part.\\
+\\
+\noindent
+The evolution of the variational parameters $\alpha$, $\beta$ and energy during optimization of the trial wave function of He and Be atoms with the quasi-Newton method is shown in figures \ref{quasiNewtonOptHe} and \ref{quasiNewtonOptBe}. In both cases the optimizer makes a big jump during the three first iterations and then stabilizes around the optimal parameters and minimal energy. Table \ref{optizedQuasiNewtonParameters} summarizes the results. In general, these energies are in agreement with the previous computations from section \ref{graphicalOptimization}, confirming that the algorithm suggested in section \ref{effParamDer} for evaluating the numerical derivative of the energy with respect to the variational parameters is correct.\\
+
+\begin{figure}[!hbt]
+	\begin{center}
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/He/plotAlphaEvolHe}}\\
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/He/plotBetaEvolHe}}\\
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/He/plotOptAlphaBetaEnergyHe}}\\
+		\caption{Evolution of the variational parameters $\alpha$ and $\beta$ (top), energy (bottom) as a function of the number of iterations during the optimization phase with the quasi-Newton method of the trial wave function of He atom. The experiment was carried out with $10^7$ Monte Carlo cycles and $10 \%$ equilibration steps in four nodes.}
+		\label{quasiNewtonOptHe}
+	\end{center}
+\end{figure}
+
+\begin{figure}[!hbt]
+	\begin{center}
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/Be/evolAlphaBeOpt}}\\
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/Be/evolBetaBeOpt}}\\
+		\resizebox{82mm}{!}{\includegraphics{experimentalData/optimizationWithQuasiNewton/Be/plotEnergyOptimizationBe}}\\
+		\caption{Evolution of the variational parameters $\alpha$ and $\beta$ (top), energy (bottom) as a function of the number of iterations during the optimization stage with the quasi-Newton method of the trial wave function of Be atom. The experiment was carried out with $10^7$ Monte Carlo cycles and $10 \%$ equilibration steps in four nodes.}
+		\label{quasiNewtonOptBe}
+	\end{center}
+\end{figure}
+
+\noindent
+For quantum dots, the optimization of the trial wave function failed, becacuse it is almost constant with respect to the variational parameter $\beta$ in the region where the minimum is supposed to be located. Therefore, the approximated gradient computed in the quasi-Newton algorithm becomes zero or is very small for these points.  This optimization method uses the gradient to build up the curvature information at each iteration to formulate a quadratic model problem, which explains the success when optimizing wave functions of atoms. In the following we use the variational parameters $\alpha$ and $\beta$ reported by Albrigtsen \cite{Albrigtsen}.\\
+\\
+Deterministic methods are, in general, not suitable for problems affected by noise. They are either unable to reach an optimum or reach a false one \cite{Harju1997}. A better option is the so called Stochastic Gradient Approximation (SGA). It is a probabilistic iterative method with variable step size, which uses the stochastic noise to make small jumps in the regions where the wave function is plane \cite{Harju1997,Albrigtsen}. Moreover, the number of configurations needed to reach an optimum is small \cite{siljamaki2003}.
+
+\begin{table}[!hbt]
+\centering
+\begin{tabular}{lccccrcc}
+\toprule[1pt]
+\textbf{System} & $\alpha_{0}$ & $\beta_{0}$ & $\alpha_{opt}$ & $\beta_{opt}$ &\textbf{Energy}, (au)\\
+\midrule[1pt]
+He 							& 1.564  & 0.134		& 1.838 	&  0.370 	& -2.891 	 \\
+Be 							& 3.85 	& 0.08		& 3.983   &  0.104	&   -14.503	 \\
+\bottomrule[1pt]
+\end{tabular}\caption{Optimized variational parameters and corresponding energy minimization using a quasi-Newton method and the algorithm suggested in section \ref{effParamDer}. The rest of the parameters were: $10^7$ Monte Carlo cycles with 10 \% equilibration steps, $dt = 0.01$ for atoms.}\label{optizedQuasiNewtonParameters}
+\end{table}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Evaluating the ground state energy}
+
+In this section we evaluate the ground state energy of the quantum mechanical systems studied in this thesis. The Quantum Variational Monte Carlo method with importance sampling based on the Fokker-Planck algorithm is highly sensitive to the time step used for approximating the Langevin equation. Besides introducing numerical oscillations, a big $dt$ will cause  the particles to move frequently to the regions in configuration space 
+with marginal probability. This means in turn that the contribution to the expectation value of say the mean energy are negligible.
+On the other hand, a short $dt$ implies that the particles get stuck in the same place, and other possible configurations will not be sampled resulting in poorer statistics.\\
+\\
+\noindent
+Here we locate a $dt-$range in the $energy-dt$ plane where the energy is changing quasi linearly with the time step, as shown in figures \ref{dtEnergyExtrapolationHe} to \ref{dtEnergyExtrapolation2DQdot6e} (left). This linearity reflects some kind of stability in the simulation, and allows us to compute a better estimate for the ground state energy by extrapolating it to zero, that we extrapolate to $dt=0$, as this parameter introduces a bias\cite{Thijssen, Bressanini2003}. At that time we overcome the problem 
+of choosing a very small time step $dt$.\\
+
+\begin{figure}[!hbt]
+	\begin{center}
+	 \begin{tabular}{cc}
+	\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/He/blockingDtHe}} &
+		 \resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/blockingHe}} \\
+		 \end{tabular}
+		\caption{To the left we show the  extrapolation to $dt-$zero of the energy for a He atom. To the  right we display the details of the blocking analysis at $dt=0.01$ where the energy $-2.89039 \pm 2.5 \times 10^{-4}\, au$. Experimental setup: $10^7$ Monte Carlo cycles, $10 \%$ equilibration steps with four nodes, with $\alpha = 1.8379$, $\beta = 0.3704$.}
+		\label{dtEnergyExtrapolationHe}
+	\end{center}
+\end{figure}
+
+\begin{figure}[!hbt]
+	\begin{center}
+		\begin{tabular}{cc}
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/Be/blockingDtBe}} &
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/plotBlockingBe}} \\
+		\end{tabular}
+		\caption{Extrapolation to $dt-$zero of the energy (left) and blocking analysis at $dt=0.01$ for the Be atom where the energy $E = -14.50146 \pm 8.5 \times 10^{-4} \, au$. Experimental setup: $10^7$ Monte Carlo cycles, $10 \%$ equilibration steps for four nodes, with $\alpha = 3.983$ and $\beta = 0.103$.}
+		\label{dtEnergyExtrapolationBe}
+	\end{center}
+\end{figure}
+
+\noindent
+Allocating the region with quasi-linear $energy-dt$ dependence is computationally costly because of the number of evaluations (in parallel) required to explore the domain of $dt$. Fixing the seed in the random generator and reducing the number of Monte Carlo cycles is a straigforward way of allocating such a domain. This exploration could be done as a serial computation as well. It could be used later to produce results with a random seed and in parallel. \\
+\\
+
+\noindent
+Tables \ref{blockingDtTableHe} to \ref{blockingDtTable2DQDot6e} present values of energies as a function of $dt$ as well as the percentage of accepted moves for the systems studied in this thesis. This percentage is inversly proportional with $dt$ in the region with a quasi-linear $energy-dt$ dependence. Moreover, it remains above 99 \%. In the same domain, the step sizes observed for quantum dots are longer than for atoms, indicating that systems with bigger length scales require longer jumps in $dt$ to cover a bigger configuration space during the sampling process. \\
+
+
+\begin{figure}[!hbt]
+	\begin{center}
+		\begin{tabular}{cc}
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/dtStudy2DQDot2e/dtPlot2DQDot2e}} &
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/2DQDot2e/block2DQDot2edt0p06}} \\
+		\end{tabular}
+		\caption{Extrapolation to $dt-$zero of the energy for a two-dimensional quantum dot with two electrons (left) and mean energy error ($E_{min} = 3.000381 \pm 1.8 \times 10^{-5} \, au$) at $dt=0.06$ as a function of the number of blocks for a 2DQDot2e (right). Parameters of simulation: $1 \times 10^7$ Monte Carlo steps with 10 \% equilibration steps, $\alpha = 0.99044$ and $\beta = 0.39994$. The error varies from $1.7 \times 10^{-5}$ at $dt = 0.07$ to $4.5\times 10^{-5}$ at $dt = 0.01$.}
+		\label{dtEnergyExtrapolation2DQdot2e}
+	\end{center}
+\end{figure}
+
+
+
+\begin{figure}[!hbt]
+	\begin{center}
+		\begin{tabular}{cc}
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/plotDtStudy2DQDot6e}} &
+		\resizebox{75mm}{!}{\includegraphics{experimentalData/blocking/2DQDot6e/blockAnalyse2DQDot6e}}\\
+		\end{tabular}
+		\caption{Extrapolation to $dt-$zero of the energy for a two-dimensional quantum dot with six electrons (left) and mean energy error ($E_{min} = 20.190645 \pm 1.7 \times 10^{-4} \, au$) at $dt=0.06$ as a function of the number of blocks for a 2DQDot6e (right). Parameters of simulation: $10^7$ Monte Carlo steps with 10 \% equilibration steps, $\alpha = 0.926273$ and $\beta = 0.561221$ running with four nodes.}
+		\label{dtEnergyExtrapolation2DQdot6e}
+	\end{center}
+	
+	
+\end{figure}
+
+
+\begin{table}[!hbt]
+\centering
+\begin{tabular}{cccc}
+\toprule[1pt]
+\textbf{Time step} & \textbf{Energy}, (au) 	& \textbf{Error} & \textbf{Accepted moves}, (\%) \\
+\midrule[1pt]
+0.002  & -2.891412637854  &  5.5e-4   &  99.97\\
+0.003  & -2.890797649433  &  4.5e-4   &  99.94\\
+0.004  & -2.890386198895  &  4.0e-4   &  99.91\\
+0.005  & -2.890078440930  &  3.5e-4   &  99.88\\
+0.006  & -2.890463490951  &  3.2e-4   &  99.84\\
+0.007  & -2.890100432462  &  2.8e-4   &  99.81\\
+0.008  & -2.889659923905  &  2.7e-4   &  99.77\\
+\bottomrule[1pt]
+\end{tabular}\caption{Energy computed for the He atom and the error associated as a function of the time step. Parameters: $10^7$ Monte Carlo cycles with 10 \% equilibration steps, $\alpha =  1.8379$ and $\beta = 0.3704$.}\label{blockingDtTableHe}
+\end{table}
+
+
+
+
+\begin{table}[!hbt]
+\centering
+\begin{tabular}{cccc}
+\toprule[1pt]
+\textbf{Time step} & \textbf{Energy}, (au) 	& \textbf{Error} & \textbf{Accepted moves}, (\%) \\
+\midrule[1pt]
+0.004  & 	-14.50321303316  &  1.3e-3  &   99.61\\
+0.005  & 	-14.50266236227  &  1.2e-3  &   99.47\\
+0.006  & 	-14.50136820967  &  1.1e-3  &   99.32\\
+0.007  & 	-14.50314292468  &  1.0e-3  &   99.17\\
+0.008  & 	-14.50206184582  &  9.5e-4  &   99.01\\
+0.009  & 	-14.50164368104  &  8.5e-4  &   98.85\\
+0.01   & 	-14.50145748870  &  8.0e-4  &   98.68\\
+\bottomrule[1pt]
+\end{tabular}\caption{Energy computed for the Be atom and the error associated as a function of the time step. Parameters: $10^7$ Monte Carlo cycles with 10 \% equilibration steps, $\alpha = 3.983$ and $\beta = 0.103$.}\label{blockingDtTableBe}
+\end{table}
+
+
+	
+\begin{table}
+\centering
+\begin{tabular}{cccc}
+\toprule[1pt]
+\textbf{Time step} & \textbf{Energy}, (au) 	& \textbf{Error} & \textbf{Accepted moves}, (\%) \\
+\midrule[1pt]
+0.01 & 3.000340072477 & 4.5e-5 & 99.95\\
+0.02 & 3.000357900850 & 3.2e-5 & 99.87\\
+0.03 & 3.000364180564 & 2.6e-5 & 99.77\\
+0.04 & 3.000384908560 & 2.2e-5 & 99.65\\
+0.05 & 3.000370330692 & 2.0e-5 & 99.52\\
+0.06 & 3.000380980039 & 1.8e-5 & 99.37\\
+0.07 & 3.000402836533 & 1.7e-5 & 99.21\\
+\bottomrule[1pt]
+\end{tabular}\caption{Results of a blocking analysis for several time steps. The system was a two-dimensional quantum dot with two electrons and $\omega=1.0$. The rest of the parameters were: $10^7$ Monte Carlo cycles with 10 \% equilibration steps, and $\alpha = 0.99044$ and $\beta = 0.39994$ taken from reference\cite{Albrigtsen}.}\label{blockingDtTable2DQDot2e}
+\end{table}
+
+
+
+
+
+\begin{table}
+\centering
+\begin{tabular}{cccc}
+\toprule[1pt]
+\textbf{Time step} & \textbf{Energy}, (au) 	& \textbf{Error} & \textbf{Accepted moves}, (\%) \\
+\midrule[1pt]
+0.01 & 20.19048030567 & 4.0e-4 & 99.90\\
+0.02 & 20.19059799459 & 2.8e-4 & 99.75\\
+0.03 & 20.19045049792 & 2.4e-4 & 99.55\\
+0.04 & 20.19069748408 & 2.0e-4 & 99.34\\
+0.05 & 20.19066469178 & 1.8e-4 & 99.10\\
+0.06 & 20.19064491561 & 1.7e-4 & 98.85\\
+0.07 & 20.19078449010 & 1.6e-4 & 98.58\\
+\bottomrule[1pt]
+\end{tabular}\caption{Results of a blocking analysis for several time steps. The system was a two-dimensional quantum dot with six electrons and $\omega=1.0$. The rest of the parameters were: $10^7$ Monte Carlo cycles with 10 \% equilibration steps, and $\alpha = 0.926273$ and $\beta = 0.561221$ taken from reference\cite{Albrigtsen}.}\label{blockingDtTable2DQDot6e}
+\end{table}
+
+\noindent
+The results for the  energy of atoms and 2DQDot2e using extrapolation to zero $dt$ shown in table \ref{energyCuts} are in correspondence with values listed in the scientific literature, see for example Refs.~\cite{alexander1997, taut1994}. In general, the difference between the lowest and highest energies were small. Doing an extrapolation to zero can be expensive in terms of the computational time involved in doing blocking for each $dt$, and is practical for big systems. One should evaluate the gain of getting some decimals digits in energy against the computational cost required by the computation. \\
+\\
+
+\begin{table}
+\centering
+\begin{tabular}{lr}
+\toprule[1pt]
+\textbf{System} & \textbf{Energy}, (au)\\
+\midrule[1pt]
+He &  -2.8913\\
+Be &  -14.5039\\
+2DQDot2e & 3.0003\\
+2DQDot6e & 20.1904\\
+\bottomrule[1pt]
+\end{tabular}\caption{Energies estimated using zero-dt extrapolation in figures  \ref{blockingDtTableHe} to \ref{blockingDtTable2DQDot6e}. $\omega~=~1.0$ for quantum dots.}\label{energyCuts}
+\end{table}
+
+\noindent 
+In relation with the figures \ref{dtEnergyExtrapolationHe} to \ref{dtEnergyExtrapolation2DQdot6e}(right), in all the cases the amplitude of the oscillations in the error increases with the number of blocks, reflecting the fact that the greater the number of blocks is, the greater the sequential correlation in the set of correlated energy data becomes, because of the reduction of the distance between the $i^{th}-$entry in each block. \\
+\\
+\noindent
+Later, the blocking analysis shows also that the greater the system, the greater the error in energy is for equal number of Monte Carlo cycles and spatial dimensions, simply due to the fact that the number of degrees of freedom and the role of correlations increase with the size of the system. \\
+\\
+\noindent
+The effect of the interelectronic correlaton will, however, have less impact in higher dimensions. At lower dimensions the particles have less degrees of freedom to avoid each other, but make it more difficult for more than two particles to get close to each other.
+
+
+\section{Error as a function of the number of Monte Carlo cycles in Be atom}
+
+In this experiment we were interested in finding the behaviour of the error as a function of the number of Monte Carlo cycles. The runs were executed with a Be atom with fixed seed (in the random number generator). Figures \ref{errorVsMcBe} (right and left) show the error decaying exponentially after which it stabilizes, indicating that no much gain in the reduction of the error in reached by increasing the number of Monte Carlo cycles (and computational cost).
+
+\begin{figure}[!hbt]
+    \begin{center}
+			 \begin{tabular}{cc}
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/errorVsMCBe/errorVsMonteCarloBe}}
+			\resizebox{75mm}{!}{\includegraphics{experimentalData/secondPart/errorVsMCBe/errorVsMonteCarloBeZoom}}\\
+			 \end{tabular}
+      \caption{Error in the energy (left) and zoom(right) obtained by blocking for a Be atom as a function of the number of Monte Carlo cycles. The set up for the experiment was: $dt = 0.01$, $\alpha = 3.981$, $\beta = 0.09271$ and 10 \% equilibration steps by run.}
+      \label{errorVsMcBe}
+    \end{center}
+  \end{figure}
+
+
+% \section{Dependence of the optimum variational parameters alpha on the oscillator frequency}
+
+% % % % % % EN LA DESCRIPCION DEL PROBLEMA: Esta son matrices cuadradas de tamanno $N^2$. Para una particula tendremos 1x1, para 2x2=4 pero para 4x4=16. 
+% % % % % % \section{Influence of the percent of thermalization steps in the convergence of the vmc method to the ground state energy and optimization}
+% % % % % % 
+% % % % % % Mirar si esto refleja que el methodo de quasi Newton es altamente sensible al noise, supuestamente reducido introduciendo thermalization. Es decir que uno esperaria que incrementando la termalizacion la convergencia de los parameteros dadno la minima energfia mejore.
+% % % % % % 
+% \section{Importance of the percentage of thermalizations on the reduction of the error}
+% \section{Benchmarks: analysis of speed of different parts of the code}
+% % % % % -analizar la posibilidad de incluuir multinivel.
+
+
+\clearemptydoublepage

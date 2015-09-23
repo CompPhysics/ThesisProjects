@@ -1,0 +1,56 @@
+\section{Free-space SRG}
+The idea behind SRG in free space is to choose a basis, set up the full Hamiltonian matrix in this basis and solve Eq.(\ref{eq:flow_short}) as a set of coupled first-order differential equations.
+As stated above, the specific expression for the derivatives is dependent on the choice of the generator $\eta$.\\
+In order to get a feeling of how the Hamiltonian is driven towards diagonal form with the SRG method, we will start with the easiest generator $\eta_1 = \left[ \hat{T}_{\text{rel}},\hat{V}\right]$, where we suppress the $s$-dependence for simplicity. 
+ 
+%for eta = [v,T] and for eta = [\Hd, \Ho]
+Choosing an appropriate basis, where $\T$ is diagonal with matrix elements $\epsilon_i$, corresponding to the single-particle energies, the matrix products simplify to
+\be
+ \eta_{ij}(s) = \left( \epsilon_i - \epsilon_j \right) V_{ij}(s).
+ \label{eq:eta}
+\ee
+With this expression for the generator, the flow of the matrix elements is computed as follows:
+\begin{align*}
+\frac{d H_{ij}}{ds} &= \left\langle i \right| \left( \hat{\eta}_s \hat{H}_s - \hat{H}_s \hat{\eta}_s\right) \left| j \right\rangle \\
+&= \left\langle i \right| \hat{\eta}_s \T \left| j \right\rangle + \left\langle i \right| \hat{\eta}_s \hat{V}_s \left| j \right\rangle - \left\langle i \right| \T \hat{\eta}_s \left| j \right\rangle- \left\langle i \right| \hat{V}_s \hat{\eta}_s \left| j \right\rangle \\
+&= \epsilon_j \eta_{ij}(s)  - \epsilon_i \eta_{ij}(s) + \langle i | \left(\hat{\eta}_s \hat{V}_s -  \hat{V}_s  \hat{\eta}_s \right)\left| j \right\rangle \\
+&= -(\epsilon_i - \epsilon_j) \eta_{ij}(s) + \sum\limits_k \left\lbrace(\epsilon_i - \epsilon_k)V_{ik}(s) V_{kj}(s) - (\epsilon_k - \epsilon_j) V_{ik}(s) V_{kj}(s)\right\rbrace, 
+\end{align*}
+which finally gives
+\be
+\frac{d H_{ij}}{ds }= \frac{d V_{ij}}{ds } = -(\epsilon_i - \epsilon_j)^2 V_{ij}(s) + \sum\limits_k \left(\epsilon_i + \epsilon_j -2 \epsilon_k \right) V_{ik}(s) V_{kj}(s).
+\label{eq:flow}
+\ee
+To obtain the same expression one frequently encounters in literature (e.g. \cite{PhysRevC.75.061001}), one can rewrite this equation in the space of relative momentum $k$ ( with normalization $1 = \frac{2}{\pi} \int_0^\infty |q\rangle q^2 dq \langle q |$ and in atomic units where $\hbar^2/m = 1$), which gives
+\be
+\frac{d V_s(k,k')}{ds} = -(k^2-k'^2)^2 V_s(k,k') + \frac{2}{\pi} \int_0^\infty \!q^2 dq (k^2 + k'^2 - 2 q^2) V_s(k,q) V_s(q,k').
+\label{eq:flowscott}
+\ee
+Equations (\ref{eq:flow}) and (\ref{eq:flowscott}) represent a non-linear system of first-order coupled differential equations, with the initial condition that $V_{ij}(s)$ at the first value of $s$ equals the initial potential.
+
+
+To get an idea of how the off-diagonal elements are suppressed, let us approximate the flow of the Hamiltonian in Eq.~(\ref{eq:flow}). In a first approximation, the evolution of the matrix elements is given by
+\[
+\frac{d V_{ij}}{ds} \approx -(\epsilon_i - \epsilon_j)^2 V_{ij},
+\]
+with the solution
+\be
+V_{ij}(s) \approx V_{ij}(0) \text{e}^{-s (\epsilon_i - \epsilon_j)^2}.
+\label{eq:flowdemo}
+\ee
+Thus all off-diagonal elements with $i \neq j$ decrease to zero during the flow, with the energy difference $(\epsilon_i - \epsilon_j)$ controlling how fast a particular element is suppressed. Matrix elements far off the diagonal, where the Hamiltonian connects states with large energy differences, are in general suppressed much faster than elements close to the diagonal. \\
+Instead of measuring the progress of the flow in terms of $s$, it is convenient to do it in terms of the parameter $\lambda \equiv s^{-1/2}$, which provides at the same time a measure of the width of the diagonal band \cite{PhysRepWegner0,kehrein2006flow}. 
+While it is in principle required to go to $s = \infty$ ($\lambda = 0$) in order to obtain a diagonal Hamiltonian, Eq.~(\ref{eq:flowdemo}) demonstrates that one in practice only needs to increase $s$ until all off-diagonal elements are that small that the result does not change up to a  certain tolerance. In this case , we say that convergence has been reached within the desired numerical accuracy.
+
+The same argumentation holds for Wegner's original choice of the generator, where the matrix elements of $\hat{\eta}$ are only slightly changed to
+\be
+ \eta_{ij} = \left( \epsilon_i + V_{ii} - \epsilon_j - V_{jj}+ \right) V_{ij}^{od},
+ \label{eq:etaWegner}
+\ee
+with off-diagonal interaction elements $V_{ij}^{od} = V_{ij}$ for $i = j$ and  $ V_{ij}^{od} = 0$, otherwise. This yields the following flow equations
+\begin{align}
+\frac{d V_{ij}}{ds } &= -\lbrace\epsilon_i + V_{ii}(s) - \epsilon_j - V_{jj}(s)\rbrace^2 V_{ij}(s) \notag \\
++ &  \sum\limits_k \lbrace\epsilon_i + V_{ii}(s) + \epsilon_j + V_{jj}(s) -2 \epsilon_k -2 V_{kk}(s) V_{ik}^{od}(s) V_{kj}^{od}(s).
+\label{eq:flowWegner}
+\end{align}
+When running our calculations, we will analyse how the small difference between those two generators affects the results and numerical stability.

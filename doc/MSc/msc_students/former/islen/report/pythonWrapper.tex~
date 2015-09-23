@@ -1,0 +1,36 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage{mystyle}
+\usepackage{verbatim}
+
+
+%opening
+\title{Python wrapper}
+\author{Islen Vallejo Henao}
+
+\begin{document}
+
+\maketitle
+
+\section{Extending python with C}
+Suppose you have a function in C, which you want to call from python
+\begin{src}
+int functionInC(int x){
+  return x + x*x;
+}
+\end{src}
+In order to access it, you need to create a \emph{wrapper}, which acts as a glue between the two languages, converting function arguments from Python into C, and then returning results from C back to Python in a way that Python can understand it.
+\begin{src}
+#include <Python.h>
+
+PyObject *wrap_function(PyObject *self, PyObject *args){
+  int x;
+  int result;
+    if (!PyArg_ParseTuple(args, .i:function.,&x))
+      return NULL;
+    result = function(x);
+  return Py_BuildValue(.i.,result);
+  }
+\end{src}
+
+
+\end{document}

@@ -1,0 +1,561 @@
+\chapter{Quantum mechanics}
+\label{ch:qm}
+During a period spanning more that 50 years, from the end of the 19th century till the late twenties in the previous century, several discoveries were made that could not be properly explained by the by then available theoretical approaches based on for example Newtonian mechanics.
+Phenomena like the photoelectric effect, blackbody radiation, Compton scattering, X-rays etc. were all processes which required a finer resolution of scales, leading eventually to the theory of quantum mechanics and its postulates, with Schr\"odinger's equation being the new mathematical framework to express the laws of motion at nano or smaller scales.  
+%MHJ forandring
+%the beginning of the 20th century a new era in physics was rising.
+%A number of discoveries, that were inconsistent with the classical laws of physics, had been found during the last years.
+%In order to explain these inconsistencies, a new theory had to be derived, leading to what is now known as quantum mechanics.
+%In contrast to many earlier theories, as Newtonian mechanics and Maxwell's equations, to mention a few, quantum mechanics has been developed in collaboration by many persons.
+%This approach to develop a new theory lead to both agreements and disagreements, and one can still see signs of a difficult youth, but over the years it has stabilized into a more consistent theory.
+
+
+
+\section{Fundamentals}
+Objects in classical mechanics have well-defined positions, which can
+be tracked over a time interval by Newton's laws of motion.
+Once we know the initial state and all forces present, we can predict the
+motion of objects until the end of time. 
+It is of course not doable in practice, because we cannot know \textit{all variables}, and certainly not to \textit{endless accuracy}. 
+We say that Newtonian mechanics is a deterministic theory.
+Quantum mechanics, with its postulates like its matter-wave duality and Heisenberg's uncertainty principle, introduces an approach to describe Nature that represents a probabilistic determinism. 
+In this chapter we discuss some of the basic tools and postulates needed to describe physical systems governed by Schr\"odinger's equation.
+%MHJ retting
+%It holds on to the concept of all matter being waves, with an extent in space,
+%and thus also a built-in uncertainty.
+%We could never know exactly where a particle is.
+
+
+\subsection{The wave function}
+We begin with only one electron floating in empty space.
+To describe this electron we would construct a so-called wave function,
+typically written as $\Psi(\vec{r},t)$.
+If the particle is influenced by some external potential energy $V$, we could find
+the time evolution by solving the Schrödinger equation,
+\begin{equation}
+\label{eq:qm:schrodinger}
+i\hbar \frac{\partial \Psi}{\partial t} = - \frac{\hbar^2}{2m}
+\nabla^2 \Psi+ V \Psi .
+\end{equation}
+It is common to simplify this by defining the Hamiltonian operator,
+\begin{equation}
+\hat{H} = \hat{T} + \hat{V},
+\end{equation}
+where $\hat{T}$ is the operator of kinetic energy,
+\begin{equation}
+\hat{T} = \frac{\hat{p}^2}{2m} = - \frac{\hbar^2}{2m} \nabla^2,
+\end{equation}
+and $\hat{V}$ is the potential. 
+Our Hamiltonian thus represents the total energy for this particle.
+It is now possible to rewrite the full Schrödinger equation as
+\begin{equation}
+\label{eq:qm:schrodingersimple}
+i\hbar \frac{\partial \Psi}{\partial t} = \hat{H} \Psi .
+\end{equation}
+The Schrödinger equation serves as an analog to Newton's laws.
+If the initial conditions for $\Psi$ and the exact potential $\hat{V}$ are known, 
+we could calculate the wave function for any time later.
+All solutions of the Schrödinger equation reside in what is known as the Hilbert
+space.
+
+
+\paragraph*{}
+A physicist's first attempt at solving partial differential equations is to see whether the technique of separation of variables can be applied or not.
+We assume that the potential $\hat{V}$ is time independent and the solutions consist of a time-independent factor $\psi$, and another factor depending only on time, $\tau$.
+If multiple such products are solutions, then it is clear that any linear
+combination of these products is a solution too.
+Thus,
+\begin{equation}
+\label{eq:qm:linearComb}
+\Psi(\vec{r},t) = \sum_n c_n \psi_n(\vec{r}) \tau_n(t).
+\end{equation}
+After inserting one term from \eqref{eq:qm:linearComb} into \eqref{eq:qm:schrodinger}, we separate the two factors to appear on
+differing sides,
+\begin{equation}
+\frac{i\hbar}{\tau_n(t)} \frac{\partial \tau_n(t)}{\partial t} =
+E_n =
+- \frac{\hbar^2}{\psi_n(\vec{r}) 2m} \nabla^2 \psi_n(\vec{r}) + \hat{V} .
+\end{equation}
+Here, $E_n$ is a constant of separation, and we should note that this may fail
+if our Hamiltonian has some explicit time dependency.
+We can solve this for $\tau_n$, yielding
+\begin{equation}
+\frac{d\tau_n(t)}{dt} = \frac{E_n}{i\hbar} \tau_n(t)
+\Rightarrow
+\tau_n(t) = e^{-\frac{i}{\hbar}E_n} .
+\end{equation}
+It is necessary to solve the time-independent Schrödinger
+equation in order to find $\psi_n$,
+\begin{equation}
+\label{eq:qm:schrodingernotime}
+- \frac{\hbar^2}{2m} \nabla^2 \psi_n(\vec{r}) + \hat{V} \psi_n(\vec{r}) = E_n
+\psi_n(\vec{r})
+\Rightarrow
+\hat{H} \psi_n(\vec{r}) = E_n \psi_n(\vec{r}) .
+\end{equation}
+The Hamiltonian operator, $\hat{H}$, represents the energy of the wave function it is acting upon.
+It is thus clear why the constant of separation was called $E_n$.
+
+
+\paragraph*{}
+With the knowledge on how to find the wave function at any time for a
+specific potential, it is still not obvious what the interpretation of a wave
+function is, yet more unclear how one can extract observable quantities from
+this construct.
+
+The wave function is a complex function, describing the spatial distribution of a particle.
+Born's statistical interpretation states that the probability of finding a
+particle in a region $\Omega$ at a time $t$, is
+\begin{equation}
+\int_{\Omega} \Psi^{*}(\vec{r},t) \Psi(\vec{r},t) d^3\vec{r} .
+\end{equation}
+In order for this to be correct it is customary to work with normalized wave
+functions, that is, scaling $\Psi$ with a complex 
+constant\footnote{Another possibility is to work
+with unnormalized wave functions, and always divide these type of integrals by
+$\int_{-\infty}^{\infty} \left| \Psi(\vec{r},t) \right|^2 d^3\vec{r}$.}
+to enforce that
+\begin{equation}
+\int_{-\infty}^{\infty} \left| \Psi(\vec{r},t) \right|^2 d^3\vec{r} = 1 .
+\end{equation}
+Loosely speaking this enforces that if the particle exists it has to be somewhere, and the probability to find it if we look everywhere has to be $1$.
+The concept of not knowing where the particle is leads to many fundamental
+questions, both physical and philosophical.
+As most of these questions lead to an endless discussion with no clear answer
+(yet), we will not try to answer them here. 
+
+\paragraph*{}
+In addition to the spatial distribution varying in time, particles have an intrinsic property, possessing a magnetic dipole moment, known as spin.
+Despite acting similarly to a charged rotating body in classical electrodynamics, elementary particles have no known inner structure, making it a different phenomenon.
+Spin is quantized, as many other properties in quantum mechanics, and should be accounted for in the wave function by multiplication of a spin part, $\chi$.
+Electrons, which form the key focus in this study, have a spin quantum number $s = \frac{1}{2}$ that can be projected in two directions, $\pm\frac{1}{2}$, often referred to as up and down.
+In fact all spatial wave functions in this chapter, $\psi$, should then have a total \textit{spin-orbital} 
+\begin{equation}
+\psi \chi_{\downarrow} \textrm{ or } \psi \chi_{\uparrow} .
+\end{equation}
+Degeneracies, multiple particles and spin dependent Hamiltonians can complicate our theory somewhat, but neither of these effects are encountered in this chapter.
+
+
+
+\subsection{Observables}
+%MHJ
+% trengs ikke, gaa rett paa sak
+%Preparing multiple equal systems in the same state, having the same wave function, and performing equal measurements on all of them under the same conditions, the measurements can yield different results on the different systems.\footnote{Note the difference between measuring on multiple equal systems and doing multiple measurements on the same system. Doing a measurement on any system will alter its state, leading to a different state in the next measurement.}
+%One therefore often work with the expectation value, which is the average of all outcomes on equal systems, not to be confused with the expected, most likely result.
+%\paragraph*{}
+
+In quantum mechanics observables are represented by operators.
+As all measurements must have a real value, all such operators need to return real expectation values.
+The expectation value of an observable with an operator $\hat{O}$ is calculated
+as\footnote{Here, and when convenient from now on, we will skip the integration 
+limits and stick to $dx$ to denote an integral over all space 
+spanned by all variables of freedom.}
+\begin{equation}
+\label{eq:qm:expectation}
+\langle \hat{O} \rangle = \int \Psi^{*} \hat{O} \Psi dx .
+\end{equation}
+With the expectation value being real; 
+$\langle \hat{O} \rangle = \langle \hat{O} \rangle^{*}$, and therefore also
+\begin{equation}
+\label{eq:qm:hermitian}
+\int \Psi^{*} \hat{O} \Psi dx 
+= \left(\int \Psi^{*} \hat{O} \Psi dx\right)^{*}
+= \int \left(\hat{O} \Psi\right)^{*} \Psi dx .
+\end{equation}
+All operators for observables will need to possess this property when acting on any wave function, $\Psi$, within the Hilbert space, referred to as Hermitian or self-adjoint operators.
+There are two fundamental examples of operators representing physical observables, position and momentum. 
+The position has the simplest correspondence,
+\begin{equation}
+\label{eq:qm:operX}
+\hat{x} = x,
+\end{equation}
+whereas momentum is represented as
+\begin{equation}
+\hat{p} = - i \hbar \nabla .
+\end{equation}
+Other quantities can be derived from the position and momentum operators using a
+reasoning close to classical quantities, e.g. kinetic energy,
+\begin{equation}
+\hat{T} = \frac{1}{2} m \hat{v}^2 = \frac{\hat{p}^2}{2m} = - \frac{\hbar^2}{2m} \nabla^2 .
+\end{equation}
+
+
+\subsection{The canonical commutation relation}
+\label{sec:qm:commutator}
+Similar to matrices in linear algebra, not all operators commute.
+Having two operators $\hat{A}$ and $\hat{B}$, the order of which they are applied may affect the result, thus in general
+\begin{equation}
+\hat{A}\hat{B} \neq \hat{B}\hat{A} .
+\end{equation}
+One typically defines the commutator
+\begin{equation}
+\label{eq:qm:commutator}
+[\hat{A}, \hat{B}] = \hat{A}\hat{B} - \hat{B}\hat{A} ,
+\end{equation}
+having the properties listed below:
+\begin{enumerate}[{\bf a. }]
+\item Switching order between the two operators changes the sign,
+\begin{equation}
+[\hat{A}, \hat{B}] = - [\hat{B}, \hat{A}] .
+\end{equation}
+\item All constants can safely be placed in front of the commutator, 
+\begin{equation}
+[c_a \hat{A}, c_b\hat{B}] = c_a c_b [\hat{A}, \hat{B}] .
+\end{equation}
+\item Summation of two operators inside one commutator can be carried out as a sum of two commutators,
+\begin{equation}
+[\hat{A}, \hat{B} + \hat{C}] = [\hat{A}, \hat{B}] + [\hat{A}, \hat{C}] .
+\end{equation}
+\end{enumerate}
+These properties follow directly from the definition \eqref{eq:qm:commutator}. 
+More properties can be derived, but we restrict us to the properties of interest later in this thesis.
+%TODO Describe where it is of value???
+
+Even the operators for position and momentum do not commute in quantum mechanics, a fact that can be shown in a few steps.
+To make the derivation conceptually easier we let the operators act on an arbitrary test function $\Psi_T$, and concentrate on one dimension, i.e.
+\begin{equation}
+[\hat{x}, \hat{p}] \Psi_T = -i\hbar [\hat{x}, \frac{\partial}{\partial x}] \Psi_T 
+= -i \hbar \left( \hat{x} \frac{\partial}{\partial x} \Psi_T - \frac{\partial}{\partial x}\left(\hat{x} \Psi_T \right) \right) .
+\end{equation}
+Applying the product rule on the last term we end up with
+\begin{equation}
+-i \hbar \left( \hat{x} \frac{\partial}{\partial x} \Psi_T - \Psi_T 
+- \hat{x} \frac{\partial}{\partial x} \Psi_T \right)
+= i\hbar \Psi_T .
+\end{equation}
+Dropping the test function, we have proved what is known as the canonical commutation relation,
+\begin{equation}
+\label{eq:qm:canonicalcommutation}
+[\hat{x}, \hat{p}] = i\hbar .
+\end{equation}
+
+
+
+\subsection{Eigenfunctions}
+Letting an observable $\hat{O}$ act on a state $\Psi$, one may get different
+results, each with its own probability.
+This \textit{spectra} of results can be either continuous or discrete, and it is of interest to know if a state yielding the same value each and every time for an operator can be found.
+In fact such states exist, and one is already encountered in the time-independent Schrödinger equation, (\ref{eq:qm:schrodingernotime}), where a state $\psi_n$ will return the energy $E_n$ when acted upon by $\hat{H}$.
+Such states are called eigenstates, having a corresponding eigenvalue.
+For any observable, its eigenstates are found by the eigenvalue equation,
+\begin{equation}
+\label{eq:qm:eigenvalue}
+\hat{O} \psi_n = O_n \psi_n .
+\end{equation}
+A few properties for such functions can be proven:
+%MHJ  har du referanse her?
+\begin{itemize}
+\item All eigenvalues of a Hermitian operator are real.
+
+Using the property of Hermitian operators from eq.~\eqref{eq:qm:hermitian}, we have
+\begin{equation}
+\int \psi_n^{*} \hat{O} \psi_n dx 
+= \int \left(\hat{O} \psi_n\right)^{*} \psi_n dx 
+\Rightarrow
+O_n \int \psi_n^{*} \psi_n dx 
+= O_n^{*} \int \psi_n^{*} \psi_n dx ,
+\end{equation}
+which means $O_n = O_n^{*}$, and thus real.
+
+\item Different eigenfunctions are orthogonal.
+
+Another form of the condition for Hermitian operators is
+\begin{equation}
+\int \psi_m^{*} \hat{O} \psi_n dx 
+= \int \left(\hat{O} \psi_m\right)^{*} \psi_n dx .
+\end{equation}
+Despite looking like a stronger condition it is in fact equivalent with eq.~\eqref{eq:qm:hermitian} \cite{griffiths}, resulting in 
+\begin{equation}
+O_n \int \psi_m^{*} \psi_n dx 
+= O_m^{*} \int \psi_m^{*} \psi_n dx .
+\end{equation}
+Since it is already known that the eigenvalues are real there is no other
+possibility than $\int \psi_m^{*} \psi_n dx = 0$ whenever $O_n \neq O_m$.
+
+\item For any operator with a finite set of eigenfunctions, the eigenfunctions
+are complete. They span the Hilbert space, such that any function in this space
+can be expressed as a linear combination of eigenfunctions.
+%TODO strange! 
+It can, in fact, not be proven in general for spectra with infinite number of eigenstates.
+Nonetheless, it is taken as a necessity, and thus a restriction on the observable operators.
+\end{itemize}
+
+
+
+\subsection{Bra-ket notation}
+In daily work the wave functions encountered are seldom written as explicit functions.
+One typically refer to states instead, hiding the complexity of dealing with
+functions and integrals, into constructs called `bra' and `ket'.
+Dirac introduced this notation in 1930, and named it after splitting the word
+`bracket'~\cite{bracket}.
+
+\paragraph*{}
+A ket state is the right-hand part, where a state $\Psi$ would be represented as $|\Psi \rangle$.
+This represents a particle, with a corresponding
+wave function.
+The ket state can be viewed as a column vector,
+\begin{equation}
+\label{eq:qm:bra}
+|\Psi \rangle = 
+\begin{bmatrix}
+c_0 \\
+c_1 \\
+c_2 \\
+... \\
+\end{bmatrix}
+\textrm{ or }
+|\Psi \rangle =
+\begin{bmatrix}
+\Psi(x_0) \\
+\Psi(x_1) \\
+\Psi(x_2) \\
+... \\
+\end{bmatrix} ,
+\end{equation}
+where the first example has $\Psi$ in a state with a given basis for a \textit{finite} Hilbert space.
+The other example has the ket state represented in an \textit{infinite} Hilbert space, as there are
+infinitely many positions $x_i$.
+
+\paragraph*{}
+The bra state is the left-hand part of the bracket, referred to as the ket's dual, being the Hermitian transposed\footnote{Hermitian transposed means the transposed vector, where the complex conjugate is performed on each element.} of corresponding ket.
+Following the first example in eq.~\eqref{eq:qm:bra} the bra state would be
+\begin{equation}
+\langle \Psi | =
+\begin{bmatrix}
+c_0^{*}, c_1^{*}, c_2^{*}, ... \\
+\end{bmatrix}.
+\end{equation}
+The expectation values of operators can then be viewed as matrices.
+This is just a picture, as 
+most of the vectors will be in infinite dimensional spaces explained by
+functions.
+The notation will, however, give us a linear algebra like syntax, a formalism
+that ease our daily work.
+Operators will in this syntax work in the same way as for wave functions.
+The dual part of an operator acting from the left on a ket state, will be the operator's Hermitian adjoint acting from the right on a bra state,
+%TODO vanskelig forklart?
+\begin{equation}
+\hat{O}|\Psi \rangle  \longleftrightarrow  \langle \Psi | \hat{O}^{\dagger} .
+\end{equation}
+
+\paragraph*{}
+Having introduced these brackets, it is time to define a particularly useful
+operation, the inner product.
+The definition is straight forward in a linear-algebra sense, except that we need to  extended it to an infinite space by the integral 
+\begin{equation}
+\langle \Psi_i | \Psi_j \rangle =
+\int \Psi_i^{*} \Psi_j dx .
+\end{equation}
+Operators can be placed in between the bra and the ket states, reducing the expectation value
+from \eqref{eq:qm:expectation} to
+\begin{equation}
+\langle \hat{O} \rangle = 
+\langle \Psi | \hat{O} | \Psi \rangle .
+\end{equation}
+The fact that observable operators are Hermitian can now be simplified from
+\eqref{eq:qm:hermitian} to 
+\begin{equation}
+\langle \Psi | \hat{O} | \Psi \rangle = \langle \Psi | \hat{O}^{\dagger} | \Psi \rangle,
+\end{equation}
+where $\hat{O} = \hat{O}^{\dagger}$ is referred to as self-adjoint.
+
+
+
+\subsection{A fundamental summary}
+The new syntax of bra-ket notation allows us to summarize quantum mechanics into a
+few neatly expressed postulates. 
+Although these postulates are presented in a slightly different manner by
+different authors, the main concepts can be put into four postulates:
+\begin{enumerate}[{Postulate} 1: ]
+\item The state of an isolated physical system can be described by a
+state-vector, $|\Psi \rangle$,  within
+a Hilbert space, $\mathcal{H}$.
+\item Every physical observable, $O$, has a corresponding linear Hermitian
+operator, $\hat{O}$, acting on vectors in $\mathcal{H}$.
+\item A measurement of the quantity $O$, with a corresponding operator
+$\hat{O}$, is guaranteed to yield one of the operator's eigenvalues, $O_n$, with a
+certain probability.
+\item The state-vector has a time evolution satisfying the Schrödinger
+equation,
+\begin{equation}
+\label{eq:qm:schrodingerbraket}
+i\hbar \frac{\partial}{\partial t} | \Psi(t) \rangle =
+\hat{H} | \Psi(t) \rangle .
+\end{equation}
+\end{enumerate}
+
+
+
+\section{Harmonic oscillator}
+\label{sec:qm:ho}
+In this section we will calculate, using the fundamental theory from previous section, the energy spectra along with its eigenstates for a system that is simple, but of high interest.
+The problem to solve in this thesis is the harmonic oscillator in two dimensions, but
+to begin with we will only treat the one dimensional problem, ending up with
+solutions for two dimensions at no extra cost.
+
+\paragraph*{}
+A classical harmonic oscillator consists of a particle attached to a spring.
+The farther the particle moves, the larger the force from the spring, according
+to Hooke's law,
+\begin{equation}
+F = -kx .
+\end{equation}
+A potential field $V$ is simply the negative of the work done, and using this relation, we can calculate the potential energy as a simple integral,
+\begin{equation}
+V = - \int_0^x -kx dx = \frac{1}{2} kx^2 = \frac{1}{2} m \omega^2 x^2,
+\end{equation}
+where $\omega = \sqrt{k/m}$ is called the frequency.
+This can be inserted into the Hamiltonian by replacing $x$ with its quantum
+mechanical operator, found in eq.~\eqref{eq:qm:operX}. The total Hamiltonian reads 
+$-\frac{\hbar^2}{2m}\frac{d^2}{dx^2} + \frac{1}{2} m \omega^2 x^2$, leading to
+the time-independent Schrödinger equation
+\begin{equation}
+-\frac{\hbar^2}{2m}\frac{d^2}{dx^2}|\psi_n\rangle + \frac{1}{2} m \omega^2 x^2|\psi_n\rangle 
+= E_n|\psi_n\rangle .
+\end{equation}
+It may be tempting to attack this problem in a brute force manner.
+That would however prove quite tedious, and better strategies exist.
+
+
+\subsection{The ladder operators}
+\label{sec:qm:ladder}
+Following an, at first, unexpected path, we will introduce what is known as the ladder, or excitation, operator, defined by
+\begin{equation}
+\hat{a}^{\dagger} = \sqrt{\frac{m\omega}{2\hbar}} \left(\hat{x} - \frac{i\hat{p}}{m\omega} \right) ,
+\end{equation}
+and its Hermitian adjoint, the de-excitation operator\footnote{One can prove that the excitation and de-excitation operators are the Hermitian adjoint of each other. It will however serve no purpose to us at this stage.},
+\begin{equation}
+\hat{a} = \sqrt{\frac{m\omega}{2\hbar}} \left(\hat{x} + \frac{i\hat{p}}{m\omega} \right) .
+\end{equation}
+The motivation for selecting these two operators may seem unclear, but their product is of interest,
+\begin{equation}
+\hat{a}\hat{a}^{\dagger} = 
+\frac{m\omega}{2\hbar} \left(\hat{x}^2 + \frac{i}{m\omega}[\hat{p},\hat{x}] + \frac{\hat{p}^2}{m^2 \omega^2} \right) =
+\frac{m\omega}{2\hbar} \hat{x}^2 + \frac{\hat{p}^2}{2\hbar m \omega} + \frac{i}{2\hbar} [\hat{p},\hat{x}] ,
+\end{equation}
+where the first two terms are found in the Hamiltonian, and the last term can be expressed by the canonical commutation relation~\eqref{eq:qm:canonicalcommutation},
+\begin{equation}
+\hat{a}\hat{a}^{\dagger} = 
+\frac{1}{\hbar \omega} \hat{H} + \frac{1}{2} \Rightarrow
+\hat{H} = \hbar \omega \left( \hat{a}\hat{a}^{\dagger} - \frac{1}{2} \right) .
+\end{equation}
+
+Being able to rewrite our Hamiltonian, it is tempting to investigate these operators further. In particular, it is of interest to find their commutator.
+Using the rules of commutators shown in section~\ref{sec:qm:commutator} we find,
+\begin{equation}
+[\hat{a},\hat{a}^{\dagger}] = 
+\frac{m \omega}{2\hbar} \left[\left( \hat{x} + \frac{i\hat{p}}{m \omega} \right), \left(\hat{x} - \frac{i\hat{p}}{m \omega} \right) \right] =
+\frac{m \omega}{2\hbar}  [\hat{x},\hat{x}] + \frac{i}{\hbar}[\hat{p},\hat{x}] + \frac{1}{2\hbar m\omega} [\hat{p},\hat{p}] ,
+\end{equation}
+where only the second term is nonzero,
+\begin{equation}
+[\hat{a},\hat{a}^{\dagger}] = 
+\frac{i}{\hbar}[\hat{p},\hat{x}] = 
+-\frac{i}{\hbar} i \hbar =
+1 .
+\end{equation}
+Because of this, the Hamiltonian can equally well be written in one out of two forms,
+\begin{equation}
+\label{eq:qm:hohamiltonian}
+\hat{H} = \hbar \omega \left( \hat{a}\hat{a}^{\dagger} - \frac{1}{2} \right)
+\textrm{ or }
+\hat{H} = \hbar \omega \left( \hat{a}^{\dagger}\hat{a} + \frac{1}{2} \right).
+\end{equation}
+
+\paragraph*{}
+The crucial step comes when claiming that one, yet unknown, state, $|\psi_n \rangle$, is a solution of the time-independent Schrödinger equation, $\hat{H} |\psi_n \rangle = E_n |\psi_n \rangle$.
+With this in mind, one may ask what the energy of $\hat{a}^{\dagger} |\psi_n\rangle$ is, 
+\begin{equation}
+\begin{split}
+\hat{H}\left(\hat{a}^{\dagger}|\psi_n \rangle\right) &= 
+\hbar \omega \left(\hat{a}^{\dagger}\hat{a}\hat{a}^{\dagger} + \frac{1}{2}\hat{a}^{\dagger} \right) |\psi_n \rangle = 
+\hbar \omega \hat{a}^{\dagger} \left(\hat{a}\hat{a}^{\dagger} + \frac{1}{2} \right)|\psi_n \rangle \\
+&= \hbar \omega \hat{a}^{\dagger} \left(\hat{a}^{\dagger}\hat{a} + 1 + \frac{1}{2} \right)|\psi_n \rangle 
+= \hat{a}^{\dagger} \left(\hat{H} +\hbar \omega  \right)|\psi_n \rangle 
+= \left(E_n +\hbar \omega  \right)\hat{a}^{\dagger}|\psi_n \rangle .
+\end{split}
+\end{equation}
+The last steps were achieved by exploiting the commutator between the excitation and de-excitation operator, and then recall that $|\psi_n \rangle$ is an eigenstate of $\hat{H}$.
+With the same approach one would also find that 
+\begin{equation}
+\hat{H}\left( \hat{a} |\psi_n \rangle \right) =
+\left(E_n - \hbar \omega \right) \hat{a}|\psi_n\rangle .
+\end{equation}
+With these operators we have the possibility to create states with energy at discrete steps of $\hbar \omega$, as long as we find at least one state to start out with. It seems reasonable that there should exist a lower limit, where applying $\hat{a}$ should give us no new state, viz.
+\begin{equation}
+\hat{a} |\psi_0 \rangle = 0 .
+\end{equation}
+For convenience it is possible to label this state simply $|0\rangle$.
+By inserting the full expression for $\hat{a}$ and solving the differential equation,
+\begin{equation}
+\begin{split}
+\sqrt{\frac{m\omega}{2\hbar}} \left(\hat{x} + \frac{i}{m\omega}\left(-i\hbar \frac{\partial}{\partial x} \right)\right) &|0\rangle = 0
+\Rightarrow 
+\int \frac{d |0\rangle}{|0\rangle} = -\frac{m\omega}{\hbar}\int x dx
+\\ \\ \Rightarrow 
+&|0\rangle = C e^{-\frac{m\omega}{2\hbar} x^2} ,
+\end{split}
+\end{equation}
+we get an explicit expression for the lowest-lying state, up to a constant $C$ to be determined by normalization.
+
+\paragraph*{}
+The only remaining task is to find the energy of the ground state, $E_0$.
+Inserting expression~\eqref{eq:qm:hohamiltonian} for the Hamiltonian into the time-independent equation, we find
+\begin{equation}
+\hbar\omega \left( \hat{a}^{\dagger}\hat{a} + \frac{1}{2} \right) | 0 \rangle
+= \hbar\omega  \hat{a}^{\dagger}\hat{a} |0\rangle + \frac{1}{2}\hbar\omega | 0 \rangle = E_0 |0\rangle .
+\end{equation}
+But since $\hat{a}|0\rangle = 0$, it is clear that $E_0 = \frac{1}{2}\hbar\omega$, and using the fact that eigenstates exist at steps of $\hbar \omega$, the complete energy spectrum is 
+\begin{equation}
+E_n = \left( n + \frac{1}{2} \right) \hbar \omega .
+\end{equation}
+
+
+
+\subsection{Two dimensions}
+\label{sec:qm:ho2d}
+So far, we have treated the oscillator problem in only one dimension.
+Moving to two dimensions, the actual Hamiltonian of interest changes to
+\begin{equation}
+\hat{H}
+= -\frac{\hbar^2}{2m}\nabla^2 + \frac{1}{2} m \omega^2 r^2  
+= -\frac{\hbar^2}{2m}\left(\frac{\partial^2}{\partial x^2} +\frac{\partial^2}{\partial y^2} \right) + \frac{1}{2} m \omega^2 \left(x^2 + y^2\right) .
+\end{equation}
+Once again we will, as physicists, attack this by separation of variables, assuming that the new state $|n\rangle$ is a product of independent states in $x$ and $y$,
+\begin{equation}
+|n\rangle = |n_x \rangle \otimes |n_y \rangle .
+\end{equation}
+It is already clear that $\hat{H}$ can be written as a sum of two Hamiltonians, where each is only one dimensional,
+\begin{equation}
+\hat{H} = \hat{H_x} + \hat{H_y} 
+= \left(-\frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2} + \frac{1}{2} m \omega^2 x^2\right) + \left(-\frac{\hbar^2}{2m}\frac{\partial^2}{\partial y^2}  + \frac{1}{2} m \omega^2 y^2\right) .
+\end{equation}
+The total time-independent Schrödinger equation now reads
+\begin{equation}
+\hat{H}|n\rangle = \left(\hat{H_x}|n_x \rangle \right) \otimes |n_y \rangle + |n_x \rangle \otimes \left( \hat{H_y} |n_y \rangle \right)
+= E_n \left( |n_x \rangle \otimes |n_y \rangle \right),
+\end{equation}
+and since $H_x$ has the eigenstates found by using the ladder operators, with energies $E_{n_x} = \left(n_x + \frac{1}{2} \right) \hbar\omega$, the total energy is
+\begin{equation}
+E_{n_x,n_y} 
+= \left(n_x + \frac{1}{2}\right) \hbar \omega + \left(n_y + \frac{1}{2}\right) \hbar \omega
+= \left(n_x + n_y + 1\right) \hbar \omega .
+\end{equation}
+
+\paragraph*{}
+Understanding the methods here, with the ladder operators, has a great value.
+When moving on to many-body methods, similar constructs, called creation and annihilation operators, will be used to simplify calculations.
+Whereas the ladder operators simply `moved' the electron to a state with a different energy, the creation and annihilation operators will add or remove electrons from a system.
+
+
+
+
+
+
+
+
+
+
+
+
+

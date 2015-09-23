@@ -1,0 +1,66 @@
+\chapter{Analytical expression of the two-body Coulomb interaction}
+\label{app:rontani} 
+This function computes the exchange part in the anti-symmetrized Coulomb matrix element $\langle \alpha \beta |V|\gamma \delta \rangle_{as}=\langle \alpha(\bfv{r_{i}}) \beta(\bfv{r_{j}}) |V(\bfv{r_{ij}})| \gamma(\bfv{r_{i}})  \delta(\bfv{r_{j}}) \rangle_{as}$ where the $\alpha, \, \beta,\, \gamma$ and $\delta$ are four state indices and $\bf{r_i}, \, \bf{r_j}$ the positions of particle $i$ and $j$.
+Each state $|k \rangle$ can be rewritten in terms of its quantum numbers. In two dimensions, it reads $|k \rangle=|n_k m_k s_k \rangle$. For simplicity the angular momentum projection quantum number $m_l$ will just be written as $m$ in the following equations.
+
+The complete anti-symmetrized Coulomb matrix element reads
+\begin{equation}
+\langle \alpha \beta |V|\gamma \delta \rangle_{as} =  \underbrace{\langle \alpha \beta |V|\gamma \delta \rangle}_{\begin{smallmatrix}
+  \text{direct} \\
+  \text{term}
+\end{smallmatrix}} - \underbrace{\langle \alpha \beta |V|\gamma \delta \rangle}_{\begin{smallmatrix}
+  \text{exchange} \\
+  \text{term}
+\end{smallmatrix}},
+\end{equation} 
+
+The exchange term $ \langle \alpha \beta |V|\gamma \delta \rangle$ expands as follow
+\begin{align}
+\langle \alpha \beta |V|\gamma \delta \rangle &= \delta_{m_{s1},m_{s4}} \; \delta_{m_{s2},m_{s3}} \; \langle (n_1,m_1),(n_2,m_2) | V | (n_3,m_3),(n_4,m_4) \rangle\\
+&= \delta_{m_{s1},m_{s4}} \; \delta_{m_{s2},m_{s3}} \;  V_{\alpha \beta \gamma \delta}
+\end{align} 
+where we separate the spin part from the spatial part $V_{\alpha \beta |V|\gamma \delta}$.
+
+Note that in our simulator, the function \texttt{Anisimovas(n1,m1,n2,m2,n3,m3,n4,m4)} only computes  $V_{1234}$ where the numbers $1\rightarrow4$ are state indices similar to $\alpha,\, \beta,\, \gamma, \, \delta$.
+
+According to Anisimovas~\cite{anisimovasMatulis} (the detail of the derivation is also reviewed by Rontani~\cite{RontaniThesis}), the spatial part can be solved analytically when the basis set is built upon the single harmonic oscillator orbitals.
+
+\begin{align}
+\begin{split}
+& V_{1234}= \delta_{m_1+m_2,m_3+m_4} \; \sqrt{ \left[ \prod_{i=1}^4 \frac{n_i !}{(n_i+|m_i|!)} \right] } \\
+&\times \sum_{j_1=0,\dots,j_4=0}^{n_1,\dots,n_4} \Bigg[ \frac{(-1)^{j_1+j_2+j_3+j_4}} {j_1!j_2!j_3!j_4!} \; \left[ \prod_{k=1}^4 \begin{pmatrix} n_k+|m_k|\\n_k-j_k\end{pmatrix}  \right]  \; \frac{1}{2^{\frac{G+1}{2}}}   \\
+&\times  \sum_{l_1=0,\dots,l_4=0}^{\gamma_1=0,\dots,\gamma_4=0} \left( \delta_{l_1,l_2} \; \delta_{l_3,l_4} \; (-1)^{\gamma_2+\gamma_3-l_2-l_3} \left[ \prod_{t=1}^4 \begin{pmatrix} \gamma_t\\l_t\end{pmatrix} \right] \; \Gamma \left(1+\frac{\Lambda}{2} \right) \; \Gamma \left(\frac{G - \Lambda +1}{2}\right)    \right)  \Bigg]
+\end{split}
+\end{align} 
+
+where
+\begin{align*}
+&\gamma_1=j_1+j_4+\frac{|m_1|+m_1}{2}+\frac{|m_4|-m_4}{2} \\
+&\gamma_2=j_2+j_3+\frac{|m_2|+m_2}{2}+\frac{|m_3|-m_3}{2} \\
+&\gamma_3=j_3+j_2+\frac{|m_3|+m_3}{2}+\frac{|m_2|-m_2}{2} \\
+&\gamma_4=j_4+j_1+\frac{|m_4|+m_4}{2}+\frac{|m_1|-m_1}{2} \\
+&G=\gamma_1+\gamma_2+\gamma_3+\gamma_4 \\
+&\Lambda = l_1 +l_2+l_3 +l_4
+\end{align*}
+
+
+
+As a note, our implementation of the function \texttt{Anisimovas($\dots$)} which computes the spatial part of the exchange term, includes the following subfunctions:
+\begin{itemize}
+ \item \texttt{minusPower(int $k$)} which computes $(-1)^k$
+
+\item \texttt{LogFac(int $n$)} which computes $log_e(n!)$
+
+\item  \texttt{LogRatio1(int $j_1$,int $j_2$,int $j_3$,int $j_4$)} which computes the  $log_e$ of $\frac{1}{j_1!j_2!j_3!j_4!}$
+
+\item \texttt{LogRatio2(int $G$)} which computes the $log_e$ of $\frac{1}{2^{\frac{G+1}{2}}}$
+
+\item \texttt{Product1 (int $n_1$,int $m_1$,int $n_2$,int $m_2$, int $n_3$,int $m_3$,int $n_4$,int $m_4$)} which computes the explicit (not the $log_e$) product $\sqrt{ \left[ \prod_{i=1}^4 \frac{n_i !}{(n_i+|m_i|!)} \right] }$ 
+
+\item \texttt{LogProduct2(int $n_1$,int $m_1$,int $n_2$,int $m_2$, int $n_3$,int $m_3$,int $n_4$,int $m_4$, int $j_1$,int $j_2$,int $j_3$,int $j_4$ )} which computes the  $log_e$ of $\prod_{k=1}^4 \begin{pmatrix} n_k+|m_k|\\n_k-j_k\end{pmatrix}$
+
+\item \texttt{LogProduct3(int $l_1$,int $l_2$,int $l_3$,int $l_4$, int $\gamma_1$,int $\gamma_2$,int $\gamma_3$,int $\gamma_4$)} which computes the  $log_e$ of $\prod_{t=1}^4 \begin{pmatrix} \gamma_t\\l_t\end{pmatrix}$
+
+\item \texttt{lgamma(double $x$)} which computes the  $log_e\left[ \Gamma(x) \right]$
+\end{itemize}
+
