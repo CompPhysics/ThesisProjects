@@ -1,0 +1,223 @@
+Forsøk på dokumentasjon av QickArray.
+-------------------------------------
+
+QickArray er en implementasjon av en (forhåpentligvis) effektiv
+flerdimensjonal array-av-double-klasse. Den tar opptil 6 dimensjoner 
+på det nåværende tidspunkt. En del operatorer er overloadet, slik 
+at interfacen er ganske intuitiv. Dessuten er en del vanlige
+matriseoperasjoner definert, i tilfellet to-dimensjonale arrayer. 
+
+
+* Intern struktur *
+
+Arrayene er internt lagret som én lang array av doubles; akkurat stor
+nok til å holde alle elementene. For eksempel vil data til en 60x70-array
+lagres i en double[4200]-array.
+
+For å representere en n1xn2xn3x...xn6-array, deles denne opp i logiske
+blokker. Første indeks "spaserer" i inkrement av 1, andre indeks i
+inkrement av n1, tredje i inkrement av n1*n2, og så videre.
+
+Dersom arrayen er 2-dimensjonal og dersom vi benytter oss av de
+interne matrise-operasjonene, er matrisen lagret i "row-major"-format,
+det vil si at første indeks representerer kolonne og andre
+representerer søyle. Dette er _omvendt_ av vanlig matematikk-notasjon
+og også omvendt av matlab-konvensjonen, så pass på!
+
+
+* Kreering av instans -- konstruktorer *
+
+En deklarerer en QickArray ved hjelp av konstruktorene som er
+definert. Disse er på følgende form:
+
+1. QickArray A;
+
+   Deklarerer A uten egenskaper. Er en ikke-brukbar array, og må
+   initialiseres med redim().
+
+2. QickArray A(n1, n2, ...);
+
+   Deklarerer A med dimensjoner n1 opp til n6. Arrayen vil da ha n1
+   elementer langs første dimensjon, n2 langs andre og så videre. En
+   trenger bare å overføre så mange parametere som en ønsker. (Men
+   maks 6.) En kan godt overføre negative tall som parameter, men
+   dette fører til at arrayen ikke blir initialisert. Overfører en
+   null, blir parameteren ignorert.
+
+   Eks.:
+
+   QickArray A(10, 10);     // 10x10-array.
+   QickArray B(5, 6, 0, 7); // 5x6x7-array.
+   QickArray C(-65);        // ikke-initialisert array.
+
+
+3. QickArray A(B);
+
+   Her er B en annen QickArray. A blir en kopi av B.
+
+4. En kan selvsagt også benytte pekere, f.eks. på denne måten:
+
+   QickArray *Z = new QickArray(42, 42);
+
+
+* Indeksering og aksessering av elementer *
+
+Med en gang en array er klar til å bruke, indekseres den ved hjelp av
+den overloadede ()-operatoren. Her er et eksempel:
+
+   QickArray A(10, 10), *B = new QickArray(10, 10);
+
+   for (int row=0; row<10; row++)
+      for (int col=0; col<10; col++) {
+         A(col, row) = rand() % 10 - 5;
+         (*B)(col, row) = (col==row);
+      }
+
+Her vil A fylles med tilfeldige heltall mellom -5 og 4, og B vil peke
+på en matrise med 1 langs diagonalen.
+
+Det er også lov med uttrykk av typen
+
+   B(o, b) += 42;
+
+
+* Kopiering av arrayer *
+
+Dersom en ønsker å klone en array A bruker en rett og slett den
+overloadede =-operatoren:
+
+   QickArray A(10, 20), B, *C = new QickArray;
+
+   B = A;
+   *C = A;
+
+
+* Implementerte metoder *
+
++  int redim(n1, n2, ...)
+   
+   Fungerer på samme måte som kunstruktoren. Sletter alt som er i
+   minnet og lager en ny array. Returnerer 0 dersom alt gikk bra.
+
++  int no_of_elements()
+
+   Returnerer totalt antall elementer i arrayen.
+
++  int *get_dimensions_ptr()
+
+   En svært farlig funksjon som gir en direkte aksess til en
+   integer-array der dimensjonsstørrelsene blir lagret.
+
++  int get_dimension_info(int *, int *, ...)
+
+   Lagrer størrelsen på dimensjonene i integer-pekerne som blir
+   overført og returnerer antall dimensjoner.
+
+   Eks.:
+
+      QickArray A(10, 20);
+      int cols, rows, dim;
+
+      dim = A.get_dimension_info(&cols, &rows);
+
+   Dette resulterer i verdiene 2, 10 og 20 for hhv. dim, cols og rows.
+
++  int is_initialized()
+
+   Returnerer 1 dersom arrayen er klar til bruk og 0 ellers. Brukes
+   antakeligvis mest internt i klassen.
+
++  double *get_data_ptr()
+
+   Nok en meget farlig funksjon som returnerer peker til den interne,
+   lineære double-arrayen. Hendig dersom brukeren trenger direkte
+   aksess for hurtig-behandling av data et.c.
+
++  int fill_data(double)
+
+   Fyller hele arrayen med den overførte verdien. Returnerer 1 dersom
+   arrayen ikke var klar til bruk og 0 dersom det gikk bra.
+
++  int index(int, int, ...)
+
+   Returnerer den absolutte indeksen i data-arrayen til den logiske
+   indeksen spesifisert av elementene.
+
++  int logical_index(int idx, int*, int*, ...)
+
+   Returnerer den logiske indeksen til ind, det vil si array-indeksen
+   du ville brukt dersom du skulle plukke ut element nr. ind i den
+   én-dimensjonale data-arrayen. Opptil seks indekser blir lagret i
+   intill seks pekere til int som overføres til funksjonen.
+
+   Eks.:
+
+      QickArray A(10, 10);
+      int col, row, idx;
+
+      idx = A.index(3, 6);
+      A.logical_index(idx, &col, &row);
+
+   Dette eksempelet vil lagre 3 og 6 i hhv col og row.
+
++  double& get(int, int...)
+
+   Henter array-verdien i posisjonen angitt av indeksene. Det
+   anbefales isteden å bruke ()-operatoren.
+
++  int put(double, int, ...)
+
+   Plasserer double-verdien i elementet angitt av indeksene. Det
+   anbefales å bruke ()-operatoren istedet.
+
++  string python_string(int compact)
+
+   Returnerer en string kompatibel med Pythons
+   Numeric.array-klasse. Parameteren compact trenger ikke overføres,
+   men dersom en gjør det, betyr 0 at strengen "ser ut som" en
+   matrise, mens 1 gjør at strengen er veldig kompakt. Default er
+   1. Alternativet kan være kjekt for å se på innholdet ved debugging.
+
++  string summary()
+
+   Returnerer en string med dimensjons-info samt python_string. Litt
+   ubrukelig.
+
++  double min(), double max(), double average(), double variance() og
+   double stddev()
+
+   Dette er et lite knippe statistiske funksjoner. Merk at stddev()
+   regner ut variansen først, så dersom du trenger begge og har et
+   kjempestort datasett, så kan du heller regne ut variansen og ta
+   kvadratroten selv...
+
+   Til min() og max() kan en overføre inntil 6 pekere til
+   int. Posisjonen til minimums- eller maksimumselementet (det første
+   som blir funnet) blir da lagret i disse. Eks.:
+
+      A.min(&col, &row);
+
+   Dette vil lagre posisjonen til det minste elementet i den
+   2-dimensjonale arrayen A i col og row.
+
+* Andre operatorer *
+
++ Skalararitmetikk.
+
+  Alle de fire vanlige regneartene er definert.
+
+     A += x;    A -= x;
+     A *= x;    A /= x;
+
+  Her er x en double-størrelse, og alle elementene i A opereres på.
+
++ Elementvis aritmetikk.
+
+  Definert for arrayer med samme antall elementer:
+
+     A += B;    A -= B;
+     A *= B;    A /= B;
+
+  Disse metodene forandrer arrayen på venstre side.
+
+
