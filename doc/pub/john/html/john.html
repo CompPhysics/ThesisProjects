@@ -1,0 +1,258 @@
+<!--
+Automatically generated HTML file from DocOnce source
+(https://github.com/hplgit/doconce/)
+-->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
+<meta name="description" content="Developing a modern shell-model code">
+
+<title>Developing a modern shell-model code</title>
+
+
+<style type="text/css">
+/* bloodish style */
+
+body {
+  font-family: Helvetica, Verdana, Arial, Sans-serif;
+  color: #404040;
+  background: #ffffff;
+}
+h1 { font-size: 1.8em;  color: #8A0808; }
+h2 { font-size: 1.6em;  color: #8A0808; }
+h3 { font-size: 1.4em;  color: #8A0808; }
+h4 { color: #8A0808; }
+a { color: #8A0808; text-decoration:none; }
+tt { font-family: "Courier New", Courier; }
+/* pre style removed because it will interfer with pygments */
+p { text-indent: 0px; }
+hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+p.caption { width: 80%; font-style: normal; text-align: left; }
+hr.figure { border: 0; width: 80%; border-bottom: 1px solid #aaa}
+.alert-text-small   { font-size: 80%;  }
+.alert-text-large   { font-size: 130%; }
+.alert-text-normal  { font-size: 90%;  }
+.alert {
+  padding:8px 35px 8px 14px; margin-bottom:18px;
+  text-shadow:0 1px 0 rgba(255,255,255,0.5);
+  border:1px solid #bababa;
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  color: #555;
+  background-color: #f8f8f8;
+  background-position: 10px 5px;
+  background-repeat: no-repeat;
+  background-size: 38px;
+  padding-left: 55px;
+  width: 75%;
+ }
+.alert-block {padding-top:14px; padding-bottom:14px}
+.alert-block > p, .alert-block > ul {margin-bottom:1em}
+.alert li {margin-top: 1em}
+.alert-block p+p {margin-top:5px}
+.alert-notice { background-image: url(https://cdn.rawgit.com/hplgit/doconce/master/bundled/html_images/small_gray_notice.png); }
+.alert-summary  { background-image:url(https://cdn.rawgit.com/hplgit/doconce/master/bundled/html_images/small_gray_summary.png); }
+.alert-warning { background-image: url(https://cdn.rawgit.com/hplgit/doconce/master/bundled/html_images/small_gray_warning.png); }
+.alert-question {background-image:url(https://cdn.rawgit.com/hplgit/doconce/master/bundled/html_images/small_gray_question.png); }
+
+div { text-align: justify; text-justify: inter-word; }
+</style>
+
+
+</head>
+
+<!-- tocinfo
+{'highest level': 2,
+ 'sections': [('General motivation', 2, None, '___sec0'),
+              ('"The CENS project":"https://github.com/ManyBodyPhysics/CENS"',
+               2,
+               None,
+               '___sec1'),
+              ('Efficient algorithms for bit manipulations',
+               2,
+               None,
+               '___sec2'),
+              ("The various steps with the addition of Lanczos' and Davidson's algorithms",
+               2,
+               None,
+               '___sec3'),
+              ('The next steps', 2, None, '___sec4'),
+              ('Addition about FCIQMC', 2, None, '___sec5')]}
+end of tocinfo -->
+
+<body>
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  TeX: {
+     equationNumbers: {  autoNumber: "AMS"  },
+     extensions: ["AMSmath.js", "AMSsymbols.js", "autobold.js", "color.js"]
+  }
+});
+</script>
+<script type="text/javascript"
+ src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+
+    
+<!-- ------------------- main content ---------------------- -->
+
+
+
+<center><h1>Developing a modern shell-model code</h1></center>  <!-- document title -->
+
+<p>
+<!-- author(s): Thesis topics for John Bower -->
+
+<center>
+<b>Thesis topics for John Bower</b> 
+</center>
+
+<p>
+<!-- institution -->
+
+<center><b>Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University</b></center>
+<br>
+<p>
+<center><h4>2016</h4></center> <!-- date -->
+<br>
+<p>
+<!-- !split  -->
+
+<h2 id="___sec0">General motivation </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+The nuclear shell model 
+plays a central role as a theoretical tool in interpreting nuclear
+structure experiments. The aim of this thesis is to build on existing
+shell-model codes like the code developed by us and available, with
+benchmarks etc at the website of the <a href="https://github.com/ManyBodyPhysics/CENS" target="_blank">Computational Environment for
+Nuclear Structure</a> (CENS)
+and develop a modern (written in C++ eventually Fortran2008) full
+configuration interaction environment for nuclear structure
+studies. These codes should be able to 
+
+<ul>
+<li> Run on the next generation of supercomputers (collaboration with Oak Ridge National Lab)</li> 
+<li> Be able to handle both two and three-body interactions</li> 
+<li> Be able to handle one- and two-body operators</li> 
+<li> Can be extended to <a href="https://www.duo.uio.no/bitstream/handle/10852/37172/master.pdf?sequence=1" target="_blank">FCIQMC</a> studies of finite nuclei and nuclear matter</li>
+<li> Be fully open source and accessible</li>
+</ul>
+</div>
+
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec1"><a href="https://github.com/ManyBodyPhysics/CENS" target="_blank">The CENS project</a> </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+The CENS  site contains 
+
+<ul>
+<li> Shell-model code written in C for <a href="https://github.com/ManyBodyPhysics/CENS/tree/master/FCI/serial/IdenticalParticles" target="_blank">identical particles</a> and the <a href="https://github.com/ManyBodyPhysics/CENS/tree/master/FCI/serial/pnCase" target="_blank">proton-neutron case</a></li>
+<li> <a href="https://github.com/ManyBodyPhysics/CENS/tree/master/FCI" target="_blank">Both parallel and serial versions of the above</a>  shell model codes.</li>
+<li> Codes for one-body transition probabilities such as \( M\Lambda \) and \( E\Lambda \) transitions but no GT transitions. There is also no code for two-body transition operators and two-body densities.</li>
+<li> Codes for three-body forces with identical particles only.</li>
+</ul>
+
+These codes can serve as starting point together with the already written FCI code by John.
+</div>
+
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec2">Efficient algorithms for bit manipulations </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+In addition to the existing material, there are some useful articles and references for the first steps.
+
+<p>
+The first step is to study efficient representations of the Slater determinants for words with more than 64 bits, allowing thereby for shell-model studies 
+of systems with more than one major shell. Furthermore, the setup of the Hamiltonian matrix elements plays an important role.
+
+<p>
+In order to study these aspects and write an efficient program, the following articles can be of interest
+
+<ul>
+<li> <a href="http://arxiv.org/abs/1311.6244" target="_blank">Scemana's article on efficient implementation of the Slater-Condon rules</a></li>
+<li> <a href="http://arxiv.org/abs/0810.2644" target="_blank">Simen Kvaal's article on developing an FCI code (open source code) for quantum dots</a></li>
+</ul>
+</div>
+
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec3">The various steps with the addition of Lanczos' and Davidson's algorithms </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+The first steps will consist of
+
+<ul>
+<li> Finalize the bit representation of Slater determinants with words of length larger than 64 bits in \( m \)-scheme.</li>
+<li> Read a general two-body interaction in \( m \)-scheme with pertinent single-particle information</li>
+<li> Write a code for direct methods (Hamiltonians matrices of dimension \( n\times n \) with \( n \le 100000 \). Here one can use for example Francis' algorithm for direct diagonalization. This implies also setting up  the Hamiltonian matrix and properly accounting for the correct phase factor.</li> 
+<li> Be able to compute the expectation value of angular momentum (and perhaps isospin).</li> 
+<li> Extend the code to include three-body interactions in \( m \)-scheme.</li>
+<li> Now extend the code to larger dimensionalities by implementing the <a href="https://en.wikipedia.org/wiki/Lanczos_algorithm" target="_blank">Lanczos</a> and <a href="http://sirius.chem.vt.edu/wiki/doku.php?id=crawdad:programming:project13" target="_blank">Davidson</a> algorithms.</li>
+</ul>
+</div>
+
+
+<p>
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec4">The next steps </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+With a functioning code for large-scale shell-model problems, the next step is to 
+enable the computation of transition operators and one- and two-body operators. This will allow one to be able to compute various transition probabilities. The code should be able to handle
+
+<ul>
+<li> \( M\Lambda \) and \( E\Lambda \)</li> 
+<li> GT operators</li>
+<li> Double-beta decay operators</li>
+<li> Spectroscopic factors and general two-body operators</li>
+<li> Parallelize the shell-model program</li>
+</ul>
+</div>
+
+<!-- !split --><br><br><br><br><br><br><br><br><br><br>
+
+<h2 id="___sec5">Addition about FCIQMC  </h2>
+<div class="alert alert-block alert-block alert-text-normal">
+<b></b>
+<p>
+A great challenge is to provide benchmark calculations for the two- and three-dimensional electron gas and infinite nuclear matter. Here, a representation of the single-particle energies in a cartesian basis is essential, see for example the <a href="https://www.duo.uio.no/handle/10852/41025" target="_blank">PhD thesis of Gustav Baardsen</a>.
+
+<p>
+The recently developed Full Configuration Interaction Quantum Monte Carlo (<a href="http://www.nature.com/nature/journal/v493/n7432/fig_tab/nature11770_F1.html" target="_blank">FCIQMC</a>) method has gained a lot of attention in quantum chemistry, providing benchmark calculations for the homogeneous electron gas in three dimensions. An exciting extension of the developed shell-model code, could be to start studying infinite nuclear matter with the FCIQMC methods.
+
+<p>
+A good introduction, with programs as well, is given by <a href="https://www.duo.uio.no/bitstream/handle/10852/37172/master.pdf?sequence=1" target="_blank">Karl Leikanger's thesis</a>
+</div>
+
+
+<p>
+
+<!-- ------------------- end of main content --------------- -->
+
+
+</body>
+</html>
+    
+
