@@ -88,7 +88,7 @@ cp $name.tex ${name}-plain-minted.tex
 
 
 # Publish
-dest=../../pub
+dest=../../../pub
 if [ ! -d $dest/$name ]; then
 mkdir $dest/$name
 mkdir $dest/$name/pdf
