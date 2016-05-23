@@ -1,0 +1,298 @@
+%  Function computing the self energy Sigma
+
+function [Sigma, SigmaV, reSigmaD, reSigmaU] = sigma(q,omega,ReDeltaD,ReDeltaU,V,Kpoints,Omegapoints,kpoints)
+globalvalues
+disp('Sigmastart')
+q
+%energy_coeff
+%warning off all
+SigmaV = sigmaV(q,V);
+reSigmaD = resigmaD(q,omega,ReDeltaD,Kpoints,Omegapoints,kpoints);
+reSigmaU = resigmaU(q,omega,ReDeltaU,Kpoints,Omegapoints,kpoints);
+Sigma = SigmaV+ reSigmaD+ reSigmaU;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function sigmaV
+function SigmaV = sigmaV(q,V)
+globalvalues
+SigmaV=0;
+%% NBNBNB!! Ikke ferdig enda!! Mangler andre muligheter enn V2
+% Uniform map from begA = 0.5 *abs(k_fermi-q) to endB = 0.5 *(q+k_fermi)
+if strcmp(pot,'V20') ==1
+    begA = 0.5.*abs(k_fermi-q);
+    endB = 0.5.*(q+k_fermi);
+    kreexc = (begA+endB).*0.5 + (endB-begA).*0.5.*gr1';
+    krewexc = (endB-begA).*0.5.*grw1';
+    Vdiage = diag(potential(kreexc,kreexc,[0]));
+    if q<k_fermi
+        %disp('q mindre enn k_fermi')
+        % Map from 0 to B = 0.5 *(k_fermi-q), with midpoint (midA*B)/(midA+B)
+        %         midA = 0.25 .*(k_fermi-q);
+        %         kre = (midA.*0.5 .*(k_fermi-q).*(1+gr1'))./((0.75.*(k_fermi-q))-(midA.*gr1'));
+        %         krew = (((0.5 .*(k_fermi-q)).^3).*grw1') ...
+        %             ./(((0.75.*(k_fermi-q))-(midA.*gr1')).^2);
+        
+        % Uniform map from begA = 0 to endB = 0.5 *(k_fermi-q)
+        beA = 0;
+        enB = 0.5.*(k_fermi-q);
+        kre = (beA+enB).*0.5 + (enB-beA).*0.5.*gr1';
+        krew = (enB-beA).*0.5.*grw1';
+        Vdiag = diag(potential(kre,kre,0));
+        SigmaV = 24.*(sum(kre.*kre.*krew.*Vdiag') + ...
+            (1./(2.*q)).*sum(kreexc.*krewexc.*Vdiage'.* ...
+            (q.*kreexc + 0.25.*(k_fermi.*k_fermi-q.*q) - kreexc.*kreexc)));
+    else
+        %disp('q stoerre enn k_fermi')
+        SigmaV = 24.*(1./(2.*q)).*sum(kreexc.*krewexc.*Vdiage'.* ...
+            (q.*kreexc + 0.25.*(k_fermi.*k_fermi-q.*q) - kreexc.*kreexc));
+    end
+ elseif strcmp(pot,'V2')==1
+     for potpart=1:4;
+         const = V2potconst(potpart);
+         alpha = V2alpha(potpart);
+    pSigmaV = (8./(3.*pi)).*((k_fermi.^3)./(alpha.^2)) - ...
+        k_fermi./pi + ...
+        ((q.^2-k_fermi.^2-alpha.^2)./(4.*pi.*q)).*log((alpha.^2+(k_fermi+q).^2)./(alpha.^2+(k_fermi-q).^2)) + ...
+        (alpha./pi).*(atan((k_fermi+q)./alpha) + atan((k_fermi-q)./alpha)); 
+    %SigmaV = SigmaV+(1./hbarc).*(1./0.7).*(pi./2).*const.*pSigmaV;
+    SigmaV = SigmaV+(1./hbarc).*(1./0.7).*const.*pSigmaV;
+   
+end
+else
+    warning('Unknown potential; SigmaV = 0')
+    SigmaV = 0;
+end
+%disp('SigmaV')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function resigmaD
+function SigmaD = resigmaD(q,omega,ReDeltaD,Kpoints,Omegapoints,kpoints)
+globalvalues
+
+if q<k_fermi
+%     % Map from 0 to B = 0.5 *(q+k_fermi), with midpoint (midA*B)/(midA+B)
+%     midA = 0.25 .*(q+k_fermi);
+%     Pgrid = (midA.*0.5 .*(q+k_fermi).*(1+gr1'))./((0.75.*(q+k_fermi))-(midA.*gr1'));
+%     Pweights = (((0.5 .*(q+k_fermi)).^3).*grw1') ...
+%         ./(((0.75.*(q+k_fermi))-(midA.*gr1')).^2);
+% Uniform map from begA = 0 to endB = 0.5 *(q+k_fermi)
+    begA = 0;
+    endB = 0.5.*(q+k_fermi);
+    Pgrid = (begA+endB).*0.5 + (endB-begA).*0.5.*gr1';
+    Pweights = (endB-begA).*0.5.*grw1';
+else
+    % Uniform map from begA = 0.5 *(q-k_fermi) to endB = 0.5 *(q+k_fermi)
+    begA = 0.5.*(q-k_fermi);
+    endB = 0.5.*(q+k_fermi);
+    Pgrid = (begA+endB).*0.5 + (endB-begA).*0.5.*gr1';
+    Pweights = (endB-begA).*0.5.*grw1';
+end
+
+Pint = 0;
+for P = 1:length(Pgrid)
+    if (Pgrid(P)>0)&(Pgrid(P)<=abs((k_fermi-q).*0.5))
+        cosmin = -1;
+    elseif (Pgrid(P)>abs(0.5.*(k_fermi-q)))&(Pgrid(P)<=(k_fermi+q))
+        cosmin = ((q.*q)+(4.*Pgrid(P).*Pgrid(P))-k_fermi.*k_fermi)./(4.*q.*Pgrid(P));
+    else  P
+        error('P ligger i feil intervall')
+    end
+    cosmax = 1;
+     % Uniform map from cosmin to cosmax
+    cosgrid = (cosmin+cosmax).*0.5 + (cosmax-cosmin).*0.5.*gr1';
+    cosweights = (cosmax-cosmin).*0.5.*grw1';
+    
+    %NBNBNB! vekter for P? TENK GJENNOM DETTE INTEGRALET!
+    kprime = sqrt(q.^2+(4.*Pgrid(P).*Pgrid(P))-(4.*q.*Pgrid(P).*cosgrid));
+    krel = sqrt(q.^2+(Pgrid(P).*Pgrid(P))-(2.*q.*Pgrid(P).*cosgrid));
+    cosint = 0;
+    for krelctr=1:length(cosgrid)
+        if omega+sp_energy(kprime(krelctr))>Omegapoints(n_omega_points)
+            omega
+            q
+            kpr = kprime(krelctr)
+            pr = Pgrid(P)
+            ene = omega+sp_energy(kprime(krelctr))
+            error('Ompoints for liten')
+        end
+        cosint = cosint + Pgrid(P).^2.*cosweights(krelctr) .* ...
+            reDeltainterp(krel(krelctr),2.*Pgrid(P),omega+sp_energy(kprime(krelctr)), ...
+            ReDeltaD,Kpoints,Omegapoints,kpoints);
+    end
+     interpoldelta = reDeltainterp2(krel,2.*Pgrid(P),omega+sp_energy(kprime), ...
+             ReDeltaD,Kpoints,Omegapoints,kpoints);
+         cosint2 = sum(Pgrid(P).^2.*cosweights.*interpoldelta);
+         if (cosint-cosint2)~=0
+             cosint
+             cosint2
+             error('ikke like')
+         end
+    Pint = Pint + cosint.*Pweights(P);
+end
+
+if isnan(Pint)
+    %Pgrid
+    %cosgrid
+       kprime
+    krel
+    Pgrid
+    Pweights
+    error('Pint ikke tall???')
+end
+%SigmaD = (1./((pi.^2))).*Pint;
+SigmaD = Pint;
+disp('SigmaD')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function resigmaU
+function SigmaU = resigmaU(q,omega,ReDeltaU,Kpoints,Omegapoints,kpoints)
+globalvalues
+
+if q<k_fermi
+    %% OBS!!!! TRYKKFEIL I RAMOS???
+    % Uniform map from begA = 0.5 *(k_fermi-q) to endB = k_fermi
+    %q
+    %k_fermi
+    begA = 0.5.*(k_fermi-q);
+    endB = k_fermi;
+    Pgrid = (begA+endB).*0.5 + (endB-begA).*0.5.*gr1';
+    Pweights = (endB-begA).*0.5.*grw1';
+else
+    % Uniform map from begA = 0  to endB = k_fermi
+    begA = 0;
+    endB = k_fermi;
+    Pgrid = (begA+endB).*0.5 + (endB-begA).*0.5.*gr1';
+    Pweights = (endB-begA).*0.5.*grw1'; 
+end
+
+Pint = 0;
+for P = 1:length(Pgrid) 
+    if q<k_fermi
+        %% OBS!!!! TRYKKFEIL I RAMOS???
+        if (Pgrid(P)>=0.5.*(k_fermi-q))&(Pgrid(P)<=(k_fermi+q).*0.5)
+            cosmax = ((q.*q)+(4.*Pgrid(P).*Pgrid(P))-k_fermi.*k_fermi)./(4.*q.*Pgrid(P));
+        elseif (Pgrid(P)>=abs(0.5.*(k_fermi+q)))&(Pgrid(P)<=k_fermi)
+            cosmax = 1;
+        else P
+            Pgrid(P)
+            error('P ligger i feil intervall 1')
+        end
+    else 
+       if ((Pgrid(P)>=0) & (Pgrid(P)<=(-k_fermi+q).*0.5))
+            cosmax = 1;
+        elseif ((Pgrid(P)>=(0.5.*(-k_fermi+q))) & (Pgrid(P)<=k_fermi))
+            cosmax = ((q.*q)+(4.*Pgrid(P).*Pgrid(P))-k_fermi.*k_fermi)./(4.*q.*Pgrid(P));
+        else P
+            Pgrid(P)
+            error('P ligger i feil intervall 2')
+        end 
+    end
+    cosmin= -1;
+    % Uniform map from cosmin to cosmax
+    cosgrid = (cosmin+cosmax).*0.5 + (cosmax-cosmin).*0.5.*gr1';
+    cosweights = (cosmax-cosmin).*0.5.*grw1';
+    
+    %NBNBNB! vekter for P? TENK GJENNOM DETTE INTEGRALET! 
+    kprime = sqrt(q.^2+(4.*Pgrid(P).*Pgrid(P))-(4.*q.*Pgrid(P).*cosgrid));
+    krel = sqrt(q.^2+(Pgrid(P).*Pgrid(P))-(2.*q.*Pgrid(P).*cosgrid));
+    cosint = 0;
+    for krelctr=1:length(cosgrid)
+        if omega+sp_energy(kprime(krelctr))>Omegapoints(n_omega_points)
+            omega
+            q
+            kpr = kprime(krelctr)
+            pr = Pgrid(P)
+            ene = omega+sp_energy(kprime(krelctr))
+            error('Ompoints for liten')
+        end
+        cosint = cosint + Pgrid(P).^2.*cosweights(krelctr) .* ...
+            reDeltainterp(krel(krelctr),2.*Pgrid(P),omega+sp_energy(kprime(krelctr)), ...
+            ReDeltaU,Kpoints,Omegapoints,kpoints);
+    end
+    interpoldelta = reDeltainterp2(krel,2.*Pgrid(P),omega+sp_energy(kprime), ...
+             ReDeltaU,Kpoints,Omegapoints,kpoints);
+         cosint2 = sum(Pgrid(P).^2.*cosweights.*interpoldelta);
+         if (cosint-cosint2)~= 0
+             cosint
+             cosint2
+             error('ikke like')
+         end
+    Pint = Pint + cosint.*Pweights(P);
+end
+
+if isnan(Pint)
+    kprime
+    krel
+    Pgrid
+    Pweights
+    error('Pint ikke tall???')
+end
+%SigmaU = -(1./((pi.^2))).*Pint;
+SigmaU = -Pint;
+disp('SigmaU')
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function reDeltaDinterp. Interpolates to find ReDeltaD in the point krel,
+% K, Omega
+function redeltapoint = reDeltainterp(krela,Kcm,omegaen,ReDelta,Kpoints,Omegapoints,kpoints)
+globalvalues
+
+Omegavec = Omegapoints;
+kpointvec = kpoints;
+
+%ReDeltai = reshape(ReDelta,[n_omega_points,n_cm_points,n_rel_points]);
+
+%% NBNBNB!!! Skal if-test flyttes lengre ut for raskere
+%% utregninger????
+if ((Kcm<=Kpoints(1)) | (Kcm>=Kpoints(n_cm_points)) |  ...
+        (omegaen<=Omegavec(1)) | (omegaen>=Omegavec(n_omega_points)) | ... 
+        (krela<=kpointvec(1)) | (krela>=kpointvec(n_rel_points)))
+    %redeltapoint = interp3(Kpoints,Omegavec,kpointvec,ReDeltai,Kcm,omegaen,krela)
+    redeltapoint = 0;
+    Kcm
+    Omegavec(n_omega_points)
+    omegaen
+    Omegavec(1)
+    krela
+    disp('redelta = 0 fordi K, Omega eller krel for stor eller for liten')
+else
+    %redeltapoint = interp3(Kbox,Omegabox,kbox,ReDelta,Kcm,omegaen,krela);
+    redeltapoint = interp3(Omegavec,Kpoints,kpointvec,ReDelta,omegaen,Kcm,krela);
+    %     if redeltapoint == 0
+    %         ReDeltai
+    %     end
+    if isnan(redeltapoint)
+        %redeltapoint = 0;
+        sum(sum(any(isnan(ReDelta))))
+        Kpoints
+        Kcm
+        Omegavec
+        omegaen
+        kpointvec
+        krela
+        error('ReDelta interpolation gives NaN')
+        %         disp('redelta = 0')
+    end
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Function reDeltainterp2. Interpolates to find ReDeltaD in the points ov vector krel,
+% K, Omega
+function redeltapoint = reDeltainterp2(krelvec,Kcm,omegavec,ReDelta,Kpoints,Omegapoints,kpoints)
+globalvalues
+
+if ((Kcm<=Kpoints(1)) | (Kcm>=Kpoints(n_cm_points)) |  ...
+        (omegavec(1)<=Omegapoints(1)) | (omegavec(end)>=Omegapoints(n_omega_points)) | ... 
+        (krelvec(1)<=kpoints(1)) | (krelvec(end)>=kpoints(n_rel_points)))
+    redeltapoint = 0;
+    Kcm
+    Omegavec(n_omega_points)
+    omegaen
+    Omegavec(1)
+    krela
+    disp('redelta = 0 fordi K, Omega eller krel for stor eller for liten')
+else
+    %redeltapoint = interp3(Kbox,Omegabox,kbox,ReDelta,Kcm,omegaen,krela);
+    Kcmvec = repmat(Kcm,1,length(krelvec));
+    redeltagrid = interp3(Omegapoints,Kpoints,kpoints,ReDelta,omegavec,Kcmvec,krelvec);
+    redeltapoint = redeltagrid; %diag(redeltagrid(:,1,:));
+    %size(redeltapoint)
+end

@@ -1,0 +1,1426 @@
+
+\chapter{CCSDT implementation guide \label{ccsdt_chapter}}
+In this chapter will study Coupled Cluster theory by including up to
+three-particle-three-hole correlations.  This means that our ground
+state will include, in addition to the Hartree-Fock reference state
+(our vacuum reference state), one-particle-one-hole,
+two-particle-two-hole and three-particle-three-hole correlations to
+infinite order in the interactions. This approach to the full
+Schr\"odinger equation is called Coupled Cluster with singles, doubles
+and triples, with the acronym CCSDT.  CCSDT includes thus so-called
+triple contributions. We will not derive the equations, their derivation can be looked up in textbooks like Ref.~\cite{CCSDT-ref4}. 
+This chapter is based on this textbook and
+a series of papers, such as \cite{CCSDT-ref3} and referances therein,
+by Jozef Noga and Rodney Bartlett. Also, Refs.~\cite{CCSDT-ref5} and
+\cite{CCSDT-ref1}, with an erratum in Ref.~\cite{CCSDT-ref2}, are useful and practical reads.
+
+This chapter is written as a guide for implementing CCSDT with
+simplicity and pertinent benchmarks. CCSDT requires much computation, and
+contains complex equations. There are however approximations made to
+the CCSDT equations and these have been given their own name, the so-called CCSDT-n
+methods. Here n = 1a,1b,2,3,4. This chapter starts with the CCSD
+equations and adds  CCSDT-n methods one by one, arriving ultimately at the full CCSDT equations. \\
+
+The CCSDT equations can be quite difficult to extract from the
+literature in an implementation ready form. Each section in this
+chapter will start with a description of which new terms are included
+and supply them in a factorized form ready for implementation. We will
+continuously use equations from \cite{CCSDT-ref4}. \\
+
+Throughout the chapter we provide also benchmarks for each
+contribution added. We hope this chapter will be useful for anyone who
+wishes to create a working CCSDT code. The additional code needed for
+systems not based on Hartree-Fock theory  will be provided in the final
+section.
+
+\section{System for Benchmarks}
+We first define our system to be used when benchmarking the various
+approaches to Coupled Cluster theory. We must ensure the input is
+correct if we wish to recreate the benchmarked energy. The geometries
+are taken from \cite{CCSDT-ref10}. We will study $H_2O$ with
+coordinates \\
+\begin{center}
+  \begin{tabular}{ c c c c }
+  \hline
+     Atom & x & y & z \\ \hline
+     O & 0 & 0 & -0.009 \\
+     H & 1.515263 & 0 & -1.058898 \\
+     H & -1.515263 & 0 & -1.058898 \\
+     \hline \\
+  \end{tabular} 
+\end{center} 
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+Coordinates are given in atomic units. We use a convergence criteria
+$10^{-7}$. The basis set is available on EMSL as DZ (Dunning). In
+DALTON it is available as DZ (Dunning) without the space between. A restricted Hartree-Fock (RHF)
+calculation using this input gives energy in atomic units (results obtained with the codes developed by us):
+\begin{equation}
+E_{RHF} = -76.0098 .
+\end{equation}
+The CCSD correlation energy to the system is, obtained with our code, 
+\begin{equation}
+E_{CCSD} = -0.146238 .
+\end{equation}
+
+The benchmarks can be verified in \cite{CCSDT-ref3}. We will also
+supply an additional benchmark of the same system outside of
+equilibrium. The same input is used except the geometry is now: \\
+\begin{center}
+  \begin{tabular}{ c c c c }
+  \hline
+     Atom & x & y & z \\ \hline
+     O & 0 & 0 & 0 \\
+     H & -2.27289   & 0 & 1.574847 \\
+     H & 2.27289 & 0 & 1.574847 \\
+     \hline \\
+  \end{tabular} 
+\end{center} 
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+All calculations start with an initial guess of $t_{ijk}^{abc} = 0$.
+
+\section{Theory}
+As stated in the introduction to this chapter, CCSDT includes $\textbf{T}_3$ correlations as well, that is three-particle-three-hole correlations, namely
+\begin{equation}
+\textbf{T} = \textbf{T}_1 + \textbf{T}_2 + \textbf{T}_3 .
+\end{equation}
+All the terms from CCSD will also be included in CCSDT. The indices
+$a,b,c,d,e,f$ are understood to go over virtual orbitals. The indices
+$i,j,k,l,m,n$ go over orbitals occupied in the RHF basis. The amplitude
+equations are defined as:
+\begin{align}
+\langle \Psi_i^a | \textbf{H}_N (1 + \textbf{T}_2 + \textbf{T}_1 \textbf{T}_2 + \frac{1}{2} \textbf{T}_1^2 + \frac{1}{6} \textbf{T}_1^3 + \textbf{T}_3) | \Psi_0 \rangle_C .
+\end{align}
+Here $\textbf{T}_3$ is the new contribution added to the CCSD equations,
+\begin{align}
+\langle \Psi_{ij}^{ab} | \textbf{H}_N (
+1 + \textbf{T}_2 + \frac{1}{2} \textbf{T}_2^2
++ \textbf{T}_1 + \textbf{T}_1 \textbf{T}_2 + \frac{1}{2} \textbf{T}_1^2 
++ \frac{1}{2} \textbf{T}_1^2 \textbf{T}_2 \nonumber \\
++ \frac{1}{6} \textbf{T}_1^3 + \frac{1}{24} \textbf{T}_1^4 + \textbf{T}_3 + \textbf{T}_1 \textbf{T}_3) | \Psi_0 \rangle_C .
+\end{align}
+The new contributions are $\textbf{T}_3$ and $\textbf{T}_1 \textbf{T}_3$. The three-particle-three-hole yields
+\begin{align}
+\langle \Psi_{ijk}^{abc} | \textbf{H}_N (
+\textbf{T}_2 + \textbf{T}_3 + \textbf{T}_2 \textbf{T}_3 + \frac{1}{2} \textbf{T}_2^2
++ \textbf{T}_1 \textbf{T}_2 + \textbf{T}_1 \textbf{T}_3 + \frac{1}{2} \textbf{T}_1^2 \textbf{T}_2 
+\nonumber \\
++ \frac{1}{2} \textbf{T}_1 \textbf{T}_2^2 + \frac{1}{2} \textbf{T}_1^2 \textbf{T}_3 + \frac{1}{6} \textbf{T}_1 \textbf{T}_2) | \Psi_0 \rangle_c .
+\end{align}
+All of these are new contributions. The energy expression remains
+unchanged from CCSD. CCSDT-n methods include more and more of these
+new contributions. \\
+
+For the interested reader who wishes to verify the equations we will
+soon present these with those given in \cite{CCSDT-ref4}. We need to add further functionalities to the permutation operator, with
+$\textbf{P}(a/bc)$ defined as
+\begin{equation}
+\textbf{P}(a/bc) f(a,b,c) = f(a,b,c) - f(b,a,c) - f(c,b,a),
+\end{equation}
+to be read as the permutation where $a$ is exchanged by $b$ and $a$ is exchanged by $c$. 
+Two of these,  $\textbf{P}(a/bc) \textbf{P}(k/ij)$, give in total nine permutations. \\
+
+Another form of the permutation operator is $\textbf{P}(abc)$. This is defined in terms of the following six permutations
+\begin{align}
+\textbf{P}(abc) f(a,b,c) = & f(a,b,c) - f(b,a,c) - f(a,c,b)  \nonumber \\ & - f(c,b,a) + f(b,c,a) + f(c,a,b) . \label{temporary_equation_label_for_rfeffsf}
+\end{align}
+These two permutation operators can be interchanged if one rewrites Eq.~\eqref{temporary_equation_label_for_rfeffsf} as
+\begin{align}
+\textbf{P}(abc) f(a,b,c) = & f(a,b,c) - f(b,a,c) - f(a,c,b)  \nonumber \\ & - f(c,b,a) + f(b,c,a) + f(c,a,b) \nonumber \\ &
+= \left[ f(cab) - f(acb) - f(bac) \right] \nonumber \\ &
+- \left[ f(cba) - f(bca) - f(abc) \right]
+\nonumber \\ &
+= \textbf{P}(c/ab) \left[ f(cab) - f(cba) \right] .
+\end{align}
+
+\section{CCSDT-1a}
+The simplest inclusion of triples is the CCSDT-1a approximation. This
+method includes the contribution from $\textbf{T}_3$ in $t_i^a$,
+$\textbf{T}_3$ in $t_{ij}^{ab}$ and $\textbf{T}_2$ in
+$t_{ijk}^{abc}$. This can be expressed as
+\begin{equation}
+t_{ijk}^{abc} D_{ijk}^{abc} = 
+\textbf{P}(a/bc) \textbf{P}(k/ij) \sum_e I_{bc}^{ek} t_{ij}^{ae}
+- \textbf{P}(c/ab) \textbf{P}(i/jk) \sum_m I_{mc}^{jk} t_{im}^{ab} .
+\end{equation}
+Here the denominator is defined as the Moller-Plesset denominator
+\begin{equation}
+D_{ijk}^{abc} = f_{ii} + f_{jj} + f_{kk} - f_{aa} - f_{bb} - f_{cc} .
+\end{equation}
+
+To make life simpler in more advanced CCSDT-n algorithms we already insert intermediates. We define two intermediates 
+\begin{equation}
+[X1]_{ab}^{ei} = I_{e,i}^{ab},
+\end{equation}
+and
+\begin{equation}
+[X2]_{ij}^{am} = I_{am}^{ij} .
+\end{equation}
+
+This means our equation for $t_{ijk}^{abc}$ is now
+\begin{align}
+D_{ijk}^{abc} t_{ijk}^{abc} = & \textbf{P}(a/bc) \textbf{P}(k/ij) \sum_e [X1]^{ek}_{bc} t_{ij}^{ae} \\ \nonumber &
+- \textbf{P}(c/ab) \textbf{P}(i/jk) \sum_m [X2]_{jk}^{mc} t_{im}^{ab} .
+\end{align}
+
+CCSDT-1a makes no changes in the calculation of the energy, however
+the $\textbf{T}_3$ contributions are added to $t_i^a$ and parts of the
+$\textbf{T}_3$ contribution are added to $t_{ij}^{ab}$. To indicate
+that the terms from the original CCSD method should also be included
+we use $\leftarrow$ and write
+\begin{equation}
+D_i^a t_i^a \leftarrow \frac{1}{4} \sum_{bcjk}  I_{j,k}^{b,c} t_{ijk}^{abc},
+\end{equation}
+and
+\begin{align}
+D_{ij}^{ab} t_{ij}^{ab} \leftarrow & 
+\frac{1}{2} \sum_{kcd} I_{bk}^{cd} t_{ijk}^{acd}
+- \frac{1}{2} \sum_{kcd} I_{ak}^{cd} t_{ijk}^{bcd} - \frac{1}{2} \sum_{mkc} I_{mk}^{jc} t_{imk}^{abc} + \frac{1}{2} \sum_{mkc} I_{mk}^{ic} t_{jmk}^{abc} .
+\end{align}
+
+CCSDT-1a actually gives a surprisingly good approximation to the full
+CCSDT energy, since the terms between the two usually add and subtract
+a similar amount to the energy. \\
+
+The equations for $t_i^a$ are the same for CCSDT as for CCSDT-1a. Implementing the new equations should give the following result in atomic units for the system in equilibrium:
+\begin{equation}
+E_{CCSDT-1a} = -0.147577 .
+\end{equation}
+
+For the system out of equilibrium we should get the energy value
+\begin{equation}
+E_{CCSDT-1a} = -0.209537 .
+\end{equation}
+Our code reproduces excellently both results.
+\section{CCSDT-1b}
+CCSDT-1b adds the remaining contribution to $t_{ij}^{ab}$, namely
+\begin{align}
+D_{ij}^{ab} t_{ij}^{ab} \leftarrow
+\sum_{klcd} I_{kl}^{cd} t_{ijk}^{abc} t_l^d  \frac{1}{2} \sum_{klcd} I_{kl}^{cd} \left(
+ t_{ikj}^{bcd} t_l^a - t_{ikj}^{acd} t_l^b 
+ + t_{kli}^{adb} t_j^c - t_{klj}^{adb} t_i^c \right) .
+\end{align}
+
+The energy correction at equilibrium is now:
+\begin{equation} 
+E_{CCSDT-1b} = -0.147580 .
+\end{equation}
+
+The same system out of equilibrium should have a correlation energy of
+\begin{equation}
+E_{CCSDT-1b} = -0.209517  .
+\end{equation}
+Again, our code passes perfectly this benchmark. 
+\section{CCSDT-2}
+For CCSDT-2 we add all contributions from $T_2$ that does not include $T_1$ to $t_{ijk}^{abc}$. This explicitly includes the terms
+\begin{align}
+D_{ijk}^{abc} t_{ijk}^{abc} \leftarrow & 
+\textbf{P}(i/jk) \textbf{P}(abc) \sum_{lde} I_{lb}^{de} t_{il}^{ad} t_{jk}^{ec}
++ \textbf{P}(ijk) \textbf{P}(a/bc) \sum_{lmd} I_{lm}^{dj} t_{il}^{ad} t_{mk}^{bc} \nonumber \\ &
+- \frac{1}{2} \textbf{P}(i/jk) \textbf{P}(c/ab) \sum_{lde} I_{lc}^{de} t_{il}^{ab} t_{jk}^{de} \nonumber \\ & 
+ + \frac{1}{2} \textbf{P}(k/ij) \textbf{P}(a/bc) \sum_{lmd} I_{lm}^{dk} t_{ij}^{ad} t_{lm}^{bc}  .
+\end{align}
+
+In our implementation this means changing $X_1$ and $X_2$, since we
+introduced these intermediates earlier. It should be noted that since
+there are currently no $\textbf{T}_3$ contributions to $t_{ijk}^{abc}$
+these amplitudes does not need to be stored for each iteration. This
+feature applies to CCSDT-n methods up to but not including CCSDT-4. The
+new intermediates for CCSDT-2 will be:
+\begin{align}
+[X1]_{ab}^{ie} = I_{ab}^{ie} +
+\frac{1}{2} \sum_{mn} t_{mn}^{ab} I_{mn}^{ei},
+\end{align}
+with
+\begin{align}
+[X2]_{ij}^{am} = I_{ma}^{ij} + \frac{1}{2} \sum_{ef} t_{ij}^{ef} I_{ma}^{ef}  .
+\end{align}
+We also introduce two new intermediates
+\begin{equation}
+[X12]_{ab}^{id} = \sum_{ld} I_{lb}^{ed} t_{il}^{ae},
+\end{equation}
+and
+\begin{equation}
+[X13]_{ij}^{al} = \sum_{md} I_{ml}^{dj} t^{ad}_{im} .
+\end{equation}
+The expression for $t_{ijk}^{abc}$ should be changed accordingly,
+leaving the contribution from CCSDT-1b untouched. This is indicated by
+the $\leftarrow$ in the next equation
+\begin{align}
+t_{ijk}^{abc} \leftarrow &
+\sum_e \textbf{P}(i/jk) \textbf{P}(abc) [X12]_{ab}^{ie} t_{jk}^{ec}
++ \sum_m \textbf{P} (ijk) \textbf{P}(a/bc) [X13]_{ij}^{am} t_{mk}^{bc} .
+\end{align}
+The energy correction should now be, for the equilibrium configuration,
+\begin{equation}
+E_{CCSDT-2} = -0.147459 .
+\end{equation}
+While outside of equilibrium we get
+\begin{equation}
+E_{CCSDT-2} = -0.208938 .
+\end{equation}
+These tests were both achieved in our program in 30 iterations.
+
+\section{CCSDT-3}
+CCSDT-3 adds all remaining contributions to $t_{ijk}^{abc}$ that do
+not themselves contain $T_3$ amplitudes. The equations are available
+in \cite{CCSDT-ref4}. For our purposes we continue with the
+implementation ready equations. For CCSDT-3 we must make a tweak in
+our intermediates, $X12$ and $X13$. The terms from CCSDT-2 remain, but we
+add some new ones. We also introduce new intermediates  in addition to those we already have, ending with
+\begin{align}
+[X12]_{ab}^{ie} \leftarrow  & - \sum_l I_{al}^{id} t_l^b - \sum_{le} I_{lb}^{ed} t_i^e t_l^a - \sum_{lme} I_{lm}^{ed} t_m^b t_{il}^{ae},
+\end{align}
+\begin{align}
+[X13]_{ij}^{am} \leftarrow & 
+\sum_{md} I_{ml}^{dj} t_i^d t_m^a
+- \sum_d I_{al}^{id} t_j^d
+- \sum_{mde} I_{ml}^{de} t_{im}^{ad} t_j^e,
+\end{align}
+\begin{align}
+[X14]_{ab}^{id} = & 
+\sum_{elm} I_{lm}^{ed} \left[
++ t_i^e t_l^a t_m^b
+- t_l^e t_{im}^{ab} 
++ \frac{1}{2} I_{lm}^{ed} t_i^e t_{lm}^{ab}
+\right]
+\nonumber \\ &
++ \sum_{lm} I_{lm}^{id} t_l^a t_m^b
++ \sum_e I_{ab}^{ed} t_i^e,
+\end{align}
+and 
+\begin{align}
+[X15]_{ij}^{am} = &
+\sum_m I_{ml}^{ij} t_m^a
+- \sum_{ed} I_{al}^{de} t_i^d t_j^e
++ \frac{1}{2} \sum_{med} I_{ml}^{de} \tau_{ij}^{de} t_m^a  .
+\end{align}
+These two intermediates must be included in our $t_{ijk}^{abc}$ equation and we obtain
+\begin{equation}
+t_{ijk}^{abc} \leftarrow
+\sum_e \textbf{P}(a/bc) \textbf{P}(k/ij)
+[X14]_{ab}^{ie} t_{jk}^{ec}
++ \sum_m \textbf{P}(c/ab) \textbf{P}(i/jk)
+[X15]_{ij}^{am} t_{mk}^{bc} .
+\end{equation}
+Inserting these equations we should now have the following energy correlation in equilibrium
+\begin{equation}
+E_{CCSDT-3} = -0.147450,
+\end{equation}
+and out of  equilibrium
+\begin{equation}
+E_{CCSDT-3} = -0.208876 .
+\end{equation}
+For the reader who wishes to optimize a CCSDT program, the four
+intermediates $[X12]$, $[X13]$, $[X14]$ and $[X15]$ can actually be placed
+inside $[X1]$ and $[X2]$, using the permutation operator tricks defined in
+Eq.~\eqref{temporary_equation_label_for_rfeffsf}. \\
+
+\section{CCSDT-4}
+For CCSDT-4 we will add the terms that are linear in $T3$. This corresponds to the terms
+\begin{align}
+D_{ijk}^{abc} t_{ijk}^{abc} \leftarrow &
+\sum _{ld}
+\textbf{P}(i/jk) \textbf{P}(a/bc) 
+I_{al}^{id} t^{dbc}_{ljk}
++
+\frac{1}{2} \sum_{mk}
+\textbf{P}(k/ij) I_{lm}^{ij} t_{lmk}^{abc}
+\nonumber \\ &
++
+\frac{1}{2} \sum_{de} 
+\textbf{P}(c/ab) I_{ab}^{de} t^{dec}_{ijk} .
+\end{align}
+We will introduce these terms as three new intermediates, because there are more terms in the full CCSDT approach 
+that can use this factorization. These are defined as
+\begin{equation}
+[X3]_{ij}^{lm} = \frac{1}{2} I_{lm}^{ij},
+\end{equation}
+\begin{equation}
+[X4]_{ab}^{de} = \frac{1}{2} I_{ab}^{de},
+\end{equation}
+and
+\begin{equation}
+[X6]_{al}^{id} = I_{al}^{id} .
+\end{equation}
+Inserting this in the amplitude equation gives
+\begin{align}
+D_{ijk}^{abc} t_{ijk}^{abc} \leftarrow &
+\sum _{ld}
+\textbf{P}(i/jk) \textbf{P}(a/bc) 
+[X6]_{al}^{id} t^{dbc}_{ljk}
++
+ \sum_{mk}
+\textbf{P}(k/ij) [X3]_{ij}^{lm} t_{lmk}^{abc}
+\nonumber \\ &
++
+\sum_{de}
+\textbf{P}(c/ab)[X4]_{ab}^{de}  t^{dec}_{ijk} .
+\end{align}
+We again perform energy calculations on the same system as before. At equilibrium the energy correction should now be
+\begin{equation}
+E_{CCSDT-4} = -0.147613 .
+\end{equation}
+And out of equilibrium we should have
+\begin{equation}
+E_{CCSDT-4} = -0.209668 .
+\end{equation}
+Our code passes both tests again. 
+\section{Full CCSDT}
+For the full CCSDT we introduce all the remaining terms. We will add these into our existing intermediates, and define a few new ones
+\begin{equation}
+[X1]_{ab}^{ic} \leftarrow 
+\sum_{lme}
+\frac{1}{2}
+I_{lm}^{ce} t_{lmi}^{aec},
+\end{equation}
+
+\begin{equation}
+[X2]_{ij}^{am} \leftarrow 
+\sum_{lde}
+\frac{1}{2}
+I_{ml}^{de} t_{ilk}^{dea},
+\end{equation}
+
+\begin{equation}
+[X3]_{ij}^{lm} \leftarrow
+\sum_d \left( I_{lm}^{dj} t_i^d
+- I_{lm}^{di} t_j^d \right)
++ \sum_{de} \frac{1}{2} I_{lm}^{de} \tau_{ij}^{de},
+\end{equation}
+
+\begin{equation}
+[X4]_{ab}^{de} \leftarrow
+\sum_l \left( 
+I_{lb}^{de} t_l^a
+- I_{la}^{de} t_l^b \right)
++ \sum_{ml} \frac{1}{2} I_{lm}^{de} \tau_{lm}^{ab},
+\end{equation}
+and 
+\begin{equation}
+[X6]_{al}^{id} \leftarrow 
+\sum_{e} I_{al}^{ed} t_i^e
+- \sum_m I_{ml}^{id} t_m^a
++ \sum_{em} I_{ml}^{ed} t_{im}^{ae}
+- \sum_{em} I_{ml}^{ed} t_i^e t_m^a.
+\end{equation}
+We also introduce two new intermediates $[X7]$ and $[X8]$
+\begin{equation}
+[X7]_i^m = - \sum_{ld} I_{lm}^{di} t_l^d
+- \frac{1}{2} \sum_{lde} I_{lm}^{de} \tau_{li}^{de},
+\end{equation}
+and
+\begin{equation}
+[X8]_a^e = \sum_{ld} I_{la}^{de} t_l^d
+- \frac{1}{2} \sum_{dlm} I_{lm}^{de} \tau_{lm}^{da} .
+\end{equation}
+These are added to $t_{ijk}^{abc}$ with the following permutation operators in front
+\begin{equation}
+D_{ijk}^{abc} t_{ijk}^{abc} \leftarrow \sum_e \textbf{P}(a/bc) [X8]_a^e t_{ijk}^{ebc}
++ \sum_m \textbf{P}(i/jk) [X7]_i^m  
+t_{mjk}^{abc} .
+\end{equation}
+Implementing all of this, we get the correlation energy  in equilibrium
+to be
+\begin{equation}
+E_{CCSDT} = -0.147594 .
+\end{equation}
+This is identical to the benchmark case mentioned above. Out of equilibrium we get
+\begin{equation}
+E_{CCSDT} = -0.2095(20) .
+\end{equation}
+Here we marked a parenthesis around (20) due to the fact that Bartlett in his letters gives this energy as
+\begin{equation}
+E_{Bartlett} = -0.209519 .
+\end{equation}
+Meaning we have a difference of -0.000001 to Bartletts results. We will assume this is caused by round off errors.  
+
+\section{Excluded Terms}
+Some terms are zero when using a HF basis, because the Fock
+eigenvalues are diagonalized. If we want to perform CCSDT calculations
+for anything other than a HF basis, we must add these terms
+\begin{equation}
+[X1]_{ab}^{ic} \leftarrow - \sum_{ld} \langle l | F | d \rangle t_{li}^{ab},
+\end{equation}
+\begin{equation}
+[X15]_{ij}^{al} \leftarrow - \sum_{md} \langle m | F | d \rangle t_{ij}^{ad},
+\end{equation}
+and
+\begin{equation}
+[X8]_a^d \leftarrow - \sum_l \langle l | F | d \rangle t_l^a,
+\end{equation}
+resulting in
+\begin{align}
+t_{ijk}^{abc} \leftarrow &
+\sum_d \textbf{P}(c/ab)
+(1 - \delta_{cd}) \langle c | F | d \rangle t_{ijk}^{abd}
+- \sum_l \textbf{P}(k/ij) 
+(1 - \delta_{kl}) \langle k | F | l \rangle  t_{ijl}^{abc}
+\nonumber \\ &
+-
+\sum_{ld}
+\textbf{P}(i/jk)
+\langle l | F | d \rangle t_i^d  t3^{abc}_{ljk} .
+\end{align}
+
+
+\chapter{Benchmarks}
+In this chapter we will benchmark our code. We have already performed
+calculations using CCSDT and verified them with benchmark values. The
+full CCSDT method took advantage of all our implementations except for
+the unrestricted Hartree-Fock (UHF) part. In this chapter we will look at the performance of our codes
+and find out for sure if they work properly for other systems. We wish also to point to 
+the strengths and the weaknesses of our implementations. We
+will look at all our methods, RHF, UHF, CCSD, and CCSDT. Also we will
+test our memory distributed AOtoMO transformation algorithm to its
+limits. In general we will benchmark our code against LSDALTON,
+Ref.\cite{LSDALTON_CITATION}, but we will also provide additional
+benchmarks in each section. The CCSDT approach is neither available in DALTON nor
+in LSDALTON. \\
+
+We also mention that no special flags are used to compile. We will supply plenty of performance results. The flags used were 
+\begin{lstlisting}
+CFLAGS = -pipe -O2 -Wall -W 
+\end{lstlisting}
+
+\section{Small systems}
+We first perform some initial testing on small systems like water and
+the hydrogen molecule $H_2$. These will be compared with the LSDALTON
+package, aswell as Ref.\cite{ccsd_benchmark_url_stuff} and
+Ref.\cite{CCSDT-ref1}. \\
+
+We use these coordinates for all tests except with the DZ basis set, where we use the coordinates we used throughout chapter \ref{ccsdt_chapter}.  
+\begin{center}
+  \begin{tabular}{ c c c c }
+  \hline
+     Atom & x & y & z \\ \hline
+     O & 0 & 0 & 0 \\
+     H & 0 & 1.079252144093028 & 1.474611055780858 \\
+     H & 0 & 1.079252144093028 & -1.474611055780858 \\
+     \hline \\
+  \end{tabular} 
+\end{center} 
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+These are in atomic units. The coordinates are taken from Ref.\cite{ccsd_benchmark_url_stuff}.
+\begin{center}
+\begin{tabular}{ l c c r }
+	\hline
+  	Basis Set & RHF & CCSD Correction & Benchmark \\ \hline
+  	STO-3G & -74.9627 & -0.0501273 & \cite{ccsd_benchmark_url_stuff} \\ 
+  	4-31G & -75.9081 & -0.13668 & LSDALTON \\ 
+  	6-31G & -75.9845 & -0.13603 & LSDALTON \\ 
+  	DZ & -76.0098 & -0.146238 & \cite{CCSDT-ref1} \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+Our results are in agreement with the references down to the final
+decimal. We examine the RHF calculations with the STO-3G basis set
+more closely, in its components.  \\
+
+\begin{center}
+\begin{tabular}{ l r }
+  	One-electron energy & = -122.219 \\ 
+  	Two-electron energy & = 38.1615 \\
+  	Repulsion energy & = 9.09485 \\
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+This is in perfect agreement with reference. With DIIS turned on this
+was achieved in 13 iterations with RHF. With DIIS turned off we needed
+21 iterations.
+
+\section{Hydrogen molecule}
+Our next calculations will be on the diatomic hydrogen molecule. These
+results will be benchmarked against a full configuration interaction (FCI) study from 1968,
+Ref.\cite{fci_h2_molecule_stuff}. Pople and others pioneered the
+effective use of Gaussian Type Orbitals throughout the 1970s. The FCI
+calculation used Slater Type Orbitals. We will plot the energy as a
+function of R, where R is the distance between the two nuclei in
+a.u. The results are available in figure \ref{fig:h2poten}. We will
+use the 6-311++G(2d,2p) basis set for both HF and CCSD calculations,
+and a convergence criteria of $10^{-5}$. Calculations are performed
+from R = 0.6 to R = 4.5 with 0.1 a.u. as intervals. \\
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{H2_CCSD_HF_plot.eps}}
+\caption{Energypotential for $H_2$ Molecule. 
+$^a$FCI results from Ref.\cite{fci_h2_molecule_stuff}}
+\label{fig:h2poten}
+\end{center}
+\end{figure}
+
+The energy minimum is located at R = 1.4 au with an energy of
+-1.17086. This was benchmarked against LSDALTON. We could also perform
+CCSDT calculations on this molecule, but we only have two
+electrons. This means the answer will be the same as a CCSD
+calculation, because we do not have three electrons to excite making
+all the $t_{ijk}^{abc}$ amplitudes 0. This was also confirmed by our
+program. \\
+
+Also, this is true for all higher versions of coupled cluster, meaning
+the only difference between these results and the reference value
+should be a truncated basis set. We therefore repeat our calculation
+with the largest Pople basis set the author is aware of,
+6-311++G(3df,3pd). This calculation is marked with (a). We use $R =
+1.4011$ a.u., which is the equilibrium distance according to our FCI
+benchmark. We also try the aug-cc-pVQZ basis set. This calculations is
+marked with (b). Our calculations results in an energy in atomic
+units
+\begin{equation}
+E_{CCSD,(a)} = -1.17264,
+\end{equation}
+and
+\begin{equation}
+E_{CCSD,(b)} = -1.17394.
+\end{equation}
+According to the benchmark FCI energy with these nuclei, the equilibrium  position is -1.17447 a.u. \\
+
+We did benchmark our results against LSDALTON and the two programs
+were in agreement for the same basis set. On our energy plot FCI
+results are plotted for $R \in [1.0, 2.0]$, however, results for R =
+1.1 were lacking.
+
+\section{First row Diatomic molecules}
+The natural next step is to introduce heavier atoms in our diatomic
+molecule. In these systems CCSD no longer includes the full
+correlation, and we will have more sources of error than just the
+basis set truncation. We use a decent sized basis set, 6-311++G(2d,2p)
+and a convergence criteria of $10^{-6}$. Our results are benchmarked
+against a paper with DMC calculation and marked with $^a$, see
+Ref.\cite{first_row_diatomic_referance_stuff}. \\
+
+\begin{center}
+\begin{tabular}{ l c  c c c r }
+	\hline
+  	Molecule & R [au] & $E_{HF}$ & $E_{CCSD}$ & 	$E_0^a$ & $E_R^b$ \\ \hline
+  	$Li_2$ & 5.051 & -14.8701 & -14.9322 & -14.995 &  0.50 \\\hline
+  	$Be_2$ & 4.63 & -29.1321 & -29.2646 & -29.338 &  0.64 \\ \hline
+  	$B_2$ & 3.005 & -48.8656 & -49.1738 & -49.415 &  0.56 \\ \hline
+  	$C_2$ & 2.3481 & -75.3973 & -75.7703 & -75.923 &  0.71 \\ \hline
+  	$N_2$ & 2.068 & -108.979 & -109.367 & -109.542 & 0.70 \\ \hline
+  	$O_2$ & 2.282 & -149.58 & -150.058 & -150.326 & 0.64  \\ \hline
+  	$F_2$ & 2.68 & -198.741 & -199.272 & -199.529 & 0.67 \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+In this table the molecule is listed to the left. The quantity $R$ is the distance
+between the nuclei and $E_{HF}$ and $E_{CCSD}$ is the HF and CCSD
+energies for the system. The energy $E_0$ is our benchmark value from
+Ref.\cite{first_row_diatomic_referance_stuff}. This is to be considered as the exact,
+non-relativistic energy. We define $E_R$ to be
+the percentage of correlation recovered using CCSD
+\begin{equation}
+E_R = \frac{E_{CCSD} - E_{HF}}{E_0 - E_{HF}} .
+\end{equation}
+We also benchmark our results against Henrik Mathias Eidings results with a restricted Hartree-Fock basis (RHF) and M\"oller-Plesset perturbation theory to second (MP2) and third order in the interaction (MP3)
+for $O_2$, see Ref.\cite{hmeiding} for more details. His results
+are marked as $^a$. Both Eiding and we use the larger 6-311++G(3df,3pd) basis set.
+\begin{center}
+\begin{tabular}{ l c c c r }
+	\hline
+  	Molecule & HF & MP2$^a$ & MP3$^a$ & CCSD \\ \hline
+  	$O_2$ & -149.588 & -150.142 & -150.130 & -150.138 \\\hline
+  	\\
+	\end{tabular}
+\end{center}
+
+The molecule $O_2$ is commonly known as an open shell molecule,
+meaning our spin restriction is likely to cause problems. We therefore
+repeat this calculation using our unrestricted Hartree Fock
+implementation. \\
+
+The first calculation for $O_2$ is performed with singlet spin
+orientation, meaning that the total spin is 0. All other input remains
+the same. We obtain then an energy 
+\begin{equation}
+E_{UHF,0} = -149.647 .
+\end{equation}
+The triplet state, where total spin is 1, gives an energy
+\begin{equation}
+E_{UHF,1} = -149.674  .
+\end{equation}
+These results are in good agreement with Eiding's calculations. The
+singlet calculation differ from his calculations with 0.001 in
+energy. 
+The number of
+iterations needed was about 80.
+
+\section{$C_{20}$ Ground State} 
+The molecule $C_{20}$ is a particularly interesting
+molecule. Calculations using different computational methods seem to
+provide very different answers to the geometry of the ground state, as
+noted in Ref. \cite{c20article_cite_this}. There are three
+structures in considerations. They are ring, bowl and cage. All these
+structures are present in experiments, but the ring structure seems to be the most
+likely orientation. This is followed by bowl as the second most
+likely, and cage as the third most likely.  \\
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{c20_ring.eps}}
+\caption{Orientation for $C_{20}$ in ring formation.}
+\label{fig:c20ring}
+\end{center}
+\end{figure}
+
+However, methods considered highly accurate, such as diffusion Monte Carlo (DMC), do not
+agree with experiment. Different methods do not even agree with each
+other, as is seen in Ref.\cite{c20coordinatesarticlezz}. One theory
+for the disagreement is that experiments are not done at 0 Kelvin,
+while quantum chemistry ground state calculations are. We will perform
+RHF and CCSD calculations on the system. \\
+
+We will use the 6-31G basis set, with a convergence criteria of
+$10^{-4}$. For a reference we calculate the ground state energy of a
+single carbon atom.
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{c20_bowl.eps}}
+\caption{Orientation for $C_{20}$ in bowl formation.}
+\label{fig:c20bowl}
+\end{center}
+\end{figure}
+{\bf OLE Her maa du skrive litt mer}
+\begin{equation}
+E_{HF} = -37.58 .
+\end{equation}
+
+\begin{equation}
+20 \times E_{HF} = -751.6 .
+\end{equation}
+
+\begin{equation}
+E_{CCSD} = -37.65 .
+\end{equation}
+
+\begin{equation}
+20 \times E_{CCSD} = -753.0 .
+\end{equation}
+
+We would also like to visualize the three different orientations. All
+coordinates are taken from Refs.\cite{c20coordinatesarticlezz} and
+\cite{c20coordinatesarticlezz10}. Both these references use the same
+coordinates. The geometries for bowl, cage and ring are illustrated in
+figures \ref{fig:c20bowl}, \ref{fig:c20cage} and \ref{fig:c20ring}, respectively.\\
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{c20_cage.eps}}
+\caption{Orientation for $C_{20}$ in cage formation.}
+\label{fig:c20cage}
+\end{center}
+\end{figure}
+
+\begin{center}
+\begin{tabular}{ l c r }
+	\hline
+  	Orientation & RHF & CCSD \\ \hline
+  	ring & -756.454 & -758.261  \\ \hline
+  	cage & -756.122 & -758.004  \\ \hline
+  	bowl & -756.312 & -758.195  \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+Calculations for the  ring structure were performed without DIIS in HF, whereas the cage
+and bowl structures had DIIS enabled. This was required to achieve
+convergence. We see the energy is lower than 20 times the energy of a
+single carbon for all three orientations. Our results are in good
+agreement with Ref.\cite{c20coordinatesarticlezz10} and experimental
+results. We have indeed found the ring to be the lowest energy
+orientation. However, we did not use a particularly large basis
+set. Thus our energies are not as low as we would want. According to
+Ref.\cite{c20article_cite_this} the energies for this system should be
+around -759. \\
+
+We may not have settled the debate about the ground state orientation
+for $C_{20}$ at 0 Kelvin temperature, but we did manage to perform
+calculations on a somewhat larger molecule.
+
+\section{Energy as function of number of AOs}
+The size of the basis set has a great impact on our
+calculations. However at some point, the basis set is so large that
+making it even larger will not provide any noticeable improvement in
+accuracy. Any increase in basis set size will however always increase
+the runtime of our program. For this reason there is great interest in
+knowing what size of the basis set gives the optimal level of accuracy. \\
+
+To study this we have performed calculations on a single water
+molecule, $H_2O$. We have performed calculations using the STO-3G,
+6-31G, 6-311G**, 6-311++G(2d,2p) and 6-311++G(3df,3pd) basis sets. These basis
+sets are listed from smallest to largest. Results are provided in
+fig. \ref{fig:convplot}. \\
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{convergenceplot.eps}}
+\caption{Energy of $H_2O$ as a function of number of AOs}
+\label{fig:convplot}
+\end{center}
+\end{figure} 
+
+We check the convergence with respect to the number of AOs for both HF
+and CCSD. We see that the HF energy exhibits a  better convergence than CCSD. CCSD
+is not particularly well converged at all, this was to be expected
+however based on our $H_2$ results from earlier. \\
+
+The largest calculation used approximate 80 AOs. With 80 AOs this
+would be $n_o = 10$ and $n_v = 150$, meaning $\frac{n_v}{n_o} =
+15$. When performing CCSD calculations this fraction is normally
+expected to be between 5 - 10.
+
+\section{Hartree Fock Performance Testing}
+In this section we will test the performance of our Hartree Fock
+program. We will first look at memory usage, and afterwards discuss
+the performance of both RHF and UHF for different systems. We have not
+spent much time on optimizing this part of the program, except for the
+parallel implementation and memory distribution. \\
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{available_memory.eps}}
+\caption{Memory Requirements for HF as a function of N}
+\label{fig:memory_needs}
+\end{center}
+\end{figure}
+
+In figure \ref{fig:memory_needs} we have plotted the memory needs for
+our HF program as a function N for the serial version. N is the number
+of AOs. We will perform our calculation on the Abel computing cluster,
+Ref.\cite{abel_po_g_citation1234567}. This cluster consist of many 
+nodes. Each nodes has 16 CPUs and 64 GB of memory. This means each CPU
+has 4 GB of memory, if we discount that a small portion of the memory
+is already occupied by processes already running on the node. \\
+
+On our figure we have marked the total available memory for a
+different number of CPUs. We are able to distribute the absolute
+dominant memory consuming array. This means the crossing point between
+available memory and needed memory is a good indication of the number
+of AOs we can run with this number of CPUs. For example 512 CPUs
+crosses the blue line at N = 700. This means we can do approximately
+700 AOs with 512 CPUs. \\
+
+It is possible on Abel to ask for more memory for each CPU. There are
+also high-memory nodes available. In theory we could ask for all 64 GB
+of memory and only use one CPU on the node. This would however leave
+the other 15 CPUs unusable for other users, since there is no memory
+left.
+
+\subsection{HF performance}
+To test the performance of our HF implementation we perform
+calculations on $O_2$ with the 6-311++G(3df,3pd) basis set. We use
+a convergence criteria of $10^{-8}$. Only the four index integrals are
+run in parallel, so there are some serial calculation involved. The
+UHF implementation has more communication than RHF. We plot both
+performances in the same plot for comparison. The raw data is included
+in the table, and the timings involve all calculations in HF. Results
+are plotted in figure \ref{fig:hf_performance_stuff_jesus1234}.
+
+\begin{center}
+\begin{tabular}{ l c c }
+	\hline
+  	P & RHF time [s] & UHF time [s] \\ \hline
+  	1 & 675.78 & 854.31 \\ 
+  	2 & 322.16 & 411.68 \\ 
+  	4 & 182.36 & 324.26 \\
+  	8 & 129.94 & 123.69 \\ 
+  	16 & 60.79 & 73.52 \\ 
+  	32 & 36.58 & 49.87 \\ 
+  	64 & 27.55 & 55.32 \\ 
+  	128 & 25.02 & 44.59 \\
+  	256 & 34.29 & 49.1  \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar}
+\newpage
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{hartree_fock_parallel_performance.eps}}
+\caption{Time in seconds for a HF calculation on $O_2$ with the 6-311++G(3df,3pd) basis set using $2^p$ processors. Both RHF and UHF calculations included. Results are not averaged over multiple runs.}
+\label{fig:hf_performance_stuff_jesus1234}
+\end{center}
+\end{figure}
+
+
+\section{AOtoMO Performance Testing \label{aotomoperformancetesting}}
+In this section we will test the performance of our AOtoMO
+transformation algorithm for the four index integrals, as a function
+of number of CPUs. The raw data is included in the table, and we plot
+the data in two plots. The quantities of interest are time used in
+calculation versus time used in communication. Calculations spread
+over more CPUs can be performed faster. However more CPUs will require
+more communication. Calculations on 251 and 569 AOs are done on the
+$C_{12} H_{22} O_{11}$ molecule, sucrose. We use the 6-31G and the
+6-311++G** basis sets. The 130 AO calculation is done on an imaginary
+molecule, simply to measure performance. \\
+
+ \begin{center}
+  \begin{tabular}{ c  c  c  c }
+  \hline
+     p & AOs = 130 & AOs = 251 & AOs = 569  \\ \hline
+     1 & 123.55 & 3458  & - \\
+     2 & 69.64 & 1800  & - \\
+	 4 & 37.73 & 923  & -  \\
+     8 & 25.51 & 618  & -  \\
+    16 & 17.11 & 389  & 21076 \\
+    32 & 14.52 & 297  & 15556 \\
+    64 & 10.35 & 266  & 14961 \\
+    128 & 10.62 & 232  & 11294
+\\
+    256 & - & -  & 9413
+\\
+    512 & - & -  & 9346
+    
+     \\ \hline \\
+  \end{tabular} 
+\end{center} 
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+wall time as the time from the first CPU start until the last CPU
+finish. We will use this as a measurement of performance of our
+algorithm. We will also define the point where wall time increases with
+increased number of CPUs as the time for communication overtakes
+the time spent on computation. \\
+
+We should first remind ourselves that the scaling here is $N^5$, where $N$ is
+the number of AOs. The communication however scales as $N^4$. We see
+from our benchmarks that a larger number of AOs scales better with
+an increased number of CPUs. \\
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{scaling_1.eps}}
+\caption{AOtoMO transformation scaling for small number of AOs and up to 128 processors, p. Plotted on $y$ - axis is T/$T_0$, where $T_0$ is the wall time for the serial version. On the $x$ - axis we have $2^p$, where p is the number of CPUs}
+\label{fig:aotomo1}
+\end{center}
+\end{figure}
+
+We notice especially that the wall time increase from 64 to 128 CPUs
+for 130 AOs. This does not happen for 251 AOs. Indicating a better
+scaling for higher number of AOs, as expected from the algorithm. We
+also note that in a less optimized AOtoMO transformation,
+communication would overtake computation much quicker. \\
+
+Our memory distributed model makes us able to run larger systems using
+increased number of CPUs. The memory usage of the algorithm is closely
+related to that of our Hartree Fock implementation. This is due to the
+fact that in our HF program we stored all terms of the four index
+integrals, whereas after HF is completed we will delete the terms
+corresponding to one symmetry, reducing the memory requirements by
+$\frac{1}{2}$. The transformed integrals are also stored using this
+one symmetry, and need $\frac{N^4}{2}$ memory. These two combined
+equals the memory needed for HF. \\
+
+For implementation reasons there will be an additional $N^3$ array
+needed. This is because we will need one $N^3$ intermediate for
+armadillo, and one for the communication in MPI. This changes memory
+requirements modestly, but becomes a problem for approximate 1000
+AOs. \\
+
+For 569 AOs we are unable to perform the calculation in serial. We
+start calculations using 16 CPUs. From figure \ref{fig:aotomo1} we
+notice the best scaling is behind us at this number of CPUs. However
+we can make an educated guess that running this system size in serial
+would require several days of computations. \\
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{scaling_2.eps}}
+\caption{AOtoMO transformation wall time scaling for 569 AOs and $2^p$ CPUs. 16 to 512 CPUs used. }
+\label{fig:aotomo2}
+\end{center}
+\end{figure}
+
+Our results for 569 AOs confirm that the scaling is better with
+an increased number of AOs. Even from 256 to 512 CPUs we improve overall
+performance.  \\
+
+We also list a few single calculations for different number of AOs and
+CPUs, to see the performance of the transformation for a variety of
+calculations. The basis set used for the calculations was
+6-311++G(2d,2p). \\
+
+  \begin{center}
+  \begin{tabular}{ c c c c }
+  \hline
+     Molecule & CPUs & AOs & AOtoMO \\ \hline
+     $CH_4$ & 16 & 69 & 0.98 s \\
+     $C_2H_6$ & 64 & 118 & 9.71 s \\
+     $C_2 O H_6$ & 64 & 147 & 19.9 s \\
+     $\left(H_2O\right)_8$ & 256 & 392 & 23 min \\
+     $C_{20}$ & 256 & 580 & 238 min \\
+     $\left(H_2O\right)_{15}$ & 512 & 735 & 35.8 hour \\
+     \hline \\
+  \end{tabular} 
+\end{center} 
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We see up to 600 AOs is a very doable calculation. At 735 AOs the
+transformation itself takes more than one day. However, these timings
+are very good relative to others, Ref.\cite{aotomo_2_cite}. Full
+AOtoMO transformations are rare in the literature, especially for a high
+number of AOs. It is therefore difficult to make comparisons. \\
+
+Alternatively, on the benchmark page for ACESIII,
+Ref.\cite{aces_non_ref}, they list the wall time of a few CCSD
+calculations. CCSD regularly use the full AOtoMO transformation, and
+ACESIII is a very optimized CCSD program. Thus it is interesting to
+see if CCSD or AOtoMO would dominate wall time in a calculation with
+an optimized CCSD version. \\
+
+An $Ar_6$ molecule calculation with 300 AOs is listed on the ACESIII benchmark site
+with 128 CPUs as 5.9 min per CCSD iteration. Using our AOtoMO
+transformation, 251 AOs was performed in 3.8 min. \\
+
+They also list calculations on sucrose, $C_{12} H_{22} O_{11}$, using
+the 546 AOs, and 23 orbitals frozen. This means 523 unfrozen spin
+orbitals. They report 29.4 minutes for one iteration of 256 CPUs. Our
+four index transformation spent 156 minutes on 569 AOs. \\
+
+These two results indicate that the wall time for our transformation
+for this number of AOs lies approximated between 2-4 CCSD iterations,
+which is very reasonable. CCSD usually requires 10-20 iterations for
+convergence in equilibrium. Most of the benchmarks on the ACESIII site
+for CCSD with up to 512 CPUs is between 300 - 600 AOs, all of which is
+doable with this algorithm. \\
+
+It should also be noted that our full AOtoMO transformation only
+depends upon number of AOs, whereas CCSD depends on the combination of
+occupied versus virtual orbitals. In a CCSD calculation with $n_v >>
+n_o$ AOtoMO would be more time consuming relative to a CCSD iteration.
+
+\section{CCSD Serial Performance \label{ccsdserialperformance_ppp}}
+In this section we will test the CCSD performance in serial. We will
+try a cluster of water molecules, of size $(H_2O)_N$. We will use the
+6-311++G(2d,2p) basis set. We also note the serial time of the AOtoMO
+transformation.
+
+\begin{center}
+\begin{tabular}{ l c c c c c }
+	\hline
+  	System & AOs & $n_o$ & $n_v$ & CCSD iteration [s] & AOtoMO [s] \\ \hline
+  	$(H_2O)$ & 49 & 10 & 88      & 1.17 & 0.75  \\ 
+  	$(H_2O)_2$ & 98 & 20 & 176   & 37 & 14.41 \\ 
+  	$(H_2O)_3$ & 147 & 30 & 264  & 632 & 297  \\
+  	$(H_2O)_4$ & 196 & 40 & 352  & 2255 & 1454 \\ 
+  	\hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We test the serial implementation against an unoptimized but
+factorized CCSD program. This implementation is available through
+"CCSD1" as method in the input file. The equations are fully
+factorized, so the theoretical scaling of the equations is still
+$N^6$, where N is the number of AOs. However we have not implemented
+the use of external math libraries, compact storage and the other
+optimizations discussed in section
+\ref{optimize_serial_version_bii}. These calculations are not
+performed on abel. We also use the external math library BLAS. The
+performance here on one CPU is generally better than on the Abel
+supercomputer, but we do not have the high number of CPUs available.
+
+\begin{center}
+\begin{tabular}{ l c c c c c }
+	\hline
+  	System & $n_o$ & AOs & Unoptimized iter [s] & Optimized iter [s] & Fraction \\ \hline
+  	Ne & 10 & 29 & 3.5 & 0.1 & 35 \\
+  	$H_2O$ & 10 & 49 & 40 & 0.78 & 51 \\
+  	$C_2H_4$ & 16 & 62 & 670 & 5.4 & 124 \\
+  	$C_2H_4$ & 16 & 98 &  & 48 &  \\
+  	\hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+\section{CCSD Parallel Performance}
+Our CCSD serial implementation is among the fastest. We want to test
+its parallel performance in detail. First we run a small system of
+$H_2O$ with the 6-311++G(3df,3pd) basis set for a different number of
+processors. We use up to 64 processors on this system. The raw data is
+included.
+   
+\begin{center}
+\begin{tabular}{ l c}
+	\hline
+  	P & CCSD iteration time [s] \\ \hline
+  	1 & 4.44  \\ 
+  	2 & 2.35   \\ 
+  	4 & 1.30   \\
+  	8 & 0.88    \\ 
+  	16 & 0.48   \\ 
+  	32 & 0.27   \\ 
+  	64 & 0.18   \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.7\textwidth]{h2o_ccsd_time_per_iter.eps}}
+\caption{Time per iteration of a CCSD run on $H_2O$ with the 6-311++G(3df,3pd) basis set using $2^p$ processors.}
+\label{fig:ccsd_h2o_time_per_iter}
+\end{center}
+\end{figure}
+{\bf kommenter}
+\newpage
+
+The iteration time for 64 processors oscillated between 0.17 and 0.18. 0.18 was more frequent. \\
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{h2o_speedup_ccsd.eps}}
+\caption{The speedup, S, as a function of number of processors for a CCSD iteration on $H_2O$ with the 6-311++G(3df,3pd) basis set.}
+\label{fig:ccsd_h2o_time_speedup}
+\end{center}
+\end{figure}
+
+We also test a system of two water molecules. We use the same basis
+set to achieve a system of exactly twice the size. We are only
+interested in the performance of our program, so we can place the two
+molecules in any location. The raw performance data is included in the
+table here.
+
+\begin{center}
+\begin{tabular}{ l c}
+	\hline
+  	P & CCSD iteration time [s] \\ \hline
+  	1 & 300   \\ 
+  	2 & 225   \\ 
+  	4 & 120   \\
+  	8 &  59.0  \\ 
+  	16 & 30.2   \\ 
+  	32 & 15.6   \\ 
+  	64 & 8.3  \\
+  	128 & 4.8 \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{ccsd_iter_2_time.eps}}
+\caption{Time per iteration of a CCSD run on $(H_2O)_2$ with the 6-311++G(3df,3pd) basis set using $2^p$ processors.}
+\label{fig:ccsd_2h2o_time_per_iter}
+\end{center}
+\end{figure}
+
+In figure \ref{fig:ccsd_2h2o_time_per_iter} we see some weird
+behaviour when going from one to two CPUs. This is due to the
+sub-optimal work distribution noted in section
+\ref{problem_part_ccsd_parallel}. However from four to eight CPUs, and
+higher, we do not have this problem. This is because the sub-optimal
+distribution does not get worse with an increased number of CPUs, it
+stays at the same sub-optimal level. We still have a good performance
+with time per iteration approaching a value close to zero, but with an
+optimal work distribution in part 1 of the implementation we would
+approach zero even faster. How sub-optimal the distribution is depends
+on the system. However distribution of part 2 and 3 is always optimal.
+
+\newpage
+
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{ccsd_scaling_2.eps}}
+\caption{The speedup, S, as a function of number of processors for a CCSD iteration on $(H_2O)_2$ with the 6-311++G(3df,3pd) basis set.}
+\label{fig:ccsd_2h2o_time_speedup}
+\end{center}
+\end{figure}
+
+\newpage
+
+\section{Potential Energy Plots}
+Here we present two potential energy plots for the HF and BH
+molecules. We are in agreement with the benchmarked values in
+Ref.\cite{potential_energy_citation_plots}. Plots are presented in
+figures \ref{fig:bhpoten} and \ref{fig:hfpoten}. \\
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{BH_CCSD_HF_plot.eps}}
+\caption{Energypotential for BH Molecule, RHF and RHF-CCSD}
+\label{fig:bhpoten}
+\end{center}
+\end{figure}
+
+CCSD generally improves our results. However there are some features
+with our CCSD calculations we would like to investigate further. We
+here presents plots of the number of iterations as a function of R for
+the HF molecule. We also plot the correction to the HF energy,
+$E_{CCSD}$, as a function of R. \\
+
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=\textwidth]{hf_pot_en_plot_kek.eps}}
+\caption{Potential energy of HF Molecule. RHF and RHF-CCSD}
+\label{fig:hfpoten}
+\end{center}
+\end{figure}
+
+\newpage
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.9\textwidth]{hf_iterationplot.eps}}
+\caption{HF Molecule}
+\label{fig:hfiter}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.9\textwidth]{hf_correctionplot.eps}}
+\caption{HF Molecule}
+\label{fig:hfcorr}
+\end{center}
+\end{figure}
+
+We notice the number of iterations required for self consistency
+increases when moving away from the equilibrium geometry. If we move to
+far away from equilibrium, the CCSD correction begin either diverging or oscillating
+between different solutions. We have plotted the number of iterations required
+for self consistency in figure \ref{fig:hfiter}. The CCSD correlation
+energy is plotted in figure \ref{fig:hfcorr}. From figure
+\ref{fig:hfiter} we see that CCSD is an equilibrium geometry
+method. It does not always work outside of equilibrium. If the
+molecule is to far away from equilibrium we can expect a diverging or
+oscillating CCSD energy.
+
+\chapter{Results}
+In this chapter we present our new results. We will experiment with
+our code, test its performance against existing software and look into
+features we found interesting during the development stage. We will provide a
+contribution to the advancement of computational chemistry and
+specifically the Computational Physics Group at UiO.
+
+\section{Single Atoms For Future Reference}
+In this section we do calculations on single atoms. Our hope is that
+these results may be used as a benchmark for future calculations,
+using different methods. Since the Pople basis sets are not available for
+all atoms, we can only perform reliable calculations where they are
+available. \\
+
+For an even number of electrons we will use restricted Hartree-Fock (RHF) as a referance for CCSD, or
+CCSDT. For an odd number electrons we will use the unrestricted Hartree-Fock (UHF) approach. In UHF we will assume
+we have one extra electron with spin up relative to the number of
+spin down electrons. \\
+
+We will where available provide a reference energy from the DMC calculations of Ref.\cite{dmc_jorgens_resultater_master}. 
+
+\begin{center}
+\begin{tabular}{ c c c c c c }
+	\hline
+  	Z & Atom & Basis Set & Method & Energy & DMC \\ \hline
+  	1 & H & 6-311++G(3df,3pd) & UHF & -0.499818
+  	&  \\
+  	2 & He & 6-311G** & RHF-CCSD & -2.89057 
+  	& -2.9036(2) \\ \hline
+  	3 & Li & 6-311++G(2d,2p) & UHF & -7.4321 
+  	& \\
+  	4 & Be & 6-311++G(2d,2p) & RHF-CCSDT & -14.6341 & -14.657(2) \\
+  	5 & B & 6-311++G(2d,2p) & UHF & -24.5313& \\
+  	6 & C & 6-311++G(2d,2p) & RHF-CCSDT & -37.7383 &\\
+  	7 & N & 6-311++G(2d,2p) & UHF & -54.3402 &\\
+  	8 & O & 6-311++G(2d,2p) & RHF-CCSD & -74.884& \\
+  	9 & F & 6-311++G(2d,2p) & UHF & -99.4014& \\
+  	10 & Ne & 6-311++G(2d,2p) & RHF-CCSDT & -128.798 & 128.765(4) \\  \hline
+  	11 & Na & 6-311++G(2d,2p) & UHF & -161.847& \\
+  	12 & Mg & 6-311++G(2d,2p) & RHF-CCSDT & -199.774 & -199.904(8)\\
+  	13 & Al & 6-311++G(2d,2p) & UHF & -241.874& \\
+  	14 & Si & 6-311++G(2d,2p) & RHF-CCSD & -289.014 &\\
+  	15 & P & 6-311++G(2d,2p) & UHF & -340.68& \\ 
+  	16 & S & 6-311++G(2d,2p) & RHF-CCSD & -397.692 &\\
+  	17 & Cl & 6-311++G(2d,2p) & UHF & -459.476& \\
+  	18 & Ar & 6-311++G(2d,2p) & RHF-CCSD & -527.056& -527.30(4) \\
+  	\hline
+  	19 & K & 6-311++G(2d,2p) & UHF & -559.15& \\
+  	20 & Ca & 6-311++G(2d,2p) & RHF-CCSD & -677.096& \\ \hline
+  	32 & Ge & 6-311G** & RHF-CCSD & -2075.66& \\
+  	33 & As & 6-311G** & UHF & -2234.12& \\
+  	34 & Se & 6-311G** & RHF-CCSD & -2400.17& \\
+  	35 & Br & 6-311G** & UHF & -2572.36 &\\
+  	36 & Kr & 6-311G** & RHF-CCSD & -2752.44& -2749.9(2) \\
+  	\hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+
+\section{Methods}
+In our coupled cluster machinery there are two main approximations, a
+truncated basis set and the limitation of how many excitations are
+included. In the benchmark chapter we looked into convergence with
+respect to the basis set. Now we also want to check convergence when
+we include higher order excitations. \\
+
+We start with the LiH molecule. We will use the largest Pople type
+basis set, 6-311++G(3dp,3df). We will use
+Ref.\cite{very_accurate_lih_poten} as a reference. The equilibrium
+distance given in this paper is R = 3.015 a.u. \\
+
+The LiH molecule contains four electrons. Here two can be considered core electrons and two valence electrons. 
+ 
+\begin{center}
+\begin{tabular}{ l c c}
+	\hline
+  	Method & Correction & Energy \\ \hline
+  	HF & - &  -7.986 376 7\\
+  	CCSD     &  -0.053 444 1  & -8.039 820 8 \\ 
+    CCSDT-1a &  -0.053 536 7  & -8.039 913 4 \\ 
+  	CCSDT-1b &  -0.053 536 9  & -8.039 913 6 \\
+  	CCSDT-2  &  -0.053 537 0  & -8.039 913 7        \\ 
+  	CCSDT-3  &  -0.053 537 4  & -8.039 914 1        \\ 
+  	CCSDT-4  &  -0.053 557 3  & -8.039 934 0    \\ 
+  	CCSDT    &  -0.053 555 5  &  -8.039 932 2    \\ 
+  	\cite{very_accurate_lih_poten}, est $E_0$ & - & -8.070 548 0 \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We also perform calculations on the BH molecule using all our
+methods. We are interested in a small area around the equilibrium
+distance found previously in figure \ref{fig:bhpoten}. We will compare
+RHF, CCSD, CCSDT-1a and CCSDT. We also include MP2 calculations
+performed with LSDALTON for comparison. Results are available in
+figures \ref{fig:zom1} and \ref{fig:zom2}.
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.9\textwidth]{zoomed_BH_figure.eps}}
+\caption{BH Potential Energy Minimum plot. Methods in use RHF, MP2, CCSD and CCSDT. Distances in Angstrom.}
+\label{fig:zom1}
+\end{center}
+\end{figure}
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.9\textwidth]{zoomed_BH_figure2.eps}}
+\caption{BH Potential Energy Minimum plot. Methods in use CCSD, CCSDT-1a and CCSDT. Distances in Angstrom.}
+\label{fig:zom2}
+\end{center}
+\end{figure}
+
+
+
+
+
+
+We have performed calculations with a resolution of 0.05
+Angstrom. Around the minimum the resolution is increased to 0.01
+Angstrom.  For this system we see different methods provide different
+results. \\
+
+The improvement from HF to second many-body perturbation theory (MP2) is larger than from MP2 to CCSD. Also
+we see the improvement from MP2 to CCSD is larger than the improvement
+from CCSD to CCSDT. We see a convergence of the energy with 
+respect to the contributions included. This is illustrated in figure
+\ref{fig:zom3}. \\
+
+We also notice that for HF and MP2 the energy minimum is R = 1.22
+Angstrom. For CCSD and CCSDT the minimum is shifted to 1.23 Angstrom.
+
+\newpage
+
+\begin{figure}[h!]
+\begin{center}
+\fbox{\includegraphics[width=0.9\textwidth]{zoom_BH_figure3.eps}}
+\caption{BH Energy minimum with respect to Method plot. Methods in use HF, MP2, CCSD, CCSDT-1a and CCSDT. MP2 results from LSDALTON. }
+\label{fig:zom3}
+\end{center}
+\end{figure}
+
+\section{CCSD Performance}
+In this section we will test our CCSD performance against
+ACESIII. There are a few challenges when making this test, especially
+that we do not have implemented a frozen core in our optimized AOtoMO
+transformation. We cannot perform the AOtoMO calculation with the
+unoptimized algorithm for the systems available on the ACESIII
+benchmark site. They are simply too large. We need the optimized AOtoMO
+algorithm, and as such we cannot perform frozen core calculations. The
+benchmarked values on ACESIII benchmark site are with frozen core. \\
+
+However since CCSD calculations depend on $n_o$ and $n_v$, we will
+create a system of the same size and compare performance. We will
+benchmark against a $C_{20}$ calculation with ACESIII from 2009,
+\cite{aces_non_ref}. We are interested in program performance. Their
+calculations are performed with the following system specifics: \\
+
+\begin{center}
+\begin{tabular}{ l c}
+	\hline
+  	System 1 & $C_{20}$\\
+  	Electrons & 120 \\
+  	Basis Set & cc-pVDZ\\
+  	Contracted GTOs & 280 \\
+  	Frozen Orbitals & 20 core\\
+  	$n_o$ for CCSD & 80\\
+  	$n_v$ for CCSD & 440\\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+
+The hardware in use here is the Kraken supercomputer, \cite{kraken_citation}. In 2009 Kraken was the most powerful supercomputer in the world managed by an academia. Each node on Kraken has the following hardware specifications
+
+\begin{center}
+\begin{tabular}{ l }
+	\hline
+  	Two 2.6 GHz six-core AMD Opteron processors (Istanbul)\\
+    12 cores\\
+    16 GB of memory\\
+    Connection via Cray SeaStar2+ router\\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We will use a slightly different system, but we have ensured $n_v$ and
+$n_o$ is approximately the same as for the prior system.
+
+\begin{center}
+\begin{tabular}{ l c}
+	\hline
+  	System 2 & $C_{13} H_2$\\
+  	Electrons & 80 \\
+  	Basis Set & 6-311G** \\
+  	Contracted GTOs & 259 \\
+  	Frozen Orbitals & 0 \\
+  	$n_o$ for CCSD & 80 \\
+  	$n_v$ for CCSD & 438 \\ \hline
+  	\\
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We perform our calculations on the Abel computing cluster,
+\cite{abel_po_g_citation1234567}. Both ACESIII and our calculations
+are performed with 200 CPUs. We note our system has two virtual
+orbitals less. \\
+
+\begin{center}
+\begin{tabular}{ l c}
+	\hline
+  	Code & Time per Iteration [min] \\
+  	ACESIII & 1.6 \\
+  	Our Results & 4.17 (250 s) \\ \hline
+	\end{tabular}
+\end{center}
+{\bf Du maa ha tabell text og kommenter gjerne hva du faar} We define
+We note the AOtoMO transformation took 140 seconds. This is less than
+one iteration in our program, and close to one iteration in
+ACESIII. \\
+
+Compiler flags can optimize our code further. Compiler flags allows
+the compiler to perform further optimizations, and can sometimes
+affect the resulting energy. We want the performance to be a realistic
+measure of how fast our program can produce real results. For this
+reason we did not use any flags in the compiler until now, but we will
+try this calculation once more using the flags recommended by Abel.
+
+\begin{lstlisting}
+CFLAGS = -pipe -O2 -xAVX -mavx -fomit-frame-pointer -fno-alias -Wall -W
+\end{lstlisting}
+These compiler settings produce a runtime per iteration of $T_P = $ 230 s (3.8 m).
+
+
+\end{document}

@@ -1,0 +1,87 @@
+TITLE: Developing a modern shell-model code
+AUTHOR: Thesis topics for John Bower  at Department of Physics and Astronomy and National Superconducting Cyclotron Laboratory, Michigan State University
+DATE: 2016
+
+
+!split 
+===== General motivation ===== 
+!bblock 
+The nuclear shell model 
+plays a central role as a theoretical tool in interpreting nuclear
+structure experiments. The aim of this thesis is to build on existing
+shell-model codes like the code developed by us and available, with
+benchmarks etc at the website of the "Computational Environment for
+Nuclear Structure":"https://github.com/ManyBodyPhysics/CENS" (CENS)
+and develop a modern (written in C++ eventually Fortran2008) full
+configuration interaction environment for nuclear structure
+studies. These codes should be able to 
+* Run on the next generation of supercomputers (collaboration with Oak Ridge National Lab) 
+* Be able to handle both two and three-body interactions 
+* Be able to handle one- and two-body operators 
+* Can be extended to "FCIQMC":"https://www.duo.uio.no/bitstream/handle/10852/37172/master.pdf?sequence=1" studies of finite nuclei and nuclear matter
+* Be fully open source and accessible
+!eblock
+
+!split
+===== "The CENS project":"https://github.com/ManyBodyPhysics/CENS" =====
+!bblock
+The CENS  site contains 
+* Shell-model code written in C for "identical particles":"https://github.com/ManyBodyPhysics/CENS/tree/master/FCI/serial/IdenticalParticles" and the "proton-neutron case":"https://github.com/ManyBodyPhysics/CENS/tree/master/FCI/serial/pnCase"
+* "Both parallel and serial versions of the above":"https://github.com/ManyBodyPhysics/CENS/tree/master/FCI"  shell model codes.
+* Codes for one-body transition probabilities such as $M\Lambda$ and $E\Lambda$ transitions but no GT transitions. There is also no code for two-body transition operators and two-body densities.
+* Codes for three-body forces with identical particles only.
+
+These codes can serve as starting point together with the already written FCI code by John. 
+!eblock
+
+!split
+===== Efficient algorithms for bit manipulations =====
+!bblock
+In addition to the existing material, there are some useful articles and references for the first steps. 
+
+The first step is to study efficient representations of the Slater determinants for words with more than 64 bits, allowing thereby for shell-model studies 
+of systems with more than one major shell. Furthermore, the setup of the Hamiltonian matrix elements plays an important role. 
+
+In order to study these aspects and write an efficient program, the following articles can be of interest
+* "Scemana's article on efficient implementation of the Slater-Condon rules":"http://arxiv.org/abs/1311.6244"
+* "Simen Kvaal's article on developing an FCI code (open source code) for quantum dots":"http://arxiv.org/abs/0810.2644"
+!eblock
+
+
+
+!split
+===== The various steps with the addition of Lanczos' and Davidson's algorithms =====
+!bblock
+The first steps will consist of
+* Finalize the bit representation of Slater determinants with words of length larger than 64 bits in $m$-scheme.
+* Read a general two-body interaction in $m$-scheme with pertinent single-particle information
+* Write a code for direct methods (Hamiltonians matrices of dimension $n\times n$ with $n \le 100000$. Here one can use for example Francis' algorithm for direct diagonalization. This implies also setting up  the Hamiltonian matrix and properly accounting for the correct phase factor. 
+* Be able to compute the expectation value of angular momentum (and perhaps isospin). 
+* Extend the code to include three-body interactions in $m$-scheme.
+* Now extend the code to larger dimensionalities by implementing the "Lanczos":"https://en.wikipedia.org/wiki/Lanczos_algorithm" and "Davidson":"http://sirius.chem.vt.edu/wiki/doku.php?id=crawdad:programming:project13" algorithms.
+!eblock
+
+
+!split
+===== The next steps =====
+!bblock
+With a functioning code for large-scale shell-model problems, the next step is to 
+enable the computation of transition operators and one- and two-body operators. This will allow one to be able to compute various transition probabilities. The code should be able to handle
+* $M\Lambda$ and $E\Lambda$ 
+* GT operators
+* Double-beta decay operators
+* Spectroscopic factors and general two-body operators
+* Parallelize the shell-model program
+!eblock
+!split
+===== Addition about FCIQMC  =====
+!bblock
+A great challenge is to provide benchmark calculations for the two- and three-dimensional electron gas and infinite nuclear matter. Here, a representation of the single-particle energies in a cartesian basis is essential, see for example the "PhD thesis of Gustav Baardsen":"https://www.duo.uio.no/handle/10852/41025". 
+
+The recently developed Full Configuration Interaction Quantum Monte Carlo ("FCIQMC":"http://www.nature.com/nature/journal/v493/n7432/fig_tab/nature11770_F1.html") method has gained a lot of attention in quantum chemistry, providing benchmark calculations for the homogeneous electron gas in three dimensions. An exciting extension of the developed shell-model code, could be to start studying infinite nuclear matter with the FCIQMC methods. 
+
+A good introduction, with programs as well, is given by "Karl Leikanger's thesis":"https://www.duo.uio.no/bitstream/handle/10852/37172/master.pdf?sequence=1" 
+!eblock
+
+
+

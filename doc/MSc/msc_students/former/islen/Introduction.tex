@@ -1,0 +1,391 @@
+% % % % % % % % \begin{frame}{Explaining a physical phenomena}
+% % % % % % % % 
+% % % % % % % % 	\begin{scriptsize}
+% % % % % % % % 		\begin{columns}[T,l]
+% % % % % % % % 		
+% % % % % % % % 			\column{4cm}
+% % % % % % % % 			\begin{figure}
+% % % % % % % % 				\centering.
+% % % % % % % % 				\scalebox{0.65}{\input{chartFlows/vennDiagramTheoryExperiment.tex}}\\
+% % % % % % % % 				\scalebox{0.65}{\input{chartFlows/vennDiagramTheoryExperimentSimulation.tex}}
+% % % % % % % % 				\caption{Traditional vs modern.}
+% % % % % % % % 			\end{figure}
+% % % % % % % % 			
+% % % % % % % % 			\column{6cm}
+% % % % % % % % 			\begin{block}{Applications}
+% % % % % % % % 				\begin{itemize}
+% % % % % % % % 				 \item Molecular dynamics.
+% % % % % % % % 				 \item Astrophysics.
+% % % % % % % % 				 \item Medicine.
+% % % % % % % % 				 \item Climate modelling.
+% % % % % % % % 				 \item Finances.
+% % % % % % % % 				\end{itemize}
+% % % % % % % % 
+% % % % % % % % 			\end{block}
+% % % % % % % % 	
+% % % % % % % % 		\end{columns}
+% % % % % % % % 	\end{scriptsize}	
+% % % % % % % % 
+% % % % % % % % \end{frame}
+
+
+\section{Introduction}
+
+\begin{frame}{Why computational physics?}
+	\begin{scriptsize}
+		\begin{columns}		
+			\column{4cm}
+      
+      \begin{alertblock}{}%%%%{Computational physics}
+        \begin{figure}
+          \centering.
+% %           \scalebox{0.65}{\input{chartFlows/vennDiagramTheoryExperiment.tex}}\\
+          \scalebox{0.65}{\input{chartFlows/vennDiagramTheoryExperimentSimulation.tex}}
+  % % %       \caption{MMM}
+        \end{figure}
+      \end{alertblock}
+% % % % % 			\begin{figure}
+% % % % % 				\centering.
+% % % % % % % % % % % % % % 				\scalebox{0.65}{\input{chartFlows/vennDiagramTheoryExperiment.tex}}\\
+% % % % % 				\scalebox{0.85}{\input{chartFlows/vennDiagramTheoryExperimentSimulation.tex}}
+% % % % % 				\caption{Traditional vs modern.}
+% % % % % 			\end{figure}
+			
+			\column{6cm}
+			\begin{block}{Advantages}
+				\begin{itemize}
+					\item Better understanding of the processes.
+					\item Cheaper and less dangerous than experiments.
+					\item Allow experiments impossible practically.
+					\item Need to routinely predict processes.
+				\end{itemize}
+			\end{block}
+	
+			\begin{block}{What are the difficulties?}
+				\begin{itemize}
+					\item Numerical method: which one?, does it work properly? Is it efficient?,...
+					\item Programming: howto, modularity, efficiency, maintainibility, reusability? ...
+					\item Hardware: Speed, memory (storage)?
+				\end{itemize}
+			\end{block}
+		\end{columns}
+	\end{scriptsize}	
+
+\end{frame}
+	
+
+
+
+		 
+
+\begin{frame}{Methodology in computational physics}
+	\begin{scriptsize}
+		\begin{columns}%[T,l]
+			\column{6cm}
+			\begin{figure}
+        \centering
+        \scalebox{0.65}{\input{chartFlows/simulationProcess.tex}}
+        \caption{Simulation chart flow}
+			\end{figure}
+			
+			\column{6cm}
+% % % %       \frame
+      \tableofcontents
+      
+		\end{columns}
+	\end{scriptsize}	
+\end{frame}
+	
+	
+%%%%%%%%% CONTENTS %%%%%%%%%%%%%%%	
+% % % % % % % \begin{frame}{Table of contents}
+% % % % % % % \tableofcontents
+% % % % % % % \end{frame}
+
+
+
+%%%%%%%%%%%%%% THE MANY-BODY PROBLEM %%%%%%%%%%%%%%%%%%
+\subsection{Physical problem}
+\begin{frame}{The many-body problem in quantum mechanics}
+	\begin{scriptsize}
+		\begin{alertblock}{Goal}
+			Solve the many-electron Schr\"odinger equation to obtain the ground state energy in quantum mechanical systems with the so-called \emph{closed shell} model.
+		\end{alertblock}
+	\end{scriptsize}
+	
+
+	\begin{columns}
+		\column{5cm}
+		\scriptsize
+		\begin{block}{Time-independent Schr\"odinger eq.}
+			\begin{itemize}
+			\item For a system of $N$-particles:
+			\begin{equation}
+				\Op{H} \Psi = E \Psi
+			\end{equation} 
+			\item Hamiltonian: Total energy
+			\begin{equation}\label{generalHamiltonian}
+				\Op{H} = \Op{K}(\bfv{x}) + \Op{V}(\bfv{x})
+			\end{equation}
+			\end{itemize}
+		\end{block}
+
+		\column{5cm}
+		\scriptsize
+		\begin{block}{Physical systems}
+			\begin{itemize}
+			\item Atoms: helium and beryllium.
+% % % % % % % 			\item Electrons trapped in harmonic oscillator potential.
+			\item Quantum dots.
+			\end{itemize}
+		\end{block}
+	\end{columns}
+\end{frame}
+
+
+
+\subsection{Mathematical model}
+%%\subsection{Hamiltonian for atoms}
+\begin{frame}{How to define our Hamiltonian...for atoms?}
+	\begin{scriptsize}
+	\begin{alertblock}{Assumptions}
+		\begin{enumerate}
+		
+			\item Assume non-relativistic energies.
+			
+			\item Use Born-Oppenheimer approximation:
+				\begin{itemize}
+					\scriptsize
+					\item Nuclei are much more massive than electrons ($\sim 2000:1$ or more).
+					\item Electron motions much faster than nuclear motions.
+					\item Assume that electrons move instantly compared to nuclei.
+				\end{itemize}
+				
+			\item Go from a molecular to an electronic Schr\"ondinger equation.
+		\end{enumerate}
+	\end{alertblock}
+	
+	\begin{alertblock}{Hamiltonian for hydrogen-like atoms.}
+		\centering
+		$\Op{H} = \underbrace{- \frac{\hbar^ 2}{2m} \sum_{i=1}^ {N} \nabla_{\bfv{r}_i}^{2}}_{\begin{smallmatrix}\text{Electronic}\\\text{kinetic energy}\end{smallmatrix}}  - \overbrace{\underbrace{\frac{\hbar^2}{2m} \sum_{i=1}^{N}\frac{Z}{|\bfv{r}_i - \bfv{R}|}}_{\begin{smallmatrix}\text{Attraction of electron $i$}\\\text{by nucleus}\end{smallmatrix}}  + \underbrace{\frac{1}{4 \pi \epsilon_0} \sum_{i=1}^{N} \sum_{j=i+1}^{N}\frac{e^2}{|\bfv{r}_i - \bfv{r}_j|}}_{\begin{smallmatrix}\text{Repulsion between }\\\text{electrons $i$ and $j$}\end{smallmatrix}}}^{\text{Potential energy}}$
+	\end{alertblock}
+	\end{scriptsize}
+\end{frame}
+
+% % % % % \item $\hat{H} = \hat{T} + \hat{V}$
+% % % % %  \newline where $\hat{T}$: kinetic energy operator,\newline $\hat{V}$: potential energy operator (including confining potential and particle interaction potential).
+
+
+%%%\subsection{Hamiltonian for quantum dots}
+
+\begin{frame}{How to define our Hamiltonian...for quantum dots?}
+  \begin{scriptsize}
+  \begin{alertblock}{Assumptions}
+    \begin{enumerate}
+    
+      \item Assume non-relativistic energies.
+      
+      \item Confining potential modelled by an harmonic oscillator potential.
+        
+      \item Use the electronic Schr\"ondinger equation.
+    \end{enumerate}
+  \end{alertblock}
+  
+  \begin{alertblock}{Hamiltonian for quantum dots.}
+    \centering
+    $$\Op{H} =\underbrace{\sum_{i=1}^{N}[-\frac{\hbar^2}{2m^*}\nabla^{2}_{i}}_{\begin{smallmatrix}\text{Electronic}\\\text{kinetic energy}\end{smallmatrix}}          
+         +\underbrace{\frac{1}{2} m^*\omega^{2}(x_{i}^{2}\!+\!y_{i}^{2})]}_{\begin{smallmatrix}\text{Confining}\\\text{potential}\end{smallmatrix}} + \underbrace{\frac{e^2}{4\pi\epsilon_0\epsilon_r}\sum_{i=1}^{N}\sum_{j=i+1}^{N}\!\frac{1}{|\bfv{r}_i - \bfv{r}_j|}}_{\text{Repulsion}}
+        $$
+      \end{alertblock}
+  \end{scriptsize}
+\end{frame}
+
+
+
+% % % % % % % \begin{frame}{Atomic units and scaling}
+% % % % % % % 
+% % % % % % % 		\begin{table}[hbtp]
+% % % % % % % 			\begin{center} 
+% % % % % % % 				\resizebox{0.65\textwidth}{!}{
+% % % % % % % 				\begin{tabular}{llc}
+% % % % % % % 					\toprule[1pt]
+% % % % % % % 					{\bf Quantity}                 & {\bf SI}               & {\bf Atomic unit}\\
+% % % % % % % 					\midrule[1pt]
+% % % % % % % 					Electron mass, $m$               & $9.109\cdot 10^{-31}$ kg & 1 \\
+% % % % % % % 					Charge, $e$                      & $1.602\cdot 10^{-19}$ C  & 1 \\
+% % % % % % % 					Planck's reduced constant, $\hbar$& $1.055\cdot 10^{-34}$ Js& 1 \\       
+% % % % % % % 					Permittivity, $4\pi\epsilon_0$   & $1.113\cdot 10^{-10}$ C$^2$ J$^{-1}$ m$^{-1}$&1\\
+% % % % % % % 					Energy, $\frac{e^2}{4\pi\epsilon_0 a_0}$ & $27.211$ eV       & 1 \\
+% % % % % % % 					Length, $a_0=\frac{4\pi\epsilon_0 \hbar^2}{me^2}$&$0.529\cdot10^{-10}$ m&1\\
+% % % % % % % 					\bottomrule[1pt]
+% % % % % % % 				\end{tabular}
+% % % % % % % 				}
+% % % % % % % 			\end{center}
+% % % % % % % 			\caption{\footnotesize{Units and scaling used in atomic and molecular physics calculations.}}
+% % % % % % % 			\label{atomicUnits}
+% % % % % % % 		\end{table}
+% % % % % % % 	
+% % % % % % % 	\begin{scriptsize}		
+% % % % % % % 		\begin{alertblock}{Why?}
+% % % % % % % 			\begin{columns}
+% % % % % % % 				\begin{column}{0.45\textwidth}
+% % % % % % % 					\begin{itemize}
+% % % % % % % 						\item Dimensionless variables.
+% % % % % % % 						\item Less constants and parameters.
+% % % % % % % 						\item Numerical precision: roundoff errors, overflow, underflow.
+% % % % % % % 					\end{itemize}
+% % % % % % % 				\end{column}
+% % % % % % % 			
+% % % % % % % 				\begin{column}{0.45\textwidth}
+% % % % % % % 					\begin{itemize}
+% % % % % % % 						\item Compact mathematical formulation.
+% % % % % % % 						\item Easier code.
+% % % % % % % 						\item Less typographical error.
+% % % % % % % 					\end{itemize}
+% % % % % % % 				\end{column}
+% % % % % % % 			\end{columns}
+% % % % % % % 		\end{alertblock}
+% % % % % % % 	\end{scriptsize}
+% % % % % % % \end{frame}
+% % % % % % % 
+% % % % % % % 
+% % % % % % % 
+% % % % % % % \begin{frame}{Hamiltonians}
+% % % % % % %  \begin{alertblock}{Scaled Hamiltonian for atoms}
+% % % % % % % 			$$\Op{H} = - \frac{1}{2} \sum_{i=1}^ {N} \nabla_{\bfv{r}_i}^{2}  -  \sum_{i=1}^{N}\frac{Z}{|\bfv{r}_i - \bfv{R}|}  +  \sum_{i=1}^{N} \sum_{j=i+1}^{N}\frac{1}{|\bfv{r}_i - \bfv{r}_j|}$$
+% % % % % % % 		\end{alertblock}
+% % % % % % % 		
+% % % % % % % 		\begin{alertblock}{Scaled Hamiltonian for quantum dots}
+% % % % % % % 			$$\Op{H} = \sum_{i=1}^{N} \left[-\frac{1}{2}\nabla^{2}_{i} + \frac{1}{2} \omega^{2}(x_{i}^{2} + y_{i}^{2})\right] + \sum_{i=1}^{N} \sum_{j=i+1}^{N} \frac{1}{r_{ij}}$$
+% % % % % % % 		\end{alertblock}
+% % % % % % % \end{frame}
+
+
+
+
+
+% \begin{frame}{Why is it a hard problem to solve?}
+% 	\begin{alertblock}{TISE: Time-independent Schr\"odinger equation}
+% 			$
+% 			\Op{H}(\bfv{r}_1,\bfv{r}_2,\cdots,\bfv{r}_N) \Psi(\bfv{r}_1,\bfv{r}_2,\cdots,\bfv{r}_N) = E \Psi(\bfv{r}_1,\bfv{r}_2,\cdots,\bfv{r}_N)
+% 		$
+% % 	% 			
+% 			$$
+% 			\Op{H} = \underbrace{\xcancel{- \frac{1}{2 M} \nabla_{\bfv{R}}^{2}} - \frac{1}{2} \nabla_{\bfv{r}_1}^{2} - \frac{1}{2} \nabla_{\bfv{r}_2}^{2}}_{\text{Kinetic energy}} -  \underbrace{\frac{2}{|\bfv{r}_1 - \bfv{R}|}  -  \frac{2}{|\bfv{r}_2 - \bfv{R}|} +  \frac{1}{|\bfv{r}_2 - \bfv{r}_1|}}_{\text{Potential energy}}
+% 			$$
+% 					
+% 			$$
+% 			\nabla^2 = \frac{\partial^2}{\partial x^2} +  \frac{\partial^2}{\partial y^2} + \frac{\partial^2}{\partial z^2}
+% 			$$
+% 			
+% 			\begin{table}[hbtp]
+% 			\begin{center} 
+% 				\resizebox{0.65\textwidth}{!}{
+% 				\begin{tabular}{ll}
+% 					\toprule[1pt]
+% 					{\bf Hamiltonian term}    & {\bf Quantum nature}               \\
+% 					\midrule[1pt]
+% 					Kinetic energy            & One-body 	\\
+% 					Nuclei-nuclei             & Zero-body	\\
+% 					Nuclei-electron           & One-body  \\       
+% 					Electron-electron					& Two-body (hard)\\
+% 					\bottomrule[1pt]
+% 				\end{tabular}
+% 				}
+% 			\end{center}
+% 			\caption{\footnotesize{Nature of the terms in the Hamiltonian.}}
+% 			\label{atomicUnits}
+% 		\end{table}
+% 			
+% 			
+% 			
+% 			
+% 			% 		\begin{itemize}fo
+% % 		 \item Analytical solution only for hydrogen atom.
+% % 		\end{itemize}
+% % r a system of $N$-particles:
+% % 		
+% % 		\\ where $\bf{r_i}$ reprensents the (spatial/spin) coordinates of quasiparticle $i$, $\kappa$ stands for all quantum numbers needed to classify a given $N$-particle state, \newline $ | \Psi_\kappa \rangle$ and $E_\kappa$ are the eigenstates and eigenenergies of the system.
+% 	\end{alertblock}
+% \end{frame}
+% 
+% 
+% \begin{frame}{Why is it a hard problem to solve?}
+% 	\begin{alertblock}{What does the solution depend on?}
+% 		\begin{scriptsize}
+% 			$$
+% 				\Psi(\bfv{x}_1, \bfv{x}_2,\cdots,\bfv{x}_N) = \Psi(x_1,y_1,z_1,\sigma_1,x_2,y_2,z_2,\sigma_2,\cdots,x_N,y_N,z_N,\sigma_N)
+% 			$$
+% 			\begin{itemize}
+% 			 \item 
+% 			\end{itemize}
+% 		\end{scriptsize}
+% 	\end{alertblock}
+% \end{frame}
+% 
+% 
+% \begin{frame}{Why is it a hard problem to solve?}
+% 	\begin{alertblock}{Mathematical complexity}
+% 		\begin{scriptsize}
+% 			\begin{itemize}
+% 			 \item The TISE depends on a huge quantity of terms.
+% 			 \item The interaction term make the problem non-separable.
+% 			 \item For an $N-$electron system: $N (N-1)/2$
+% 			 \item Multidimensional integrations.
+% 			 \item Computational cost: storing, execution time.
+% 			\end{itemize}
+% 		\end{scriptsize}
+% 	\end{alertblock}
+% \end{frame}
+
+
+% \small
+% \textcolor{red}{We want to solve:} $\Op{H} \Psi = E \Psi$. \emph{The solution usually involves integrals in high dimensions ($3 \sim 30000$)}
+% 		% 		\textcolor{green}{CITAR BRESINNINI}
+% 
+% $$\Op{H} = -\frac{1}{2}\sum_{i=1}^{N}\nabla^{2}_{i} + \sum_{i=1}^{N} V_{ext}(\bfv{r}_i) + \sum_{i=1}^{N}\sum_{j=i+1}^{N} V(\bfv{r}_i, \bfv{r}_j) + \cdots$$
+% 
+% \item \textcolor{red}{What depends the solution on?}
+% $$\Psi(\bfv{x}) = \Psi(\bfv{x}_1, \bfv{x}_2, \cdots, \bfv{x}_N), \qquad \bfv{x}_i = (x_i, y_i, z_i, \sigma_i) = (\bfv{r}_i, \sigma_i)$$
+% 
+% % % % % % % % % % % Traditional quadrature methods for integration are expensive in high dimensional problems.
+% % % % % % % % % % % \item DIBUJAS SFUNCIONES DE ONDA Y SUS CUADRADOS
+% % % % % Aqui podriamos incluir los hamiltonianos de los casos de estudio. Mas adelante, despues del algorithmo incluiriamos las funcones de onda que vamos a utilizar y ojala unas graficas de la funcion y su fncion all cuadradol
+% % % % % 
+% % % % % Escribir que tenemos un problema fisico y otro de programacion para hacer el trabajo mas effectivo... utilizar esto para enlazar con python cpp ideas.
+% 
+% 
+% 	\begin{alertblock}{Mathematical complexity}
+% 	
+% 		\begin{itemize}
+% 		 \item The interelectronic correlation make the problem non-separable.
+% 		 \item The multidimensionality make the problem inmanejable.
+% 		\end{itemize}
+% 
+% 	\end{alertblock}
+% 	
+% dificulatades del model como tal. complejidad matematica.
+% dificultades para resolverlo numericamente.
+% \begin{block}{The Schr\"odinger equation}
+% \begin{itemize}
+% \item The Schr\"odinger equation of a $N$-particle system
+% \begin{equation}
+% \hat{H}(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) | \Psi_\kappa (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) \rangle=E_\kappa | \Psi_\kappa (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) \rangle
+% \end{equation} 
+%  \\ where $\bf{r_i}$ reprensents the (spatial/spin) coordinates of quasiparticle $i$, $\kappa$ stands for all quantum numbers needed to classify a given $N$-particle state, \newline $ | \Psi_\kappa \rangle$ and $E_\kappa$ are the eigenstates and eigenenergies of the system.
+% \end{itemize}
+%   \end{block}
+% \begin{alertblock}{Why is it a hard problem?}
+% \begin{itemize}
+% \item One-body terms:
+% 	\begin{itemize}
+% 		\item N-electrons need N functions of three dimensions.
+% 		\item Discretizing each spatial dimension with $q$ points we will need $N q^3$ values to describe electrons. For $N=100, \, q=100, \, 3Nq^3 = 100^{300}$.
+% 	 
+% 	\end{itemize}
+% 
+% % % % % % \item $\hat{H} = \hat{T} + \hat{V}$
+% % % % % %  \newline where $\hat{T}$: kinetic energy operator,\newline $\hat{V}$: potential energy operator (including confining potential and particle interaction potential).
+% \end{itemize}
+%   \end{alertblock}
+

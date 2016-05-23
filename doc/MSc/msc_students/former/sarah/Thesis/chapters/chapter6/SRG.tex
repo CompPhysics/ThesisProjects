@@ -1,0 +1,197 @@
+\label{chap:SRG}
+In this chapter, we introduce the theory of the similarity renormalization group (SRG) method.  In the first two sections, we expose the general ideas and formalisms of the method. The subsequent parts discuss two different realizations of the method: first an application to free space, and afterwards we explain how to model SRG in-medium, when making use of the technique of normal-ordering.
+
+
+\section{General aspects}
+The SRG method was introduced independently by Glazek and Wilson \cite{PhysRevD.48.5863,PhysRevD.49.4214} and Wegner \cite{PhysRepWegner0,PhysRepWegner} as a new way to implement the principle of energy scale separation. While Glazek and Wilson developed it under the name \textit{similarity renormalization scheme} in the context of high-energy physics, Wegner evolved it under the name \textit{flow equations} in the context of condensed matter theory.
+
+The SRG uses a continuous sequence of unitary transformations to decouple the high- and low-energy matrix elements of a given interaction, thus driving the Hamiltonian towards a band- or block-diagonal form. \\
+Let us consider the initial Hamiltonian
+\[
+ \hat{H} = \Hd + \Ho,
+\]
+where $\Hd$ and $\Ho$ denote its  ``diagonal'' and ``off-diagonal'' parts, namely
+\[
+\left\langle i \right| \Hd \left| j \right\rangle \equiv 
+\begin{cases}
+\left\langle i \right| \hat{H} \left| i \right\rangle &\text{if}\; i = j,\\
+0 & \text{otherwise}
+\end{cases}
+\]
+and analogously
+\[
+\left\langle i \right| \Ho \left| j \right\rangle \equiv 
+\begin{cases}
+\left\langle i \right| \hat{H} \left| j \right\rangle &\text{if}\; i \neq j,\\
+0 & \text{otherwise}.
+\end{cases}
+\]
+
+ Introducing a flow parameter $s$, there exits a unitary transformation $U_s$ such that
+\begin{equation}
+ \hat{H}_s = U_s \hat{H} U_s^\dagger \equiv \Hd_s + \Ho_s,
+\end{equation}
+with the relations $U_{s=0} = 1$, and $\hat{H}_{s= 0} = \hat{H}$. Taking the derivative with respect to $s$, one obtains 
+\begin{equation}
+ \frac{d \hat{H}_s}{ds} = \frac{d U_s}{ds}\hat{H} U_s^\dagger + U_s \hat{H} \frac{d U_s}{ds}.
+\label{eq:flow_long}
+\end{equation}
+Since the transformation $U_s$ is unitary with $U_s U_s^\dagger = 1$, we have that
+\be
+ \frac{d U_s}{ds} U_s^\dagger = - U_s \frac{d U_s\dagger}{ds} \equiv \hat{\eta}_s,
+\label{eq:eta11}
+\ee
+and introduce $\hat{\eta}_s$ as \textit{generator} of the transformation. Inserting Eq.(\ref{eq:eta11}) into Eq. (\ref{eq:flow_long}) gives
+\be
+\frac{d \hat{H}_s}{ds} = \hat{\eta}_s \hat{H}_s - \hat{H}_s \hat{\eta}_s = \left[\hat{\eta}_s, \hat{H}_s \right],
+\label{eq:flow_short}
+\ee
+the key expression of the SRG method, which describes the flow of the Hamiltonian.
+
+With the generator $\hat{\eta}_s$ introduced, the unitary transformation can formally be rewritten as \cite{kehrein2006flow}
+\begin{align*}
+U_s &= T_s \exp \left(-\int_0^s \! ds'\hat{\eta}_s' \right)\\
+&= 1 + \sum\limits_{n=1}^\infty\frac{1}{n!}\int_0^s ds_1 \dots ds_n T_s(\hat{\eta}_{s_1}\dots\hat{\eta}_{s_n}),
+\end{align*}
+where $T_s$ denotes $s$-ordering. This one is defined equivalently to usual time ordering: The generator $\hat{\eta}_{s_i}$ with the smallest $s_i$ is permuted to the right, the one with next smallest $s_i$ one step further left etc.. This gives
+\[
+T_s(\hat{\eta}_{s_1}\dots\hat{\eta}_{s_n}) \equiv \hat{\eta}_{s_{\pi(1)}}\dots \hat{\eta}_{s_{\pi(n)}},
+\]
+with permutations $\pi\in S_n$ such that $ \hat{\eta}_{s_{\pi(1)}}\geq \hat{\eta}_{s_{\pi(2)}} \geq \dots \geq \hat{\eta}_{s_{\pi(n)}}$.
+
+\section{Choice of the generator $\hat{\eta}$}
+\label{sec:ChoiceEta}
+
+The specific unitary transformation is determined by the choice of $\hat{\eta}_s$, which is subject to the condition 
+\[
+ \hat{\eta}_s^\dagger = -\hat{\eta}_s,
+\]
+following from Eq.(\ref{eq:eta}). Through different choices of $\hat{\eta}_s$, the SRG evolution can be adapted to the features of a particular problem.
+
+
+\subsection{Canonical generator}
+The original choice for $\hat{\eta}_s$ suggested by Wegner \cite{PhysRepWegner0} reads
+\[
+ \hat{\eta}_s = \left[\hat{H}^{\rm d}_s,\hat{H}_s\right] = \left[\hat{H}^{\rm d}_s,\hat{H}^{\rm od}_s\right] \,
+\]
+and has extensively been applied in condensed matter physics. As commutator between two hermitian operators, $\hat{\eta}_s$ fulfils the criterion of antihermiticity and can be shown to suppress the off-diagonal matrix elements, provided that the two conditions
+\be
+ \text{Tr}\left(\Hd_s \Ho_s\right) = 0
+\label{eq:cond1}
+\ee
+and
+\be
+\text{Tr}\left(\frac{d\Hd_s}{ds} \Ho_s\right) = 0
+\label{eq:cond2}
+\ee
+%where the trace is taken over all states in the Hilbert space.
+are met \cite{kehrein2006flow}. Due to its many successful applications in condensed matter and nuclear physics, it will be one of the choices in this thesis, too.\\
+However, also other choices are possible and might even have better numerics or efficiency. In
+our case the initial Hamiltonian is given in the center-of-mass frame
+\[
+\hat{H} = \hat{T}_{\rm rel} + \hat{V},
+\]
+where $\hat{T}_{\rm rel} = \sum\limits_i \hat{t}_i$  is the relative kinetic energy  and $\hat{V} = \sum\limits_{i<j} \hat{v}_{ij} $ describes the interaction part. In this case it seems desirable to express the unitary transformation as
+\[
+\hat{H}_s = U_s \hat{H} U^\dagger_s = \hat{T}_{\rm rel} + \hat{V}_s,
+\]
+which means that all dependence on the flow parameter $s$ is stored in the potential part of the Hamiltonian and $\T$ is constant during the whole computation.
+
+A simple generator which fulfils this criterion and eliminates the off-diagonal elements during the flow is
+\[
+\hat{\eta}_s = \left[\hat{T}_{\rm rel}, \hat{H}_s\right].
+\]
+Since $\hat{T}_{\rm rel}$ obviously commutes with itself, this is equivalent to
+\be
+\hat{\eta}_s = \left[\hat{T}_{\rm rel}, \hat{V}_s\right].
+\label{eq:eta_simple}
+\ee
+This generator has been successfully applied in nuclear physics, too \cite{ScottSRG,PhysRevC.75.061001,Bogner200821,SRGThreeDim},
+%g, 30pag)
+and later on, we will compare its effect on the flow equations with Wegner's generator.
+
+%To proof that with this generator the Hamiltonian is driven to a diagonal form, we use condition (\ref{eq:cond2}) to get (ref?)
+%\begin{align*}
+% \frac{d}{ds} \text{Tr}\left((\Ho_s)^{2}\right) &= 2 \text{Tr} \left( \Ho_s \frac{d \Ho_s}{ds} \right) \\
+%&= 2 \text{Tr} \left(\Ho_s \frac{d H_s}{ds} \right).
+%\end{align*}
+%Employing the flow equation (\ref{eq:flow_short}) and the property that the trace remains invariant under cyclic exchange, one obtains
+%\begin{align*}
+% \frac{d}{ds} \text{Tr}\left((\Ho_s)^{2}\right) &= 2 \text{Tr} \left( \Ho_s \left[\hat{\eta}_s, H_s \right] \right) \\
+%&= 2 \text{Tr} \left( \hat{\eta}_s \left( H_s \Ho_s - \Ho_s H_s \right) \right).
+%\end{align*}
+%Using that 
+%\[
+% \hat{\eta}_s = \left[H^{\rm d}_s,H^{\rm od}_s\right] =  \left[H_s,H^{\rm od}_s\right]\,
+%\]
+%we finally get
+%\begin{align*}
+% \frac{d}{ds} \text{Tr}\left((\Ho_s)^{2}\right) &= 2 \text{Tr}\left( \hat{\eta}_s\right) \\
+%&= -2 \text{Tr}\left( \hat{\eta}^\dagger_s \hat{\eta}_s \right) \\
+%& \leq 0,
+%\end{align*}
+%since $\hat{\eta}^\dagger_s \hat{\eta}_s$ is a positive semi-definite operator (ref!). Thus the off-diagonal elements of the Hamiltonian get gradually more and more suppressed, as long as the generator $\hat{\eta}_s$ itself does not vanish. However, in this case $\Hd_s$ and $\Ho_s$ commute anyway and are diagonal in a common eigenbasis.
+
+\subsection{White's generator}
+\label{subsec:White}
+Apart from the canonical generator, there exist several other ones in literature. One of them is White's choice \cite{White:cond-mat0201346}, which has been shown to make numerical approaches much more efficient. 
+
+The problem with the canonical generator are the widely varying decaying speeds of the elements, removing first terms with large energy differences and then subsequently those ones with smaller energy separations.  That way, the flow equations become a stiff set of coupled differential equations, and often a large number of integration steps are needed.\\
+White takes another approach, which is especially suited for problems where one is interested in the ground state of a system. Instead of driving all off-diagonal elements of the Hamiltonian to zero, he focuses barely on those ones that are connected to the reference state $|\Phi_0\rangle$, aiming to decouple the reference state from the remaining Hamiltonian. With a suitable transformation, the elements get similar decaying speeds, which solves the problem of the stiffness of the flow equations.
+
+To derive an expression for the generator, consider the Hamiltonian operator in second quantization
+\be
+\hat{H} = \sum\limits_{pq}\left\langle p \right| \hat{h}^{(0)} \left| q \right\rangle a_p\da a_q + \frac{1}{4}\sum\limits_{pqrs}\lla pq || r s \rra a_p\da a_q\da a_s a_r  + \dots
+\label{eq:White1}
+\ee
+More generally, this one can be rewritten as
+\be
+\hat{H} = \sum_\alpha a_{\alpha} h_{\alpha},
+\label{eq:White2}
+\ee
+where $h_{\alpha}$ is a product of $\alpha$ creation and annihilation operators, and $a_{\alpha}$ the corresponding coefficient. Hence, in Eq.(\ref{eq:White1}), we have $a_1 = \left\langle p \right| \hat{h}^{(0)} \left| q \right\rangle$ with $h_1 = a_p\da a_q$, $a_2 = \frac{1}{4}\lla pq \right|\left| r s \rra$ with $h_2 = a_p\da a_q\da a_s a_r$, etc.\\
+Moreover, introducing a flow parameter $s$, Eq.(\ref{eq:White2}) becomes
+\be
+\hat{H}(s) = \sum_\alpha a_{\alpha}(s) h_{\alpha}.
+\label{eq:White3}
+\ee
+According to White, the generator can be expressed in terms of $a_{\alpha}(s)$ and $h_{\alpha}$ the following way:
+\be
+\hat{\eta}(s) = \sum_{\alpha} \hat{\eta}_{\alpha}(s)h_{\alpha}, \qquad \text{where} \quad \hat{\eta}_{\alpha}(s) = b_{\alpha}a_{\alpha}(s) 
+\label{eq:White4}
+\ee
+The $b_{\alpha}$ are fixed parameters that should ensure that the $a_{\alpha}(s)$ corresponding to off-diagonal elements are driven to zero.  For diagonal elements and others that are not connected to the
+ reference state $|\Phi_0\rangle$, and therefore should not be zeroed out, the parameter $b_{\alpha}$ is
+  set to zero. For the remaining elements, $b_{\alpha}$  is chosen in such a way, that all
+  $a_{\alpha}(s)$ have approximately the same decaying speed. \\
+  White's suggestion is to set 
+\be
+b_{\alpha} = (E_l^{\alpha}-E_r^{\alpha})^{-1},
+\ee
+where
+\[
+E_l^{\alpha} = \left\langle L^{\alpha} \right|\hat{H}\left|L^{\alpha}\right\rangle, \quad E_r^{\alpha} = \left\langle R^{\alpha} \right|\hat{H}\left|R^{\alpha}\right\rangle.
+\]
+The so-called \textit{left state} $\left| L^{\alpha} \right\rangle$ and \textit{right state} $\left| R^{\alpha} \right\rangle$ are defined as that pair of states fulfilling $\left\langle L^{\alpha} \right|\hat{V}\left| R^{\alpha} \right\rangle \neq 0$, that is closest to the reference state $\left| \Phi_0 \right\rangle$. In order to specify this statement, we introduce the quasi-particle operators $d$ and $d\da$, which satisfy 
+\be
+d_i \left| \Phi_0 \right\rangle = 0.
+\label{eq:dops}
+\ee
+They are related to the standard creation and annihilation operators $a_i\da$ and $a_i$ in such a way, that $d_i\da = a_i\da$ for an unoccupied state $i$ and $d_i\da = a_i$ for an occupied state $i$. Therefore, they satisfy the same anticommutation relations
+\begin{align*}
+\lbrace d_i\da , d_j\da \rbrace = \left\lbrace d_i^{}, d_j^{} \right\rbrace &= 0 \\
+\lbrace d_i\da , d_j \rbrace &= \delta_{i,j}.
+\end{align*}
+With those operators, the pair of states $\left| L^{\alpha} \right\rangle$ and $\left| R^{\alpha} \right\rangle$ 
+%in $\left\langle L^{\alpha} \right|\hat{V}\left| R^{\alpha} \right\rangle \neq 0$ 
+closest to $\left| \Phi_0\right\rangle$ can be specified as that pair having the fewest number of quasi-particle creation operators $d\da$ acting on $\left|\Phi_0\right\rangle$.
+
+As an example, consider 
+\[
+a_{\alpha}h_{\alpha} = a_{\alpha} d_i\da d_j d_k d_l.
+\]
+In this case, the states closest to the reference state $\left|\Phi_0\right\rangle$, that satisfy $\left\langle L^{\alpha} \right|\hat{V}\left| R^{\alpha} \right\rangle \neq 0$, are
+\begin{align*}
+\left|R^{\alpha}\right\rangle &= d_m\da d_k\da d_j\da \left|\Phi_0\right\rangle \\
+\left|L^{\alpha}\right\rangle &= d_i\da \left| \Phi_0 \right\rangle.
+\end{align*}

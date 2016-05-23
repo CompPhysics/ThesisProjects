@@ -1,0 +1,204 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Thesis title: Monte-Carlo simulations of light nuclei}
+
+{\bf The aim of this thesis is to study numerically systems of
+light nuclei using various models for the nucleon-nucleon interaction.
+Variational Monte Carlo (VMC) and 
+Diffusion Monte Carlo (DMC) methods will be used for solving 
+Schr\"odinger's equation. }
+
+
+
+
+A microscopic treatment of 
+problems in nuclear physics involves a highly complex and state dependent
+interaction. For systems of few nucleons (protons and neutrons) ab initio
+calculations can be performed. In this thesis the aim is to use 
+VMC and DMC approaches. These methods are briefly described below.
+
+\subsection*{Variational Monte Carlo}
+The variational quantum Monte Carlo (VMC) has been widely applied 
+to studies of quantal systems. 
+The recipe consists in choosing 
+a trial wave function
+$\psi_T({\bf R})$ which we assume to be as realistic as possible. 
+The variable ${\bf R}$ stands for the spatial coordinates, in total 
+$dN$ if we have $N$ particles present. The variable $d$ is the dimension
+of the system. 
+The trial wave function serves then as
+a mean to define the quantal probability distribution 
+\be
+   P({\bf R})= \frac{\left|\psi_T({\bf R})\right|^2}{\int \left|\psi_T({\bf R})\right|^2d{\bf R}}.
+\ee
+This is our new probability distribution function  (PDF). 
+
+The expectation value of the energy $E$
+is given by
+\be
+   \langle E \rangle =
+   \frac{\int d{\bf R}\Psi^{\ast}({\bf R})H({\bf R})\Psi({\bf R})}
+        {\int d{\bf R}\Psi^{\ast}({\bf R})\Psi({\bf R})},
+\ee
+where $\Psi$ is the exact eigenfunction. Using our trial
+wave function we define a new operator, 
+the so-called  
+local energy, 
+\be
+   E_L({\bf R})=\frac{1}{\psi_T({\bf R})}H\psi_T({\bf R}),
+   \label{eq:locale1}
+\ee
+which, together with our trial PDF allows us to rewrite the 
+expression for the energy as
+\be
+  \langle H \rangle =\int P({\bf R})E_L({\bf R}) d{\bf R}.
+  \label{eq:vmc1}
+\ee
+This equation expresses the variational Monte Carlo approach.
+For most hamiltonians, $H$ is a sum of kinetic energy, involving 
+a second derivative, and a momentum independent potential. 
+The contribution from the potential term is hence just the 
+numerical value of the potential.
+A good discussion of the VMC approach for nuclear systems can be found 
+in Ref.~[1].
+\subsection*{Diffusion Monte Carlo}
+The DMC method is based on rewriting the 
+Schr\"odinger equation in imaginary time, by defining
+$\tau=it$. The imaginary time Schr\"odinger equation is then
+\be
+   \frac{\partial \psi}{\partial \tau}=-\OP{H}\psi,
+\ee
+where we have omitted the dependence on $\tau$ and the spatial variables
+in $\psi$.
+The wave function $\psi$  is again expanded in eigenstates of the Hamiltonian 
+\be
+    \psi = \sum_i^{\infty}c_i\phi_i,
+    \label{eq:wexpansion_dmc}
+\ee 
+where 
+\be 
+   \OP{H}\phi_i=\epsilon_i\phi_i, 
+\ee 
+$\epsilon_i$ being an eigenstate of $\OP{H}$. 
+
+In order to solve the above equations, 
+importance sampling is essential for DMC methods, 
+if the simulation is to be efficient. 
+A trial or guiding wave function $\psi_T({\bf R})$, which closely
+approximates the ground state wave function is introduced.
+This is where typically the VMC result enters.
+A new distribution is defined as 
+\be
+   f({\bf R}, \tau)=\psi_T({\bf R})\psi({\bf R}, \tau),
+\ee
+which is also a solution of the Schr\"odinger equation when  
+$\psi({\bf R}, \tau)$ 
+is a solution. 
+Schr\"odinger's equation is consequently modified to
+\be
+   \frac{\partial f({\bf R}, \tau)}{\partial \tau}=
+    \frac{1}{2}\nabla\left[\nabla -F({\bf R})\right]f({\bf R}, \tau)
+    +(E_L({\bf R})-E_T)f({\bf R}, \tau).
+    \label{eq:dmcequation2}
+\ee
+In this equation we have introduced the so-called force-term $F$,
+given by
+\be
+   F({\bf R})=\frac{2\nabla \psi_T({\bf R})}{ \psi_T({\bf R})},
+\ee
+and is commonly referred to as the ``quantum force''. 
+The local energy $E_L$ is defined as previously
+\be
+    E_L{\bf R})=-\frac{1}{\psi_T({\bf R})}
+                \frac{\nabla^2 \psi_T({\bf R})}{2}+V({\bf R})\psi_T({\bf R}),
+\ee
+and is computed, as in the VMC method, with respect to the trial wave function
+while $E_T$ is the trial energy.
+
+We can give the following interpretation to Eq.~(\ref{eq:dmcequation2}).
+The right hand side of the importance sampled DMC equation
+consists, from left to right, of diffusion, drift and rate terms. The
+problematic potential dependent rate term of the non-importance 
+sampled method is replaced by a term dependent on the difference 
+between the local
+energy of the guiding wave function and the trial energy. 
+The trial energy is initially chosen to be the VMC energy of 
+the trial  wave function, and is
+updated as the simulation progresses. Use of an optimised 
+trial function minimises the difference between the local 
+and trial energies, and hence
+minimises fluctuations in the distribution $f$ . 
+A wave function optimised using VMC is ideal for this purpose, 
+and in practice VMC provides the best
+method for obtaining wave functions that accurately 
+approximate ground state wave functions locally. 
+
+\subsection*{Nucleon-Nucleon interactions}
+Several models for the nucleon-nucleon interaction exists.
+All models are essentially based on a meson-exchange picture, see 
+e.g., Ref.~[2,3]. The parameters
+of these models are chosen so as to reproduce on-shell scattering data.
+
+In Ref.~[1] and in similar studies, a potential model based on an operator
+expansion, where the operators depend on the spatial coordinates,
+has been employed, see Ref.~[2] for more details.  
+In this thesis the plan is to employ another potential model,
+the so-called charge-dependent Bonn potential model [3]. This potential
+is based on a field-theoretic meson-exchange model and is typically 
+modelled in momentum space.
+
+The task is to utilize 
+the latter potential model for light nuclei (with mass
+$A=3,4$) and compare with those obtained
+with the Argonne $V_{18}$ potential.
+Moreover, a correlation function based on the two-body scattering matrix
+of the Bonn potential will be employed in the calculations.
+
+\section*{Progress plan}
+The thesis is expected to be finished towards the end  of the spring 
+semester of 2004.
+Parts of the thesis project will be done
+at Argonne National Lab, USA.
+\begin{itemize}
+\item Fall 2002: Follows lectures in Fys 211 (3vt), 270 (3vt), 
+      Fys 305 (many-body physics, 3vt) and
+      computational physics III (3vt) with final exam.  
+\item Spring 2003:  Exam in Fys 372 (Nuclear structure, 3vt). Begin
+      of thesis work.
+      Write a code which solves the variational Monte-Carlo (VMC) problem
+      for two interacting nucleons interacting with just a central force.
+      This code is then expanded to include the full nucleon-nucleon force 
+      and to account for more than two
+      nucleons. These nucleons do still interact through a two-body force.
+      Construction of a Slater determinant for a system of more than 2
+      nucleons.
+\item Fall 2003: The next step is to write a Diffusion 
+                 Monte Carlo (DMC) programme for the 
+      same system. 
+      The DMC code receives as input the optimal 
+     variational energy and wave function from the VMC calculation and solves
+     in principle the Schr\"odinger equation exactly.
+
+\item Spring 2004: Writeup of thesis, thesis exam and exam in Fys 305.
+
+\end{itemize}
+
+\section*{Literature}
+\begin{enumerate}
+\item J.~A.~Carlson and R.~B.~Wiringa, in Computational Nuclear Physics I,
+eds.~K.~Langanke, J.~A.~Maruhn and S.~E.~Koonin, (Springer, Berlin, 1991).
+\item R.~B.~Wiringa, V.G.J. Stoks, and R. Schiavilla, Phys. Rev. C 51,
+38 (1995).
+\item R. Machleidt, Phys. Rev. C 63, 024001 (2001).
+\end{enumerate}
+
+\end{document}

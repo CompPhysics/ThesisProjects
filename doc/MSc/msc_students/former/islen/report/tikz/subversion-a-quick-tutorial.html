@@ -1,0 +1,563 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html class="js" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml" lang="en"><head>
+
+
+    <title>Subversion - A Quick Tutorial | Ayman Hourieh's Blog</title>
+    <meta http-equiv="Content-Style-Type" content="text/css">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="shortcut icon" href="http://aymanh.com/misc/favicon.ico" type="image/x-icon">
+    <link type="text/css" rel="stylesheet" media="all" href="subversion-a-quick-tutorial_files/codefilter.css">
+<link type="text/css" rel="stylesheet" media="all" href="subversion-a-quick-tutorial_files/b77f3c64f98ecdf62562164896408385.css">
+<link type="text/css" rel="stylesheet" media="print" href="subversion-a-quick-tutorial_files/c317dbd53aad2d134673dbd9098c800e.css">
+    <script type="text/javascript" src="subversion-a-quick-tutorial_files/5ff04677b790e79ed5696b97777bfd8c.js"></script>
+<script type="text/javascript">jQuery.extend(Drupal.settings, { "basePath": "/", "googleanalytics": { "trackOutgoing": 1, "trackMailto": 1, "trackDownload": 1, "trackDownloadExtensions": "7z|aac|avi|csv|doc|exe|flv|gif|gz|jpe?g|js|mp(3|4|e?g)|mov|pdf|phps|png|ppt|rar|sit|tar|torrent|txt|wma|wmv|xls|xml|zip", "LegacyVersion": 0 } });</script>
+</head><body>
+<div id="container">
+  <div id="header">
+      <h1><a href="http://aymanh.com/" title="Ayman Hourieh's Blog">Ayman Hourieh's Blog</a></h1>
+      <div class="slogan">Computer Science, Open Source, and random bits.</div>
+  </div>
+  <div id="navigation">
+          <form action="/subversion-a-quick-tutorial" accept-charset="UTF-8" method="post" id="search-theme-form">
+<div><div id="search" class="container-inline">
+  <div class="form-item" id="edit-search-theme-form-1-wrapper">
+ <input maxlength="128" name="search_theme_form" id="edit-search-theme-form-1" size="15" value="" title="Enter the terms you wish to search for." class="form-text" type="text">
+</div>
+<input name="op" id="edit-submit-1" value="Search" class="form-submit" type="submit">
+<input name="form_build_id" id="form-cd15050de3e8f54da192d71b9c569a2c" value="form-cd15050de3e8f54da192d71b9c569a2c" type="hidden">
+<input name="form_id" id="edit-search-theme-form" value="search_theme_form" type="hidden">
+</div>
+
+</div></form>
+              <ul class="links primary-links"><li class="menu-91 first"><a href="http://aymanh.com/">Blog</a></li>
+<li class="menu-363"><a href="http://aymanh.com/photos" title="">Photos</a></li>
+<li class="menu-93"><a href="http://aymanh.com/activitystream">ActivityStream</a></li>
+<li class="menu-158"><a href="http://aymanh.com/about">About</a></li>
+<li class="menu-317 last"><a href="http://aymanh.com/contact" title="">Contact</a></li>
+</ul>      </div>
+<hr class="low">
+  <div id="content">
+    <div class="navigation"> <div class="breadcrumb"><a href="http://aymanh.com/">Home</a></div> </div>
+                  <h2 class="page-title">Subversion - A Quick Tutorial</h2>
+                <!-- start main content -->
+    <div class="entry entry-node"> 
+   
+  <p>I don't know how I managed to survive for years without some sort of <a href="http://en.wikipedia.org/wiki/Revision_control">version control</a>
+for my personal projects. First, I used to manually make backup copies
+of my project directory in case I wanted to revert back or compare
+revisions. Later, I relied on <a href="http://www.eclipse.org/">Eclipse</a>
+for a very basic version control system. Eclipse stores copies of
+project files after every save, and lets you compare revisions. Next, I
+decided to write a script that made backup copies of my projects
+directory, and archived them according to date/time.</p>
+<p>Finally, and given that I have been using CVS to contribute to
+various Open Source projects for a long time, I saw the light and
+decided to utilize a version control system for my own projects.</p>
+<p>I have been hearing about <a href="http://subversion.tigris.org/">Subversion</a>
+for a while, but never had the chance to read more on or try it out. So
+I decided to experiment with it instead of going directly with <a href="http://www.nongnu.org/cvs/">CVS</a>.
+First, it started as "trying something new" but later I realized
+Subversion has new features that cover many limitations of CVS. I'm no
+guru of either, but here's what I found:</p>
+<ul>
+<li>Subversion tracks structure of folders. CVS doesn't have the concept of folders.</li>
+<li>Subversion has a global revision number for the whole repository.
+CVS tracks each file individually. A commit that represents one logical
+change to the project code may change a group of files; in Subversion,
+this commit will have one revision number instead of separate revision
+numbers for every changed file in CVS.</li>
+<li>Subversion commands are very similar to CVS. It's very easy to
+switch for CVS users. Most of the time it's a matter of replacing <span class="geshifilter"><code class="geshifilter-text">cvs</code></span> with <span class="geshifilter"><code class="geshifilter-text">svn</code></span>.</li>
+</ul>
+<p>Again, I don't know all ins and outs of CVS or Subversion, if I'm missing anything, please correct me!</p>
+<p>It took me less than an hour to experiment with Subversion, learn
+it, and import my projects to it. So I decided to write a quick
+tutorial for those who:</p>
+<ol>
+<li>Are already familiar with version control systems (like CVS).</li>
+<li>Haven't used any for controlling their local projects.</li>
+<li>Would like to try Subversion.</li>
+</ol>
+<p>If this is not your case, I point you to "<a href="http://svnbook.red-bean.com/">Version Control with Subversion</a>" where I started reading about Subversion.</p>
+<p>Read on for the quick tutorial.</p>
+<p></p><div class="toc">
+<div class="toc-title">Table of Contents [<a href="#" class="toc-toggle">hide</a>]</div>
+<div class="toc-list">
+<ol>
+
+<ol>
+	<li><a href="#Installation">Installation</a></li>
+	<li><a href="#CreatingTheRepository">Creating The Repository</a></li>
+	<li><a href="#ImportingProjects">Importing Projects</a></li>
+	<li><a href="#CheckoutModifyCommit">Check out, Modify, Commit</a></li>
+	<li><a href="#WorkingwithRevisions">Working with Revisions</a>
+<ol>
+	<li><a href="#CheckStatus">Check Status</a></li>
+	<li><a href="#ComparedifferentRevisions">Compare different Revisions</a></li>
+	<li><a href="#RevertLocalEdits">Revert Local Edits</a></li>
+	<li><a href="#ReverttoPreviousRevisions">Revert to Previous Revisions</a></li>
+</ol>
+</li>
+	<li><a href="#AFinalWord">A Final Word</a></li>
+</ol>
+
+</ol>
+</div>
+</div>
+<h2 id="Installation">Installation</h2>
+<p>The first step for using Subversion is installing it. This depends on your system. For us, <a href="http://www.gentoo.org/">Gentoo</a> users, we can get Subversion going with one command:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;"># emerge subversion</pre></div>
+<p><a href="http://subversion.tigris.org/project_packages.html">Subversion has packages for many systems</a>, Linux (Gentoo, Debian, Fedora, ...), Mac OS X, FreeBSD, Windows, ...</p>
+<h2 id="CreatingTheRepository">Creating The Repository</h2>
+<p>The first Subversion tool we will use is <span class="geshifilter"><code class="geshifilter-text">svnadmin</code></span>.
+This tool is for administration tasks, like creating repositories,
+making backup dumps, and the like. To create a repository, open the
+command line, change the current directory to where you want to create
+it, and run <span class="geshifilter"><code class="geshifilter-text">svnadmin</code></span>:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ cd /home/ayman
+$ svnadmin create svn</pre></div>(I created my repository under my home directory: <span class="geshifilter"><code class="geshifilter-text">/home/ayman</code></span>)
+<p>I called my repository svn. You can call it whatever you like.
+Subversion uses this directory to store information about your
+projects, like file revisions. You won't need to directly deal with
+this directory, so I suggest keeping it in a safe place and not
+tinkering with its contents unless you know what you're doing.</p>
+<h2 id="ImportingProjects">Importing Projects</h2>
+<p>Now that we have a repository, we will use the <span class="geshifilter"><code class="geshifilter-text">svn</code></span> tool to import and manage projects. To import a project, first create a directory for it in your repository. To do so run <span class="geshifilter"><code class="geshifilter-text">svn mkdir</code></span>:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn mkdir file:///home/ayman/svn/myproj</pre></div>(Replace <span class="geshifilter"><code class="geshifilter-text">/home/ayman/svn/myproj</code></span> with the actual path to your repository and the new project name)
+<p>Subversion will open your default text editor and ask you to enter a
+log message. Enter an explanation of what you're doing, save, and exit
+the editor.</p>
+<p>Next, it's time to import project files. Change the current directory to the project's directory, and run <span class="geshifilter"><code class="geshifilter-text">svn import</code></span>:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ cd /home/ayman/[...]/myproj
+$ svn import file:///home/ayman/svn/myproj</pre></div>(This will import all files under <span class="geshifilter"><code class="geshifilter-text">/home/ayman/[...]/myproj</code></span> to the newly-created myproj directory in your repository)
+<h2 id="CheckoutModifyCommit">Check out, Modify, Commit</h2>
+<p>As I said, the repository is stored in the <span class="geshifilter"><code class="geshifilter-text">svn</code></span>
+directory which you won't deal with. To work on your files, first you
+need to check a working copy out of the repository. To do so, use <span class="geshifilter"><code class="geshifilter-text">svn checkout</code></span>:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn checkout file:///home/ayman/svn</pre></div>
+<p>A new directory named myproj will be created containing your project
+files. You can work and modify them. Once you're done and you want to
+store the new revision in your repository, run <span class="geshifilter"><code class="geshifilter-text">svn commit</code></span> in the checked-out myproj directory:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn commit</pre></div>
+<p>Subversion will open your default editor asking for a log message. Again, enter an explanation, save, and exit.</p>
+<h2 id="WorkingwithRevisions">Working with Revisions</h2>
+<p>Now let's make real use of Subversion. While working with revisions, you can:</p>
+<h3 id="CheckStatus">Check Status</h3>
+<p></p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn status [filename]</pre></div>
+<h3 id="ComparedifferentRevisions">Compare different Revisions</h3>
+<p></p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn compare -r R1:R2 [filename]</pre></div>(Replace R1 and R2 with actual revision numbers you want to compare)
+<h3 id="RevertLocalEdits">Revert Local Edits</h3>
+<p></p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn revert [filename]</pre></div>
+<h3 id="ReverttoPreviousRevisions">Revert to Previous Revisions</h3>
+<p></p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">$ svn update -r R</pre></div>(Replace R with an actual revision number)
+<p>[filename] is optional; you can run the previous commands on the current directory if you omit it.</p>
+<h2 id="AFinalWord">A Final Word</h2>
+<p>This is a very quick start for using Subversion to control local projects. For extended help on commands, you can always use <span class="geshifilter"><code class="geshifilter-text">svn help [command]</code></span> to get a help message on [command], for example:<br>
+</p><div class="geshifilter"><pre class="text geshifilter-text" style="font-family: monospace;">svn help import</pre></div><br>
+This will give a lengthy explanation on <span class="geshifilter"><code class="geshifilter-text">svn import</code></span>.
+<p>In addition, check out "<a href="http://svnbook.red-bean.com/">Version Control with Subversion</a>" for detailed information.</p>
+<p>Good luck, and happy subversion'ing!</p>
+     
+  <div class="info"><ul class="links inline"><li class="statistics_counter first"><span>93467 reads</span></li>
+<li class="print"><a href="http://aymanh.com/print/84" title="Display a printer-friendly version of this page." class="print-page" rel="nofollow">Printer-friendly version</a></li>
+<li class="service_links_delicious"><a href="http://del.icio.us/post?url=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial&amp;title=Subversion+-+A+Quick+Tutorial" title="Bookmark this post on del.icio.us." rel="nofollow"><img src="subversion-a-quick-tutorial_files/delicious.png" alt="Delicious"></a></li>
+<li class="service_links_digg"><a href="http://digg.com/submit?phase=2&amp;url=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial&amp;title=Subversion+-+A+Quick+Tutorial" title="Digg this post on digg.com." rel="nofollow"><img src="subversion-a-quick-tutorial_files/digg.png" alt="Digg"></a></li>
+<li class="service_links_stumbleupon"><a href="http://www.stumbleupon.com/submit?url=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial&amp;title=Subversion+-+A+Quick+Tutorial" title="Thumb this up at StumbleUpon." rel="nofollow"><img src="subversion-a-quick-tutorial_files/stumbleit.png" alt="StumbleUpon"></a></li>
+<li class="service_links_reddit"><a href="http://reddit.com/submit?url=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial&amp;title=Subversion+-+A+Quick+Tutorial" title="Submit this post on reddit.com." rel="nofollow"><img src="subversion-a-quick-tutorial_files/reddit.png" alt="Reddit"></a></li>
+<li class="service_links_google"><a href="http://www.google.com/bookmarks/mark?op=add&amp;bkmk=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial&amp;title=Subversion+-+A+Quick+Tutorial" title="Bookmark this post on Google." rel="nofollow"><img src="subversion-a-quick-tutorial_files/google.png" alt="Google"></a></li>
+<li class="service_links_technorati last"><a href="http://technorati.com/cosmos/search.html?url=http%3A%2F%2Faymanh.com%2Fsubversion-a-quick-tutorial" title="Search Technorati for links to this post." rel="nofollow"><img src="subversion-a-quick-tutorial_files/technorati.png" alt="Technorati"></a></li>
+</ul><div class="post-cat">Tags: <ul class="links inline"><li class="taxonomy_term_13 first"><a href="http://aymanh.com/category/coding" rel="tag" title="">Coding</a></li>
+<li class="taxonomy_term_7 last"><a href="http://aymanh.com/category/open-source" rel="tag" title="">OpenSource</a></li>
+</ul></div><small>Submitted by <a href="http://aymanh.com/user/ayman" title="View user profile.">Ayman</a> on Tue, 2006/01/10 - 8:58pm</small></div>
+   
+</div>
+
+<hr class="low">
+<div id="comments">
+  <a id="comment-120"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://www.jva.am/" rel="nofollow">JVA</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-120" class="active">Good for you</a> | Fri, 2006/01/13 - 5:23pm</p>
+  <div class="content"><p>Version
+Control, is an essential tool in software engineering, so good for you
+to switch into this organized programming world, no lost versions
+anymore, no overwritten version either.<br>
+I use CVS, i've heard that SVN is better, but CVS is more popular "as
+far as i know", and i started with CVS first. I do basic management of
+my source, no branches and stuff, so i'll stick to CVS.<br>
+Anyway, nice tutorial.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/120">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-176"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://ice.citizenlab.org/" rel="nofollow">nart</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-176" class="active">btw, its also nice to use</a> | Tue, 2006/02/14 - 2:39pm</p>
+  <div class="content"><p>btw, its also nice to use Trac (http://www.edgewall.com/trac/) with svn for collaborative projects.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/176">reply</a></li>
+</ul></div>
+</div>
+<div class="indented"><a id="comment-8730"></a>
+<div class="comment"> 
+  <p class="header"> 
+  john (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8730" class="active">subversion</a> | Fri, 2009/02/13 - 3:35am</p>
+  <div class="content"><p>Great
+choice by picking Subversion. I use Subversion myself, and the reason
+why I like it the most is because Subversion tracks structure of
+folders. In my opinion, it is the best version control system out
+there. Good luck with it, Ayman.</p>
+<p>----------<br>
+<a href="http://www.supremebuy.com/">supreme buy</a> - <a href="http://www.supremebuy.com/KeywordElite">keyword elite</a> - <a href="http://www.supremebuy.com/SeoElite">seo elite</a> - <a href="http://www.supremebuy.com/Water4Gas">water4gas</a> - <a href="http://www.supremebuy.com/FatLoss4Idiots">fat loss 4 idiots</a> - <a href="http://www.supremebuy.com/RocketSpanish">rocket spanish</a></p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8730">reply</a></li>
+</ul></div>
+</div>
+</div><a id="comment-227"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Dandor (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-227" class="active">revision numbers</a> | Thu, 2006/03/16 - 3:56am</p>
+  <div class="content"><p>It's
+a nice little tutorial. Just one remark. I think it's a better idea to
+create repositories on per project basis, this way you will have
+separate numbering for different projects. Anyway it's a very useful
+summary.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/227">reply</a></li>
+</ul></div>
+</div>
+<div class="indented"><a id="comment-8576"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Pelle (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8576" class="active">Repositories per project?</a> | Fri, 2008/09/12 - 1:05pm</p>
+  <div class="content"><p>Dear all,</p>
+<p>I'm only just getting started with version control and I chose subversion with TortoiseSVN for my needs.<br>
+I had thought about doing repositories per project, too, but somehow I feel like this is not intended.<br>
+Does anyone know where to start reading about repository-layout and
+whether it's a good or bad idea to do this on a per-project approach or
+rather do repositories for a single group of developers or whatever?</p>
+<p>Any help on this would be greatly appreciated!</p>
+<p>Thanks,<br>
+Pelle.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8576">reply</a></li>
+</ul></div>
+</div>
+</div><a id="comment-3505"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://maram.com.ar/" rel="nofollow">maram</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-3505" class="active">the tag &lt;cite&gt;&lt;/cite&gt; not work</a> | Sun, 2006/08/20 - 3:21pm</p>
+  <div class="content"><p>I'm use firefox.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/3505">reply</a></li>
+</ul></div>
+</div>
+<div class="indented"><a id="comment-3507"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://aymanh.com/user/ayman" title="View user profile.">Ayman</a> | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-3507" class="active">Fixed, thanks, I installed a</a> | Sun, 2006/08/20 - 3:56pm</p>
+  <div class="content"><p>Fixed, thanks, I installed a new filter that broke this article.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/3507">reply</a></li>
+</ul></div>
+</div>
+</div><a id="comment-8567"></a>
+<div class="comment"> 
+  <p class="header"> 
+  prasad iyer (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8567" class="active">Very nice article</a> | Sat, 2008/08/30 - 10:04pm</p>
+  <div class="content"><p>Very well written. I am setting up my repository now.<br>
+Thanks for the help</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8567">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8628"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://www.aamod.co.nr/" rel="nofollow">Aamod</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8628" class="active">Thanks</a> | Fri, 2008/10/24 - 4:44pm</p>
+  <div class="content"><p>Very neatly written and useful for lazy people like me. Using svn after just reading this single page.</p>
+<p>Thanks ;-)</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8628">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8670"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://www.manhag.org/" rel="nofollow">Ahmed El Gamil</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8670" class="active">Thanks :)</a> | Mon, 2008/11/17 - 9:17pm</p>
+  <div class="content"><p>Thanks Ayman for this simple yet powerful tutorial</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8670">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8726"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://hacksushi.com/" rel="nofollow">DJ</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8726" class="active">nice</a> | Wed, 2009/02/11 - 1:28am</p>
+  <div class="content"><p>Thanks for the simple version of setting this up.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8726">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8735"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Abdullah  (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8735" class="active">Well written totorial.</a> | Mon, 2009/02/16 - 2:22pm</p>
+  <div class="content"><p>Well written totorial. Thanks</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8735">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8757"></a>
+<div class="comment"> 
+  <p class="header"> 
+  al (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8757" class="active">i have installed Subversion</a> | Tue, 2009/03/03 - 1:31pm</p>
+  <div class="content"><p>i have installed Subversion in Ubuntu but how do i access it from WinXp.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8757">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8779"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Matthew Frazier (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8779" class="active">Very good tutorial</a> | Fri, 2009/03/20 - 5:54pm</p>
+  <div class="content"><p>Thanks
+for putting this together. A very clean, concise guide to setting up a
+simple versioning system. I was up and running in under 15 minutes.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8779">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8788"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Tom (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8788" class="active">re</a> | Fri, 2009/03/27 - 10:10pm</p>
+  <div class="content"><p>A
+tutorial walkthrough of Subversion, from creating your first repository
+to basic branching and merging. *A detailed look at the most important
+Subversion client commands, as well as properties, user configuration,
+and integration with a variety of external tools. *A guide to
+repository administration and organization, including repository
+security and migration from another version control system. *An
+in-depth look at automation in Subversion, including using hook
+scripts, metadata, and the Subversion API, plus example scripts. *Case
+studies that examine both archetypal and real-world projects and their
+use of Subversion. *A Subversion command reference for fast access to
+essential technical information. *Details on Subversion's many advanced
+features, such as its Apache-integrated WebDAV server and database file
+storage system. Whether you are an administrator, project manager, or
+software developer, Subversion Version Control will show you how to
+realize the full potential of Subversion.</p>
+<p>Tom Green</p>
+<p><a href="http://www.goldpriceblog.com/" target="_blank">Gold Price Blog</a><br>
+<a href="http://www.personalfinancegate.com/" target="_blank">Personal finance advice</a><br>
+<a href="http://www.topblogposts.info/" target="_blank">Insurance blog</a></p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8788">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8814"></a>
+<div class="comment"> 
+  <p class="header"> 
+  Anonymous (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8814" class="active">Command prompt sucks</a> | Tue, 2009/04/21 - 4:18am</p>
+  <div class="content"><p>Don't
+know why anyone would want to use a command prompt and not the context
+menu (assuming you're using windows) to do all this above. Same with
+using Visual SVN Server. Command prompt is sooo tedious.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8814">reply</a></li>
+</ul></div>
+</div>
+<a id="comment-8822"></a>
+<div class="comment"> 
+  <p class="header"> 
+  <a href="http://geekygrad.wordpress.com/" rel="nofollow">GeekyGrad</a> (not verified) | <a href="http://aymanh.com/subversion-a-quick-tutorial#comment-8822" class="active">Great tutorial</a> | Thu, 2009/04/30 - 9:25pm</p>
+  <div class="content"><p>This is a great piece of work - I linked to it in my article on using Subversion for LaTeX files.</p>
+</div> 
+   
+  <div class="postmetadata"><ul class="links"><li class="comment_reply first last"><a href="http://aymanh.com/comment/reply/84/8822">reply</a></li>
+</ul></div>
+</div>
+<div class="box">
+
+  <h2>Post new comment</h2>
+
+  <div class="content"><form action="/comment/reply/84" accept-charset="UTF-8" method="post" id="comment-form">
+<div><div class="form-item" id="edit-name-wrapper">
+ <label for="edit-name">Your name: </label>
+ <input maxlength="60" name="name" id="edit-name" size="30" value="Anonymous" class="form-text" type="text">
+</div>
+<div class="form-item" id="edit-mail-wrapper">
+ <label for="edit-mail">E-mail: </label>
+ <input maxlength="64" name="mail" id="edit-mail" size="30" value="" class="form-text" type="text">
+ <div class="description">The content of this field is kept private and will not be shown publicly.</div>
+</div>
+<div class="form-item" id="edit-homepage-wrapper">
+ <label for="edit-homepage">Homepage: </label>
+ <input maxlength="255" name="homepage" id="edit-homepage" size="30" value="" class="form-text" type="text">
+</div>
+<div class="form-item" id="edit-subject-wrapper">
+ <label for="edit-subject">Subject: </label>
+ <input maxlength="64" name="subject" id="edit-subject" size="60" value="" class="form-text" type="text">
+</div>
+<div class="form-item" id="edit-comment-wrapper">
+ <label for="edit-comment">Comment: <span class="form-required" title="This field is required.">*</span></label>
+ <div class="resizable-textarea"><span><textarea cols="60" rows="15" name="comment" id="edit-comment" class="form-textarea resizable required textarea-processed"></textarea><div style="margin-right: -8px;" class="grippie"></div></span></div>
+</div>
+<ul class="tips"><li>Allowed HTML tags: &lt;a&gt; &lt;em&gt;
+&lt;strong&gt; &lt;cite&gt; &lt;strike&gt; &lt;code&gt; &lt;ul&gt;
+&lt;ol&gt; &lt;li&gt; &lt;dl&gt; &lt;dt&gt; &lt;dd&gt;
+&lt;blockquote&gt; &lt;sup&gt; &lt;sub&gt; &lt;h1&gt; &lt;h2&gt;
+&lt;h3&gt; &lt;b&gt; &lt;i&gt; &lt;u&gt;</li><li>Lines and paragraphs break automatically.</li><li>You may post code using &lt;code&gt;...&lt;/code&gt; (generic) or &lt;?php ... ?&gt; (highlighted PHP) tags.</li></ul><p><a href="http://aymanh.com/filter/tips">More information about formatting options</a></p><input name="form_build_id" id="form-8183d8cd9220fe79a1124e2163927e55" value="form-8183d8cd9220fe79a1124e2163927e55" type="hidden">
+<input name="form_id" id="edit-comment-form" value="comment_form" type="hidden">
+<input name="op" id="edit-submit" value="Save" class="form-submit" type="submit">
+<input name="op" id="edit-preview" value="Preview" class="form-submit" type="submit">
+
+</div></form>
+</div>
+</div>
+</div>
+    <!-- end main content -->
+      </div>
+      <div id="subcontent">  
+      <div id="block-block-8" class="block block-block">
+  <h2>About</h2>
+
+  <div class="content">
+    <p><img src="subversion-a-quick-tutorial_files/ayman-small.jpg" alt="Ayman Hourieh" style="margin: 5px; float: right;"></p>
+<p><a href="http://en.wikipedia.org/wiki/Computer_science">Computer Science</a> graduate, <a href="http://www.opensource.org/">Open Source</a> enthusiast and Software engineer (<a href="http://en.wikipedia.org/wiki/Reliability_engineering#Software_reliability">Site reliability</a>) at <a href="http://www.google.com/">Google</a>.</p>
+<p>I'm 25 years old, and live in Dublin, Ireland.</p>
+<p>This is my personal blog. The views expressed on these pages are mine alone and not those of my employer. </p>
+<p><a href="http://aymanh.com/about">More</a></p>
+  </div>
+</div>
+<div id="block-block-7" class="block block-block">
+  <h2>Books</h2>
+
+  <div class="content">
+    <p><a href="http://www.amazon.com/Learning-Website-Development-Django-Hourieh/dp/1847193358">Learning Website Development with Django</a></p>
+<p><a href="http://www.amazon.com/Learning-Website-Development-Django-Hourieh/dp/1847193358" style="display: block; text-align: center;"><img src="subversion-a-quick-tutorial_files/learning_website_development_with_django.jpg" alt="Learning Website Development with Django"></a><br>
+A beginner's tutorial to building web applications, quickly and cleanly, with the Django application framework.</p>
+<p>My first book. Published by Packt Publishing in April 2008.</p>
+  </div>
+</div>
+<div id="block-block-2" class="block block-block">
+  <h2>Web Feeds</h2>
+
+  <div class="content">
+    <ul>
+<li><a href="http://aymanh.com/rss.xml">Entries RSS</a></li>
+<li><a href="http://aymanh.com/crss.xml">Comments RSS</a></li>
+</ul>
+  </div>
+</div>
+<div id="block-block-4" class="block block-block">
+  <h2>Articles</h2>
+
+  <div class="content">
+    <ul>
+<li><a href="http://aymanh.com/checklist-for-securing-php-configuration">Checklist for Securing PHP Configuration</a></li>
+<li><a href="http://aymanh.com/9-javascript-tips-you-may-not-know">9 JavaScript Tips You May Not Know</a></li>
+<li><a href="http://aymanh.com/increase-your-linux-unix-productivity-with-gnu-screen">Increase Your Linux/Unix Productivity With GNU/Screen</a></li>
+<li><a href="http://aymanh.com/a-collection-of-vim-tips">A Collection of Vim Tips</a></li>
+<li><a href="http://aymanh.com/drag-drop-portal-interface-with-scriptaculous">Drag/Drop Portal Interface With Scriptaculous And Drupal</a></li>
+<li><a href="http://aymanh.com/turbogears-tutorial-social-bookmarking-application">TurboGears Tutorial: Social Bookmarking Application</a></li>
+<li><a href="http://aymanh.com/tips-to-secure-linux-workstation">Tips to Secure Linux Workstation</a></li>
+<li><a href="http://aymanh.com/remote-inclustion-in-php">Remote Inclusion In PHP</a></li>
+<li><a href="http://aymanh.com/subversion-a-quick-tutorial">Subversion - A Quick Tutorial</a></li>
+</ul>
+  </div>
+</div>
+<div id="block-tagadelic-1" class="block block-tagadelic">
+  <h2>Blog Tags</h2>
+
+  <div class="content">
+    <a href="http://aymanh.com/category/ajax" class="tagadelic level1" rel="tag">Ajax</a> 
+<a href="http://aymanh.com/category/arabic" class="tagadelic level1" rel="tag">Arabic</a> 
+<a href="http://aymanh.com/category/article" class="tagadelic level3" rel="tag">Article</a> 
+<a href="http://aymanh.com/category/coding" class="tagadelic level5" rel="tag">Coding</a> 
+<a href="http://aymanh.com/category/college" class="tagadelic level3" rel="tag">College</a> 
+<a href="http://aymanh.com/category/css" class="tagadelic level1" rel="tag">CSS</a> 
+<a href="http://aymanh.com/category/democracy" class="tagadelic level1" rel="tag">Democracy</a> 
+<a href="http://aymanh.com/category/drupal" class="tagadelic level4" rel="tag">Drupal</a> 
+<a href="http://aymanh.com/category/file" class="tagadelic level2" rel="tag">File</a> 
+<a href="http://aymanh.com/category/firefox" class="tagadelic level5" rel="tag">Firefox</a> 
+<a href="http://aymanh.com/category/funny" class="tagadelic level3" rel="tag">Funny</a> 
+<a href="http://aymanh.com/category/games" class="tagadelic level3" rel="tag">Games</a> 
+<a href="http://aymanh.com/category/hardware" class="tagadelic level3" rel="tag">Hardware</a> 
+<a href="http://aymanh.com/category/internet" class="tagadelic level6" rel="tag">Internet</a> 
+<a href="http://aymanh.com/category/javascript" class="tagadelic level3" rel="tag">JavaScript</a> 
+<a href="http://aymanh.com/category/laptop" class="tagadelic level1" rel="tag">Laptop</a> 
+<a href="http://aymanh.com/category/linux" class="tagadelic level5" rel="tag">Linux</a> 
+<a href="http://aymanh.com/category/movies" class="tagadelic level2" rel="tag">Movies</a> 
+<a href="http://aymanh.com/category/mysql" class="tagadelic level1" rel="tag">MySQL</a> 
+<a href="http://aymanh.com/category/open-source" class="tagadelic level6" rel="tag">OpenSource</a> 
+<a href="http://aymanh.com/category/personal" class="tagadelic level5" rel="tag">Personal</a> 
+<a href="http://aymanh.com/category/php" class="tagadelic level2" rel="tag">PHP</a> 
+<a href="http://aymanh.com/category/politics" class="tagadelic level3" rel="tag">Politics</a> 
+<a href="http://aymanh.com/category/projects" class="tagadelic level5" rel="tag">Projects</a> 
+<a href="http://aymanh.com/category/python" class="tagadelic level1" rel="tag">Python</a> 
+<a href="http://aymanh.com/category/security" class="tagadelic level3" rel="tag">Security</a> 
+<a href="http://aymanh.com/category/site" class="tagadelic level4" rel="tag">Site</a> 
+<a href="http://aymanh.com/category/stupidity" class="tagadelic level3" rel="tag">Stupidity</a> 
+<a href="http://aymanh.com/category/syria" class="tagadelic level4" rel="tag">Syria</a> 
+<a href="http://aymanh.com/category/tech" class="tagadelic level3" rel="tag">Tech</a> 
+<a href="http://aymanh.com/category/tips" class="tagadelic level1" rel="tag">Tips</a> 
+<a href="http://aymanh.com/category/turbogears" class="tagadelic level1" rel="tag">TurboGears</a> 
+<a href="http://aymanh.com/category/tutorial" class="tagadelic level1" rel="tag">Tutorial</a> 
+<a href="http://aymanh.com/category/ubuntu" class="tagadelic level1" rel="tag">Ubuntu</a> 
+<a href="http://aymanh.com/category/vim" class="tagadelic level1" rel="tag">Vim</a> 
+<a href="http://aymanh.com/category/webdev" class="tagadelic level3" rel="tag">WebDev</a> 
+<a href="http://aymanh.com/category/work" class="tagadelic level2" rel="tag">Work</a> 
+<a href="http://aymanh.com/category/xhtml" class="tagadelic level1" rel="tag">XHTML</a> 
+  </div>
+</div>
+<div id="block-user-1" class="block block-user">
+  <h2>Navigation</h2>
+
+  <div class="content">
+    <ul class="menu"><li class="leaf first"><a href="http://aymanh.com/">Blog</a></li>
+<li class="leaf"><a href="http://aymanh.com/photos" title="">Photos</a></li>
+<li class="leaf"><a href="http://aymanh.com/activitystream">Activity Stream</a></li>
+<li class="leaf last"><a href="http://aymanh.com/contact">Contact</a></li>
+</ul>  </div>
+</div>
+<div id="block-menu-menu-personal" class="block block-menu">
+  <h2>Personal</h2>
+
+  <div class="content">
+    <ul class="menu"><li class="leaf first"><a href="http://aymanh.com/about">About</a></li>
+<li class="leaf last"><a href="http://aymanh.com/gpg">PGP Public Key</a></li>
+</ul>  </div>
+</div>
+     </div>
+   <hr class="low">
+  <div id="footer">
+              <p>Copyright © 2004, 2009 Ayman Hourieh
+<br>
+This is my personal blog. The views expressed on these pages are mine alone and not those of my employer.
+<br>
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/3.0/">Creative Commons Attribution-NonCommercial-ShareAlike 3.0 License</a><br>
+Powered By <a href="http://drupal.org/">Drupal</a></p><br>
+        </div>
+</div>
+<script type="text/javascript" src="subversion-a-quick-tutorial_files/f06a3ea60d85641a36bd43b955b63c94.js"></script>
+<script type="text/javascript">var pageTracker = _gat._getTracker("UA-4076003-1");pageTracker._initData();pageTracker._trackPageview();</script>
+</body></html>

@@ -1,0 +1,155 @@
+Hei igjen Simen,
+her følger noen kommentarer til brevet ditt fra i går.
+Mine kommentarerer er gitt ved pilene -->
+
+Hei!
+
+
+ARTIKKELEN OM STABILE KOHERENTE TILSTANDER
+
+Takk for den meget interessante artikkelen! Jeg har lest gjennom den, og  
+har forstått det meste, tror jeg. (Det er en del begreper jeg holder på å  
+slå opp.) Slik jeg ser det, åpner systemene som denne artikkelen  
+diskuterer for mange muligheter og utfordringer:
+* Integrasjon i tid av kompliserte tidsavhengige systemer (men ikke "for"  
+kompliserte). Dette åpner spørsmålet om hvilken metode som skal brukes, og  
+her kommer bl.a. arbeid av Per Chr. inn.
+* Diskretisering av topartikkelsystemer, og her er det vel 2D/quantum  
+dot-systemene som er aktuelle. Dette er en utfordring! Hvilken  
+diskretisering skal man bruke, og hva slags "basis"? FDM-grid,  
+spektralmetoder, FEM? Det er i hvertfall klart at det blir tunge  
+beregninger.
+
+
+--> 
+Du må nok rekne med 4dim likninger i begge tilfeller, både for helium og 2dim kvantum dotsog er utvikling av parallelle algortimer sentralt, det bør være en 
+del av avhandlinga di. Hans Petter og Xing Cai har erfaring her, og Jon er nå vår mann
+på USIT. Han har MPI som tema i phden sin, men da med vekt på diffusjons Monte Carlo.
+Dette vil også være sentralt for mange som PDEer, for til sjuende og sist er effektive
+parallelle algoer sentralt i fysisk interessante tilfeller. da hjelper det ikke
+hvor mange fancy eksistens papers og egenskaper en finner hvis en ikke 
+kan løse praktiske problem (her kommer ingeniøren og praktikeren i meg fram)
+
+
+Listen er lenger, det er jeg sikker på. :-)
+
+Jeg har veldig lyst til å jobbe med denne typen problemer, for det er så  
+mange aspekter som kan trekkes inn og studeres, og det er jo ganske  
+nydelige fenomener som studeres. Jeg kommer helt sikkert til å komme med  
+spørsmål til det etterhvert som jeg fordyper meg i dette.
+
+
+--> fyr løs
+
+
+
+
+
+FREMDRIFT PÅ PHD / SAMMENFATTING AV HOVEDFAG.
+
+Jeg må innrømme at jeg sliter litt med både motivasjon og fremgang. For  
+det første føler jeg at jeg ikke har kunnskaper nok til å angripe  
+problemer slik Per Christian mener de bør angripes, og jeg føler at  
+ønskene fra PC og Ragnar trekker i ulike retninger. Hvor jeg plasserer meg  
+selv oppi alt dette, vet jeg rett og slett ikke.
+
+
+-->  å lage gode implementasjoner av algoer er svært viktig, å styrke det skjæringspunktetvil være sentralt.
+
+
+Jeg har jobbet i det siste med å finne spekteret til 2DH med magnetfelt,  
+og har en publikasjon av dette som mål. Dette vil være en videreføring av  
+hovedfaget, og jeg kan også bruke "funn" i hovedfaget.
+
+Det er en hovedgrunn (slik jeg ser det) til å finne spekteret til systemet  
+som jeg skrev om i hovedoppgaven:
+* Dersom vi kjenner spekteret *nøyaktig* , kan vi avgjøre hvor vidt en  
+gitt romlig diskretisering er god eller ikke. Dersom spekteret blir godt  
+tilnærmet, vet vi at tidsutviklingen til en superposisjon av  
+egentilstander vil være fysisk riktig, uten numerisk dispersjon.
+
+Egenverdiberegningene i hovedoppgaven var ganske rudimentære: Jeg hadde  
+ingen analyse av hvordan egenverdiene konvergerte. Ting tydet faktisk på  
+at de ikke gjorde det, og da må man ha en forklaring. Med samme argument  
+som over, betyr det da at FEM-diskretisering av den typen jeg bruke *ikke*  
+egner seg for Coulomb-systemer. Jeg har følgende tanker:
+
+* Ved separasjon av variable får man en radiallikning som er et såkalt  
+singulært Sturm-Liouville-problem. Disse problemene er svært vanskelig å  
+løse generelt, og derfor vil jeg gjøre det! Målet er da å beregne (i  
+prinsippet) alle (!) egenverdiene med høy presisjon vor varierende  
+magnetfelt.
+* Det er utviklet flere gode metoder og koder for å løse dette, blant  
+annet SLEIGN2 (http://www.math.niu.edu/~zettl/SL2/). Jeg har lekt litt med  
+denne (dvs. løst noen enklere problemer), og målet er å løse  
+radiallikningen med denne pakken, evt. å skrive en egen kode som  
+implementerer metoden for dette spesielle problemet.
+
+---> jeg syns det du foreslår er glimrende. fortsett. Det kan bli et interessant paper. 
+
+* En alternativ strategi som Per Christian nærmest synes er latterlig (det  
+er i hvertfall inntrykket jeg får), er å bruke Richardsson-ekstrapolasjon  
+på FEM-grid/annet grid på radiallikningen for å få kanskje 50-60  
+egenverdier til meget høy presisjon. Jeg synes det så ut som en god ide...  
+*Trenger* vi alle de høye egenverdiene? For numerisk simulering (der  
+bølgefunksjonene typisk starter i lavereliggende egentilstander) trenger  
+vi informasjon om spekteret der bølgefunksjonen har overlapp. Per  
+Christians filosofi der er at "problemet skal løses så komplett som  
+mulig". Jeg vet ikke om jeg er enig eller ikke, men å angripe  
+Sturm-Liouville-problemet er i hvertfall komplisert nok...
+
+---> Nåvel, jeg syns Richardsson metode er interessant, og det har blitt skrevet 
+drgrader på den tross alt. Og som regel er vi mest interesserte i den lavere liggende 
+delen av spektret, men for rydbergtilstander må du høyt opp, men der kan du avgrense deg til tilstander for bestemte kvantetall (høy l for eks, eller høy n, men typisk kommer du alri utover n=50-100, så maks 100 tilstander for gitt l. Eksp er på ca n=50 for l =0)
+Jeg er heller ikke enig med PC, men du bør klart opprettholde dialogen, 
+han er meget flink på den analytiske delen.
+
+
+
+
+
+Når det gjelder resten av hovedfaget; med tidsintegrasjon og analysen av  
+dette: Det kan jeg ikke forstå er resultater som er relevant å publisere!  
+For det første er skjemaene dårlige og gammeldagse (dessverre!) og for det  
+andre så er de analysert ganske grundig fra før. En mulighet er å utvide  
+programmet jeg har skrevet til å integrere med *bedre* metoder, så som  
+Chebyshev-ekspansjon, eller høyere ordens eksplisitte skjema. Da tror jeg  
+kanskje vi kan få interessante resultater, dersom FEM-diskretiseringen er  
+bra nok. Jeg har nemlig inntrykk av at dette er gjort hundre ganger før av  
+feks. kjemikere og tilogmed med en bedre feilanalyse. (Men jeg skal  
+innrømme at jeg ikke har klart å forstå noen av artiklene jeg har lest på  
+dette området.)
+
+---> helt enig, den interessante delen er den skisserer ovafor.
+
+
+Dette var et forsøk på å beskrive noen tanker og problemer jeg sitter med  
+i forhold til PhD og hovedfaget. Som du skjønner sliter jeg litt med  
+motivasjonen. Noe av det skyldes et slags kultursjokk: overgangen til CMA  
+var voldsom. Det er ingen her oppe som tenker "fysikk". De tenker enten  
+informatikk eller ren matematikk, og har lite til overs for min måte å  
+tenke på. Det er ingen her som kan støtte mine beslutninger eller ønske om  
+beslutninger, og de alternative strategiene jeg får fremlagt virker  
+nærmest uoverkommelig vanskelig.
+
+Jeg føler sterkt at jeg trenger en ferie. Jeg har jobbet i ett de siste to  
+årene, og overgangen fra hovedfag til doktorgrad var brå. I tillegg har  
+jeg hatt noen personlige ting å ta meg av som har slitt veldig på den  
+fysiske formen, som i tillegg ikke er altfor god fra før, og det vet du  
+om. Jeg tar noen dager fri i vinterferien, og etter påske, enten CMA liker  
+det eller ikke. Jeg har sittet her i snart ett år, uten å komme noe særlig  
+i gang med "de viktige tingene", og det synes jeg er meget frustrerende,  
+og jeg mener mye skyldes mangelen på ro, i vid forstand. Jeg lurer på om  
+jeg skal ta en prat med Ragnar om dette og ovennevnte problematikk.
+
+
+---> ta deg en velfortjent ferie, du trenger det.
+
+Morten
+
+p.s. jobber hjemme idag, +33-450423210
+har du prøvd gratis internett telefoni? installer skype.com, og du ringer gratis,
+trenger bare headsett og mic til laptop. jeg er mhjorthjensen på skype.
+hvis du ringer til vanlig tlf koster det bare 1.7 eurocent (ca 12 øre) per minutt 
+til utlandet. jeg ringte fra japan i flere timer og brukte ikke mer enn 5 euro!!!
+

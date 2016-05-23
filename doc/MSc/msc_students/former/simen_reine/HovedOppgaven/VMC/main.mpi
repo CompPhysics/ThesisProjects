@@ -1,0 +1,52 @@
+#include <iostream>
+#include <cmath>
+#include <ctime>
+#include <cstdlib>
+#include <mpi.h>
+
+using namespace std;
+
+#include "Ref/Ref.h"
+#include "Sampler/Sampler.h"
+#include "Walker/Walker.h"
+#include "Domain/Domain.h"
+#include "Coor/Coor.h"
+#include "Random/Random.h"
+#include "SingleParticleFuncs/SingleParticleFuncs.h"
+#include "Correlation/Correlation.h"
+#include "LocalWaveFunction/LocalWaveFunction.h"
+#include "Variations/Variations.h"
+#include "fFunction/fFunction.h"
+#include "SpinFactors/SpinFactors.h"
+#include "Vmc/Vmc.h"
+#include "SlaterDet/SlaterDet.h"
+//#include "VmcSlaterDet/VmcSlaterDet.h"
+#include "FuncUpDown/FuncUpDown.h"
+//#include "Temp/Temp.h"
+
+int main(int argn, char* args[]) {
+
+  int rank, size;
+
+  MPI::Init(argn, args);
+  rank = MPI::COMM_WORLD.Get_rank();
+  size = MPI::COMM_WORLD.Get_size();
+
+  typedef SlaterDet<FuncUp<CoorExt>, 
+    FuncDown<CoorExt> > SlaterDeterminant;
+
+  Ref<Domain>  domain;
+  char* initFileName = "init";
+
+  domain     = new Domain(initFileName, rank);
+  domain().init();
+
+  Ref<Vmc<SlaterDeterminant> > vmc;
+  vmc                        = new Vmc<SlaterDeterminant >(domain());
+
+  // Her skjer alt det kule:)
+  vmc().run();
+
+  MPI::Finalize();
+  return 0;
+}

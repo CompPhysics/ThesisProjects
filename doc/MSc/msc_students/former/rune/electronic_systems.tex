@@ -1,0 +1,820 @@
+\chapter{Electronic Systems}
+\label{ch:electronic_systems}
+This chapter will be devoted to the theoretical treatment of some of the systems our program will be able to handle. The aim is to present single-particle wave functions which are good starting points 
+for our many-body studies. Examples of such widely used 
+single-particle wave functions are the the solutions 
+to the harmonic oscillator problem or the solutions to hydrogen-like problems.
+
+These single-particle wave functions are in turn used in constructing the so-called Slater determinant,
+which together with a correlation part, is a key part of our ansatz for the trial wave functions
+used in the Monte Carlo algorithm. 
+\section{The Harmonic Oscillator}
+The harmonic oscillator describes systems where the force 
+on a particle is proportional to the distance from an equilibrium position. 
+The most famous example is of course that of a mass coupled to a spring which abides to Hooke's law. However, many other systems such as molecules, motions of an atom in a lattice and phonons can be described as either one or a collection of harmonic oscillators. In this section we will first review the one particle system in one dimension and then generalize to $d$ dimensions. 
+Since we confine ourselves to electronic systems, our particles are electrons. However, our formalism
+can easily be extended to other particle species, such as neutrons and protons.
+
+%Finally we will discuss the problems of interacting particles for which an analytical solution only exist in the two-particle case for specific values of $\omega$.
+\subsection{One Dimension}
+ The one-particle harmonic oscillator Hamiltonian in one dimension is 
+%
+\bea
+H &=& \frac{1}{2m_e} {p}^2 + \frac 1 2 m_e\omegasq x^2,\\
+     &=& - \frac{\hbar^2}{2m_e}\dd x + \frac 1 2 m_e\omegasq x^2,
+\eea
+%
+where $\omega$ is the oscillator frequency and $m_e$ is the electron mass.  The time independent Schr\"odinger equation $H \phi = E\phi$ becomes
+%
+\be
+- \frac{\hbar^2}{2m_e}\ddf \phi x + \frac 1 2 m_e\omegasq x^2 \phi = E\phi.
+\ee
+%
+Before we solve this it is convenient to introduce  dimensionless variables
+%
+\bea
+\underline x &=& \frac{x}{\sqrt{\hbar/m_e\omega}},\\
+\eps &=& \frac{2E}{\hbar \omega}.
+\eea
+% 
+Dropping the underline in $\underline x$ and using the prime notation to indicate derivation we get
+%
+\be
+\phi''  + (\eps-x^2)\phi = 0. 
+\label{eq:schrodinger}
+\ee
+%
+This is a second-order linear homogeneous differential equation. 
+To solve it we first look at the behaviour when $x\rightarrow \infty$. In this case we can neglect the $\eps$ term and get
+%
+\be
+\phi'' = x^2\phi, \quad x\rightarrow \infty.
+\label{eq:schrodingeratinf}
+\ee
+%
+We need a function that when derivated gives back the original function times $x$. The two functions $\phi(x) = e^{\pm \frac {x^2}{2}}$ do exactly this.  Inserting them into eq.~(\ref{eq:schrodingeratinf})
+%
+\be
+\phi'' = (x^2+1)\phi \approx x^2\phi, \quad x\rightarrow \infty.
+\ee
+%
+Since a wave function must be normalizable, only the function $\phi(x) = e^{-\frac {x^2}{2}}$ belongs to the physical Hilbert space. The solution is therefore of the type $\phi(x) = f(x)e^{-\frac {x^2}{2}}$ for some unknown function $f$. Inserting this into eq.~(\ref{eq:schrodinger}) we end up with 
+%
+\be
+f''-2xf'+(\eps-1)f=0.
+\label{eq:power}
+\ee
+%
+This type of equation is solved by the power series method where we assume that $f(x)$ is represented
+by a polynomial in $x$, namely 
+$f(x) = \Sum_{k=0}^\infty a_k x^k$. The derivatives are
+%
+\bea
+f'  &=& \Sum_{k=0}^\infty k a_k x^{k-1},\\
+f'' &=& \Sum_{k=0}^\infty k(k-1) a_k x^{k-2},
+\eea
+%
+which inserted into eq.~(\ref{eq:power}) give
+%
+\be
+\Sum_{k=0}^\infty  k(k-1) a_k x^{k-2} + 2k a_k x^{k} + (\eps-1)a_k x^k = 0.
+\ee
+%
+To obtain a recursion relation we notice that the two first terms in $f''$ will be zero because of the $k(k-1)$ factor. Changing variables $k$ with $k+2$ we get
+%
+\be
+f'' = \Sum_{k=0}^\infty k(k-1) a_k x^{k-2} = \Sum_{k=0}^\infty (k+2)(k+1) a_{k+2} x^{k}, 
+\ee
+%
+which results in
+%
+\be
+\Sum_{k=0}^\infty  \left[ (k+2)(k+1) a_{k+2} -(2k + 1 -\eps)a_k\right] x^k = 0,
+\ee
+%
+which is only fulfilled for all $x$ when the terms inside the brackets vanish for all $k$, viz.,
+%
+\be
+a_{k+2} = \frac{2k + 1 -\eps}{(k+2)(k+1)}a_k, \quad k=0,1,2,\ldots
+\ee
+%
+and the first two coefficients, $a_0$ and $a_1$, can be chosen freely. The series will diverge for large $x$ if there are no restrictions on $\eps$. We show this by noting that for large $x$, the coefficients for large $k$ will be dominate the series
+%
+\be
+\frac{a_{k+2}}{a_k} \simeq \frac 2 k.
+\ee
+%
+Comparing this result with the recursion relation for the power series expansion of $e^{x^2}$
+%
+\bea
+e^{x^2} &=& \Sum_{k=0,2,4,\ldots} b_k x^k,\\
+b_k &=& \frac{1}{(\frac 1 2 k)!}
+\eea
+%
+which gives the coefficient ratio
+%
+\be
+\frac{b_{k+2}}{b_k} = \frac{(\frac 1 2 k)!}{(\frac 1 2 (k+2))!}=\frac 1 {\frac 1 2 k +1} \simeq \frac 2 k,
+\ee
+%
+we see that the divergence is a fact. The only way to avoid this is by terminating the series so that $f(x)$ becomes a  polynomial with a finite number of powers in $x$. 
+This is possible by restricting
+%
+\be
+\eps = \eps_n = 2n + 1, \quad n=0,1,2,\ldots,
+\label{eq:quantized_energy}
+\ee
+%
+and choosing $a_1=0$ for even $n$ or $a_0=0$ for odd $n$. We have in other words just showed that the energy for the harmonic oscillator is quantized. To find the polynomials $f_n(x)$ we insert eq.~(\ref{eq:quantized_energy}) into eq.~(\ref{eq:power}) and get
+%
+\be
+f_n'' - 2xf_n' + 2nf_n, \quad n=0,1,2,\ldots
+\ee
+%
+It can be shown that the solution to these equations are the Hermite polynomials $H_n(x)$ which are defined as
+%
+\be
+H_n(x) = e^{x^2}\left( -\sd x \right)^n e^{-x^2}.
+\ee
+%
+Using recursion relations
+\bea
+H_{n+1} &=& 2xH_n -2nH_{n-1},\\
+H_n' &=& 2nH_{n-1}.
+\eea
+the first five terms are 
+\bea
+H_0 &=& 1, \\
+H_1 &=& 2x, \\
+H_2 &=& 4x^2 -2, \\
+H_3 &=& 8x^3 - 12x, \\
+H_4 &=& 16x^4 - 48x^2 +12.
+\eea
+The Hermite polynomials have alsotwo other important properties
+%
+\bea
+\int_{-\infty}^{\infty} H_n(x)H_m(x) e^{-x^2} &=& 0, \quad n \neq m\\
+\int_{-\infty}^{\infty} H_n^2(x) e^{-x^2} &=& 2^n n! \int_{-\infty}^{\infty} e^{-x^2} = \sqrt \pi \,2^n n!, 
+\eea
+%
+which tells us that the wave functions are orthogonal and normalized. 
+Switching back to normal coordinates (that it is inserting the correct dimensions) we get 
+%
+\bea
+\phi_n(x) &=& \left( \frac{m_e\omega}{\pi\hbar} \right)^{\frac 1 4} \frac{1}{\sqrt{2^n n!}}e^{-m_e\omega x^2/2\hbar} \, 
+H_n(x\sqrt{m_e\omega /\hbar})\\
+E_n &=& (n+\frac 1 2)\hbar \omega
+\eea
+%
+We see that the ground state has a non zero energy whereas the classical counterpart has not. %which has implications
+\subsection{Harmonic oscillator in $d$ dimensions}
+It is fortunately very easy to solve the general $d$ dimensional case once the one dimensional case is obtained. The Hamiltonian is
+%
+\be
+H = \Sum_{r=1}^d H_r = \Sum_{r=1}^d \left(-\frac{\hbar^2}{2m_e}\dd{x_r} + \frac 1 2 m \omegasq_r x_r^2\right), 
+\ee
+%
+which is a sum over $d$ independent parts. This suggests a wave function on the form
+%
+\be
+\phi_N(x_1,\ldots,x_d) = \Prod_{r=1}^d \phi_{n_r}(x_r), \quad N=n_1,\ldots,n_d.
+\ee
+%
+If we identify $n_1=n_x$, $n_2=n_y$, $x_1=x$, $x_2=y$ and so forth, the Schr\"odinger equation 
+can be written as 
+\be
+\phi_N^{-1}H\phi_N=E_N,
+\ee
+resulting in
+%
+\be
+\Sum_{r=1}^d \left( -\frac{\hbar^2}{2m_e} \frac{\phi_{n_r}''}{\phi_{n_r}} + \frac 1 2 m \omegasq_r x_r^2 \right) = E_N.
+\ee
+%
+This can only be fulfilled if each term in the sum is a constant that adds up to $E_N$
+%
+\bea
+-\frac{\hbar^2}{2m_e} \frac{\phi_{n_r}''}{\phi_{n_r}} + \frac 1 2 m \omegasq_r x_r^2 &=& E_r, \quad r=1,2,\ldots,d\\
+\Sum_{r=1}^d E_r &=& E_N.
+\eea
+%
+We thus end up with $d$ one dimensional equations that we already know the solution to 
+%
+\bea
+\phi_N(x_1,\ldots,x_d) &=& \Prod_{r=1}^d 
+\left( \frac{m_e\omega_r}{\pi\hbar} \right)^{\frac 1 4} \frac{1}{\sqrt{2^{n_r} 
+n_r!}}e^{-m_e\omega_r x_r^2/2\hbar}\nonumber\\ && \times H_{n_r}(x_r\sqrt{m_e\omega_r /\hbar})\\
+E_N &=& \Sum_{r=1}^d (n_r+\frac 1 2)\hbar \omega_r.
+\eea
+%
+In the special case of an isotropic oscillator potential $\omega_r=\omega$ the energy is 
+%
+\bea
+E_N &=&  (N +\frac d 2)\hbar \omega\\
+N &=& \Sum_{r=1}^d n_r. 
+\eea
+%
+Thus all the excited states are degenerate because different combinations of $n_r$ will yield the same $N$. To calculate the spatial degeneracy $g_r(N)$ we note that $n_x = 0,1,\ldots,N$ which are $N+1$ different values. In the two dimensional case $n_y=N-n_x$ so the degeneracy is just $g_2(N)=N+1$. If we include the spin degrees of freedom, the total degeneracy $G_2(N)$ becomes
+%
+\be
+G_2(N)=2(N+1).
+\ee
+%
+As we add more and more electrons to the system (obeying the Pauli principle), 
+they will be in the state which gives the lowest total energy for the system. If we measure how much energy is required to add or remove an electron it will depend on how many electrons $N_e$ currently 
+are in the system. The energy needed will have spikes at certain magic numbers $N_e = S_r(N)$ which corresponds to the case when all degenerate statesup to a given single-particle level 
+are occupied. This is given by the formula
+\be
+S_r(N) = \Sum_{i=1}^N G_r(i).
+\ee
+The resulting shell structure for the two dimensional case is displayed in table~(\ref{table:2DHOShellStructure})
+\begin{table}[h!]
+  \centering
+  \[
+  \begin{array}{r|r|r|r|r}
+    N&n_x&n_y&G_2(N)&S_2(N)\\
+    \hline
+    0&0&0&2&2\\
+    1&1/0&0/1&4&6\\
+    2&2/1/0&0/1/2&6&12\\
+    3&3/2/1/0&0/1/2/3&8&20\\
+  \end{array}
+\]
+\caption{Shell structure for two dimensional harmonic oscillator including combinations of $n_x$ and $n_y$}
+\label{table:2DHOShellStructure}
+\end{table}
+The spatial degeneracy in three dimensions case is found by noting that $n_y = 0,1,\ldots,N-n_x$ which are $N-n_x+1$ different values for each $n_x$. To get the total number of different values we have to sum over all $n_x$
+%
+\bea
+g_3(N) &=& \Sum_{n_x=0}^N (N+1-n_x),\\
+       &=& (N+1)^2 - \frac{N(N+1)}{2},\\
+       &=& (N+1)(N+1-\frac N 2),\\
+       &=& \frac 1 2 (N+1)(N+2),
+\eea
+%
+which gives a total degeneracy
+\be
+G_3(N)= (N+1)(N+2).
+\ee
+The shell structure is showed in table~\ref{table:3DHOShellStructure}
+\begin{table}[h!]
+  \centering
+  \[
+  \begin{array}{r|r|r}
+    N&G_3(N)&S_3(N)\\
+    \hline
+    0&2&2\\
+    1&6&8\\
+    2&10&20\\
+    3&20&40\\
+  \end{array}
+\]
+\caption{Shell structure for three dimensional harmonic oscillator}
+  \label{table:3DHOShellStructure}
+\end{table}
+The spatial degeneracy is related to the symmetry in the potential 
+%
+\be
+V(x_1,\ldots,x_d) = \Sum_{r=1}^d \frac 1 2 m_e\omega x_r^2 = \frac 1 2 m_e\omega r^2 = V(r),
+\ee
+%
+because when the harmonic oscillator is isotropic, each dimension contributes the same amount of energy.
+
+\section{Quantum Dots}
+Quantum dots are a man made system of trapped electrons that share some properties with atoms, 
+hence the popular name ``designer atoms''. Their size ranges between 100 nm to 1 $\mu$m which 
+is much larger than a regular atom. Atoms have typically spatial extensions that are of the size of 
+0.05-0.4 nm. The quantum dot is created in a semiconductor, typically gallium arsenide (GaAs), 
+and confined either by a physical barier, such as an insulator like aluminum gallium arsenide (AlGaAs), 
+or an electric field. The confinement gives rise to a bowl shaped potential that can be 
+approximated by the harmonic oscillator potential. 
+One application of the quantum dot is as the qubit in a quantum computer by manipulating the electron states. Another is in biology for fluorescent labelling of both normal and cancer cells .  
+\newline
+
+We will first consider the two dimensional quantum dot and then extend our system 
+to three dimensions. The purpose is to show that as long as the two-particle repulsive Coullomb interaction does not depend on spin, that the magnetic field will only result in an 
+effective harmonic oscillator potential and a constant shift in the energy spectrum. 
+
+\subsection{Two dimensions}
+We first consider the case with no electron-electron repulsion.
+This means that the Hamiltonian contains only onebody operators.
+The Hamiltonian is derived in \ref{app:qdhamiltonian} and the result is 
+%
+\bea
+\hat H &=& \frac{1}{2\meff} \left(\f p - \frac e c \f A\right)^2 + \frac 1 2 \meff\omegazsq (x^2+y^2) + e\phi - \f \mu_S \cdot \f B,   
+\eea
+%
+where $\f A$ and $\phi$ is the vector and scalar potentials associated with the external electromagnetic field. The last term in the Hamiltonian is the coupling of the electron spin magnetic moment $\f \mu_S$, to the magnetic field and $\meff$ is the effective electron mass. We will consider the special case of a constant and uniform magnetic field along the z-axis, $\f B=(0,0,B)$, and no electric field. The vector and scalar potentials are related to the electromagnetic field by the equations
+%
+\bea
+\f E &=& -\frac 1 c \pdf {\f A} t - \nabla \phi\\
+\f B &=& \nabla \times A. 
+\eea
+%
+It is easy to see that we can only obtain a constant magnetic field if also $\f A$ is constant in time. The scalar potential is now given by
+%
+\be
+\nabla \phi = 0,
+\ee
+%
+which has  only the solution $\phi = k$ where $k$ is a constant. We will however set $k=0$ for the rest of this derivation. Before choosing $\f A$, we expand the first term in the Hamiltonian
+\be
+(\f p - \frac e c \f A)^2 = p^2 - \frac e c (\f p \cdot \f A + \f A \cdot \f p) + \frac {e^2}{c^2}A^2,
+\label{eq:pminusAsq} 
+\ee
+and in general 
+\be
+\f A(x,y,z) = (A_x(x,y,z), A_y(x,y,z), A_z(x,y,z) ).
+\ee
+This means that $\f A$ and $\f p$ will not commute unless we demand 
+\be
+\f A(x,y,z) = (A_x(y,z), A_y(x,z), A_z(x,y) ).
+\ee
+In this case we have $\nabla \cdot A = 0$, which means that we are working in the coulomb gauge. One 
+possibility for the vector potential is $\f A = \frac B 2 (-y, x, 0)$ and by inserting this into eq.~(\ref{eq:pminusAsq} ) we get
+\be
+(\f p - \frac e c \f A)^2 = p^2 - \frac{eB}c (xp_y - yp_x) + \frac{e^2B^2}{4c^2}(x^2 + y^2)
+\ee
+We note that $xp_y - yp_x = L_z$, where $L_z$ is the angular momentum operator in the z direction. Inserting this into the Hamiltonian we get
+\bea
+H &=&  \frac 1 {2\meff} \left[p^2 - \frac{eB}{c} L_z + \frac{e^2B^2}{4c^2}(x^2 + y^2) \right] + \nonumber \\
+&&     \frac 1 2 \meff\omegazsq (x^2+y^2)  + \frac{e g_s^* B}{2\meff c} S_z
+\eea
+where $g_s^*$ is the effective spin-gyromagnetic factor. It is easy to check that both $L_z$ and $S_z$ commute with the Hamiltonian. This means that the solution of the 
+stationary Schr\"odinger equation will be an eigenfunction of $L_z$ and $S_z$. The $L_z$ operator has a simple representation in polar coordinates 
+\be
+L_z = -i\hbar \left(x \pd y - y \pd x \right) = -i\hbar \pd \varphi
+\ee
+with eigenfunction $e^{im\varphi}$ and eigenvalue $\hbar m$. Because the angles $\varphi$ and $\varphi + 2\pi$ are required to give the same eigenfunction, $m$ is restricted to the values $m=0,\pm 1, \pm 2,\ldots$. The spin operator $S_z$ is represented by the matrix
+\be
+S_z = \frac \hbar 2 \begin{pmatrix} 1&0\\0&-1 \end{pmatrix}
+\ee
+ and its eigenfunction is the two component spinor
+\be
+ \f \chi = \begin{pmatrix} c_1\\c_2 \end{pmatrix}
+\ee
+where $|c_1|^2$ and $|c_2|^2$ are the probabilities for a state with spin up and spin down, 
+respectively. The eigenvalues are $\pm \hbar/ 2$ and tell us that the spin up state has a higher energy than the spin down state. This is the Pauli equation modified with the addition of a harmonic oscillator potential and we know that the spatial part of the wave function is equal for both spinor components. More formally we write the total wave function as
+\be
+\f \phi = \phi \f \chi,
+\ee
+and split the Hamiltonian in a spatial part and a spin part
+\be
+H = H_\Omega + H_s, 
+\ee
+where
+\be
+H_s = \frac{e g_s^* B}{2\meff c} S_z.
+\ee
+The stationary Schr\"odinger equation becomes
+\be
+\f \chi H_\Omega \phi + \phi H_s \f \chi = E \phi \f \chi 
+\ee
+which separates into the following system of coupled equations
+\bea
+\label{eq:spatial}
+ H_\Omega \phi &=& E_\Omega \phi,\\
+ H_s \f \chi &=& E_s \f \chi,
+\eea
+where $E_\Omega + E_s = E$. Solving the last one is very easy since $H_s$ is just a constant times $S_z$
+\be
+E_s = \frac{e \hbar g_s^* B}{2\meff c}s, 
+\ee
+where $s=1/2$ for spin up and $s=-1/2$ for spin down. 
+\newline
+\newline
+We now move on to solving eq.~(\ref{eq:spatial}). Due to the spatial symmetry in the Hamiltonian we switch to polar coordinates and define
+\bea
+\omega_B &=& \frac{eB}{2\meff c}\\
+\omegasq &=& \omegazsq + \omega_B^2.
+\eea
+The spatial part of the Hamiltonian is now
+\be
+H_\Omega = H_{r\varphi} = -\frac{\hbar^2}{2\meff}\left(\pdd r + \frac 1 r \pd r + \frac 1  {r^2} \pdd \varphi \right) 
+               + i\hbar\omega_B \pd \varphi  + \frac 1 2 \meff \omegasq r^2,
+\ee
+which is separable in $r$ and $\varphi$. This means that the spatial part of the wave function is also separable
+\be
+\phi_m(r,\varphi) =R(r)e^{im\varphi}.
+\ee
+Feeding this into the stationary Schr\"odinger equation results in the following linear ODE in $R(r)$
+\be
+ - \frac{\hbar^2}{2\meff}\left(\pdd r + \frac 1 r \pd r - \frac{m^2}{r^2} \right)R(r)
+ + \frac 1 2 \meff \omegasq r^2 R(r) = \eps_m R(r),
+\ee
+where $\eps_m = E_\Omega-\hbar m \omega_B$. This equation is solved by using the same technique as for the one-dimensional harmonic oscillator. We omit therefore the derivation. The normalized solution is
+\bea
+\label{eq:radial2d}
+R_{nm}(r) &=& \sqrt{\frac{2n!}{(n+|m|)!}} \beta^{(|m|+1)/2} r^{|m|}e^{-\beta r^2/2} L_n^{|m|}(\beta r^2),\\
+E_\Omega = E_{nm}    &=& (2n + |m| + 1)\hbar\omega + \hbar m\omega_B ,
+\eea
+where $n=0,1,2,\ldots,$ and
+\be
+\beta = \frac{\meff \omega} \hbar,
+\ee
+and $L_n^{|m|}(\beta r^2)$ is the associated Laguerre polynomial which in the Rodriguez representation is defined as
+\be
+L_n^{m}(r) = \frac 1 {n!} e^r r^{-m} \pdn r \left(e^{-r} r^{n + m} \right). 
+\ee
+The first three polynomials are
+\bea
+L_0^{m}(r) &=& 1,\\
+L_1^{m}(r) &=& -r + m + 1,\\
+L_2^{m}(r) &=& \frac 1 2 r^2 -(m+2)r + \frac 1 2 (m+2)(m+1). 
+\eea
+In order to get $\phi_{nm}(r,\varphi)$ we just have to multiply eq.~(\ref{eq:radial2d}) with the normalized angular part. The result is
+\be
+\phi_{nm}(r,\varphi) = \sqrt{\frac{n!}{\pi(n+|m|)!}} \beta^{(|m|+1)/2} r^{|m|}e^{-\beta r^2/2} 
+                       L_n^{|m|}(\beta r^2) e^{im\varphi}. 
+\ee
+The total energy of the system is
+\be
+E = E_{nms} = E_{nm} + E_s = (2n + |m| + 1)\hbar\omega + m\hbar\omega_B  + g_s\hbar\omega_B s,
+\ee
+and to analyze the effect of the magnetic field we compare this energy to 
+\be
+E_{B=0} = E_{nm} =(2n + |m| + 1)\hbar\omega_0.  
+\ee
+In this case we regain the energy spectrum of a two-dimensional harmonic oscillator 
+as we should, but with different quantum numbers reflecting the change to polar coordinates. 
+Clearly $N=2n+|m|$, and the shell structure is shown in table~(\ref{table:2DHO}). We see that the presence of the magnetic field makes the energy depend on the sign of $m$ and $s$. The previous degenerate states will now separate more and more as the magnetic field increases. When there are no degeneracies left, the concept of shell structure may at first seem problematic. However for small magnetic fields the ionization energy will still have peaks at the same magic numbers as for the degenerate case. Of course, for strong magnetic fields this picture breaks down. We should also mention that for some special magnetic field strengths some of the non degenerate energy levels will overlap and we can have so called accidental degeneracies. One example is when $\omega_0/\omega_B = \sqrt{(1+g_s^*)^2 - 1}$ which would make $E_{00\frac 1 2}=E_{0 -1 -\frac 1 2}$. 
+\begin{table}[h!b]
+  \centering
+      \begin{tabular}[]{r|r|r}
+      $N$&$n$&$m$\\
+      \hline
+      0&0&0\\
+      1&0&$\pm 1$\\
+      2&$0/2$&$\pm 2/0$\\
+      3&$0/1$&$\pm 3/\pm 1$\\
+    \end{tabular}
+    \caption{Shell structure for two dimensional harmonic oscillator with polar coordinate quantum numbers}
+    \label{table:2DHO}
+\end{table}
+%
+\newline
+\newline
+We want to briefly mention the relationship between the wave functions of the harmonic oscillator in polar and Cartesian coordinates by comparing the wavefunctions for $N=1$. I will use atomic units and omit
+ the normalization factors in order to simplify the relations. In Cartesian coordinates the wave functions  are given by
+\bea
+\phi_{10} &=& xe^{\frac \omega 2 (x^2+y^2)},\\
+\phi_{01} &=& ye^{\frac \omega 2 (x^2+y^2)},
+\eea
+while in polar coordinates they are
+\bea
+\phi_{01} &=& re^{\frac \omega 2 r^2}e^{(i\varphi)},\\
+\phi_{0 -1} &=& re^{\frac \omega 2 r^2}e^{(-i\varphi)}.
+\eea
+By using the following relations
+\bea
+e^{(\pm i\varphi)} &=& \cos \varphi \pm i\sin\varphi\\
+x &=& r\cos\varphi\\
+y &=& r\sin\varphi
+\eea
+we can write the last two wavefunctions as
+\be
+\phi_{0\pm1} = e^{\frac \omega 2 (x^2+y^2)} \left(x\pm iy\right).
+\ee
+They are thus related to each other by the normalized linear combination
+\be
+\phi_{0\pm1} = \frac 1 {\sqrt2} \left(\phi_{10} \pm i\phi_{01}\right).
+\ee
+It also tells us that the two eigenfunctions of $L_z$ are $x\pm i y$, with 
+eigenvalues $\pm \hbar$. %To our knowledge there is no general formula for the transformation of the wavefunctions in different coordinate systems. 
+ %The Hermite polynomial relates to the Laguerre polynomial by the equations
+%\bea
+%H_{2n}(x) &=& (-4)^n n! L_n^{ -\frac 1 2}(x^2),\\
+%H_{2n+1}(x) &=& 2(-4)^n n! x L_n^{\frac 1 2}(x^2).
+%\eea
+
+\subsection{Three dimensions}
+The only change in the Hamiltonian is the inclusion of the $z$-direction. Thus the spatial Hamiltonian reads
+\be
+H_\Omega =  \frac 1 {2\meff} \left[p^2 - \frac{eB}{c} L_z + \frac{e^2B^2}{4c^2}\left(x^2 + y^2\right) \right] +
+    \frac 1 2 \meff\omegazsq \left(x^2+y^2\right) + \frac 1 2 \meff\omega_z^2 z^2
+\ee
+where $p^2$ now includes $p_z^2$. The $L_z$ operator commutes with $H_\Omega$, however, an analytical solution is only attainable when $\omega_z = \omega$ since the magnetic field 
+only shifts the part of the oscillator potential that is perpendicular to the magnetic field. 
+Using this and changing to polar coordinates we get
+\bea
+H_{r\theta\varphi} &=&  -\frac{\hbar^2}{2\meff}\left[\pdd r + \frac 2 r \pd r + \frac 1  {r^2}
+\left( \frac 1 {\sin^2\theta} \pdd \varphi + \cot\theta\pd \theta + \pdd \theta\right) \right]\nonumber\\
+&&               + i\hbar\omega_B \pd \varphi  + \frac 1 2 \meff \omegasq r^2.
+\eea
+The part inside the parenthesis is equal to the operator $-\frac{1}{\hbar^2}L^2$ which also commutes with $H_{r\theta\varphi}$. Its eigenfunctions are the spherical harmonics $Y_{lm}$ which in normalized form are
+\be
+\label{eq:SphericalHarmonics}
+Y_{lm}(\theta,\varphi) = \delta_m\left[\frac{(2l+1)(l-|m|)!}{4\pi(l+|m|)!} \right]^{\frac 1 2}
+P_l^{|m|}(\cos\theta) e^{im\varphi},
+\ee
+with the requirement $l=0,1,2,\ldots,$ and $m=0,\pm 1, \pm 2, \ldots,\pm l$ and where
+\be
+\delta_m = \begin{cases}
+(-1)^m& m \geq 0,\\
+1&      m \leq 0.
+\end{cases}
+\ee
+The associated Legendre polynomials $P_l^m$ are in the Rodriguez representation defined as
+\be
+P_l^m(x) = \frac{(-1)^m}{2^l l!}(1-x^2)^{\frac m 2}\left( \sd x \right)^{l+m}(x^2-1)^l,\quad |m| \leq l,
+\ee
+and the six lowest-order associated Legendre polynomials 
+are shown in table~(\ref{table:LegendrePolynomials}). The eigenvalues of $L^2$ are $\hbar^2 l(l+1)$. 
+\begin{table}[h!b]
+  \centering
+    \begin{tabular}{r|r|r}
+      $|m|$&$l$&$P_l^m(x)$\\
+      \hline
+      0&0&1\\
+      0&1&$x$\\
+      0&2&$\frac 1 2(3x^2 - 1$\\
+      1&1&1$-\sqrt{1-x^2}$\\
+      1&2&$-3x\sqrt{1-x^2}$\\
+      2&2&$3(1-x^2)$\\
+    \end{tabular}
+    \caption{Lowest order associated Legendre polynomials}
+    \label{table:LegendrePolynomials}
+\end{table}
+%
+The Hamiltonian is once again separable. An ansatz for the wave function is then
+\be
+\phi_{lm}(r,\theta,\varphi) = R(r)Y_{lm}(\theta,\varphi). 
+\ee
+Inserting this into the stationary Schr\"odinger equation we end up with the differential equation
+\be
+- \frac{\hbar^2}{2\meff}\left(\pdd r + \frac 2 r \pd r - \frac{l(l+1)}{r^2} \right)R(r)
+ + \frac 1 2 \meff \omegasq r^2 R(r) = \eps_m R(r),
+\ee
+which is quite similar to the two-dimensional one. The solution is
+\bea
+R_{nl}(r) &=& \left[\frac{2n!}{(n+l+1/2)!}\right]^{1/2} \beta^{(l+3/2)} r^l e^{-\beta r^2/2} L_n^{l+1/2}(\beta r^2),\\
+E_\Omega = E_{nlm} &=& (2n+l+\frac 3 2)\hbar\omega + \hbar m\omega_B
+\eea
+with n=0,1,2,\ldots. As expected, there are no degenerate energy levels 
+and if we set $B=0$ we regain the energy spectrum of the harmonic oscillator by identifying $N=2n+l$. 
+\subsection{Two-particle system}
+We will now present how the problem of a two electron quantum dot can be solved analytically for certain values of $\omega$. These results are 
+taken from the article \cite{MTautQDotAnalSol} and form an  important basis for checking our 
+numerical solution method and also to gain some physical insight on the role of  
+correlations. The spatial Hamiltonian in two dimensions is
+\be
+H_{r_\varphi} = \Sum_{i=1}^2 \left[\frac 1 {2\meff}\left(\f p_i - \frac e c \f A_i \right)^2 + \frac 1 2 \meff\omegazsq r_i^2 \right] + \frac{e^2}{4\pi\eps_0 |\f r_2 - \f r_1|}.
+\ee
+By introducing the center-of-mass and relative coordinates we can split the Hamiltonian in two parts, one which depends on the relative coordinates only and one which depends on the center-of-mass coordinates. 
+We can the use the separation of variables technique when solving the stationary Schr\"odinger equation. The coordinate transformation is given by
+\bea
+\f r &=& \f r_2 - \f r_1,\\
+\f R &=& \frac 1 2 (\f r_1 + \f r_2),
+\eea
+where $\f R$ and $\f r$ are the center-of-mass term and the relative term, respectively. The momenta will also be transformed according to
+\bea
+\f p &=& \frac 1 2(\f p_2 - \f p_1), \\
+\f P &=&  \f p_1 + \f p_2.
+\eea
+When $\f B$ is a constant, Maxwell's equations implies that $\f A$ must be linear
+\bea
+\f A(r) &=& \f A(r_2) - \f A(r_1),\\
+\f A(R) &=& \frac 1 2 ( \f A(r_1) + \f A(r_2) ).
+\eea
+The following relations will come in handy when transforming the Hamiltonian
+\bea
+p_1^2 + p_2^2 &=& \frac 1 2 (P^2 + 4p^2),\\
+r_1^2 + r_2^2 &=& \frac 1 2 (4R^2 + r^2),\\
+|\f r_2 - \f r_1| &=& r\\
+\f p_1 \cdot \f A(r_1) + \f p_2 \cdot \f A(r_2) &=& \f p \cdot \f A(r) + \f P \cdot \f A(R)\\
+A_{r_1}^2 + A_{r_2}^2 &=& \frac12 A(r)^2 + 2A(R)^2
+\eea
+The result is
+\begin{equation}
+\begin{split}
+H_{r_\varphi}&= \frac1{2}\left\{\frac1{2\meff} 
+\left[P^2 -4\frac ec \f P \cdot \f A(R) + 4 \frac{e^2}{c^2}A(R)^2\right] 
++  2 \meff\omegazsq R^2 \right\} \\
+&\;\; + 2 \biggl\{ \frac1{2\meff}\left[p^2 - \frac ec \f p \cdot \f A(r) + \frac14 \frac{e^2}{c^2}A(r)^2\right]
++  \frac18 \meff\omegazsq r^2 \\ 
+& \;\; \qquad + \frac{e^2}{8\pi\eps_0 r}\biggr\},
+\end{split}
+\end{equation}
+and by introducing
+\bea
+\label{eq:omegaR}
+\omega_R &=& 2\omega_0\\
+\omega_r &=& \frac12 \omega_0\\
+\label{eq:AR}
+\f A_{R} &=& 2 \f A(R)\\
+\label{eq:Ar}
+\f A_{r} &=& \frac12 \f A(r)
+\eea
+we get
+\bea
+H_{r_\varphi} &=& \frac 1 2\left\{\frac1{2\meff} \left[P-\frac ec \f A_{R}\right]^2
++  \frac12 \meff\omega_R^2 R^2 \right\} + \nonumber \\
+&& \, 2 \left\{ \frac1{2\meff} \left[p - \frac ec \f A_{r}\right]^2
++  \frac12 \meff\omega_r r^2 + \frac{e^2}{8\pi\eps_0 r}\right\},\\
+&\equiv&\frac12 H_R + 2H_r.
+\eea
+The wavefunction can the be written in  the product form  as 
+\be
+\Psi(\f r,\f R) = \psi_r(\f r) \psi_R(\f R)
+\ee
+and when inserted into the Schr\"odinger $H\Psi = E\Psi$ we end up solving the system of equations
+\bea
+\label{eq:rel}
+H_r \psi_r &=& E_r \psi_r\\
+\label{eq:com}
+H_R \psi_R &=& E_R \psi_R
+\eea
+ with total energy
+\be
+E = \frac12 E_R + 2E_r.
+\ee
+The solution to the center-of-mass problem, eq~(\ref{eq:com}) is the same as for the one particle case. The energy will be
+\be
+E_R = E_{NM} = 2(N + |M| + 1)\hbar \omega + 2\hbar M \omega_{B} 
+\ee
+where the extra factor of two in comes from eq.~(\ref{eq:AR}) and eq.~(\ref{eq:omegaR}).
+\newline
+
+We now move on to solve eq.~(\ref{eq:rel}) which is the relative part. The presence of the $1/r$ term makes it impossible to get a general closed-form solution. 
+Such solutions only exist for particular values of $\omega$ that can be 
+found by solving $a_n=0$ where $a_n$ is given by the the following recurrence relation
+\bea
+a_0&\neq&0\\
+a_1&=&\frac 1 {a_0'(2|m|+1)} \sqrt{\frac {2 \hbar} {\meff\omega}}a_0\\
+a_n &=& \frac{1}{n(n+2|m|)}\biggl\{\frac 1 {a_0'}\sqrt{\frac {2\hbar} {\meff\omega}}a_{n-1}\nonumber\\ 
+&&+ \left[2\left(n+|m|-1\right) -\eps_{nm}\right]a_{n-2}\biggr\}, \quad n\geq2
+\eea
+where 
+\be
+a_0' = \frac{8\pi\eps_0\hbar^2}{2\meff e^2},
+\ee
+and
+\be
+\eps_{nm} = 2(|m|+n),  \quad n\geq2. 
+\ee
+The energy is given by
+\be
+E_r =E_{nm} = \frac 1 2(|m|+n)\hbar\omega + \frac12 m \hbar\omega_B. 
+\ee
+The procedure is to chose a value for $n$ and insert $\eps_{nm}$ into the expression for $a_n$ and then solve $a_n=0$ with respect to $\omega$. The ground state is given by $n=2$ and $m=0$ which gives $\omega=1$ and energy $E_r=\hbar$. The ground state of the center of mass part is given by $N=M=0$ which gives energy $E_R=2\hbar$. The total energy for the ground state of a two particle quantum dot is then $E=3\hbar$. The energy for the non-interacting case is just the one particle energy multiplied with two (the spin part cancels) and will for the ground state be equal to the center of mass energy. We see that the interaction energy is $1/3$ of the total energy.
+\newline
+
+In the three dimensional case it can be shown that we only have to make the substitution $|m|=l+1/2$ in the above expressions. The energy is
+\bea
+E_R = E_{NLM} = 2(2N + L + \frac32)\hbar\omega + 2\hbar M \omega_{B}\\
+E_r = E_{nlm} = \frac 1 2(n+l+\frac12)\hbar\omega + \frac12 m \hbar\omega_B.  
+\eea
+The ground state energy is given by $n=2,l=m=0$ and $N=L=M=0$ for the relative and center of mass part, respectively. This gives $\omega=1/2$ and total energy $E=2\hbar$ from which the interaction part contributes $1/4$. We see that the interaction part is more important in the two dimensional case. This is expected since lower dimensionalities give less degrees of freedom. 
+
+\section{Atomic systems}
+We want to show that our program is capable of solving multi electron atoms by using the Slater determinant of hydrogen like wavefunctions. These wavefunctions are found by solving the stationary Schr\"odinger equation for one electron in an atom with $Z$ protons. This is a $Z+1$ body problem that is in general not analytically solvable. Howewer, we can exploit that the nucleus is much heavier than the electron by many orders of magnitude. The effect will be that the nucleus is almost at rest compared to the electron. We will therefore approximate the problem by treating the nucleus as having no kinetic energy. Though one should note that this approximation will only be accurate if the momenta of the nucleus and the electron is of the same order of magnitude. This is easily shown by comparing their kinetic energy $T$ given by
+\bea
+T_e &=& \frac {P_e^2}{2m_e}\\
+T_Z &=& \frac {P_Z^2}{2Zm_p}.
+\eea
+We see that only if $P_e \approx P_Z$ will $T_e >> T_p$. This is one step in the Born-Oppenheimer (BO) approximation and is very important in molecular physics. 
+\subsection{Hydrogen like wave functions}
+The Hamiltonian is
+\be
+H = -\frac{\hbar^2}{2m_e}\nabla^2 - \frac{Ze^2}{4\pi\eps_0}\frac1r, 
+\ee
+and is spherically symmetric. This means that, as for the three dimensional quantum dot, the wavefunction is separable and we can use the ansatz
+\be
+\phi_{lm}(r,\theta,\varphi) = R(r)Y_{lm}(\theta,\varphi)
+\ee
+where $Y_{lm}$ are the spherical harmonics defined in eq.~(\ref{eq:SphericalHarmonics}). The Schr\"odinger equation reads
+\be
+\left\{-\frac{\hbar^2}{2m_e}\left[\pdd r + \frac 2 r \pd r + \frac {l(l+1)}{r^2} \right]
+ - \frac{Ze^2}{4\pi\eps_0}\frac{1}r \right\}R(r) = ER(r). 
+\ee
+The derivation of its solution is given in standard quantum mechanical textbooks, see for example \cite{book:Hemmer}. The result is 
+\bea
+E_{n} &=& - \frac{\hbar^2}{2 m_e a_0^2}\frac{Z^2}{n^2},\\
+R_{nl}(r) &=& -\left[\frac{4(n-l-1)!}{a^3n^4[(n+l)!]^3} \right]^{\frac12}
+(\rho_n r)^l e^{-\frac12 \rho_n r}L_{n+l}^{2l+1}(\rho_n r)\\
+n&=&1,2,\ldots,\\
+l&=&0,1,\ldots,n-1, 
+\eea
+where $\rho_n=2/na$ and $a=a_0/Z$. Comparing this energy with that of the three dimensional harmonic oscillator we see that it only depends on one quantum number. To calculate the spatial degeneracy we see that for each $n$, $l$ can take $n-1$ different values. We also know that for each $l$, $m$ can take $g_l=2(2l+1)$ different values and is called a subshell. By summing this we get
+\be
+g_n = \Sum_{l=0}^{n-1} (2l+1) = 2\frac{n(n-1)}2 +n = n^2,
+\ee
+and when including spin degrees of freedom the total degeneracy is $G_n = 2n^2$. The shell structure is shown in table \ref{table:ShellStructureAtom}
+\begin{table}[h!]
+  \centering
+  \[
+  \begin{array}{r|c|r|r|r|r}
+    nl&m&G_l&S_l&G_n&S_n\\
+    \hline
+    1s&0&2&2&2&2\\
+    \hline
+    2s&0&2&4& &\\
+    2p&-1,0,1&6&10&8&10\\
+    \hline
+    3s&0&2&12& & \\
+    3p&-1,0,1&6&18& &\\
+    3d&-2,-1,0,1,2&10&28&18&28\\
+  \end{array}
+\]
+\caption{Shell structure in an atom using spectroscopic notation. The number of orbitals in each subshell is $G_l = 2g_l$ and the total number of obitals in all subshells is $S_l = \sum G_l$.}
+\label{table:ShellStructureAtom}
+\end{table} 
+
+\section{Identical particle symmetry}
+When dealing with systems of more than one particle it is natural to label them with a number. This is valid in classical physics even if the particles are identical because \footnote{Identical in the sense that all of their intrinsic properties like electric charge and spin are equal. In other words, there are no experiments that could detect any intrinsic differences between them.} we can always seperate the particles by observing their historical trajectories. However, this is not possible in the quantum mechanical case because observing the system would disturb it. The logical consequence of this is that interchanging a pair of particles in the wave function should not change any observable of the system. This is called particle symmetry and has measurable physical consequences. Let 
+\be
+\psiij = \psi(\f x_1, \ldots, \f x_i, \ldots, \f x_j, \ldots, \f x_N). 
+\ee
+Then particle symmetry is equivalent to the equation
+\be
+|\psiij|^2 = |\psiji|^2,
+\ee
+and has the general solution
+\be
+\psiji = e^{i\beta}\psiij,
+\ee
+where $\beta$ is a real number. To find $\beta$ we define a permutation operator $\Pij$
+\be
+\Pij \psiij = \psiji.
+\ee
+We need to know if it is Hermitian. First note that when it operates twice we must get the same wave function back
+\be
+\label{eq:Psq}
+\Pij^2 = I
+\ee
+ which means that
+\be
+\label{eq:Pinv}
+\Pij = \Pij^{-1}.
+\ee
+It has also been shown (reference?) that for any operator $O$ corresponding to some observable then
+\be
+O = \Pij^\dagger O \Pij.
+\ee
+In particular for $O=I$ we get $\Pij^\dagger\Pij = I$ which together with eq.~(\ref{eq:Pinv}) shows that the permutation operator is Hermitian, $\Pij^\dagger = \Pij$. Using this and eq.~(\ref{eq:Psq}) means that $\Pij$ commutes with any observable $O$, the Hamiltonian as well. This means that any eigenfunction $\psi_k$ of $H$ is also an eigenfunction of $\Pij$ with eigenvalue $p_{ij}$. Using eq.~(\ref{eq:Psq}) again we get
+\bea
+\Pij^2 \psi_k &=& p_{ij}^2 \psi_k\\
+              &=& \psi_k
+\eea
+which means that $p_{ij}=\pm 1$. It can also be shown that the eigenvalue $p_{ij}$ is independent of which particles are being permutated thus $p_{ij}=p$. It is an empirical fact that wave functions with $p=1$ are symmetric $\psi_S$ and describes particles with whole integer spin, namely bosons. For $p=-1$ the wave function is anti-symmetric $\psi_A$ and describes particles with half integer spin which are fermions. This suggests that $\beta = 0$ describes a symmetric state while $\beta = \pi$ describes an anti-symmetric state. We can generalize this to include all possible two-particle permutations by the operator $\Pall$. This can be written as
+\be
+\Pall = \Prod_{i=1}^N\Prod_{j=i+1}^N \Pij
+\ee   
+and has the properties
+\bea
+\Pall \psi_S &=& + \psi_S\\
+\Pall \psi_A &=& (-1)^{n_p} \psi_A
+\eea
+where $n_p$ is the total number of two-particle permutations done by $\Pall$. 
+ 
+\subsection{Systems of non-interacting fermions} 
+The Hamiltonian of such a system with $N$ particles is
+\be
+\Hop_0 = \Sum_{i=1}^N \hop_i
+\ee
+where $\hop_i$ is the one particle Hamiltonian. The eigenfunction is on the product state form
+\be
+\psi_{\mu}(\f x_1,\ldots,\f x_N) = \Prod_{i=1}^N  \phi_{\mu_i}(\f x_i)
+\ee
+where $\phi_{\mu_i}$ is an eigenfunction of $\hop_i$ and $\mu_i$ is a set of quantum numbers describing the one particle state. While $\psi_k$ is an eigenfunction of $\Hop_0$ it is not an eigenfunction of $\Pall$. However, we know that any linear combination of different product states is also an eigenfunction of $H$. It turns out that the following linear combination is an eigenstate of $\Pall$
+\be
+\psi_\mu(\f x_1,\ldots,\f x_N) = \frac{1}{\sqrt{N!}}\left| 
+  \begin{array}{cccc}
+    \phi_{\mu_1}(\f x_1) & \phi_{\mu_1}(\f x_2) & \dots  &\phi_{\mu_1}(\f x_N) \\ %[4pt]
+    \phi_{\mu_2}(\f x_1) & \phi_{\mu_2}(\f x_2) & \dots  &\phi_{\mu_2}(\f x_N) \\ %[4pt] 
+    \vdots    & \vdots    & \ddots &\vdots    \\ %[4pt]
+    \phi_{\mu_N}(\f x_1) & \phi_{\mu_N}(\f x_2) & \dots  &\phi_{\mu_N}(\f x_N)
+  \end{array}
+\right|
+\ee 
+which is called the Slater determinant. If we have the case $\mu_i=\mu_j$ for some $i$ and $j$ then two of the rows will be equal and render the determinant zero. This tells us that two fermions cannot occupy the same state and is a consequence of the well-known Pauli exclusion principle. Changing two particles is equal to changing two columns and gives a sign change in the determinant.
+\newline
+
+As an example we will consider the Beryllium atom which has four electrons. The Slater determinant of the ground state configuration is
+\be
+\psi_{}(\f x_1,\f x_2) = \frac{1}{\sqrt{2!}}\left| 
+  \begin{array}{cc}
+    \phi_{00\uparrow}(\f x_1) & \phi_{00\uparrow}(\f x_2) \\
+    \phi_{00\downarrow}(\f x_1) & \phi_{00\downarrow}(\f x_2) \\
+  \end{array}
+\right|
+\ee
+\subsection{Systems of interacting fermions}
+\label{section:InteractingFermions}
+When the particles are interacting the Hamiltonian is
+\be
+\Hop = \Hop_0 + \Hop_I
+\ee
+where $\Hop_I$ is the interaction part. While the Slater determinant is now no longer a solution to the system it still serve a purpose. If the set $\{ \phi_{\mu_i}\}$ of one particle functions form a complete basis then the set $\{\psi_{\mu}\}$ of Slater determinants can be shown to also form a complete basis. This means we can expand the eigenfunction of $\Hop$ as
+\be
+\Psi = \Sum_\mu c_\mu \psi_\mu
+\ee
+where $\mu$ is a specific configuration and $|c_\mu|^2$ is the probability of that configuration. If we then can numerically find the coefficients $c_\mu$, we have in principle solved the problem. This is the starting point of the Configuration-Interaction (CI) method described in (referanse). 
+%eq.~(\ref{})
+%We have choosen to scale the equation i atomic units explained in
+%\begin{pmatrix} c_1\\c_2 \end{pmatrix}
+%Note that $\nabla^2$ in polar coordinates contains the term
+%\be
+%\pdd \varphi = - \frac 1 {\hbar^2} L_z^2
+%\ee
+%which means that the harmonic oscillator.

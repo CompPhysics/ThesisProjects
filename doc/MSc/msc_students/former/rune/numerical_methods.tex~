@@ -1,0 +1,301 @@
+\chapter{Numerical Methods}
+This chapther is devoted to the treatment of some of the most common numerical methods in quantum mechanics. Any numerical method will have to use some kind of approximation to solve the problem. In quantum mechanichs it is most common to approximate either the wave function or the interaction part of the Hamiltonian. 
+
+\section{Monte Carlo}
+There is no precise definition of the large range of numerical methods that falls under the Monte Carlo (MC) category. Howewer, they can be described as  statistical simulation methods in the sense that they use a sequenze of random numbers in the simulation. Monte Carlo methods are used in many different fields such as chemistry, biology, physics, biology, mathematics and computational finance. 
+\newline
+
+The MC methods are especially useful when the degrees of freedom in the system are many, strongly coupled and hard to simplify. Examples are fluids, disordered materials and strongly coupled solids. In mathematics it is used in the calculation of large dimensional integrals often with complicated boundary conditions.   
+
+The $MC$ method is particluarly suited for studying physical systems that are governed by a probability distribution function (PDF). The reason is that we can simulate the system directly and calculate any observable in case we have an analytical expression for. This is contrary to the standard deterministic approach which usually involvs finding and solving a set of partial differential equations. The statistical interpretation of the quantum mechanical wavefunction makes the (MC) method well suited here as well.  
+
+\subsection{The variatonal principle}
+The expectation value of the energy is
+\be
+\label{eq:VarEnergy}
+ \expval {\Hop} = E[\PsiTrial] = \frac {\braket \Hop {\PsiTrial}}{\norm \PsiTrial} = 
+\frac{\int d{\bf X}\PsiTrial^*({\bf X})H({\bf X})\PsiTrial({\bf X})}
+{\int d{\bf X}\PsiTrial^*({\bf X})\PsiTrial({\bf X})},
+\ee
+where $\f X$ is shorthand for the set of position vectors $\f x_1, \ldots, \f x_N$, and $\PsiTrial$ is a trial wave function that is parameterized with the scalars $\varparam$. We now expand the trial wave function in the energy eigenbasis which is a complete set of orthonormal eigenfunctions
+\be
+\PsiTrial = \Sum_i a_i\psi_i. 
+\ee
+Inserting this into the expression for the energy expectation value we get
+\be
+E[\PsiTrial]= \frac{\Sum_{ij}(a_i^*a_j\int \psi_i^*\Hop \psi_j d\f X)}
+{\Sum_{ij}(a_i^*a_j\int \psi_i^* \psi_j d\f X)}.
+\ee
+Using that $\Hop \psi_i = E_i \psi_i$ and the orthonormality condition $\int \psi_i^* \psi_j=\delta_{ij}$ gives
+\be
+E[\PsiTrial]= \frac{\Sum_i |a_i|^2 E_i}{\Sum_i |a_i|^2} \geq E_0,
+\ee
+where $E_0$ is the groundstate energy. We have therefore proved that the variational energy is an upper bound to the exact ground state energy. This important property will be used to find a good wave function. 
+The use of the uniform distribution to sample the  integral for the expectation value of the energy
+would lead to a highly inefficient algorithm. The sampling method must generate points where the integrand is large. To achieve this we express eq.~(\ref{eq:VarEnergy}) in terms of the PDF
+\be
+P(\f X) = \frac{|\PsiTrial|^2}{\int |\PsiTrial|^2}
+\ee
+by defining a local energy as
+\be
+E_L(\f X) \equiv \frac1{\PsiTrial}\Hop \PsiTrial.
+\ee
+The energy expectation value can now be written as a weighted average of the local energy
+\be
+E[\PsiTrial] = \expval {E_L}_P = \int P(\f X) E_L(\f X)d\f X 
+\approx \frac 1 M \Sum_{i=1}^M P(\f X_i) E_L(\f X_i),
+\ee
+where $M$ is the number of MC cycles. We will use the Metropolis algorithm to sample from $P$. That is a method based on a stochastic random walk and will introduce a statistical error $\eps$ in our computations of the local energy. The error is equal to the standard deviation of the distribution of $\expval {E_L}_P$ that we get by using different samples of $P$ in each calculation of $\expval {E_L}_P$. The standard deviation is given by the square root of the variance $\sigma_{E_L}^2$ of the local energy,  defined as
+\bea
+\sigma_{E_L}^2 &\equiv& \expval{(E_L - \expval{E_L}_{P})^2}_{P}\\
+         &=& \expval{E_L^2}_{P} - 2 \expval{E_L}_{P}^2 + \expval{E_L}_{P}^2,\\
+         &=& \expval{E_L^2}_{P} -  \expval{E_L}_{P}^2.
+\eea
+ It is easy to check that if the trial wave function is an exact eigenfunction then the variance is zero. This property can be used to find the optimal parameters because we do not always know what the lowest energy is while the lowest variance is always zero. It is possible to show (see appendix \ref{section:StatisticalAnalysis}) that the error is given by
+\be
+\eps = \sqrt{\frac {\tau}{M}} \sigma_{E_L}.
+\ee
+where $\tau$ is the autocorrelation time which is equal to one if there are no correlations. This means that assuming no correlations gives a too optimistic estimate of the error. The standard way of computing $\tau$ is very time consuming so we will rather use the so-called blocking method which is an approximative method that gives reliable results for the standard error and standard deviation. 
+\subsection{The Metropolis algorithm}
+Generating a set of points that are distributed after some known PDF can be a rather non-trivial task. The starting point is the uniform distribution generated by a pseudo random number generator and we have to transform it into the desired PDF. One technique is the inversion method which can give us an analytic transformation function. Take $X$ as a random variate whose PDF is the uniform distribution $u(x)$. Let $Y$ be the random variate from our desired PDF $p(y)$. The objective is to find a function $f$ so that $f(x)=y$. It can be shown that
+\bea
+p(y) = p(f(x)) &=& u(x)\left| \frac{dx}{dy}\right|,\\
+&=& u(f^{-1}(y)) \left| \frac{df^{-1}(y)}{dy}\right|.
+\eea
+By using that $u(x)=1$ since it is a uniform distribution, we get
+\be
+p(y)dy = df\inv(y).
+\ee
+Integrating both sides leads to 
+\be
+f^{-1}(y) = \Int_{-\infty}^{y} p(y')dy' = P(y),
+\ee
+where $P(y)$ is the cumulative probability of $p(y)$. This means that
+\be
+f(x) = P\inv (x). 
+\ee
+The problem with this method is that the integral of $p(y)$ must be known and invertible. If not we could generate it numerically but that leads normally to a more  inefficient algorithm. One important application of the inversion method is the so-called Box-Muller algorithm which generates a pair of Gaussian random numbers $(y_1,y_2)$ with variance $\sigma^2$ and mean value $\mu$, given a pair of unformly distributed random numbers $x_1,x_2$ as input. It can be shown that (referanse?)
+\bea
+y_1 &=& \sigma^2 \sqrt{-2\ln{x_1}} \cos{(2\pi x_2)}  + \mu,\\
+y_2 &=& \sigma^2 \sqrt{-2\ln{x_1}} \sin{(2\pi x_2)} + \mu.
+\eea
+which will be used in the program
+\newline
+
+The Metropolis algorithm is a way of generating a desired distributed by constructing a Markov chain that has the desired distribution as its equilibrium distribution (the most likely state). The 
+Markov chain will be created by a random walk in state space with the property that the next step of the walk only depends on the current state and some random number. 
+All information about how the current state was reached is lost. The random walker is just a mathematical object that can represent any physical quantities but in this thesis it represents the state of the electrons which are governed by their positions. In this text we will often refer to a random walker or
+just walker(s) when we discuss the simulation process. The random walker(s) represents thus a collection of samples in our state space of possible events. These samples form the basis for computing various
+expectation values like the energy variance or the energy.  
+\newline
+
+Let the set $\{S_1,\ldots,S_N\}$ be all the available states and let $S_j$ represent the state at time $i$. Let
+\be
+P_{kj} \equiv P(S_k \leftarrow S_j)
+\ee
+be the probability of going from state $S_j$ to $S_k$ in one time step, where $S_k$ represents the state at time $i+1$. In our simulations time is used here in a loose way 
+to label the different simulation steps (typically the distance between each sampling).  
+It has nothing to do with the physical time of the system in consideration. Normalization and positivity of the probabilities demands that
+\bea
+&& 0 \leq \; P_{kj} \powi \leq 1, \quad k=1, 2, \ldots, N, \quad j=1, 2, \ldots, N\\
+&&\Sum_{k=1}^N P_{kj} = 1, \quad j=1, 2, \ldots, N,
+\eea
+Let the $p_r^{(i)}$ be the probability that the system is in state $S_r$ at time $i$. The probability distribution of the walkers can be represented by the vector
+\be
+\f p\powi = 
+\begin{bmatrix}
+p_1\powi\\
+p_2\powi\\
+\vdots\\
+p_N\powi\\
+\end{bmatrix}
+\ee
+with the requirements
+\bea
+&& 0 \leq \; p_k\powi \leq 1, \quad k=1, 2, \ldots, N\\
+&&\Sum_{k=1}^N p_k\powi = 1
+\eea
+The evolution of $\f p$ is
+\be
+p_k\powii = \Sum_j P_{kj} p_j\powi
+\label{eq:pPp}
+\ee
+which is equal to the matrix vector equation $\f p\powii = \f P \f p\powi$. After $m$ steps the state is
+\be
+\f p\powm = \f P^m \f p\powz
+\ee
+Assume that there exist an equilibrium distribution $\f p^*$ given by
+\be
+\f p^* = \f P \f p^*. 
+\ee
+Obviously $\f p^*$ is an eigenvector of the transition matrix $\f P$ with eigenvalue $1$. We want to write this in a different way by subtracting $p_k\powi$ and $\sum_j P_{jk} p_k\powi$ from the left and right hand side (respectively) of eq.~(\ref{eq:pPp}). This is possible since 
+ $\sum_j P_{jk} = 1$. The result is
+\be
+p_k\powii - p_k\powi = \Sum_j P_{kj} p_j\powi - \sum_j P_{jk} p_k\powi.
+\ee
+At equilibrium we must have $p_k\powii = p_k\powi$ which leads to
+\be
+\Sum_j P_{kj} p_j\powi = \sum_j P_{jk} p_k\powi.
+\ee
+The stronger condition
+\be
+P_{kj} p_j = P_{jk} p_k
+\ee
+is called detailed balance and tells us that the individual flow between pairs of states are equal. Consider now splitting the move from $S_j$ to $S_k$ in two steps, first the move is suggested with probability $\omega_{kj}$, then it is accepted with probabilty $A_{kj}$. The total probability for moving is the product
+\be
+\omega_{kj}A_{kj} = P_{kj}.
+\ee
+The detailed balance equation now reads
+\be
+\frac{A_{kj}}{A_{jk}} = \frac{\omega_{jk} p_k}{\omega_{kj} p_j}.
+\ee
+Many different choices of $A$ will satisfy this equation but the choice of Metropolis algorithm is
+\bea
+A_{kj} &=& \mathrm{min} \left[1,  \frac{\omega_{jk} p_k}{\omega_{kj} p_j}\right]\\
+A_{jk} &=& \mathrm{min} \left[1,  \frac{\omega_{kj} p_j}{\omega_{jk} p_k}\right]\\
+A_{jj} &=& 1
+\eea
+This matrix has the advantage of being very easy to implement numerically and the probability distributions need not be normalized as they cancel each other out when computing the 
+ratio between probabilities. The correspoding algorithm is to generate a uniform random number $r$ and compare it with
+\be
+v_{kj}  = \frac{\omega_{jk} p_k}{\omega_{kj} p_j}.
+\ee
+If $v_{kj} > r$ then the move is accepted. In this thesis the distribution $\f p$ corresponds to $|\Psi(\f X)|^2$. One example of a random walk is the algorithm
+\be
+\f Y = \f X + (r-0.5)l
+\ee
+where $l$ is a step length. It is easy to see that increasing $l$ would decrease sequential correlation, but unfortunately this also decreases the acceptance ratio because 
+when $\f Y$ is large $|\Psi(\f X)|^2$ is small. A small acceptance ratio means that the particle will get stuck in the same place and the resulting energy or other expectation values 
+would most likely be strongly biased. Generally an acceptance ratio between $0.3$ and $0.7$ is a good starting point but it really has to be investigated for each experiment.
+\newline
+
+The optimal solution would be to take large steps to regions were $|\Psi(\f X)|^2$ is large. It turns out that there exists a possible procedure for doing this based on the so-called 
+Fokker-Planck equation. It pushes the walkers according to the gradient of the distribution. The move mimics an isotropic diffusion process with a drift force $F$. The random walk is now given by
+\be
+\f Y = \f X + D\f F(\f X)\delta t + \chi
+\ee  
+where $D$ is the diffusion constant and $\chi$ is a Gaussian random variable with mean value equal zero and variance $2D\delta t$. The force term is given by
+\be
+\f F = \frac 1 p \nabla p  
+\ee
+and with $p=|\Psi|^2$ we get
+\be
+\f F = \frac 2 \Psi \nabla \Psi.  
+\ee
+Clearly the move is biased towards large $|\Psi|^2$ and is a form of importance sampling which means sampling the states that contribute the most to the physical quantity we wish to find. It can be shown that the probability for moving from $\f X$ to $\f Y$ is
+\be
+\omega(\f Y, \f X) = e^{\frac{-(\f Y - \f X - D \delta t \f F(\f x))^2} {4D\delta t}}. 
+\ee
+The acceptance matrix is then
+\be
+A(\f Y, \f X) = \mathrm{min} \left[1, \frac{\omega(\f X, \f Y) |\Psi(\f Y)|^2}
+                                           {\omega(\f Y, \f X) |\Psi(\f X)|^2} \right]
+\ee
+% \subsection{Random numbers}   
+% The generation of random numbers are very important in Monte Carlo methods. One may wonder how it is possible for a deterministic machine such as a computer to generate anything random other than blue screens. The answer is that a number in itself is not random, rather it is the relationship between numbers in a set that is random. Fortunately there are algorithms that can generate set of numbers that are distributed in a seemingly random way.
+% We call them Pseudo random generators (PRNG) and have to important propert
+
+%\subsection{Importance sampling}
+
+\subsection{Trial wave function}
+The choice of wave function is very important in variational Monte Carlo 
+calculations. They should include the necessary physical properties and also be computationally feasible. In most electronic systems the typical trial wave function consists of either one or a linear combination of Slater determinants multiplied with a correlation term that is only a function of the inter-electronic or inter-particle distances. We remember from \ref{section:InteractingFermions} that any wave function can be expanded in the Slater determinant basis
+\be
+\Psi = \Sum_\mu c_\mu \psi_\mu.
+\ee
+where $\mu$ runs over all electronic configurations. Obviously this expansion must be terminated somewhere. 
+The fact that the computation of the Slater determinant is usually the most demanding part limits the number of terms that is practicaly possible. If we only want the ground state energy it turns out that only one term in the expansion gives remarkably good results. This term corresponds to the ground state configuration and is an exact solution to the non-interacting system. Because the term incorporates no correlations it makes the choice of correlation term all the more important. Which single particle basis to use in composing the Slater determinant must be based on the system at hand. 
+\newline
+
+One important property that the wave function should have is fulfilling the so called \emph{cusp} condition. We know that the local energy is finite everywhere which means that the divergence in the Columb energy when two charged particles come close together, must be cancelled by a corresponding divergence in the kinetic energy. It leads to a discontinuity on the first derivative of the wave function, hence the name cusp. For atomic systems we have both the electron-nucleus cusp and the electron-electron cusp. In the Harmonic oscillator and quantum dot only the electron-electron cusp is present. Because the Slater determinant $\psi_\mu$ does not depend on $\rij$ when $i$ and $j$ are electrons of opposite spin, the derivative with respect to $\rij$ must be zero and $\psi_\mu$ cannot satisfy the cusp condition. However, we know that the determinant goes to zero when two parallel spin electrons approach each other. By using $\f \rij = \f x_j - \f x_i$ we can write the determinant as $\psisd(\f x_i,\f x_j, \ldots) = \psisd(\f x_i,\f x_i + \f \rij, \ldots)$. By expanding it around $\rij = 0$ we get
+\be
+\psisd(\f x_i,\f x_i + \f \rij, \ldots) \approx \psisd(\f x_i,\f x_i + 0, \ldots) + 
+\rij \pdf \psisd \rij \Bigg|_{\rij=0} + \ldots
+\ee
+The first term is zero while the derivative in the second term is in general not zero. It is a constant $\rho_{ij}$ that does not depend on $\rij$ (we evaluated the derivative at $\rij = 0$), but it does depends on $i$ and $j$. In other words we can for small $\rij$ values write the determinant as $\psisd = \rij \rho_{ij}$. It can be shown (see \cite{book:Hammond}) that the electronic cusp condition will give an equation of the form
+\be
+\frac{1}{\rho_{ij}} \pdf {\rho_{ij}} \rij \Bigg|_{\rij=0} = f(l)
+\ee 
+ where $f$ depends on the Schr\"odinger equation and $l=1$ for parallel spin and $l=0$ for opposite spin particles. This equation can never be fulfilled by the Slater determinant which means that the correlation part must do it. If we choose a wave function on the product form $\Psi = \psisd \psicorr$ it can be shown that the cusp condition is equal to
+\be
+\frac 1 \psicorr \pdf \psicorr \rij \Bigg|_{\rij=0} = 
+\begin{cases} 
+1 & \text{opposite spin}\\
+\frac 1 3 & \text{paralell spin}
+\end{cases}
+\ee
+for the two dimensional case and
+\be
+\frac 1 \psicorr \pdf \psicorr \rij \Bigg|_{\rij=0} = 
+\begin{cases} 
+\frac 1 2 & \text{opposite spin}\\
+\frac 1 4 & \text{paralell spin}
+\end{cases}
+\ee
+in the three dimensions. One popular type of correlation function is the Pade-Jastrow form
+\be
+\psicorr = e^U
+\ee 
+where
+\be
+U = \Sum_{i=1}^N \Sum_{j=i+1}^N \uij
+\ee
+and
+\be
+\uij = \frac{\Sum_{k=1}^n \gamma_k \rij^k}{1 + \Sum_{k=1}^n \beta_k \rij^k}. 
+\ee
+In this case we have
+\be
+\frac 1 \psicorr \pdf \psicorr \rij \Bigg|_{\rij=0} = \gamma_1
+\ee
+for the cusp condition. We will use the Pade-Jastrow form in this thesis.   
+ 
+\subsection{Optimization techniques}
+The problem of finding a global minima in a multidimensional function is not easy. When we add statistical noise it becomes even harder. We will try a method introduced by A. Harju in \cite{article:Harju1997} called the Stochastic Gradient Approximation (SGA) method. It uses the statistical noise to its advantage to avoid getting stuck in a local minima. The method bears some resemblance to the Simulated Annealing technique \cite{book:NumericalRecipiesInC++}. The SGA is an iterative scheme given by the equation
+\be
+\f \alpha_{i+1} = \f \alpha_{i} - \ell_i \nabla_{\f \alpha} \hat O(\f \alpha)
+\ee
+where $\alpha$ is the parameter vector for the total wave function and $\hat O$ is some observable like the local energy or variance. The parameter $\ell_i$ is a step length that should satisfy the conditions
+\be 
+\Sum_{i=1} \ell_i^2 < \Sum_{i=1} \ell_i = \infty.
+\ee
+A simple choice is $\ell_i = 1/i$ but we will use the more complex scheme
+\be
+\ell_i = \ell_0 \frac{1}{j_i^{k}}
+\ee
+where $j_1=0$, $1/2 < k \leq 1$ and
+\be
+j_{i+1} = 
+\begin{cases}
+\frac{j_i}2 & \text{if sign$(\pdf{\hat O}{\alpha_j})_i = $ 
+                       sign$(\pdf{\hat O}{\alpha_j})_{i-1}$}\\ 
+j_i + 1 & \text{if sign$(\pdf{\hat O}{\alpha_j})_i \neq $ 
+                       sign$(\pdf{\hat O}{\alpha_j})_{i-1}$}
+\end{cases}
+\ee
+The idea is that if there are no sign change in the derivative of the $j$'th component of $\f \alpha$ then we have not yet reached the minimum and want to increase the step length to increase efficiency. If there has been a sign change, then we have passed the minimum and must decrease the step length. The derivative of the local energy can be shown to be \cite{article:Lin2000}
+\bea
+\pdf {E(\f \alpha)}{\alpha_j} &=& \pd {\alpha_j} \frac{\int \Psi \Hop \Psi}{\int \Psi^2}\\
+\label{eq:EnergyGradient}
+&=& 2\expval{E_L \frac{\Psi'}{\Psi}} - 2\expval{E_L}\expval{\frac{\Psi'}{\Psi}}
+\eea
+where
+\be
+\Psi' = \pdf {\Psi}{\alpha_j}.
+\ee
+Similar it is shown in \cite{article:Umrigar2005} that the derivative of the variance is
+\bea
+\pdf {\sigma^2(\f \alpha)}{\alpha_j} &=& \pd {\alpha_j} 
+\frac{\int \Psi^2 (E_L -\expval{E_L})^2}{\int \Psi^2}\\
+&=& 2 \biggl[\expval{E_L'(E_L - \expval{E_L})} +  \expval{E_L^2\frac{\Psi'}{\Psi}}  
+-  \expval{E_L^2}\expval{\frac{\Psi'}{\Psi}}  \nonumber \\
+\label{eq:VarianceGradient}
+&&\quad - 2\expval{E_L}\expval{(E_L - \expval{E_L})\frac{\Psi'}{\Psi}} \biggr]
+\eea
+where
+\be
+E_L' = \pdf {E_L}{\alpha_j}.
+\ee
+Variance minimization is most frequently used because it is more efficient than straightforward energy minimization. This is because it is possible to lower the energy on the finite set of MC configurations while the true expectation value is actually raised \cite{article:Umrigar2005}. The problem with variance optimization is that the parameter set of lowest variance may not coincide with that oflowest energy. The SGA algorithm allows for minimizing both energy and variance and use a wheighted mean of the two sets of parameters as the optimal one. The expressions for the derivative of the energy and variance involves computing the parameter gradient of the wavefunction and local energy which is hard to optimize and therefore computationally costly. This will be discussed in greater detail in the implementation chapter. The number of random walkers $N_W$ used to compute the expectation values in eq.~(\ref{eq:EnergyGradient}) and eq.~(\ref{eq:VarianceGradient}) controls the amount of noise in the SGA algorithm. 
+%\section{Hartree-Fock}
+%\section{Configuration Interaction}

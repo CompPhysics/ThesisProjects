@@ -1,0 +1,95 @@
+\documentclass[a4paper,10pt]{article}
+
+
+%opening
+\title{}
+\author{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{quantum dot}
+
+{\color{red}{SI HAY TIEMPO: medir el tiempo tomado para hacer el variational loop en mixed y cpp. INTERESANTE EL COMENTARIO SOBRE OPTIMIZATION}}
+
+
+This thesis is concerned with Solving the Schr\"odinger equation for several quantum mechanical systems using the Quantum Variational Monte Carlo method. Several programming approach are suggested and their performance compared for a QVMC code for the He atom in Python, C++ and mixing Python/C++. Benchmarks are provided. 
+
+
+The mathematical model in this section can describe a "vertical quantum dot". Because the magnetic field is uniform and normal to $xy-$plane, the variables $x$, $y$ and $z$ are decoupled. ,  The static confining potential $V(\vec{r})$ in Eq. ([*]) is made up of in-plane potential $V_{xy}(\vec{\rho})$ and vertical potential $V_z(z)$. ( $\vec{\rho}=(x,y)$) Moreover, we almost always consider the situation where the magnetic field is uniform and normal to $x-y$ plane, $\vec{B}=(0,0,B)$. Therefore, the variables $x,y$ and $z$ are decoupled, $H_0=H_{0\rho}+H_{0z}$ and the eigenfunction is the product of two,
+\begin{displaymath} \varphi_l(\vec{r})=\phi_{n,m}(\vec{\rho})\xi_j(z), \end{displaymath} 	(89)
+
+and the eigenenergy is the sum, $E_l=E_{n,m}+E_j^z$. The Zeeman energy term can be considered separately since we neglected the spin-orbit interaction.
+
+Except in Sec. [*], we only consider that the in-plane potential $V_{xy}(\vec{\rho})$ has cylindrical symmetry. Then the symmetric gauge is convenient,
+\begin{displaymath} \vec{A}=\frac{B}{2}\rho \hat{e}_\varphi = \frac{B}{2}(-y,x,0), \end{displaymath} 	(90)
+
+where $\rho=\sqrt{x^2+y^2}$ and $\hat{e}_\phi$ is unit vector to azimuthal direction. We took the coordinate origin to the cylindrical symmetry axis.
+
+First we consider the in-plane component. The Hamiltonian is
+$\displaystyle H_{0\rho}$ 	$\textstyle =$ 	$\displaystyle \frac{1}{2m^*}(\frac{\hbar}{i}\mbox{div}+\frac{e}{c}\vec{A})\cdot (\frac{\hbar}{i}\vec{\nabla}+\frac{e}{c}\vec{A})+V_{xy}(\rho)$ 	 
+  	$\textstyle =$ 	$\displaystyle \frac{1}{2m^*}\{-\hbar^2 \mbox{div}\cdot\vec{\nabla}+\frac{\hbar ... ...\cdot \vec{A}+\vec{A}\cdot\vec{\nabla})+ (\frac{e}{c}\vec{A})^2\}+V_{xy}(\rho),$ 	(91)
+
+which is further modified with using cylindrical coordinate, where
+$\displaystyle \vec{\nabla}$ 	$\textstyle =$ 	$\displaystyle \frac{\partial}{\partial \rho}\hat{e}_\rho+ \frac{1}{\rho}\frac{\partial}{\partial \varphi}\hat{e}_\varphi$ 	(92)
+$\displaystyle \mbox{div}$ 	$\textstyle =$ 	$\displaystyle \frac{1}{\rho}\frac{\partial}{\partial \rho}(\rho \hat{e}_\rho) +\frac{1}{\rho}\frac{\partial}{\partial \varphi}\hat{e}_\varphi,$ 	(93)
+
+where $\hat{e}_\rho$ is unit vector to radial direction. Then
+$\displaystyle H_{0\rho}$ 	$\textstyle =$ 	$\displaystyle \frac{1}{2m^*}[-\hbar^2\{\frac{1}{\rho}\frac{\partial}{\partial\r... ...artial}{\partial\rho})+ \frac{1}{\rho^2}\frac{\partial^2}{\partial \varphi^2}\}$ 	 
+  	  	$\displaystyle \quad +\frac{e\hbar}{ic}\{\frac{1}{\rho}\frac{B}{2}\rho\frac{\par... ...artial}{\partial\varphi}\} \quad +(\frac{e}{c}\frac{B}{2}\rho)^2]+V_{xy}(\rho),$ 	 
+  	$\textstyle =$ 	$\displaystyle -\frac{\hbar^2}{2m^*}[\frac{1}{\rho}\frac{\partial}{\partial\rho}... ...artial}{\partial\rho})+ \frac{1}{\rho^2}\frac{\partial^2} {\partial \varphi^2}]$ 	 
+  	  	$\displaystyle \quad -\frac{i}{2}\hbar\omega_c \frac{\partial}{\partial\varphi}+ \frac{m^*}{8}\omega_c^2\rho^2+V_{xy}(\rho),$ 	(94)
+
+where we defined cyclotron frequency $\omega_c=\frac{eB}{m^*c}$. Now it is clear that we can separate two variables, $\rho$ and $\varphi$,
+\begin{displaymath} \phi_{nm}(\vec{\rho})\equiv \frac{1}{\sqrt{2\pi}}e^{im\varphi}R_{nm}(\rho), \end{displaymath} 	(95)
+
+and $m$ should be an integer because the wave function should be unique by a rotation $2\pi$, $\phi_{nm}\mid_\varphi=\phi_{nm}\mid_{\varphi+2\pi}$.
+
+$R_{nm}(\rho)$ should satisfy following eigenvalue equation,
+\begin{displaymath} -\frac{\hbar^2}{2m^*}[\frac{1}{\rho}\frac{\partial}{\partial... ...ac{m^*}{8}\omega_c^2\rho^2 +V_{xy}(\rho)\}R_{nm}=E_{nm}R_{nm}. \end{displaymath} 	(96)
+
+For a special form of in-plane confining potential, a harmonic potential $V_{xy}(\rho)\propto \rho^2$, we have well known analytic solutions of $R_{nm}$. There are several reasons that this potential is actually realized in vertical quantum dots when the electron number $N$ in the dot is very small. So we will only consider the case of harmonic potential. Dimensionally correct form of the potential is
+\begin{displaymath} V_{xy}(\rho)=\frac{m^*}{2}\omega_p^2\rho^2, \end{displaymath} 	(97)
+
+where we introduced a frequency $\omega_p$ characterizing the steepness of the confining potential. Typical size of the dot at zero magnetic field is $\sqrt{\hbar/(m^*\omega_p)}$.
+
+We will show how to solve Eq. ([*]) in Appendix [*]. We obtain the eigenenergy
+\begin{displaymath} E_{nm}=(2n+1+\mid m\mid)\hbar \Omega+\frac{m}{2}\hbar\omega_c, \end{displaymath} 	(98)
+
+where $\Omega\equiv \sqrt{\omega_p^2+(\omega_c/2)^2}$. This is called the Fock-Darwin state. The eigenfunction is
+\begin{displaymath} R_{nm}(\rho)=\frac{1}{l_\Omega}\sqrt{\frac{2n!}{(\mid m\mid+... ...ga})^{\mid m\mid} L_n^{\mid m\mid}(\frac{\rho^2}{l_\Omega^2}), \end{displaymath} 	(99)
+
+with $n=0,1,2,\ldots$ and $m=0,\pm1,\pm2,\ldots$ and $l_\Omega=\sqrt{\hbar/(m^*\Omega)}$. We have plotted $R_{nm}^2$ for $(nm)=(0,0),(0,1)$ in Fig. [*] and for $(nm)=(0,2),(1,0)$ in Fig. [*].
+
+Figure: Probability density plot of a wave function $R_{00}(\rho)$ and $R_{01}(\rho)$. The length is in unit of $l_\Omega$.
+\includegraphics [scale=0.7]{density-1.epsf}
+
+Figure: Probability density plot of a wave function $R_{02}(\rho)$ and $R_{10}(\rho)$. The length is in unit of $l_\Omega$.
+\includegraphics [scale=0.7]{density-2.epsf}
+
+Then we determine the eigenfunction in z direction. We consider following confining potential,
+\begin{displaymath} V_z(z)=\cases{0, &if $0<z<W$;\cr \infty, &otherwise.\cr} \end{displaymath} 	(100)
+
+the normalized wavefunction is
+\begin{displaymath} \xi_j(z)=\sqrt{\frac{2}{W}}\sin k_j z, \end{displaymath} 	(101)
+
+where $k_j=\pi j/W$ with $j=1,2,\ldots $. The eigen energy is
+\begin{displaymath} E_j^z=\frac{\hbar^2}{2m^*}(\frac{\pi j}{W})^2. \end{displaymath} 	(102)
+
+Assuming $W$ is sufficiently narrow, we can only consider $j=1$ level, and all the energy is measured from $E_1^z$.
+
+In the following, we will scale the length by $l_\Omega$,
+$\displaystyle \frac{\rho}{l_\Omega}$ 	$\textstyle \equiv$ 	$\displaystyle a,$ 	(103)
+$\displaystyle \frac{z}{l_\Omega}$ 	$\textstyle \equiv$ 	$\displaystyle \wp,$ 	(104)
+$\displaystyle \frac{W}{l_\Omega}$ 	$\textstyle \equiv$ 	$\displaystyle \gamma,$ 	(105)
+
+and the wave function is finally
+\begin{displaymath} \varphi_{nm}(\vec{r})=\frac{1}{\sqrt{2\pi}}e^{im\varphi}\fra... ...2) \sqrt{\frac{2}{\gamma l_\Omega}}\sin \frac{\pi}{\gamma}\wp, \end{displaymath} 	(106)
+
+where $C_{nm}\equiv \sqrt{2n!/(n+\mid m\mid)!}$. 
+\end{document}

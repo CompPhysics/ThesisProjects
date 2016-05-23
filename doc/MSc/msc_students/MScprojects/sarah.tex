@@ -1,0 +1,254 @@
+\documentclass[twocolumn]{revtex4}
+\usepackage{graphicx,amsmath,amssymb,bm}
+
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+\title{Thesis title: Quantum-mechanical systems in traps and Similarity Renormalization Group theory}
+\author{Sarah Reimann}
+\maketitle
+\section*{Aims} 
+The aim of this thesis is to study the structure of fermionic systems using the newly developed Similarity 
+Renormalization Group (SRG) theory. The results will be benchmarked against  {\em ab inito} 
+variational and diffusion function Monte Carlo techniques. 
+
+\subsection*{General introduction to possible physical systems}
+
+What follows here a general introduction to systems of confined electrons in two or three dimensions.
+However, although the thesis will focus on such systems, the codes will be written so that other systems of trapped 
+fermions or eventually bosons can be handled. Examples could be neutrons in trap as done in Ref.~\cite{bogner2011} or ions in various traps \cite{yoram2008}.  
+
+Strongly confined electrons
+offer a wide variety of complex and subtle phenomena which pose severe 
+challenges to existing many-body methods.
+Quantum dots in particular, that is, electrons confined in semiconducting heterostructures,
+exhibit, due to their small size, discrete quantum levels. 
+The ground states of, for example, circular dots
+show similar shell structures and magic numbers 
+as seen for atoms and nuclei. These structures are particularly evident in
+measurements of the change in electrochemical potential due to the addition of
+one extra electron, 
+$\Delta_N=\mu(N+1)-\mu(N)$. Here $N$ is the number of electrons in the quantum dot, and
+$\mu(N)=E(N)-E(N-1)$ is the electrochemical potential of the system.
+Theoretical predictions of $\Delta_N$ and the excitation energy spectrum require
+accurate calculations of ground-state and of excited-state energies.
+Small confined systems, such as quantum dots (QD), have become very popular for experimental 
+study. Beyond their possible relevance for nanotechnology, they are highly tunable 
+in experiments and introduce level quantization and quantum interference in a controlled way. In a finite system, 
+there can not, of course, be a true phase transition, but a cross-over between weakly and strongly correlated regimes is 
+still expected. There are several other fundamental differences between quantum dots and bulk systems: (a)\,Broken translational 
+symmetry in a QD reduces the ability of the electrons to delocalize. As a result, a Wigner-type cross-over 
+is expected for a smaller value of $r_s$. (b)\,Mesoscopic fluctuations, inherent in any confined system, 
+lead to a rich interplay with the correlation effects. These two added features make strong correlation physics particularly 
+interesting in a QD. As clean 2D bulk samples with large $r_s$ are regularly fabricated these days in semiconductor 
+heterostructures, it seems to be just a matter of time before these systems are patterned into a QD, 
+thus providing an excellent probe of correlation effects.
+
+
+
+The above-mentioned quantum mechanical levels can, in turn, be tuned by means
+of, for example, the application of various external fields.  
+The spins of the electrons in quantum dots
+provide a natural basis for representing so-called qubits \cite{divincenzo1996}. The capability to manipulate
+and study such states is evidenced by several recent experiments \cite{exp1,exp2}.
+Coupled quantum dots are particularly interesting since so-called  
+two-qubit quantum gates can be realized by manipulating the 
+exchange coupling which originates from the repulsive Coulomb interaction 
+and the underlying Pauli principle.  For such states, the exchange coupling splits singlet and triplet states, 
+and depending on the shape of the confining potential and the applied magnetic field, one can allow
+for electrical or magnetic control of the exchange coupling. In particular, several recent experiments and 
+theoretical investigations have analyzed the role of effective spin-orbit interactions 
+in quantum dots \cite{exp5,exp6,pederiva2010,spinorbit} and their influence on the exchange coupling.
+
+A proper theoretical understanding of the exchange coupling, correlation energies, 
+ground state energies of quantum dots, the role of spin-orbit interactions
+and other properties of quantum dots as well, requires the development of appropriate and reliable  
+theoretical  few- and many-body methods. 
+Furthermore, for quantum dots with more than two electrons and/or specific values of the 
+external fields, this implies the development of few- and many-body methods where   
+uncertainty
+quantifications are provided.  
+For most methods, this means providing an estimate of the error due 
+to the truncation made in the single-particle basis and the truncation made in 
+limiting the number of possible excitations.
+For systems with more than three or four electrons,  {\em ab initio} methods that have 
+been employed in studies of quantum dots are
+ variational and diffusion Monte Carlo \cite{harju2005,pederiva2001, pederiva2003}, path integral approaches \cite{pi1999}, 
+large-scale diagonalization (full configuration 
+interaction) \cite{Eto97,Maksym90,simen2008,modena2000}, and to a very limited extent 
+coupled-cluster theory \cite{shavittbartlett2009,bartlett2007,bartlett2003,indians,us2011}. 
+Exact diagonalization studies are accurate for a very small number
+of electrons, but the number of basis functions needed to obtain a given
+accuracy and the computational cost grow very rapidly with electron number.
+In practice they have been used for up to eight electrons\cite{Eto97,Maksym90,modena2000}, but the accuracy is
+very limited for all except $N\le 3$ .  
+Monte Carlo methods have been applied up to $N=24$ electrons 
+\cite{pederiva2001,pederiva2003}. Diffusion Monte Carlo, with statistical and systematic errors, provide, in principle,
+exact benchmark solutions to various properties of quantum dots. However, 
+the computations start becoming rather time-consuming for larger systems.   
+Hartree\cite{Kum90}, restricted Hartree-Fock, spin- and/or space-unrestricted
+Hartree-Fock\cite{Fuj96,Mul96,Yan99} and
+local spin-density, and current density functional methods\cite{Kos97,Hir99,finns1,finns2}
+give results that are satisfactory for a qualitative understanding of some
+systematic properties. However, comparisons with exact results show
+discrepancies in the energies that are substantial
+on the scale of energy differences. 
+
+\subsection*{Specific tasks}
+In addition to the above methods, a very promising 
+first principle method for dealing with quantum mechanical systems with many degrees of freedom
+has been developed recently, mainly within the nuclear theory community. 
+This method  aims at an efficient scheme for  decoupling of the high-momentum degrees of freedom, allowing thereby for 
+more tractable dimensionalities for many-particle systems.  This is the 
+similarity renormalization group (SRG) method, which was introduced
+independently by Glazek and Wilson~\cite{glazek1993} and
+Wegner~\cite{wegner1994}. The SRG consists of a continuous sequence of
+unitary transformations that suppress off-diagonal matrix elements,
+driving the Hamiltonian towards a band- or block-diagonal
+form. Writing the unitarily transformed Hamiltonian as
+\[
+ H(s) = U(s) H U^\dagger(s) \equiv H^{\rm d}(s)+H^{\rm od}(s) \,,
+\]
+where $H^{\rm d}(s)$ and $H^{\rm od}(s)$ are the appropriately defined
+``diagonal'' and ``off-diagonal'' parts of the Hamiltonian, the
+evolution with the flow parameter $s$ is given by
+\[
+\frac{dH(s)}{ds} = [\eta(s),H(s)] \,.
+\]
+Here $\eta(s) \equiv [dU(s)/ds] \, U^{\dagger}(s)$ is the
+anti-Hermitian generator of the transformation. The choice of the
+generator first suggested by Wegner,
+\[
+ \eta(s) = [H^{\rm d}(s),H(s)] = [H^{\rm d}(s),H^{\rm od}(s)] \,,
+\]
+guarantees that the off-diagonal coupling of $H^{\rm od}$ is driven
+exponentially to zero with increasing $s$~\cite{wegner1994}. Through
+different choices for $H^{\rm d}$ and $H^{\rm od}$, one can tailor the
+SRG evolution to transform the initial Hamiltonian to a form that is
+most convenient for a particular problem~\cite{kehrein2006,white2002}.
+It is this flexibility, together with the fact that one never
+explicitly constructs and applies the unitary transformation $U(s)$
+[rather it is implemented implicitly through integration] that makes the SRG a powerful
+alternative to conventional effective interaction methods.
+
+An interesting alternative is to perform the SRG evolution directly in
+the $A$-body system of
+interest~\cite{wegner1994,kehrein2006,white2002}. Unlike the
+free-space evolution, the in-medium SRG (IM-SRG) has the appealing feature that
+one can approximately evolve $3,...,A$-body operators using only
+two-body machinery. The key to this simplification is the use of
+normal-ordering with respect to a finite-density reference
+state. Starting from a general second-quantized Hamiltonian with two-
+and three-body interactions, all operators can be normal ordered with
+respect to a finite-density Fermi vacuum $|\Phi\rangle$ (e.g., the
+Hartree-Fock ground state), as opposed to the zero-particle
+vacuum. The details are described in Ref.~\cite{srgscott}.
+In this thesis, the aim is to study the ground state of closed-shell systems of
+quantum dots in two dimensions and  using the same methodology discussed in
+Ref.~\cite{srgscott}.
+
+The results and their quality with be compared with the diffusion Monte Carlo results, and eventually also
+with density functional results developed by fellow students.
+
+\section*{Progress plan and milestones}
+The aims and progress plan of this thesis are as follows
+\begin{itemize}
+\item Fall 2012: In order to become familiar with the SRG method, the first step is to solve 
+the two-electron problem in an oscillator basis, using the approach described in Ref.~\cite{bognerSRG}. 
+These results will be compared with the exact ones from either the diffusion Monte Carlo code, or existing
+exact results from Coupled-cluster theory or exact diagonalization \cite{us2011}.  To achieve this, the first step is to
+set up the Coulomb interaction in an oscillator basis. This has been done in for example Ref.~\cite{us2011}. The code
+and its details can be looked up from the slides for FYS4411 from 2011. 
+\item Fall 2012: In order to perform SRG calculations following the recipe outlined in Ref.~\cite{srgscott}, one will need to set up a Hartree-Fock basis. Such codes are also available from previous Master of Science theses, see for example
+Christoffer Hirth's thesis. 
+\item Fall 2012 and begin Spring 2013: The Hartree-Fock interaction is then used as input to the SRG code, a code which needs to be developed.  
+A code for nucleons in three dimensions is available. 
+The results will be compared with available results from large scale diagonalization, variational and diffusion Monte Carlo  and coupled-cluster
+techniques for closed-shell systems up to  $\sim 50-70$ interacting electrons. 
+
+\end{itemize}
+This method has never before been applied to systems of strongly confined electrons and it will be very interesting to 
+test its pros and cons against other popularly used many-body methods.  
+The thesis is expected to be handed in June 1 2013. Prof.~Scott Bogner from Michigan State University will act as a co-advisor. Parts of the thesis work may be conducted at Michigan State University. 
+
+
+\begin{thebibliography}{200}
+
+\bibitem{bogner2011} S. K. Bogner, R. J. Furnstahl, H. Hergert, M. Kortelainen, P. Maris, M. Stoitsov, and J. P. Vary, Phys.~Rev.~C {\bf 84}, 044306 (2011).
+\bibitem{yoram2008} Y. Alhassid, G. F. Bertsch, and L. Fang, Phys.~Rev.~Lett.~{\bf 100}, 230401 (2008).
+\bibitem{divincenzo1996} D.~Loss and D.~P.~DiVincenzo, Phys.~Rev.~A {\bf 57}, 120 (1998).
+\bibitem{exp1} R.~Hanson, L.~H.~Willems van Beveren, I.~T.~Vink, J.~M.~Elzerman, W.~J.~M. Naber, F.~H.~L.~Koppens, L.~P.~Kouwenhoven, and L.~M.~K.~Vandersypen, \prl {\bf 94}, 196802 (2005).
+\bibitem{exp2} H.-A.~Engel, V.~N.~Golovach, D.~Loss, L.~M.~K.~Vandersypen, J.~M.~Elzerman, R.~Hanson, and L.~P.~ Kouwenhoven, \prl {\bf 93}, 106804 (2004). 
+\bibitem{exp5} C.~Fasth, A.~Fuhrer, L.~Samuelson, V.~N.~Golovach, and D.~Loss, \prl {\bf 98}, 266801 (2007).
+\bibitem{exp6} S.~Roddaro {\em et al.}, \prl {\bf 101}, 18682 (2008).
+\bibitem{pederiva2010}A.~Ambrosetti, J.~M.~Escartin, E.~Lipparini, and F.~Pederiva, arXiv:1003.2433.
+\bibitem{spinorbit} F.~Baruffa, P.~Stano, and J.~Fabian, \prl {\bf 104}, 126401 (2010).
+\bibitem{harju2005} A.~Harju, J.~Low Temp.~Phys.~{\bf 140}, 181 (2005).
+\bibitem{bolton} F.~Bolton, Phys.~Rev.~B {\bf 54}, 4780 (1996).
+\bibitem{pederiva2001}F.~Pederiva, C.~J.~Umrigar, and E.~Lipparini, \prb {\bf 62}, 8120 (2000).
+\bibitem{pederiva2003}L.~Colletti, F.~Pederiva, and  E.~Lipparini,  Eur.~Phys.~J.~B {\bf 27}, 
+385 (2002).
+\bibitem{pi1999} M.~Harowitz, D.~Shin, and J.~Shumway, J.~Low.~Temp.~Phys.~{\bf 140}, 211 (2005).
+\bibitem{Eto97} M. Eto, Jpn. J. Appl. Phys. {\bf 36}, 3924 (1997).
+\bibitem{Maksym90} P.~A.~Maksym and T.~Chakraborty, Phys.~Rev.~Lett.~{\bf 65}, 108 (1990);
+D.~Pfannkuche, V.~Gudmundsson, and P.~A.~Maksym, Phys. Rev. B {\bf 47}, 2244 (1993);
+P.~Hawrylak and D.~Pfannkuche, Phys.~Rev.~Lett.~{\bf 70}, 485 (1993); J.J. Palacios,
+L.~Moreno, G.~Chiappe, E.~Louis, and C.~Tejedor, Phys.~Rev.~B {\bf 50}, 5760 (1994);
+T.~Ezaki, N.~Mori, and C.~Hamaguchi, Phys.~Rev.~B {\bf 56}, 6428 (1997).
+\bibitem{simen2008} S.~Kvaal, Phys.~Rev.~C {\bf 78}, 044330 (2008).
+\bibitem{simen2008b} S.~Kvaal, arXiv:0810.2644, unpublished.
+\bibitem{modena2000} M.~Rontani, C.~Cavazzoni, 
+D.~Belucci, and G.~Goldoni, J.~Chem.~Phys.~{\bf 124}, 124102 (2006).
+\bibitem{shavittbartlett2009} I.~Shavitt and R.\ J.\ Bartlett, {\em Many-body Methods in Chemistry and Physics},  
+(Cambridge University Press, Cambridge UK, 2009). 
+\bibitem{bartlett2007} R.\ J.\ Bartlett and M.\ Musia{\l}, \rmp {\bf 79}, 291 (2007).
+\bibitem{bartlett2003} T.~M.~Henderson, K.~Runge, and R.~J.~Bartlett, Chem.~Phys.~Lett.~{\bf 337}, 138 (2001); \prb {\bf 67}, 045320 (2003).
+\bibitem{indians} I.~Heidari, S.~Pal, B.~S.~Pujari, and D.~G.~Kanhere, J.~Chem.~Phys.~{\bf 127}, 
+114708 (2007).
+\bibitem{us2011} M. Pedersen Lohne, G. Hagen, M. Hjorth-Jensen, S. Kvaal, and F. Pederiva, Phys.~Rev.~B {\bf 84}, 115302 (2011).
+\bibitem{Kum90} A.~Kumar, S.~E.~Laux, and F.~Stern, Phys.~Rev.~B {\bf 42}, 5166 (1990).
+\bibitem{Fuj96} M.~Fujito, A.~Natori, and H.~Yasunaga, Phys.~Rev.~B {\bf 53}, 9952 (1996).
+\bibitem{Mul96} H.~M.~Muller and S.~Koonin, Phys.~Rev.~B {\bf 54}, 14532 (1996).
+\bibitem{Yan99} C.~Yannouleas and U.~Landman, Phys. Rev. Lett. {\bf 82}, 5325 (1999).
+\bibitem{Kos97} M. Koskinen, M. Manninen, and S.M. Reimann, Phys. Rev. Lett. {\bf 79}, 1389 (1997).
+\bibitem{Hir99} K. Hirose and N. S. Wingreen, Phys. Rev. B {\bf 59}, 4604 (1999).
+\bibitem{finns1} P.~Gori-Giorgi, M.~Seidl, and G.~Vignale, \prl {\bf 103}, 166402 (2009).
+\bibitem{finns2} E.~R\"as\"anen, S.~Pittalis, J.~G.~Vilhena, M.~A.~L.~Marques, Int.~J.~Quantum Chem.~{\bf 110}, 2308 (2010). 
+
+\bibitem{jurgenson3Nsrg} E.\ D.\ Jurgenson, P.\ Navratil and 
+R.\ J.\ Furnstahl, Phys.\ Rev.\ Lett.\ {\bf 103}, 082501 (2009).
+
+\bibitem{glazek1993} S.\ D.\ Glazek and K.\ G.\ Wilson, Phys.\ Rev.\ D
+{\bf 48}, 5863 (1993).
+
+\bibitem{wegner1994} F.\ Wegner, Ann.\ Phys.\ (Leipzig) {\bf 506}, 77 (1994).
+
+\bibitem{kehrein2006} S.\ Kehrein, {\it The Flow Equation Approach to 
+Many-Particle Systems} (Springer, Berlin, 2006).
+
+\bibitem{white2002} S.\ R.\ White, J.\ Chem.\ Phys. {\bf 117}, 7472 (2002).
+
+
+\bibitem{srgscott} K.\ Tsukiyama, S.\ K.\ Bogner and A.\ Schwenk, Phys.~Rev.~Lett.~{\bf 106}, 222502 (2011).
+
+\bibitem{bognerSRG} S.\ K.\ Bogner, R.\ J.\ Furnstahl and R.\ J.\ Perry,
+Phys.\ Rev.\ C {\bf 75}, 061001 (2007).
+\end{thebibliography}
+
+
+
+\end{document}
+
+
+
+
+
+
+
+
+
+

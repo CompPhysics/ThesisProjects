@@ -1,0 +1,612 @@
+% \setlength{\parindent}{0pt}   % Set no indentation in the beginning of each paragraph.
+% \setlength{\parskip}{2ex}     % Separate lines each paragraph.
+
+\chapter{Numerical methods: \emph{Quantum Monte Carlo}}\label{QMC}
+The progress in the undertanding of quantum mechanics relies in the posibility of solving the many-body Schr\"ondinger equation (\ref{manyBodyTISE}). In most of the quantum mechanical problems of interest, however, the total number of particles interacting is usually sufficiently large that an exact solution cannot be found. This fact, motives the use of numerical approximations.
+
+
+\section{Monte Carlo integration}
+Often, scientists and engineers face the problem of solving the integral $I = \int_{x_1}^{x_2} f(x) dx$ numerically, being quadrature rules among the methods most widely used. The recipe consists of evaluating $f(x)$ at points $x_i$ on a grid, after which the weighted average of the values of $f(x_i)$ is taken. Both the sampling points and the weights are predefinited, but they vary from method to method. A limitation with this approach is the difficulty of dealing with problems contaning a large number of strongly coupled degrees of freedom, due to the rapid growth of the number of grid points with dimensionality.\\
+\\
+\noindent
+In contrast, Monte Carlo integration (MCI) methods are stochastic (statistical), where the sampling points are choosen at "random" from a \emph{probability distribution} (\emph{PDF}), i.e., the integrand is evaluated using a set of (pseudo) randomly generated grid points. The advantage of MCI is that the statistical error becomes proportional to $1/\sqrt{N}$\cite{jensen}, with $N$ being the number of samples, which is independent of the dimensionality of the integral. Moreover, it scales reasonably well with the size of the system. For a system of $N$ particles, it will say between $N^2$ and $N^3$ when combined with other techniques. The primary disadvantage is that the calculated quantity contains a statistical uncertainty, which requires to increase the number of samples $N$ as the uncertainty decreases as $N^{1/2}$\cite{Bressanini}.
+
+
+\subsection{Probability distribution functions}
+A probability density function $p(x)$ describes the probabilities of all the possible events and it may be discrete or continuous. Therefore the sum or integral of the probabilities must equal unity. If $p(x)dx$ is the probability that an event ocurrs between $x$ and $x + dx$, then the probability distribution function $PDF(x) \equiv \int_{-\infty}^{x} p(x) dx$ represents the posibility that the value of a single given point is less than equal $x$.\\
+\\
+\noindent
+Two continuous PDFs with especial importance in the context of this thesis are the \emph{uniform} and \emph{Gaussian} distributions, whose density functions are
+\begin{equation}
+p(x) = \left\{ 
+\begin{array}{l l}
+  \frac{1}{\beta - \alpha} & \mbox{$\alpha \leq x \leq \beta$} \\
+ 0 & \mbox{otherwise.}
+\end{array} \right. \hspace{0.35in} \text{and} \hspace{0.35in} p(x) = \frac{e^{-\frac{(x-\mu)^2}{2\sigma^2}}}{\sigma \sqrt{2 \pi \sigma}},
+\end{equation}
+respectively.\\
+\\
+The \emph{expectation value} of a function $f(x)$ with respect to a probability function $p(x)$ is said to be the average value with respect to the density $p$ and it is given by
+\begin{equation}\label{expectationValue}
+ \langle f \rangle \equiv \int_{-\infty}^{\infty} f(x) p(x) dx
+\end{equation}
+
+\subsection{Measures of dispersion of data}
+Monte Carlo simulations can be treated as {\em computer experiments} and the results can be a\-na\-ly\-sed with the same statistics tools we would use in analysing laboraty ex\-pe\-ri\-ments. The expectation values we are looking for can contain two kind of errors. A \emph{statistical error}, telling how accurate the estimate is, and the one associated with kind of numerical method used (\emph{systematic error})\footnote{In vmc a common source is the step length.}. Measures of dispersion are important for describing the spread of the data, or its variations around a central value.
+
+\subsubsection{Uncorrelated data}
+When it is assumed that the succesive values of the random quantity $A$ are statistically independent the \emph{variance of the mean} is given by
+\begin{equation}\label{variance}
+ var = \sigma^2 = \langle A^2\rangle - \langle A\rangle^2,
+\end{equation}
+Moreover, the \emph{standard deviation of the mean} is $\sigma = \sqrt{var}$, and it gives, roughly speaking, the width of a normally distributed dataset 
+\begin{equation*}
+\sigma=\sqrt { \frac{1}{N} \sum_i x_i^2 - \frac{1}{N^2}(\sum_i x_i)^2 },
+\end{equation*}
+where N is the total number of points in the dataset. Using the variance we just calculated, the standard error can be expressed as 
+\begin{equation*}
+S_E = \sqrt{\frac{\text{var}}{N_\text{eff}}}.
+\end{equation*}
+that returns the variance and "naive" standard error of your dataset, the standard error assuming that all points in your dataset were independent, i.e., the number of effective points in a dataset equals the total number of points in the experiement $N_\text{eff}=N$.
+
+\subsubsection{Correlated data and datablocking}
+If the samples are correlated, it can be shown\cite{Hammond,jensen} that
+\begin{equation*}
+  \sigma=\sqrt{\frac{1+2\tau/\Delta
+      t}{n}\left(\langle {A}^2\rangle-\langle {A}\rangle^2\right)},
+\end{equation*}
+where $\tau$ is the \emph{correlation time}, i.e., the time between two uncorrelated samples and $\Delta t$ is the time between each sample. For $\Delta t\gg\tau$, the estimate of $\sigma$ assuming uncorrelated samples still holds. The common, however, is that $\Delta t<\tau$. In this case, what we do is dividing the sequence of samples into blocks, hence the expression \emph{datablocking}. Then, we take the mean $\langle {A}_i\rangle$ of block $i=1\ldots n_{blocks}$ to calculate the total mean and variance. The size of each block must be so large that sample $j$ of block $i$ is not correlated with sample $j$ of block $i+1$. The correlation time $\tau$ would be a good choice, but it is not known in advance or is too expensive to compute. What we know, however, is that by increasing the blocksize, the variance should increase exponentially until it reaches a plateau, indicating that the blocks are no longer correlated with each other. The corresponding block size will be an estimate for the correlation time for the true correlated data
+
+\section{The variational principle}
+The variational principle states that \emph{the ground state energy} $E_0$ \emph{of a quantum mechanical system is always less or equal than the expectation value of the Hamiltonian $\Op{H}$ calculated with a trial wave function} $\Psi_T$. The Variational Monte Carlo method is based on this principle, and it will be used here to compute the expectation value of the energy given a Hamiltonian $\Op{H}$ and a trial wave function $\Psi_T$. 
+\begin{equation}\label{expValE}
+\langle \Op{H} \rangle = \frac{\int d{\bfv{R}}\Psi^{\ast}_T({\bfv{R}})\Op{H}({\bfv{R}})\Psi_T(\bfv{R})}{\int d{\bfv{R}}\Psi^{\ast}_T({\bfv{R}})\Psi_T({\bfv{R}})}= \frac{\braket{{\Psi_T}}{H}}{\langle{{\Psi_T}}|{{\Psi_T}}\rangle} \geq E_0
+\end{equation}
+The only possible outcome of energy of an ideal experiment carried out on an assemble of measures are the eigenvalues of the Hamiltonian. Moreover, the corresponding eigenstates contain all the relevant information on the system in relation with this operator. Assuming that these eigenstates are normalized, the trial wave function can be expanded using them as basis as they conform a complete set, 
+$$
+\Psi_T({\bf R})=\sum_n c_n\Psi_n({\bf R}),
+$$
+which inserted in Eq.~(\ref{expValE}) yields\footnote{For simplicity in the notation, we have dropped the $\bfv{R}$ dependence of the trial wave function.}
+\begin{eqnarray}
+   \langle H \rangle & = & \frac{{\displaystyle\int} \left(\sum\limits_{n}c_n^{\ast} \Psi_n^{\ast}\right) \Op{H}  \left(\sum\limits_m c_m\Psi_m\right) \, d{\bfv{R}}}{{\displaystyle\int} \left(\sum\limits_{n}c_n^{\ast}\Psi^{\ast}_n\right)\left(\sum\limits_m c_m \Psi_m\right) \, d{\bfv{R}}}
+= \frac{\langle {\sum\limits_{n}c_n \Psi_n}|\Op{H}|{\sum\limits_{m}c_m \Psi_m\rangle}}{\langle{\sum\limits_{n}c_n\Psi_n}|{\sum\limits_{m}c_m\Psi_m}\rangle}\nonumber\\
+ & = & \frac{\sum\limits_{n} \sum\limits_m c_n^{\ast}  c_m \langle {\Psi_n}|E_m|{\Psi_m\rangle}}{\sum\limits_{n} \sum\limits_m c_n^{\ast}  c_m \underbrace{\langle{\Psi_n}|{\Psi_m\rangle}}_{\delta_{nm}}} =  \frac{\sum\limits_{n} \sum\limits_m c_n^{\ast}  c_m E_m  \overbrace{\langle{\Psi_n}|{\Psi_m\rangle}}^{\delta_{nm}}}{\sum\limits_{n} |c_n|^2 } = \frac{\sum\limits_{n} E_n |c_n|^2}{\sum\limits_{n} |c_n|^2 } \nonumber\\
+& = & \sum\limits_{n} E_n |c_n|^2 = E_0 |c_0|^2 + \sum\limits_{n>0} E_n |c_n|^2
+\end{eqnarray}
+By doing $\langle\Psi_n|\Psi_m\rangle = \delta_{nm} = \begin{cases} 
+1 & \text{if } n = m\\
+0 & \text{if } n \neq m
+\end{cases} \text{and} \sum\limits_{n} |c_n|^2 = 1
+$ we have assumed that the states are normalized conform to the Born probability interpretation. The squared coefficients $|c_n|^2$ define the probability of finding the system in state $\Psi_n$. Since they are probabilities they sum up to one. Then, 
+$$|c_0|^2 = 1 - \sum\limits_{n>0} |c_n|^2$$
+which substituted in Eq.~(\ref{expHamiltonian}) gives rise to $\langle H \rangle = E_0 + \sum_{n>0}(E_n - E_0)|c_n|^2$. Since $E_n \geq E_0 \, \forall n \geq 0$ and $|c_n|^2$ is a positive quantity, it follows that
+\begin{equation}\label{variationalPrincipleEq}
+\boxed{\langle H \rangle = \braket{\Psi_T}{H} = \sum\limits_{n} E_n |c_n|^2 \geq E_0.}
+\end{equation}
+What equation (\ref{variationalPrincipleEq}) implies is that by varying $\Psi_T$ until the expectation value $\langle \Op{H} \rangle$ becomes minimized, we can obtain an approximation to the true exact wave function and to the ground-state energy. Equality is reached when the trial wave function equal the true wave function. Therefore, the degree of accuracy in variational calculations rely on making a physically plausible guess at the form of the ground state wavefunction.
+
+\subsection{Computing the energy}
+
+The expectation value of the energy evaluated with the trial wave function can be obtained by
+$$
+ E_{VMC}= \langle H \rangle =
+   \frac{\int \Psi_{T}^{\ast} \Op{H} \Psi_T d{\bfv{R}}}
+        {\int \Psi_{T}^{\ast} \Psi_T d{\bfv{R}}}.
+$$
+Or,
+\begin{equation}\label{derivationsVMC}
+ E_{VMC}=  \frac{{\displaystyle\int |\Psi_{T}|^2 \left(\frac{\Op{H} \Psi_T }{\Psi_T}\right)} d{\bfv{R}}}
+        {{\displaystyle\int} |\Psi_{T}|^2 d\bfv{R}} = {\displaystyle\int} \frac{|\Psi_{T}|^2 \left(\frac{\Op{H} \Psi_T }{\Psi_T}\right) d{\bfv{R}}}{
+        \int |\Psi_{T}|^2 d\bfv{R}} = {\displaystyle\int} \frac{|\Psi_{T}|^2  d{\bfv{R}}}{
+        \int |\Psi_{T}|^2 d\bfv{R}}\left(\frac{\Op{H} \Psi_T }{\Psi_T}\right).
+\end{equation}
+Herefrom we can define the so-called \emph{local energy}\footnote{The local energy term is central both in variational and diffusion monte Carlo. Moreover, it is one of the most consuming execution time operations in quantum monte Carlo \cite{PaulKent,Roestad}. For most hamiltonians, $\Op{H}$ is a sum of kinetic energy, involving a second derivative, and a momentum independent potential. 
+The contribution from the potential term is hence just the numerical value of the potential.} operator
+\begin{equation}\label{localEnergyOp}
+\boxed{\Op{E}_L({\bf{R}})=\frac{1}{\Psi_T({\bfv{R}})}\Op{H}\Psi_T({\bfv{R}})}
+\end{equation}
+and the \emph{probrability distribution function} (PDF)
+\begin{equation}\label{PDE}
+ \boxed{P({\bfv{R}})= \frac{\left|\Psi_T({\bfv{R}})\right|^2}{\int \left|\Psi_T({\bfv{R}})\right|^2d{\bfv{R}}}.}
+\end{equation}
+All the calculations of expectation values in the quantum variational monte Carlo (QVMC) method are carried out in relation with this PDF\footnote{When compared with probability distribution function in the diffusion monte Carlo method, the positiveness of the weight function in (\ref{PDE}) is advantageous when dealing with fermionic systems.}. The variational energy can therefore be obtained by
+\begin{equation}\label{variationalEnergy}
+\boxed{\langle E \rangle_P = \int P({\bfv{R}})\Op{E}_L({\bfv{R}}) d{\bfv{R}} \approx 
+  \frac{1}{N}\sum_{i=1}^{N}E_L(\bfv{X_i})),}
+\end{equation}
+where $\bfv{X}$  and $N$ are the set of sample points and the total number of Monte Carlo steps, respectively. \\
+\\
+\noindent
+An interpretation of Eq.~(\ref{variationalEnergy}) is that it represents the average of the local energy. 
+The error in the local energy can be stimated using the definition of variance by Eq.~(\ref{variance}). Noting that the energy squared is given by
+\begin{equation}
+ \boxed{\langle \Op{E}_L^2 \rangle =\int P({\bf R})\Op{E}_L^2({\bf R}) d{\bf R}\approx 
+  \frac{1}{N}\sum_{i=1}^{N}E_L^2(x_i),}
+\end{equation} and using it in combinatio with Eq.~(\ref{variationalEnergy}) we get
+\begin{equation}\label{zeroVarianceProperty}
+ \sigma^{2}_{E_L} = \int P({\bfv{R}}) \langle(E_L - \langle E_L \rangle)^2\rangle d{\bfv{R}}  = \langle(E_L - \langle E_L \rangle)^2\rangle = \langle E_{L}^2 \rangle_P - \langle E_L \rangle_{P}^2,
+\end{equation}
+or 
+\begin{equation}
+\boxed{ \sigma^{2}_{E_L} \approx \left(\frac{1}{N}\sum_{i=1}^{N} E_{L}^{2}\right) - \left(\frac{1}{N} \sum_{i=1}^{N} E_{L}\right)^2,}
+\end{equation}
+which in turns means that as the trial wave function approaches an exact eigenstate wave function of the Hamiltonian, the local energy approaches the exact energy and the variance becomes equal zero. It is call the \emph{zero variance property of the variational Monte Carlo} method. In order to get the variational energy of the system, the metropolis algorithm samples sets of electron positions from the probability distribution function $\Psi_{T}^{2}$ and calculate the local energy for each space configuration. 
+
+
+% % % % % % % % % % \section{Markov chains, detailed balance and transition matrix}
+% % % % % % % % % % In order to compute an observable in (\ref{expValE}), we need to evaluate a multidimensional integral. In general, traditional integration methods such as the Gauss-Legendre will not be adequate. An alternative method consist in creating and sampling the probability distribution function $\Psi_{T}^{2}(\bfv{x})$, under the assumption that the condition of \emph{detailed balance} is fulfilled, i.e., if the system is in state $i$ and then it moves to another state $j$, it is expected that in equilibrium the flux from $i \to j$  equals the flux from  $j \to i$. More formaly, 
+% % % % % % % % % % 
+% % % % % % % % % % \begin{equation}
+% % % % % % % % % % T_{i \to j} f_i = T_{j \to i} f_j	
+% % % % % % % % % % \end{equation}
+% % % % % % % % % % 
+% % % % % % % % % % where $f_i$ is the probability of finding the system in state $i$ and $T$ is the transition matrix of the system.
+% % % % % % % % % % 
+
+
+\section{The quantum variational Monte Carlo (QVMC) method}
+
+The quantum variational Monte Carlo method derives from the use of Monte Carlo techniques in combination with the variational principle. It allows calculate quantum expectation values given a trial wave function. In esence, the QVMC method chooses/creates and then samples a probability distribution function (PDF) which is proportional to the squared of a trial wave function $\Psi_{T}^{2}(\bfv{R})$.
+% % % % % , i.e., VMC is a method to evaluate the integral 
+% % % % % \begin{equation*}
+% % % % % \int \Psi^2(R) dR 
+% % % % % \end{equation*}
+% % % % % To accomplish this, we use Markov chain Monte Carlo and proceed in the following manner:
+% % % % % \begin{enumerate}
+% % % % %   \item Choose a new trial location for the particles.
+% % % % %   \item Evaluate the ratio squared of the wavefunctions for the new and old trial locations.
+% % % % %   \item If the ratio squared is greater then some random number, then keep the new trial location, otherwise keep the old trial location. 
+% % % % % \end{enumerate}
+% % % % % Typically the integration part of Variational Monte Carlo is coupled with an optimization technique for the parameters. 
+
+
+\subsection{Sampling the trial wave function: the Metropolis algorithm}
+
+The Metropolis algorithm constructs space configurations based on the so-called  
+% % % is based in the notion of detailed balance and it is one the most popular methods used to
+Markov chains\footnote{A Markov chain is a defined sequence of dependent random variables in which each new configuration is generated with a probability disribution depending on the previous one\cite{Thijssen}.} by \emph{box sampling}\footnote{It refers to the fact that each particle is moved in a cartesian system in one direction at the time.}. The recipe for doing one complete cycle (\emph{random walk}) of the Markov chain start moving a particle from the current position $\bfv{x^{curr}}$ to a new one $\bfv{x^{new}}$ according to
+\begin{equation}\label{stepSingle}
+\boxed{\bfv{x^{new}} = \bfv{x^{curr}} + \Delta \bfv{x} \xi,}
+\end{equation}
+where $\Delta x$ is the step size and $\xi$ is a $3N-$dimensional vector of uniformly distributed random numbers in range $\xi \in [-1, 1]$.\\
+\\
+\noindent
+Later, we perform a so called \emph{metropolis test} to accept or reject the new position. First, we define the ratio 
+\begin{equation}\label{qRatio}
+q(\bfv{x^{new}}, \bfv{x^{cur}}) \equiv \frac{P(\bfv{x^{new}})}{P(\bfv{x^{cur}})} = \frac{|\Psi_{T}(\bfv{x^{new}})|^2}{|\Psi_{T}(\bfv{x^{cur}})|^2},
+\end{equation}
+and compare it to an uniformly distributed random number between zero and one. The new position is accepted if and only if this number is less that the ratio above, i.e.,
+\begin{equation}\label{acceptance}
+\boxed{A = \min \{1, q(\bfv{x^{new}}, \bfv{x^{cur}})\}.}
+\end{equation}
+% % % % % % % The fact that this algorithm is based only on the ratio of probability distributions make it attractive, since no global properties of the distributions need to be known. The only condition is that it should be possible to evaluate them in some points.
+In Eq.~(\ref{stepSingle}) the next step does not depends on the wave function. This means in turn that our sampling of points may not be very efficient. This leads to the concept of importance sampling. 
+% % % % % % % % All the steps are summarized in algorithm (\ref{metropolisAlgo}).
+
+% \begin{program}
+% \caption{. \emph{Brute force variational monte Carlo algorithm.}}
+% \begin{algorithmic}%[1]
+% \REQUIRE Number of monte Carlo and thermalization steps,\\
+%          step size when moving particles,\\ 
+%          charge $Z$,\\
+%          variational parameters $\bfv{\alpha}$.
+% \medskip
+% \STATE{\boldface{Set a many body N-particle wave function with $S$ variational parameters:\\$\alpha = (\alpha_1,\ldots,\alpha_S)$\\$\Psi_{\alpha} = \Psi_{\alpha}(\bfv{R})$\\$\bfv{R} = (\bfv{r}_1, \ldots, \bfv{r}_N)$}
+% \medskip       
+%          .
+% 
+% \ENSURE The value of $R_{SD}$.
+
+% 
+% \STATE\COMMENT{\emph{Assume that particle number $i$ has been moved.}}
+% \FOR{$j=0$ to $N-1$}
+%   \STATE $R_{SD} \, += \, \phi_j(\bfv{x_{i}^{new}}) D_{ji}^{-1}(\bfv{x^{cur}})$
+% \ENDFOR
+% \end{algorithmic}\label{RSDalgo}
+% \end{program}
+% 
+
+\subsection{Improving the sampling: The Fokker-Planck formalism}
+In the algorithm just described, the sampling does not take into account some properties of the probability distribution. As consequence some movements are rejected unnecessarily. The \emph{Fokker-Planck algorithm}, replaces the brute force Metropolis algorithm with a walk in coordinate space biased by the trial wave function. This approach is based on the Fokker-Planck equation and the \emph{Langevin equation} for generating a trajectory in coordinate space.\\
+\\
+\noindent
+The process of isotropic diffusion characterized by a time-dependent probability density $P(\bfv{x},t)$ obeys the Fokker-Planck equation 
+$$
+   \frac{\partial P}{\partial t} = \sum_i D\frac{\partial }{\partial \bfv{x_i}}\left(\frac{\partial }{\partial \bfv{x_i}} -\bfv{F_i}\right)P(\bfv{x},t),
+$$
+where $\bfv{F_i}$ is the $i^{th}$ component of the drift term (drift velocity) caused by an external potential, and $D$ is the diffusion coefficient. The convergence to a stationary probability density as the one in Eq.(\ref{PDE}) can be obtained by doing zero the left hand side. The resulting equation will be satisfied if and only if all the terms of the sum are equal zero,
+$$
+\frac{\partial^2 P}{\partial {\bfv{x_i}^2}} = P\frac{\partial}{\partial {\bfv{x_i}}}\bfv{F_i} + \bfv{F_i}\frac{\partial}{\partial {\bfv{x_i}}}P.
+$$
+The drift vector should be of the form $\bfv{F} = g(\bfv{x}) \frac{\delta P}{\delta \bfv{x}}$ in order to have second derivative. Then,
+$$
+\frac{\partial^2 P}{\partial {\bfv{x_i}^2}} = P\frac{\partial g}{\partial P}\left( \frac{\partial P}{\partial {\bfv{x_i}}}  \right)^2 + P g \frac{\partial ^2 P}{\partial {\bfv{x_i} ^2}}  + g \left( \frac{\partial P}{\partial {\bfv{x_i}}}  \right)^2.
+$$
+The condition of stationary density means that the left hand side equals zero. In order words, the terms containing first and second derivatives have to cancel each other. It is possible only if $g = \frac{1}{P}$, for which yields
+\begin{equation}\label{quantumForceEQ}
+\boxed{\bfv{F} = 2\frac{1}{\Psi_T}\nabla\Psi_T,}
+\end{equation}
+which is known as \emph{quantum force}. This term is responsible for pushing the walker towards regions of configuration space where the trial wave function is large, increasing the efficiency of the simulation in contrast to the metropolis algorithm where the walker has the same probability of moving in every direction, i.e., the Langevin approach provides some kind of importance sampling.\\
+\\
+\noindent
+In statistical mechanics the resulting trajectories of the Fokker-Planck equation are generated from the Langevin equation \cite{Thijssen}
+\begin{equation}
+\frac{\partial {\bf x}(t)}{\partial t} = D {\bfv{F}}({\bf x}(t)) + \eta,
+\end{equation}
+with $\eta$ being a {\sl stochastic force}\footnote{A stochastic force is a force flucting alleatorily.} distributed in a Gaussian with mean zero and va\-rian\-ce $2D$, where $D=0.5$ is a diffusion constant. The new positions in coordinate space (a path configuration or assamble of random walkers) are given as 
+\begin{equation}
+\boxed{\bfv{x^{new}} = \bfv{x^{cur}} + D \bfv{F}(\bfv{x^{new}}) \Delta t + \eta,}
+\end{equation}
+where $\eta$ is gaussian random variable and $\Delta t$ is a chosen time step. 
+
+
+\subsection{A generalized Metropolis algorithm}
+Considering that the firts step in the Metropolis algorithm is taken with a transition probability $T(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})$ and denoting the accept/reject probability for the move being accepted by $A(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})$, the total probability that a walker moves from $\bfv{x^{new}}\rightarrow \bfv{x^{cur}}$ is $T(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})A(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})$. Since we are sampling the probability distribution using a Markov process, at the equilibrium (or in an infinite assemble) the fraction of walker making a transition from $\bfv{x^{new}}\rightarrow \bfv{x^{cur}}$ equals the fraction moving from  $\bfv{x^{cur}}\rightarrow \bfv{x^{new}}$. This condition is known as \emph{detailed balance} and it is said to be sufficient condition to reach steady state.  For a given probability distribution function $P(\bfv{x})$, 
+% $$P(\bfv{x^{cur}})T(\bfv{x^{cur}}\rightarrow \bfv{x^{new}})A(\bfv{x^{cur}}\rightarrow \bfv{x^{new}}) = P(\bfv{x^{new}})T(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})A(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})$$
+% 
+% Then, 
+the acceptance probability must satisfy
+$$\frac{A(\bfv{x^{cur}}\rightarrow \bfv{x^{new}})}{A(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})} = \frac{P(\bfv{x^{new}})}{P(\bfv{x^{cur}})} \frac{T(\bfv{x^{new}}\rightarrow \bfv{x^{cur}})}{T(\bfv{x^{cur}}\rightarrow \bfv{x^{new}})}.$$\\
+\\
+\noindent
+The Fokker-Planck equation yields a transition probability given by the Green's function
+\begin{equation}\label{greensFunction}
+G(\bfv{x^{new}},\bfv{x^{cur}},\Delta t) = \frac{1}{(4\pi D\Delta t)^{3N/2}} \exp{\left(-(\bfv{x^{new}}-\bfv{x^{cur}}-D\Delta t F(\bfv{x^{cur}}))^2/4D\Delta t\right)},
+\end{equation}
+which in turn means that (\ref{qRatio}) in (\ref{acceptance}) becomes replaced by 
+\begin{equation}\label{importanceSamplingRatio}
+\boxed{q(\bfv{x^{new}},\bfv{x^{old}}) = \frac{G(\bfv{x^{old}},\bfv{x^{new}},\Delta t)|\Psi_T(\bfv{x^{new}})|^2}{G(\bfv{x^{new}},\bfv{x^{old}},\Delta t)|\Psi_T(\bfv{x^{old}})|^2}}.
+\end{equation}
+
+
+
+\subsection{An algorithm for the VMC method}
+
+A short pseudocode, as well as a chartflow for the variational Monte Carlo method are shown below.
+
+\begin{program}
+\caption{. \emph{Quantum Variational Monte Carlo method with drift diffusion.}}
+\begin{algorithmic}%[1]
+\medskip
+\REQUIRE \emph{Number of particles ($nel$), monte Carlo cycles ($nmc$), thermalization steps, step size when moving particles, initial space configuration $\bfv{R}$ and a many body N-particle wave function $\Psi_{\bfv{alpha}} = \Psi_{\alpha}(\bfv{R})$ with variational parameters $\bfv{\alpha}$. }
+
+         .
+\ENSURE The estimate value of the local energy $\langle E_{\alpha} \rangle$.
+
+\medskip
+\STATE{Themalize first} 
+\medskip
+
+\FOR{$c=1$ to $nmc$}
+  \FOR{$p=1$ to $nel$}
+     \STATE {$\bfv{x}^{trial}_p = \bfv{x}^{cur}_p + \chi + D \bfv{F}(\bfv{x}^{cur}_p) \delta t$}
+     \medskip
+     \\
+     \emph{Accept trial move as new position with probability}\\
+     $$min\left[1, \frac{\omega(\bfv{x}^{cur}, \bfv{x}^{new})}{\omega(\bfv{x}^{new}, \bfv{x}^{cur})} \frac{|\Psi(\bfv{x}^{new})|^2}{|\Psi(\bfv{x}^{cur})|^2}\right]$$
+  \ENDFOR
+  \\
+  \emph{Compute the local energy, and update all the necessary cumulants.}
+\ENDFOR
+\\
+ \emph{Compute the mean energy and standard deviation.}
+\end{algorithmic}\label{RSDalgo}
+\end{program}
+
+
+
+\begin{figure}
+\begin{centering}
+\begin{tikzpicture}[scale=1., node distance = 2cm, auto]
+%%%%%\usebodyfont       [sansserif, 10pt]
+
+  \footnotesize
+    % Place nodes
+    \node [block] (init) {Initialize:\\
+    Set $\bfv{R}$, $\alpha$ and $\Psi_{T-\alpha}(\bfv{R})$};
+    \node [block, below of=init, node distance=2.0cm] (suggestMove) {Suggest a move};
+    \node [block, below of=suggestMove] (evaluateAcceptance) {Compute acceptance ratio};
+    \node [block, left of=evaluateAcceptance, node distance=4.5cm] (randomGenerator) {Generate an uniformly distributed variable $r$};
+    \node [decision, below of=evaluateAcceptance] (decide) {Is\\ $R \geq r$?};
+    \node [block, right of=decide, node distance=3.5 cm] (rejectMove) {Reject move: \\ $\bfv{x}^{new}_{i} = \bfv{x}^{old}_{i}$};
+    \node [block, below of=decide, node distance=2.2cm] (acceptMove) {Accept move:\\$\bfv{x}^{old}_{i} = \bfv{x}^{new}_{i}$};
+    \node [decision, below of=acceptMove, node distance=2.2cm] (lastMove) {Last move?};
+    \node [block, below of=lastMove, node distance=2.2cm] (getLocalEnergy) {Get local\\ energy $E_L$};
+    %%%% METER UNO A LA DERECHA DE COLLECTSAMPLES PARA EL OPTIMIZADOR
+    \node [decision, below of=getLocalEnergy] (decideMC) {Last MC step?};
+    \node [block, below of=decideMC, node distance=2.2cm] (collectSamples) {Collect samples};
+    \node [block, below of=collectSamples, node distance=2.2cm] (end) {End};
+    
+%     % Draw edges
+    \path [line] (init) -- (suggestMove);
+    \path [line] (suggestMove) -- (evaluateAcceptance);
+    \path [line] (evaluateAcceptance) -- (decide);
+    \path [line] (randomGenerator) |- (decide);
+    \path [line] (decide) -- node [, color=black] {yes}(acceptMove);
+    \path [line] (decide) -- node [, color=black] {no}(rejectMove);
+    \path [line] (acceptMove) -- (lastMove); 
+    \path [line] (lastMove) -- node [, color=black] {yes}(getLocalEnergy);
+    \path [line] (rejectMove) |- (lastMove);
+    \path [line] (getLocalEnergy) -- (decideMC);
+    \path [line] (decideMC) -- node [, color=black] {yes}(collectSamples);
+
+    % Define a style for shifting a coordinate upwards
+    % Note the curly brackets around the coordinate.
+    \tikzstyle{s}=[shift={(0mm,\radius)}]
+    \path[line] (lastMove.west) -- +(-1.0,0)  -- +(-1.0, 4.34) 
+% % % %     % Draw semicircle junction to indicate that the lines are
+% % % %     % not connected. Since we want the semicircle to have its center 
+% % % %     % where the lines intersect, we have to shift the intersection 
+% % % %     % coordinate using the 's' style to account for this.
+    arc(-90:90:\radius) -- +(0.0, 4.42) -- (suggestMove.west);
+    
+    \path [line] (decideMC.west) -- node [, color=black]{no} +(-1.7,0) --+(-1.7,9.05) arc(-90:90:\radius) --+(0.0,5.4) -- +(2.8,5.4);
+       
+    \path [line] (collectSamples) -- (end);
+
+\end{tikzpicture}\caption{Chart flow for the Quantum Varitional Monte Carlo algorithm.}\label{chartFlowMA}
+\end{centering}
+\end{figure}
+
+\noindent
+The numerically time-consuming part in the variational Monte Carlo calculation is
+the evaluation of the kinetic energy term.
+The potential energy, as long as it has a simple $r$-dependence adds only a simple
+term to the local energy operator.\\
+\\
+\noindent
+When writing a variational Monte Carlo program, one should always prepare in advance the required formulae for the local energy $E_L$ in and the wave function needed in order to compute the ratios of probabilities in the Metropolis algorithm.
+These two functions are almost called as often as a random number generator, and care should therefore be exercised 
+in order to prepare an efficient code. 
+
+
+\section{Trial wave functions}
+
+In variational Monte Carlo (and in other Monte Carlo methods), all observables are evaluated with respect to the probability distribution (\ref{PDE}). Therefore, the choice of the trial wave function is critical in order to get sufficiently accurate results in the calculations. Despite its importance, it is, however, a highly non-trivial task. The quality of the results and the cost of  obtaining a certain statistical accuracy depends on how well the trial wave function approximate an exact eigenstate, since it improves the importance sampling.\\
+\\
+% % % % % % % % % Quantum Monte Carlo methods are able to exploit trial wave functions of arbitrary forms. Any wave function that is physical and for which the value, gradient and laplacian of the wave function may be efficiently computed can be used. 
+% % % % % % % % % The power of Quantum Monte Carlo methods lies in the flexibility of the form of the trial wave function. 
+\noindent
+A trial wave function frequently used in the simulation of electronic systems has the form of a product between a Slater determinant ({\color{red}{oooooooooooooo}}section \ref{mmmmmmm}) and a correlation function. The former takes into account for the Pauli exclusion principle (section \ref{PauliPrinciple}), the latter includes the correlation between particles. In general, 
+\begin{equation}\label{slaterJastrowTWF}
+\boxed{\Psi_T(\bfv{x}) = \Psi_D \Psi_C}
+\end{equation}
+where $\Psi_D$ is a Slater determinant\footnote{The final form of the Slater determinant depends on the choice of the single wave functions.} and $\Psi_C$ is a correlation function, generally depending on interparticle distances $r_{ij}$, 
+\begin{equation}\label{psiC}
+ \Psi_C = \prod_{i<j} g_{ij} = \prod_{i<j}^{N} g(r_{ij}) = \prod_{i=1}^{N} \prod_{j=i+1}^{N} g(r_{ij}),
+\end{equation}
+where 
+\begin{equation}\label{scalarDistance}
+r_{ij} = |\bfv{r}_j - \bfv{r}_i| = \sqrt{(x_j-x_i)^2+(y_j-y_i)^2+(z_j-z_i)^2} 
+\end{equation}
+is the interelectronic scalar distance. In this thesis we use the \emph{lineal Pad\'e-Jastrow correlation function}\footnote{The Jastrow term in the trial wave function reduces the possibility of two electrons to get close. Then, it decreases the average value of the repulsive interation providing an energy gain.}, which has the following form:
+\begin{equation}\label{linealPJ}
+\boxed{\Psi_{PJ} = \exp\left(\sum\limits_{j<i}\frac{a_{ij}r_{ij}}{1 + \beta_{ij}r_{ij}}\right),}
+\end{equation}
+where $a_{ij}$ is the cusp factor given by equations (\ref{cusp3D}) and (\ref{cusp3D}), and $\beta_{ij}$ is a free parameter which can be variated for optimizing the correlation part of the total trial wave function.
+
+
+\section{Optimization of the trial wave function}
+The optimization of the parameters of the trial wave function is crucial for the success of the variational Monte Carlo method. For a trial wave function, the local energy is not constant and its spatially averaged variance is a measure of how well the trial wave function approximates an eigenstate\cite{PaulKent}. This characteristic is therefore exploited to optimize both the energy and the wave function. The seconde method, compute the dispersion of the local energy, the variance $\sigma = \int \Op{H}\Psi^2 - E_v$. If in each step of a Monte Carlo calculation one get samples that are uncorrelated with the others, the dispersion is proportional to the variance of the calculation and the variance of the average energy will be $\sigma^2/N$, where $N$ is the number of Monte Carlo cycles. The variance is a positive definite quantity with known minimum value of zero. Therefore some authors prefers its minimization over the variational energy\cite{Ceperley1996}. \\
+\\
+Several methods for finding the minimum of multivariable functions in variational Monte Carlo have been proposed. Some of them are the \emph{fixed sampling reweighting} for minimization of the variance, with the current state of the art discussed in\cite{PaulKent}; stochastic gradient approximation (SGA), designed by Robins and Munro(1951) to handle optimization with noise gradients; gradient biased random walk and Newton method, among others\cite{Dewing2001,PaulKent}. The last one was used by Lin. et.al(2000)\cite{Lin2008} in energy minimization along with analytical derivatives of the energy with respect to the variational parameters. In this thesis we use \emph{quasi-Newton method} described in chapte 10.7 of Numerical Recipes\cite{NR} to minimize the energy. The function \citecode{dfpmin} taken from the same reference, requires the derivative of the energy with respect to the variational parameters, whose expression is derived below.
+
+\subsection{The derivative of the energy with respect to its varitional parameters}
+Because the non-relativistic Hamiltonian we are dealing with has inversion symmetry $(\Op{V}(\bfv{r}) = \Op{V}(-\bfv{r}))$, the true ground-state wave function can generally be constructed as a real one\cite{Levi2006,Lin2008}. The first derivative of (\ref{}) with respect to the variational parameters needed in (\ref{conjugateGradient}) can be written 
+\begin{align*}
+\frac{\partial E}{\partial c_m} & = \frac{1}{\int \Psi^2 d\bfv{r}}\left[\int\frac{\partial \Psi}{\partial c_m} \Op{H} \Psi d\bfv{r} +  \int \Psi \Op{H} \frac{\partial \Psi}{\partial c_m}  d\bfv{r}\right]\\ &- \frac{1}{(\int \Psi^2 d\bfv{r})^2} \int \Psi \Op{H} \Psi d\bfv{r} \int 2 \Psi \frac{\partial \Psi}{\partial c_m} d\bfv{r}.
+\end{align*}
+By Hermiticity, $\int \Op{H} \Psi \frac{\partial \Psi}{\partial c_m}  d\bfv{r} = \int\frac{\partial \Psi}{\partial c_m} \Op{H} \Psi d\bfv{r}$, and
+\begin{align*}
+\frac{\partial E}{\partial c_m} & = \frac{2}{\int \Psi^2 d\bfv{r}}\left[\int {\Psi^2} \left(\frac{\Op{H} \Psi}{{\Psi}}\right) \left(\frac{\frac{\partial \Psi}{\partial c_m}}{\Psi} \right)d\bfv{r} \right]\\ &- \frac{2}{(\int \Psi^2 d\bfv{r})^2} \int \Psi^2 \left(\frac{\Op{H} \Psi}{\Psi}\right) d\bfv{r} \int \Psi^2 \left(\frac{\frac{\partial \Psi}{\partial c_m}}{\Psi} \right) d\bfv{r}
+\end{align*}
+or
+% % % % % % % % % % % % % % % % \begin{equation}
+% % % % % % % % % % % % % % % % \boxed{\frac{\partial E}{\partial c_m}  = 2 \left(\bigg\langle E_L \frac{1}{\Psi}\frac{\partial \Psi}{\partial c_m}\bigg\rangle - \bigg\langle E_L \bigg \rangle \bigg\langle \frac{1}{\Psi}\frac{\partial \Psi}{\partial c_m}\bigg\rangle \right)}
+% % % % % % % % % % % % % % % % \end{equation}
+
+\begin{equation}\label{definition}
+\frac{\partial E}{\partial c_m} = 2\left[\left\langle E_L \frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}\right\rangle - E \left\langle \frac{\frac{\partial \Psi_{T_{c_m}}}{\partial c_m}}{\Psi_{T_{c_m}}}\right\rangle \right],
+\end{equation}
+where the average $\langle ... \rangle$ is taken over the whole Metropolis simulation\cite{Lin2008}.\\
+\\
+\noindent
+Most of the computational cost in the variatioal Monte Carlo method is related to the trial wave function. It is because all the observables and other calculations are based on it. The deveploment of algorithms making such calculations efficiently is essential in the context of this thesis. Next chapter is devoted to discuss this topic. 
+
+
+
+% % % % % % % % % % % 
+% % % % % % % % % % % \subsection{stochastic step descent conjugate gradient method}
+% % % % % % % % % % % 
+% % % % % % % % % % % Search for minima in multidimensional spaces (conjugate gradient method)
+% % % % % % % % % % % 
+% % % % % % % % % % % The success of the CG method  for finding solutions of non-linear problems is based
+% % % % % % % % % % % on the theory for of conjugate gradients for linear systems of equations. It belongs
+% % % % % % % % % % % to the class of iterative methods for solving problems from linear algebra of the type
+% % % % % % % % % % % $$
+% % % % % % % % % % %   \hat{{\bf A}}\hat{\bf {x}} = \hat{\bf {b}}.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % In the iterative process we end up with a problem like
+% % % % % % % % % % % $$
+% % % % % % % % % % %   \hat{\bf {r}}= \hat{\bf {b}}-\hat{{\bf A}}\hat{\bf {x}},
+% % % % % % % % % % % $$
+% % % % % % % % % % % where $\hat{\bf {r}}$ is the so-called residual or error in the iterative process.
+% % % % % % % % % % % 
+% % % % % % % % % % % 
+% % % % % % % % % % % The residual is zero when we reach the minimum of the quadratic equation
+% % % % % % % % % % % $$
+% % % % % % % % % % %   P(\hat{\bf {x}})=\frac{1}{2}\hat{\bf {x}}^T\hat{{\bf A}}\hat{\bf {x}} - \hat{\bf {x}}^T\hat{\bf {b}},
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % with the constraint that the matrix $\hat{{\bf A}}$ is positive definite and symmetric.
+% % % % % % % % % % % If we search for a minimum of the quantum mechanical  variance, then the matrix 
+% % % % % % % % % % % $\hat{{\bf A}}$, which is called the Hessian, is given by the second-derivative of the variance.  This quantity is always positive definite. If we vary the energy, the Hessian may not always be positive definite. 
+% % % % % % % % % % % 
+% % % % % % % % % % % In the CG method we define so-called conjugate directions and two vectors 
+% % % % % % % % % % % $\hat{\bf {s}}$ and $\hat{\bf {t}}$
+% % % % % % % % % % % are said to be
+% % % % % % % % % % % conjugate if 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {s}}^T\hat{{\bf A}}\hat{\bf {t}}= 0.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % The philosophy of the CG method is to perform searches in various conjugate directions
+% % % % % % % % % % % of our vectors $\hat{{\bf x}}_i$ obeying the above criterion, namely
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {x}}_i^T\hat{{\bf A}}\hat{\bf {x}}_j= 0.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % Two vectors are conjugate if they are orthogonal with respect to 
+% % % % % % % % % % % this inner product. Being conjugate is a symmetric relation: if $\hat{\bf {s}}$ is conjugate to $\hat{\bf {t}}$, then $\hat{\bf {t}}$ is conjugate to $\hat{\bf {s}}$.
+% % % % % % % % % % % 
+% % % % % % % % % % % An example is given by the eigenvectors of the matrix 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {v}}_i^T\hat{{\bf A}}\hat{\bf {v}}_j= \lambda\hat{\bf {v}}_i^T\hat{\bf {v}}_j,
+% % % % % % % % % % % $$
+% % % % % % % % % % % which is zero unless $i=j$. 
+% % % % % % % % % % % 
+% % % % % % % % % % % Assume now that we have a symmetric positive-definite matrix $\hat{\bf {A}}$ of size
+% % % % % % % % % % % $n\times n$. At each iteration $i+1$ we obtain the conjugate direction of a vector 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {x}}_{i+1}=\hat{\bf {x}}_{i}+\alpha_i\hat{\bf {p}}_{i}. 
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % We assume that $\hat{\bf {p}}_{i}$ is a sequence of $n$ mutually conjugate directions. 
+% % % % % % % % % % % Then the $\hat{\bf {p}}_{i}$  form a basis of $R^n$ and we can expand the solution 
+% % % % % % % % % % % $  \hat{{\bf A}}\hat{\bf {x}} = \hat{\bf {b}}$ in this basis, namely
+% % % % % % % % % % % $$
+% % % % % % % % % % %   \hat{\bf {x}}  = \sum^{n}_{i=1} \alpha_i \hat{\bf {p}}_i.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % The coefficients are given by
+% % % % % % % % % % % $$
+% % % % % % % % % % %     \mathbf{A}\mathbf{x} = \sum^{n}_{i=1} \alpha_i \mathbf{A} \mathbf{p}_i = \mathbf{b}.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % Multiplying with $\hat{\bf {p}}_k^T$  from the left gives
+% % % % % % % % % % % $$
+% % % % % % % % % % %   \hat{\bf {p}}_k^T \hat{\bf {A}}\hat{\bf {x}} = \sum^{n}_{i=1} \alpha_i\hat{\bf {p}}_k^T \hat{\bf {A}}\hat{\bf {p}}_i= \hat{\bf {p}}_k^T \hat{\bf {b}},
+% % % % % % % % % % % $$
+% % % % % % % % % % % and we can define the coefficients $\alpha_k$ as 
+% % % % % % % % % % % $$
+% % % % % % % % % % %     \alpha_k = \frac{\hat{\bf {p}}_k^T \hat{\bf {b}}}{\hat{\bf {p}}_k^T \hat{\bf {A}} \hat{\bf {p}}_k}
+% % % % % % % % % % % $$ 
+% % % % % % % % % % % 
+% % % % % % % % % % % If we choose the conjugate vectors $\hat{\bf {p}}_k$ carefully, 
+% % % % % % % % % % % then we may not need all of them to obtain a good approximation to the solution 
+% % % % % % % % % % % $\hat{\bf {x}}$. 
+% % % % % % % % % % % So, we want to regard the conjugate gradient method as an iterative method. 
+% % % % % % % % % % % This also allows us to solve systems where $n$ is so large that the direct 
+% % % % % % % % % % % method would take too much time.
+% % % % % % % % % % % 
+% % % % % % % % % % % We denote the initial guess for $\hat{\bf {x}}$ as $\hat{\bf {x}}_0$. 
+% % % % % % % % % % % We can assume without loss of generality that 
+% % % % % % % % % % % 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {x}}_0=0,
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % or consider the system 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {A}}\hat{\bf {z}} = \hat{\bf {b}}-\hat{\bf {A}}\hat{\bf {x}}_0,
+% % % % % % % % % % % $$
+% % % % % % % % % % % instead.
+% % % % % % % % % % % 
+% % % % % % % % % % % Important, one can show that the solution $\hat{\bf {x}}$ is also the unique minimizer of the quadratic form
+% % % % % % % % % % % $$
+% % % % % % % % % % %   f(\hat{\bf {x}}) = \frac{1}{2}\hat{\bf {x}}^T\hat{\bf {A}}\hat{\bf {x}} - \hat{\bf {x}}^T \hat{\bf {x}} , \quad \hat{\bf {x}}\in\mathbf{R}^n. 
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % This suggests taking the first basis vector $\hat{\bf {p}}_1$ 
+% % % % % % % % % % % to be the gradient of $f$ at $\hat{\bf {x}}=\hat{\bf {x}}_0$, 
+% % % % % % % % % % % which equals 
+% % % % % % % % % % % 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {A}}\hat{\bf {x}}_0-\hat{\bf {b}},
+% % % % % % % % % % % $$
+% % % % % % % % % % % and 
+% % % % % % % % % % % $\hat{\bf {x}}_0=0$ it is equal $-\hat{\bf {b}}$.
+% % % % % % % % % % % The other vectors in the basis will be conjugate to the gradient, 
+% % % % % % % % % % % hence the name conjugate gradient method.
+% % % % % % % % % % % 
+% % % % % % % % % % % Let  $\hat{\bf {r}}_k$ be the residual at the $k$-th step:
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {r}}_k=\hat{\bf {b}}-\hat{\bf {A}}\hat{\bf {x}}_k.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % Note that $\hat{\bf {r}}_k$ is the negative gradient of $f$ at 
+% % % % % % % % % % % $\hat{\bf {x}}=\hat{\bf {x}}_k$, 
+% % % % % % % % % % % so the gradient descent method would be to move in the direction $\hat{\bf {r}}_k$. 
+% % % % % % % % % % % Here, we insist that the directions $\hat{\bf {p}}_k$ are conjugate to each other, 
+% % % % % % % % % % % so we take the direction closest to the gradient $\hat{\bf {r}}_k$  
+% % % % % % % % % % % under the conjugacy constraint. 
+% % % % % % % % % % % This gives the following expression
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {p}}_{k+1}=\hat{\bf {r}}_k-\frac{\hat{\bf {p}}_k^T \hat{\bf {A}}\hat{\bf {r}}_k}{\hat{\bf {p}}_k^T\hat{\bf {A}}\hat{\bf {p}}_k} \hat{\bf {p}}_k.
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % 
+% % % % % % % % % % % We can also  compute the residual iteratively as
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {r}}_{k+1}=\hat{\bf {b}}-\hat{\bf {A}}\hat{\bf {x}}_{k+1},
+% % % % % % % % % % %  $$
+% % % % % % % % % % % which equals
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {b}}-\hat{\bf {A}}(\hat{\bf {x}}_k+\alpha_k\hat{\bf {p}}_k),
+% % % % % % % % % % %  $$
+% % % % % % % % % % % or
+% % % % % % % % % % % $$
+% % % % % % % % % % % (\hat{\bf {b}}-\hat{\bf {A}}\hat{\bf {x}}_k)-\alpha_k\hat{\bf {A}}\hat{\bf {p}}_k,
+% % % % % % % % % % %  $$
+% % % % % % % % % % % which gives
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {r}}_{k+1}=\hat{\bf {r}}_k-\hat{\bf {A}}\hat{\bf {p}}_{k},
+% % % % % % % % % % %  $$
+% % % % % % % % % % % 
+% % % % % % % % % % % If we consider finding the minimum of a function $f$ using Newton's method,
+% % % % % % % % % % % that is search for a zero of the gradient of a function.  Near a point $x_i$
+% % % % % % % % % % % we have to second order
+% % % % % % % % % % % $$
+% % % % % % % % % % % f(\hat{\bf {x}})=f(\hat{\bf {x}}_i)+(\hat{\bf {x}}-\hat{\bf {x}}_i)\nabla f(\hat{\bf {x}}_i)
+% % % % % % % % % % % \frac{1}{2}(\hat{\bf {x}}-\hat{\bf {x}}_i)\hat{\bf {A}}(\hat{\bf {x}}-\hat{\bf {x}}_i)
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % giving
+% % % % % % % % % % % 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \nabla f(\hat{\bf {x}})=\nabla f(\hat{\bf {x}}_i)+\hat{\bf {A}}(\hat{\bf {x}}-\hat{\bf {x}}_i).
+% % % % % % % % % % %  $$
+% % % % % % % % % % % 
+% % % % % % % % % % % In Newton's method we set $\nabla f = 0$ and we can thus compute the next iteration point
+% % % % % % % % % % % (here the exact result)
+% % % % % % % % % % % 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {x}}-\hat{\bf {x}}_i=\hat{\bf {A}}^{-1}\nabla f(\hat{\bf {x}}_i).
+% % % % % % % % % % % $$
+% % % % % % % % % % % 
+% % % % % % % % % % % Subtracting this equation from that of $\hat{\bf {x}}_{i+1}$ we have
+% % % % % % % % % % % 
+% % % % % % % % % % % $$
+% % % % % % % % % % % \hat{\bf {x}}_{i+1}-\hat{\bf {x}}_i=\hat{\bf {A}}^{-1}(\nabla f(\hat{\bf {x}}_{i+1})-\nabla f(\hat{\bf {x}}_i)).
+% % % % % % % % % % % $$
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%555
+%%%%%% PARA HABLAR DEL OPTIMIZADOR
+%%%%%
+% % % \begin{equation}
+% % % \bfv{\alpha}_{i+1} = \bfv{\alpha}_{i}  + \bfv{A}^{-1} [\bfv{\nabla}E(\bfv{\alpha}_{i+1}) - \bfv{\nabla} E (\bfv{\alpha}_{i})]
+% % % \end{equation}
+% % % 
+% % % The function to minimize need the following:
+% % % \begin{itemize}
+% % % 	\item Starting vector of length $n$.
+% % % 	\item Function on which minimization is done.
+% % % 	\iten Function where the gradient is calculated.
+% % % 	\item Convergence requiriment.
+% % % \end{itemize}
+% % % 
+
+
+\clearemptydoublepage

@@ -1,0 +1,55 @@
+\chapter{Introduction} %% (1-2 pages, containes the motivation of the work)
+\label{intro}
+
+%%% introduire QD as semiconductor systems (what is it?) with special properties compared to standard transistor, coming from their size comparable to atomic size and then experiencing important quantum effect (what are quantum effect).
+
+%%% discuss properties of QD, then explaining our motivation in QD for use in electronics, medicine, theoretical studies for studying some physical phenomena.
+
+%%% introduce the objective of the thesis: reliability of HF techniques for studying QDs.
+%%% detail on the topic (why computation studies of QD) that leads to the problematic of the thesis.
+%%% = imporvements/successes of computational calculation for predicting properties of materials
+%%% this is done using Many-body methods (to be defined) to get theoretical calculation of the properties of the system. Still very complex studies and increasing exponentially wuth the nb. of particles.
+%%% So different techniques are used with different level of sophistication (accuracy, efficiency): HF, MBPT, VMC, FCI,...
+%%%%Walterson fait une rapide description de l'etat de l'art en terme d'etudes des QD et des differentes methodes utilisées.
+
+%%\subsection{Subject and Definitions}
+%%% introducing Quantum dots as a field of application
+
+
+Following their recent successes in describing and predicting properties of materials, electronic structure calculations using numerical computation have become increasingly important in the fields of physics and chemistry over the past decade, especially with the development of supercomputers. From the basic constituents of a system of particles and their interactions, a computational approach enables to derive the electronic structure and the properties of the system.
+
+A system of particles that is currently considered with attention is the quantum dot: it is an artificial system consisting of several interacting electrons confined to small regions between layers of semiconductors. The whole system can be seen as a nanoscopic box of semiconductor with exceptional electrical and optical properties. Applications based on quantum dots are developed in numerous fields of medicine and modern electronics.
+
+\subsection{Overview*}
+This thesis describes a computional study of a quantum dot in two dimensions. It presents the methods used in numerical simulations and some many-body techniques with various levels of sophistication: Hartree-Fock method (HF), many-body perturbation theory (MBPT), variational Monte-Carlo (VMC) and full configuration interaction (FCI) (e.g.\ large scale diagonalisation) methods. It focuses on the restricted Hartree-Fock method, one of the fastest and cheapest techniques but also one of the less accurate. The aim of the study is to assess the appropriateness of this method to study quantum dots in two-dimensions confined by a spherical potential and squeezed by an external magnetic field. 
+
+\subsection{Literature review*}
+Similar Hartree-Fock studies were performed by Johnson and Reina in 1992~\cite{johnsonReina1992} and Pfannkuche in 1993~\cite{pdgvmp1993}. 
+Johnson and Reina derived an analytical expression for the exact ground state and the HF energy of a N-particle quantum dot~\cite{johnsonReina1992}. They managed to derive it by approximating the electron interactions with a cut-off to first order of the coulomb interaction.
+They found that the HF approximation becomes less accurate with an increasing number of electrons, a decreasing magnetic field, an increasing dot size and increasing electron-electron interaction strength.
+Our model which includes the complete Coulomb interaction leads to the same conclusion regarding the accuracy of the Hartree-Fock method.
+
+Pfannkuche computed the open-shell Hartree-Fock method and compared the results to exact diagonalization. Pfannkuche also remarked that the usefulness of the Hartree-Fock method would be greatly enhanced if its reliability was properly understood\cite{pdgvmp1993}.
+Compared to their study, our closed-shell model implementation cannot give insights on the electronic structure responsible for the inaccuracy of the correlation effects, but it gives more information about the convergence of HF. 
+
+Waltersson analysed quantum dots using open-shell Hartree-Fock and second order perturbation theory~\cite{Waltersson2007}. Their results are used to validate our own implementation of the second order perturbation correction in the basis of Hartree-Fock orbitals. 
+
+Simen Kvaal developed a large-scale diagonalization code \cite{Kvaal2008} for computing the approximated ground state using the full configuration interaction method. We use his results as reference for the ``exact'' ground state in the analysis of our results.
+We also use his simulator to validate the two-body interaction matrix in the harmonic oscillator basis.
+
+Rune Albrigtsen studied quantum dots using closed-shell variational Monte-Carlo (VMC) method~\cite{Albrigtsen2009}. His results are used for a few configurations to compare the accuracy of HF and VMC.
+
+\subsection{A guide to the reader}
+This thesis is organized as follows. Chapter~\ref{motivations} presents briefly the history of quantum dots and legitimates the quest for more accurate models and their numerical simulations. Chapter~\ref{physicsQD} %%background_QD.tex
+describes the phenomenological aspects and properties of quantum dots.
+Chapter~\ref{model} reviews some models for the quantum dot and introduces the theoretical approximation used in this thesis. When it comes to the treatment of the quantum dot model for numerical simulation, chapter~\ref{HF} introduces some possible many-body techniques, and more particularly the Hartree-Fock theory. Its resulting iterative procedure is worked out within the goal of our implementation.
+Chapter~\ref{implementation} describes the computational implementation of the Hartree-Fock method for electrons trapped in a single harmonic oscillator potential in two-dimensions. We also describes the implementation of the many-body perturbation corrections up to third order both as an improvement of the Hartree-Fock energy or as an independant technique.
+Results are provided in chapter~\ref{analysis} for closed shell systems, compared to large-scale diagonalization and a numerical analysis provides information on the convergence, the stability and on the efficiency of Hartree-Fock method and the many-body perturbation theory.
+We test the reliability of a single Slater determinant approximation for the ground state of closed shell systems as function of varying interaction strength (\ref{sec:ModelFockDarwin}).
+A discussion of the results (\ref{sec:scalingSimulator}) shows that the complexity of the Hartree-Fock method grows exponentially with the size of the basis set and that parallelization improves the efficiency almost linearly with respect to the number of processors (\ref{sec:MPI}).
+When compared to large-scale diagonalisation taken as reference, we observed a quadractic error growth of HF and MPBT as the interaction strength increases (\ref{subsec:errorGrowth}).
+We find that the Hartree-Fock method, compared with large-scale diagonalization methods, has a limited range of applicability as function of the interaction strength and increasing number of electrons in the dot, indicating a breakdown of the validity of the ansatz for the ground state wave function used in the Hartree-Fock calculations. In our case this ansatz is based on a single Slater determinant constructed
+by filling all single-particle levels below the chosen Fermi surface, the so-called closed-shell approach.
+%computational technique before entering the limit of validity of the closed-shell model (\ref{sec:limitBreak}).
+Our study also shows that the HF approximation becomes less accurate compared to MBPT as the number of electron in the dot increases (\ref{sec:accuracyNbElectrons}).
+Concluding remarks and suggestions for future work are given in the conclusion~\ref{conclusion}.

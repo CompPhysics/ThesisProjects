@@ -1,0 +1,452 @@
+\section{Diffusion Monte Carlo (DMC)}
+\label{sec:DMC0}
+Diffusion Monte Carlo (DMC) is a quantum Monte Carlo method which, via a transformation to imaginary time, makes the solution of  Schr\"odinger's equation to a classical diffusion problem. The advantage compared to other Monte Carlo methods, e.g. Variational Monte Carlo (VMC), is that the solution does not directly depend on a trial wave function restricting the quality of the result. Instead, within the limits of the algorithm, DMC can in principle reproduce the exact ground state of the system.
+
+\subsection{Fundamentals of DMC}
+
+The basic philosophy can be summarized as follows: Transforming Schr\"odinger's equation to imaginary time, $it \rightarrow t$, it reads (using natural units)
+\[
+\frac{\partial \Psi\left(\mathbf{R}, t \right)}{\partial t} = \hat{H} \Psi\left(\mathbf{R}, t \right),
+\]
+where $\mathbf{R}$ contains all degrees of freedom of the system. Expanding the state $\left|\Psi(\mathbf{R}, t )\right\rangle$ in terms of the eigenstates $\left|\phi_n\right\rangle$ of the Hamiltonian, the solution is given by
+
+\begin{align*}
+|\Psi(\mathbf{R},t)\rangle &= e^{-\hat{H}t} |\Psi(\mathbf{R},0)\rangle \\
+&= \sum\limits_n  e^{-\hat{H}t} |\phi_n\rangle \langle \phi_n  |\Psi(\mathbf{R},0)\rangle \\
+&= \sum\limits_n  e^{-E_n t} |\phi_n\rangle \langle \phi_n  |\Psi(\mathbf{R},0)\rangle.
+\end{align*}
+For $t \rightarrow \infty$, all eigenstates with negative energy blow up while the ones with positive energy vanish.\\
+In our case, one is only interested in projecting the ground state component of $\Psi$ out.
+Therefore a constant energy shift $E_T$, called a \textit{trial energy}, is introduced to the potential part of the Hamiltonian. Since the physical properties of a system are generally independent of the zero point of the energy, the physics of the system remains unchanged. The state $ |\Psi(\mathbf{R},t)\rangle$ can thus be expressed by
+\begin{equation}
+|\Psi(\mathbf{R},t)\rangle = \sum\limits_n  e^{-(E_n- E_t) t} |\phi_n\rangle \langle \phi_n|\Psi(\mathbf{R},0)\rangle.
+\label{eq:psi_DMC}
+\end{equation}
+Considering the ideal situation where $E_T = E_0$, the contributions from the excited states vanish in the limit $t \rightarrow \infty$, projecting out the ground state $\Phi_0$,
+\[
+\lim_{t \rightarrow \infty} e^{-\lb\hat{H}-E_0\rb t}\Psi(\mathbf{R},t) \propto \Phi_0.
+\]
+
+To have a practical scheme  to do the time propagation, we expand Eq. (\ref{eq:psi_DMC}) in the eigenstates $|\mathbf{R}_i\rangle$ of the position operator, which are referred to as \textit{walkers}. In this basis, the time evolution is
+\begin{equation}
+|\Psi(\mathbf{R},t)\rangle = \sum\limits_i e^{-(\hat{H}-E_0)t}|\mathbf{R}_i'\rangle\langle \mathbf{R}_i'|\Psi(\mathbf{R}',0)\rangle.
+\label{eq:eigenfct}
+\end{equation}
+In terms of the Green's function, Eq. (\ref{eq:eigenfct}) can be written as
+\[
+\Psi(\mathbf{R},t) = \int G(\mathbf{R}',\mathbf{R};t)\Psi(\mathbf{R}',0)d\mathbf{R}'.
+\]
+The Green's function represents the probability that the system moves from $\mathbf{R}$ to $\mathbf{R}'$ in an imaginary time interval $\tau$ and is given by
+\begin{align}
+G(\mathbf{R}',\mathbf{R};\tau) &= \langle  \mathbf{R}'| e^{-(\hat{H}-E_0)\tau} | \mathbf{R}\rangle\\
+& = 
+ \langle  \mathbf{R}'| e^{-\lb \hat{T} + \hat{V}-E_T\rb \tau} | \mathbf{R}\rangle,
+\end{align}
+where $\hat{T}$ and $\hat{V}$ are the kinetic and potential energy operator, respectively. 
+Writing out the imaginary time Schr\"odinger equation, we get
+\begin{align}
+\frac{\partial}{\partial t} \Psi(\mathbf{R},t) &= 
+-\hat{T}\Psi(\mathbf{R},t) - \lb \hat{V}(\mathbf{R}) - E_T \rb \Psi(\mathbf{R},t) \notag \\
+&= \frac{\hbar^2}{2m}\nabla^2\Psi(\mathbf{R},t) - \lb \hat{V}(\mathbf{R}) - E_T \rb \Psi(\mathbf{R},t), \notag \\ 
+\label{eq:aschr}
+\end{align}
+which is of the form of an extended diffusion equation. 
+
+The basic idea is now to represent the initial state by
+an  ensemble of random walkers 
+and propagate them iteratively in imaginary time. The propagation occurs  according to probabilities defined by the Green's function $G$, which is subject to the controlled diffusion process of Eq.~(\ref{eq:aschr}). After a large number of generations, the population density will represent the ground state wave function. \\
+Interpreting the terms of Eq.~(\ref{eq:aschr}) separately, we see that the first term is a standard \textit{diffusion term} with diffusion constant
+$D = \frac{\hbar^2}{2m}$.
+The second term is a \textit{rate term}, also called \textit{branching term}, and describes a potential-dependent increase or decrease in the density of walkers. \\
+In order to perform the diffusion and branching separately, the Baker-Campbell-Haussdorff formula \cite{shavitt2009many} is applied in the limit $\tau \rightarrow 0,\; t = n\tau  $, yielding
+\be 
+e^{-\lb\hat{H}-E_T\rb \tau} =  e^{-\hat{T}\tau} e^{-\lb \hat{V}-E_T\rb\tau},
+\label{eq:shtime}
+\ee
+with an error to second order in $\tau$.  Since it is only valid for small time steps $\tau$, Eq. (\ref{eq:shtime}) is called a \textit{short time approximation} of the Green's function.
+The Green's function, ignoring normalization factors, thus reads \cite{hammond1994monte}
+
+\[
+G(\mathbf{R}',\mathbf{R};t) = e^{-(\mathbf{R}'-\mathbf{R})^2/4D\tau} e^{-\lb V(\mathbf{R}') - E_T \rb \tau}.
+\]
+%In the DMC algorithm, the diffusion and the branching can now be performed separately. The first factor represents the probability of a walker to move from position $y$ to $x$, whereas the second one can be interpreted as the rate of growth of random walkers at position $y$.\\
+%Although propagating the walkers iteratively, moving them each time step according to the diffusion equation and changing their number according to the rate quation, should result in a final distribution of walkers corresponding to the exact ground state eigenfunction of $\hat{H}$, this brute-force method brings some problems with it. In particular, unbounded potentials like the Coulomb potential for interactions between the electrons are difficult to handle and the divergencies for small distances give rise to great fluctuations making the statistical estimates of the physical quatities inaccurate.\\
+%Moreover, it is difficult to deal with wavefunctions that are not positive definite, especially wavefunctions representing fermionic states, which have nodes. One would like to push the walkers away from that nodes, preventing them to cross the nodal surfaces: an approach that is called \textit{fixed node approximation}. \\
+Due to divergencies in the potential, the algorithm needs to be modified. In practice, the sampled distribution is multiplied by a trial wave function $\Psi_T(\mathbf{R})$ obtained from VMC calculations, giving the distribution 
+\begin{align}
+f(\mathbf{R},t) 
+&= \Psi_T(\mathbf{R})\Psi(\mathbf{R},t)b \notag\\
+&=
+\int G(\mathbf{R}',\mathbf{R};t) \frac{\Psi_T(\mathbf{R})}{\Psi_T(\mathbf{R}')}\Psi_T(\mathbf{R}') \Psi(\mathbf{R}',0) d\mathbf{R}'.
+\label{eq:DMCtrial}
+\end{align}
+That way a drift velocity is added to the diffusion equation and applying the Fokker-Planck formalism\footnote{For details, see \cite{hammond1994monte}.},  the modified diffusion term reads
+\[
+ G_{\text{diff}}(\mathbf{R},\mathbf{R}';\tau) = \frac{1}{(4\pi D\tau)^{3N/2}} e^{-\lb \mathbf{R}-\mathbf{R}'-D\tau F(\mathbf{R}')\rb ^2/4D\tau},
+\]
+%which gives the following rule to obtain the new trial position $x$
+%\[
+%x = y + DF(y)\tau + \chi,
+%\]
+%where $\chi$ is again a Gaussian random number with mean zero and variance $2D\tau$ and $d F(y)\tau$ gives a drift in the direction that $\Psi_T$ increases.\\
+and the branching term is changed to
+\begin{equation}
+G_b(\mathbf{R},\mathbf{R}';\tau) = e^{-\lb \frac{E_L(\mathbf{R})+E_L(\mathbf{R}')}{2}-E_T\rb \tau}.
+\label{eq:branching}
+\end{equation}
+Thus the potential is replaced by an expression depending on the local energy, which gives a greatly reduced branching effect. In particular, as $\Psi_T \rightarrow \Phi_0$ and $E_T \rightarrow \epsilon_0$, the local energy is constant and no branching occurs, corresponding to a stable distribution of walkers. \\
+%Thus, using this \textit{importance sampling}, the whole DMC process is performed more efficiently since one the one hand, the branching favors the areas of configuation space that give the lowest local energy, which is the ground state energy. On the other hand the drifted diffusion pushes the walkers towards the desired areas and away from the nodal surfaces of $\Psi_T$.
+A final point, which will be taken up later again, is the fact that the above described procedure is only well defined in the case of a totally symmetric ground state. For fermionic systems, there are additional divergencies at the nodes of the wave function. One way to overcome this, is to additionally enforce the boundary condition that the wave function vanishes at the nodes of $\Psi_T$, an approach that is called \textit{fixed-node approximation}.
+
+\subsection{Modelling of the trial wave function}
+The trial wave function encountered in Eq. (\ref{eq:DMCtrial}) should approximate the real ground state $\Phi_0$ as good as possible. One the one hand, the fixed-node approximation both wave functions to have the same nodes, one the other hand, the trial energy $E_T$ should be close enough to $E_0$ to be smaller than the first excited energy. Only that way, just those walker corresponding to the ground state are selected.\\
+In other words, one should bring in as much knowledge about the physics of the system as possible. At the same time, however, numerical computations should not become too extensive, which means that the wave function should still keep a rather simple form.
+In practice, the trial wave function $\Psi_T$ is usually obtained by running a VMC calculation and taking this function as input for the subsequent DMC runs.
+
+\subsubsection{Our ansatz for the wave function}
+In our considered quantum systems, the electrons are confined in a two-dimensional harmonic oscillator potential
+\[
+V\left(\rf\right) = \frac{1}{2} m \omega^2 r^2,
+\]
+where $\omega$ is the oscillator frequency. The wave functions of the different levels of excitation, which are solutions to the single-particle Hamiltonians
+\[
+\hat{h}_0 \phi = \epsilon \phi,
+\]
+are given by a product of Hermite polynomials (see section \label{sec:HO}), namely
+\[
+\phi_{n_x,n_y}\left(\rf\right) = A H_{n_x}\left(\sqrt{\omega}x\right) H_{n_y}\left(\sqrt{\omega}y\right) e^{-\frac{\omega}{2}\left(x^2+y^2\right)}.
+\]
+Following \cite{SkriptMorten}, the complete trial wave function of our fermionic system consists of two parts. The first is a totally antisymmetric part, the Slater determinant. This one is the exact solution of the non-interacting system and ensures the indistinguishability of the electrons by considering all possible configurations. As explained in chapter \ref{chap:mb}, it generally reads
+% \footnote{Actually one would have to normalize it with a factor $(N!)^{-\frac{1}{2}}$, however, in this project we will always deal with ratios between wavefunctions with the same normalization factor, which leads to a cancellation of the latter.}
+\begin{equation}
+\psi_S(\rf_1, ...,\rf_N) =\frac{1}{\sqrt{N!}} \left|\begin{array}{cccc}
+                           \phi_1(\rf_1) & \phi_1(\rf_2) &\cdots   & \phi_1(\rf_N) \\
+                           \phi_2(\rf_1) & \phi_2(\rf_2) &\cdots & \phi_2(\rf_N) \\
+                           \vdots & \vdots & \ddots & \vdots\\
+                       \phi_N(\rf_1)&\phi_N(\rf_2)   &  \cdots & \phi_N(\rf_N) \\
+                      \end{array} \right|,
+\label{eq:Slater}
+\end{equation}
+where the functions $\phi_i$ are the single-particle orbitals discussed above and the vector $\rf$ is assumed to contain both spatial and spin degrees of freedom.\\
+A computationally smarter solution is to create one Slater determinant for the spin up electrons, and one for the spin down ones. It has been shown \cite{Nissenbaum2008} that if one uses instead of the full Slater determinant the product of these two half-sized determinants, one gets exactly the same energy as with the full one, provided that the Hamiltonian is spin independent:
+\[
+\psi_S(\rf_1,...,\rf_N) = \frac{1}{\sqrt{N!}} \du \dd
+\]
+with
+\[
+\du = \left|\begin{array}{cccc}
+                           \phi_{1\uparrow}(\rf_1) & \phi_{1\uparrow}(\rf_2) &\cdots   & \phi_{1\uparrow}\left(\rf_{\frac{N}{2}}\right) \\
+                           \phi_{2\uparrow}(\rf_1) & \phi_{2\uparrow}(\rf_2) &\cdots & \phi_{2\uparrow}\left(\rf_{\frac{N}{2}}\right) \\
+                           \vdots &  & \ddots & \vdots\\
+                       \phi_{\frac{N}{2}\uparrow}(\rf_1)   &\cdots &  & \phi_{\frac{N}{2}\uparrow}\left(\rf_{\frac{N}{2}}\right) \\
+                      \end{array} \right|
+\]
+and
+\[
+\dd = \left|\begin{array}{cccc}
+                           \phi_{1\downarrow}\left(\rf_{\frac{N}{2}+1}\right) & \phi_{1\downarrow}\left(\rf_{\frac{N}{2}+2}\right) &\cdots   & \phi_{1\downarrow}\left(\rf_{N}\right) \\
+                           \phi_{2\downarrow}\left(\rf_{\frac{N}{2}+1}\right) & \phi_{1\downarrow}\left(\rf_{\frac{N}{2}+2}\right) &\cdots & \phi_{2\downarrow}\left(\rf_{N}\right) \\
+                           \vdots &  & \ddots & \vdots\\
+                       \phi_{\frac{N}{2}\downarrow}\left(\rf_{\frac{N}{2}+1}\right)   &\cdots &  & \phi_{\frac{N}{2}\downarrow}\left(\rf_{N}\right) \\
+                      \end{array} \right|.
+\]
+
+Although the wave function now no longer is antisymmetric, the eigenvalues for a spin independent Hamiltonian are unchanged.\\
+The computational strength is that when only one particle is moved at a time, only one of the determinants is changed and the other one keeps its value. Since the calculation of the Slater determinants costs quite a lot of CPU time, this makes the program much more efficient.
+
+In principle, our wave function could be expressed as infinitely long linear combination of such Slater determinants. However, since this is practically not possible, we have to cut the single-particle basis at some point and include an extra correlation function instead.\\
+In this thesis, only the ground-state Slater determinant is used for the non-interacting part. This is a reasonable ansatz, since only closed shell systems are considered and there is a comparatively high energy difference between the highest energy level in one shell and the lowest one in the next shell. One can therefore assume that it is very hard to excite a particle from the outer-most filled shell and it is therefore unlikely to have Slater determinants with orbitals of higher energy. \\
+Since our Slater determinant does not include any correlation effects, it is crucial to have a correlation term. This one must fulfil an important cusp condition, namely taking care of the singularity one gets by having zero distance between two particles.\\
+Here, the \textit{Pade-Jastrow} function is used
+\[
+J = \prod\limits_{i<j}^N \text{exp}\left(\frac{a r_{ij}}{1+\beta r_{ij}}\right),
+\]
+where $a=\frac{1}{3}$ for particles of equal spin and $a=1$, else. In this factor, a simple parameter $\beta$ describes the whole strength of the correlation: If $\beta$ is large, the Jastrow factor is close to one, meaning that the effect of the interactions is small. On the other hand, the smaller $\beta$ becomes, the more central is the role of correlations in the system.
+
+The variational parameter in the Slater determinant will be $\alpha$ and is included in the single-particle wave functions the following way
+
+\[
+\phi_{n_x,n_y}\left(x,y;\alpha \right) = A H_{n_x}\left(\sqrt{\omega\alpha}x\right) H_{n_y}\left(\sqrt{\omega\alpha}y\right) e^{-\frac{\omega\alpha}{2}\left(x^2+y^2\right)}.
+\]
+
+Note that we omit all normalization constants since only ratios between wave functions will be considered. The parameter $\alpha$ serves as a scaling factor of the oscillator frequency. The closer it is to one, the closer the system is to a perfect harmonic oscillator.
+
+Bringing it all together, our total trial wave function is
+\begin{equation}
+\Psi_T(\alpha, \beta ) = \left| D_{\uparrow}(\alpha)\right| \left| D_{\downarrow}(\alpha)\right| J(\beta).
+\label{eq:VMCWF}
+\end{equation}
+
+\subsubsection{Extracting the parameters using Variational Monte Carlo (VMC)}
+Our ansatz for the trial wave function $\Psi_T$ now includes two variational parameters, $\alpha$ and $\beta$, which shall be optimized to approximate the real ground state $\Phi_0$ as well by $\Psi_T$ as possible. Practically, we base this search for parameters on the variational principle, stating that the energy calculated from any trial wave function can never be below the true ground state energy. In particular, we compute
+the integral 
+\begin{equation*}
+   \langle \hat H \rangle = 
+    \frac{\langle\Psi_T|\hat{H}|\Psi_T\rangle}{\langle\Psi_T|\Psi_T\rangle} = 
+   \frac{\int d\mathbf{R}\Psi^{\ast}_T(\mathbf{R})\hat H(\mathbf{R})\Psi_T(\mathbf{R})}
+        {\int d\mathbf{R}\Psi^{\ast}_T(\mathbf{R})\Psi_T(\mathbf{R})}
+\end{equation*}
+and minimize it with respect to the variational parameters. To compute the integral
+and determine those variational parameters that yield a minimum,
+we use the standard VMC approach, meaning that we combine Monte-Carlo integration with the Metropolis algorithm governing the transition of states.
+
+\paragraph{Monte Carlo integration}
+
+Monte Carlo integration is a very useful tool, especially for integrals of higher dimensions. Its basic philosophy is rather simple:\\
+Consider a function $f(x)$ which shall be integrated over some interval $[a,b]$:
+\begin{equation}
+\label{eq:int}
+I = \int_a^b f(x)dx.
+\end{equation}
+From statistics it is known that the expectation value of the function $f(x)$ on $[a,b]$ is calculated by multiplying it with a probability distribution function (PDF) and integrating over the desired interval:
+\begin{equation}
+\label{eq:pdf}
+\langle f(x) \rangle = \int_a^ b P(x)f(x) dx.
+\end{equation}
+The main idea now is to bring integral (\ref{eq:int}) into the form of Eq.(\ref{eq:pdf}). This is done by rewriting
+\[
+I = \int_a^b P(x) \left(\frac{f(x)}{P(x)}\right) dx = \langle\frac{f(x)}{P(x)}\rangle.
+\]
+Hence the integral  (\ref{eq:int}) is replaced by the average of  $f(x)$ divided by some PDF. The idea of Monte Carlo integration now is to choose random numbers in the interval $[a,b]$, and approximate the expectation value by averaging over all contributions:
+\begin{equation}
+\label{eq:importance}
+I = \langle \frac{f(x)}{P(x)}\rangle \simeq \frac{1}{N}\sum\limits_{i=1}^N \frac{f(x_i)}{P(x_i)}.
+\end{equation}
+The points $x_i$ are randomly generated from the probability distribution $P(x)$.\\
+Obviously, Monte Carlo integration is a statistical method, and yields only an approximation to the real expectation value. Now matter how large the samples are chosen, there will always be a statistical error and one needs a measure of how statistically precise the obtained estimate is. This is provided by the so-called \textit{variance}, which is given by
+\[
+\sigma^2\left(\langle f \rangle\right) = \frac{\sigma^2(f)}{N}.
+\]
+The  quantity $\sigma^2(f)$ is the sample variance
+\[
+\sigma^2(f) = \langle f^2 \rangle - \langle f \rangle^2.
+\]
+The smaller the variance is, the closer the obtained expectation value is to the true average.
+
+
+\paragraph{Theory behind Variational Monte Carlo}
+As stated above, the main task  to determine the desired wave function is to compute the integral
+\begin{equation*}
+   \langle \hat H \rangle = 
+    \frac{\langle\Psi_T|\hat{H}|\Psi_T\rangle}{\langle\Psi_T|\Psi_T\rangle} = 
+   \frac{\int d\mathbf{R}\Psi^{\ast}_T(\mathbf{R})\hat H(\mathbf{R})\Psi_T(\mathbf{R})}
+        {\int d\mathbf{R}\Psi^{\ast}_T(\mathbf{R})\Psi_T(\mathbf{R})}
+\end{equation*}
+and determine those variational parameters that yield a minimum.  
+The idea of Variational Monte Carlo is to calculate this integral using Monte Carlo integration and the Metropolis algorithm.
+
+In principle, one could use any arbitrary PDF for Eq.(\ref{eq:importance}) and compute the expectation value.  A smarter choice, however, is to take a PDF which behaves similar to the original function and results in a smoother curve to integrate. In particular, one wants to have a large number of integration points in regions where the function varies rapidly and has large values, whereas fewer points are needed in regions where the function is almost constant or vanishes.
+
+
+In the case of our wave functions, a smart choice of the probability distribution is
+\[
+P(\mathbf{R}) = \frac{|\Psi_T|^2}{\int d\mathbf{R}|\Psi_T|^2 }.
+\]
+This is very intuitive, since the quantum mechanical interpretation of $|\Psi_T|^2$ is nothing else than a probability distribution.
+The expectation value of the Hamiltonian can then be rewritten as
+\begin{align*}
+\langle \hat{H}\rangle_T &=  \frac{\langle\Psi_T|\hat{H}|\Psi_T\rangle}{\langle\Psi_T|\Psi_T\rangle}  = \frac{\int d\mathbf{R}\Psi^{\ast}_T(\mathbf{R})\hat H(\mathbf{R})\Psi_T(\mathbf{R})}
+        {\int d\mathbf{R}|\Psi_T|^2 }\\
+&= \frac{1}{\int d\mathbf{R}|\Psi_T|^2 }\int d\mathbf{R}\Psi_T^*\Psi_T\left(\frac{1}{\Psi_T•}\hat{H}\Psi_T\right)\\
+&= \int d\mathbf{R} P(\mathbf{R})E_L(\mathbf{R}) = \langle{E_L}\rangle_T,
+\end{align*}
+where
+\[
+E_L = \frac{1}{\Psi_T}\hat{H} \Psi_T
+\]
+is the local energy. In other words, the integral has been replaced by  the expectation value of the local energy. This one is specific for a given trial wave function and therefore dependent on the set of variational parameters.
+
+The sample variance is in this case expressed by
+\begin{align*}
+\sigma^ 2(H) &= \langle H^ 2 \rangle - \langle H \rangle^ 2\\
+&= \frac{1}{N}\sum_{i = 1}^ N E_L^ 2\left(\mathbf{R}_i\right) - \left(\frac{1}{N•}\sum_{i = 1}^ N E_L\left(\mathbf{R}_i\right)\right)^ 2
+\end{align*}
+and is an indicator of how close the trial wave function is to the true eigenstate of $\hat{H}$.
+
+\paragraph{The Metropolis algorithm}
+To calculate the  integral
+\begin{equation}
+\label{eq:final}
+E\left[\Psi_T\right] = \int d\mathbf{R}E_L(\mathbf{R}) P(\mathbf{R}),
+\end{equation}
+we employ the \textit{Metropolis algorithm}, which is that part of the VMC machinery which governs the transition of states. Obviously, the sample points for Eq.~(\ref{eq:final}) must be chosen with care: In order to get the true expectation value, one has to follow the PDF in a correct way.
+
+We therefore employ a \textit{Markov chain}, i.e. a random walk with a selected probability for making a move: All random walkers start out from an initial position and, as time elapses, spread out in space, meaning that they occupy more and more states. After a certain amount of time steps, the system reaches an equilibrium situation, where the most likely state has been reached.\\
+Two conditions must be fulfilled in order to sample correctly: \textit{Ergodicity} and \textit{detailed balance}.\\
+The ergodic hypothesis states that if the system is simulated long enough, one should be able to trace through all possible paths in the space of available states to reach the equilibrium situation. In other words, no matter from which state one starts, one should be able to reach any other state provided the run is long enough. Marcov processes fulfil this requirement because all moves are independent of the previous history, which means that at every time step the random walkers start "with a clean memory" to explore the space of all available states.
+
+To explain the concept of detailed balance, we have to get a bit more mathematical. From transport theory one has the famous \textit{master equation}, which relates the transition probabilities of all states,
+\[
+\frac{d w_i(t)}{dt} = \sum\limits_j \left[W(j \rightarrow i)w_j - W(i \rightarrow j)w_i\right],
+\]
+where $w$ is the PDF and $W(i \rightarrow j)$ the transition matrix from state $i$ to state $j$. In equilibrium, the probability distribution should not change any more, therefore we demand $\frac{dw}{dt•} = 0$ and are left with
+\begin{equation}
+\sum\limits_j \left[W(j \rightarrow i)\;w_j - W(i \rightarrow j)\;w_i\right] = 0.
+\label{eq:master}
+\end{equation}
+\textit{Detailed balance} now ensures the generation of the correct distribution by demanding that the system follows the trivial solution of Eq.~(\ref{eq:master}), namely
+\[
+W(j \rightarrow i)w_j = W(i \rightarrow j)w_i.
+\]
+This in turn means that in equilibrium, we have the following condition
+\begin{equation}
+\frac{W(j \rightarrow i)}{W(i \rightarrow j)} = \frac{w_i}{w_j},
+\label{eq:detbal}
+\end{equation}
+where the left-hand side is in general unknown. As an ansatz, the transition probability $W(i \rightarrow j)$ from state $i$ to state $j$ is modelled as a product of the selection probability $g$ to choose a certain state, times the probability $A$ of actually performing this move
+\begin{equation*}
+W(i \rightarrow j) = g(i \rightarrow j) A(i \rightarrow j).
+\end{equation*}
+Plugging this into Eq.~(\ref{eq:detbal}) gives
+\begin{equation}
+\frac{g(j \rightarrow i) A(j \rightarrow i)}{g(i \rightarrow j) A(i \rightarrow j)} = \frac{w_i}{w_j}.
+\label{eq:detbalfin}
+\end{equation}
+In the standard \textit{Metropolis} algorithm, one assumes that the walker's probability of picking the transition form $i$ to $j$ should not differ from picking the opposite direction $j$ to $i$.  This simplifies Eq.~(\ref{eq:detbalfin}) to
+\[
+\frac{A(j \rightarrow i)}{A(i \rightarrow j)} = \frac{w_i}{w_j}.
+\]
+In our specific case, $w$ is the square of the wave function,
+%\footnote{In the following, all normalization factors will be skipped, since only ratios are considered.},
+leading to
+\begin{equation}
+A(j \rightarrow i) = \left|\frac{\psi_i}{\psi_j}\right|^2 A(i \rightarrow j).
+\label{eq:AA}
+\end{equation}
+The probability for accepting a move to a state with higher probability equals $1$. If in \mbox{Eq. (\ref{eq:AA})}, state $i$ has a higher probability than state $j$, then $A(i \rightarrow j)=1$, and we get
+\begin{equation}
+A(j \rightarrow i) = \begin{cases}
+\left|\frac{\psi_i}{\psi_j}\right|^2 & |\psi_i|^2>|\psi_j|^2\\
+\quad 1 & \quad\text{else}.
+\end{cases}
+\end{equation}
+That way, we ensures that the walkers follow the path of the PDF, since it is the probability ratio between new and old state that decides whether a move is accepted or not. Although moves to more probable states are more likely to be accepted, also transitions to less probable states are possible, which is necessary to ensure ergodicity.
+
+\paragraph*{Generalized Metropolis sampling}
+The simple approach presented above is not very optimal, since the positions are chosen completely randomly and not adjusted to the shape of the wave function. Many sample points are in small regions of the wave function and get rejected. It is therefore instructive to go back to Eq.~(\ref{eq:detbalfin}) and choose a more advanced model for $g$, which pushes the walkers into the direction of higher probabilities.\\
+As a starting point serves the \textit{Fokker-Planck equation}, which describes an isotropic diffusion process where the particles are effected by an external potential:
+\begin{equation}
+\frac{\partial \rho}{\partial t} = D\nabla(\nabla - F)\rho.
+\label{eq:fp}
+\end{equation}
+The parameter $D$ denotes the diffusion constant, which,
+considering Schr\"odinger's equation with dimensionless units, in our case is $D = \frac{1}{2}$.
+The variables $F$ denotes the drift term, the so-called \textit{quantum force}.\\
+Let $i$ denote the component of the probability distribution related to particle $i$, then we can rewrite
+\begin{equation}
+\frac{\partial \rho(\mathbf{R}, t)}{\partial t} = \sum\limits_{i=1}^N D\nabla_i\left[\nabla_i - \mathbf{F}(\mathbf{r}_i)\right]\rho(\mathbf{r}_i,t).
+\label{eq:fokplank}
+\end{equation}
+The quantum force is determined by solving the Fokker-Planck equation (\ref{eq:fp}) for stationary densities, in its simplest form when all terms in the sum are zero:
+\[
+0 = D\nabla_i\left[\nabla_i - \mathbf{F}(\mathbf{R}_i)\right]\rho(\mathbf{R}_i,t),
+\]
+which has for our $\rho(\mathbf{R}_i) = \left|\psi_i\right|^2$ the solution
+\[
+\mathbf{F}(\mathbf{R}_i) = 2 \frac{1}{\Psi_T}\nabla_i \Psi_T.
+\]
+This expression tells very well what the quantum force is actually doing: The gradient of the wave function determines in which direction the walker should move to get to a region of higher interest. If the walker is far away from such a region, i.e. the wave function is currently very small, then the quantum force gets extra large and pushes the walker more intense into the right direction than in regions that already have a high probability (with large values of $\Psi_T$).
+
+This diffusion equation, giving the desired distribution, can be used as input for the MC algorithm. In statistical mechanics, Fokker-Planck trajectories are generated via the \textit{Langevin equation}, which in the case of Eq.~(\ref{eq:fokplank}) is
+\begin{equation}
+\frac{\partial \mathbf{r}(t)}{\partial t} = D \mathbf{F}\left(\mathbf{r}(t)\right) + \mathbf{\eta},
+\label{eq:langevin}
+\end{equation}
+where the components of $\mathbf{\eta}$ are random variables following a Gaussian distribution with mean zero and a variance of $2D$.
+
+In order to make this equation numerically practicable, it has to be discretized in time $t \rightarrow t_n = n \Delta t$.
+Integrating over the short time interval $\Delta t$, we obtains an expression to generate the new trial positions,
+\begin{equation}
+\mathbf{r}' = \mathbf{r} + D \Delta t\mathbf{F}\left(\mathbf{r}\right) + \chi,
+\label{eq:trialpos}
+\end{equation}
+where $\chi$ is now a random gaussian variable with mean zero and variance $2D\Delta t$.\\
+The solution to the Fokker-Planck equation (in two dimensions with $N$ particles) is given in form of a Green's function \cite{hammond1994monte}
+\[
+G\left(\rf,\rf';\Delta t\right) = \frac{1}{(4\pi D \Delta t)^N} e^{-\frac{1}{4 D \Delta t} (\rf '-\rf - D\Delta t \mathbf{F}(\rf))^ 2}
+\]
+For the Metropolis-Hastings algorithm, one uses this solution instead of setting $g(i\rightarrow j) = g(j\rightarrow i)$.
+For Eq.~(\ref{eq:detbalfin}), we thus get
+\begin{equation*}
+\frac{w_i}{w_j} = \frac{G\left(\rf,\rf';\Delta t\right)}{G\left(\rf',\rf;\Delta t\right)}\frac{ A(j \rightarrow i)}{ A(i \rightarrow j)}. 
+\end{equation*}
+The probability to perform a move is then given by
+\begin{equation}
+A(j\rightarrow i) = \begin{cases}
+R =  \frac{G\left(\rf',\rf;\Delta t\right)}{G\left(\rf,\rf';\Delta t\right)} \left|\frac{\psi_i}{\psi_j}\right|^2
+& R < 1 \\
+1 &  \text{else}.
+\end{cases}
+\label{eq:acceptr}
+\end{equation}
+The fraction involving the Greens functions can be simplified to
+\begin{equation}
+\frac{G\left(\rf',\rf;\Delta t\right)}{G\left(\rf,\rf';\Delta t\right)} = e^{-\frac{1}{2}\left(\mathbf{F}(\rf)+\mathbf{F}(\rf')\right)\left(\frac{\Delta t}{4}(\mathbf{F}(\rf)-\mathbf{F}(\rf')\right) + \left(\rf - \rf'\right)}.
+\label{eq:greens_function}
+\end{equation}
+
+
+\paragraph{Gradient method \& DFP}
+The main aim of the VMC algorithm is to find optimal parameters for the trial wave function that minimize the expectation value of the energy. After closing in the region of contemplable parameters $\alpha$  and $\beta$, by setting up a coarse grid for various values, a linear algebra method called \textit{Davidon-Fletcher-Powell} algorithm (DFP)\cite{nocedal1999numerical} is used. This method bases on the \textit{Conjugate gradient method} (CGM).
+
+The CGM is an algorithm for iteratively solving particular systems of linear equations 
+\begin{equation}
+\mathbf{\hat A x = b},
+\label{eq:linsys}
+\end{equation}
+namely those where the matrix $\mathbf{\hat A}$ is symmetric and positive-definite.  
+
+To solve Eq.~(\ref{eq:linsys}) iteratively, the residual $\mathbf{r = b-\hat{A}x}$ must be minimized. It gets zero when the minimum of the quadratic equation
+\[
+P(\mathbf{x}) = \frac{1}{2} \mathbf{x^T \hat A x - x^T b}
+\]
+is reached.
+% The matrix $\mathbf{\hat A}$ is the so-called \textit{Hessian} and must be positive definite and symmetric, which unfortunately may not always be the case when the energy is varied.
+
+The CG method uses the properties of conjugate vectors, where two vectors $\mathbf{u}$ and $\mathbf{v}$ are said to be \textit{conjugate} if they obey the relation
+\begin{equation}
+\mathbf{u^T \hat{A} v} = 0.
+\label{eq:CGM}
+\end{equation}
+
+The basic philosophy is now to find a sequence $\lbrace \mathbf{p}_k \rbrace$   of conjugate directions in which the search for minima is performed, and compute the expansion coefficients $\lambda_k$, such that
+\[
+\mathbf{x} = \sum\limits_{i} \lambda_i \mathbf{p}_i. 
+\]
+Hence at each iteration $i$, the approximation is improved by
+\[
+\mathbf{x}_i = \mathbf{x}_{i-1} + \lambda_i \mathbf{p}_i.
+\]
+
+
+%From the constraint $\mathbf{\hat A x = b}$, the coefficients are obtained as
+%\[
+%\lambda_i = \frac{\mathbf{p_i^T b}}{\mathbf{p_k^T \hat{A} p_k}}.
+%\]
+The DFP algorithm now takes a function $f(\mathbf{x})$ of variational parameters stored in the vector $\mathbf{x}$, and approximates this function by a quadratic form. This one is based on a Taylor series of $f$ around some point $\mathbf{x_i}$ of variational parameters: 
+%\begin{align*}
+%f(\mathbf{x}) &= f(\mathbf{x^k}) + \sum\limits_i \left.\frac{\partial f}{\partial x_i}\right|_{x_0} x_i + \frac{1}{2} \sum\limits_{ij} \left.\frac{\partial^2 f}{\partial x_i \partial x_j}\right|_{x_0} x_i x_j + \dots \\
+%&= u - \mathbf{v}\cdot \mathbf{x} + \frac{1}{2}\mathbf{x} \mathbf{\hat A} \mathbf{x},
+%\end{align*}
+%with the definitions
+%\[
+%u = f(\mathbf{x}), \qquad v = \nabla f|_{x_0}, \qquad \mathbf{\hat A}_{ij} = \left.\frac{\partial f}{\partial x_i}\right|_{x_0}.
+%\]
+\[
+f(\mathbf{x}) = f(\mathbf{x}_i) + (\mathbf{x}-\mathbf{x}_i)\nabla f(\mathbf{x}_i)\frac{1}{2}(\mathbf{x}-\mathbf{x}_i) \mathbf{\hat{A}} (\mathbf{x}-\mathbf{x}_i),
+\]
+where the matrix 
+$\mathbf{\hat A}$ is the Hessian matrix of the function $f$ at $x_i$. This one is generally hard to compute and therefore approximated iteratively, generating the directions of the CG method.\\
+The gradient of the function $f$ is
+\[
+\nabla f(\mathbf{x}) = \nabla f(\mathbf{x}_i) + \mathbf{\hat{A}}(\mathbf{x}-\mathbf{x}_i).
+\]
+Using Newton's method, one sets $\nabla f = 0$ to find the next iteration point, which yields
+\[
+\mathbf{x} - \mathbf{x}_i = - \mathbf{\hat{A}}^{-1} \cdot \nabla f(\mathbf{x}_i).
+\]
+The minimization of the energy thus requires that the VMC program also computes the derivatives of the energy with respect to the variational parameters.
+
+
+Once the optimal parameter set $\lbrace \alpha,\beta\rbrace$, corresponding to the lowest ground state energy, has been determined, the trial wave function (\ref{eq:VMCWF}) can be used as input for the subsequent DMC calculation.
+

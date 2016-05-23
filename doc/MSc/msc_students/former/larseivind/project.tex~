@@ -1,0 +1,195 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Thesis title: Monte Carlo and density functional theory studies of quantum dots}
+
+The aim of this thesis is to study the structure of quantum dots using
+variational and Green's function Monte Carlo techniques, combining results
+from Hartree-Fock calculations in order to achieve a as good as possible
+variational wave function. The thesis will explore various Monte Carlo
+optimalization strategies and use these to define the best possible density functional.
+Semiconductor quantum dots are structures where
+charge carriers are confined in all three spatial dimensions, 
+the dot size being of the order of the Fermi wavelength 
+in the host material, typically between  10 nm and  1 $\mu$m.
+The confinement is usually achieved by electrical gating of a 
+two-dimensional electron gas (2DEG), 
+possibly combined with etching techniques. Precise control of the
+number of electrons in the conduction band of a quantum dot 
+(starting from zero) has been achieved in GaAs heterostructures. 
+The electronic spectrum of typical quantum dots
+can vary strongly when an external magnetic field is applied, 
+since the magnetic length corresponding to typical 
+laboratory fields  is comparable to typical dot sizes.
+In coupled quantum dots Coulomb blockade effects, 
+tunneling between neighboring dots, and magnetization 
+have been observed as well as the formation of a
+delocalized single-particle state. 
+
+
+
+
+This thesis 
+entails the development of variational Monte Carlo (VMC)
+and Green's function Monte Carlo  (GFMC) 
+programs to solve Schr\"odingers equation
+and obtain various expectation values of interest, such as the energy
+of the ground state and excited states. 
+The GFMC approach allows, in principle, for a numerically
+exact solution of Schr\"odingers equation. However, it needs a reasonable
+starting point. It is there where a variational Monte Carlo calculation
+of the same system provides a variationally optimal trial wave function
+of a many-body system and its pertinent energy.
+The Slater determinant for the variational wave function is set up using
+single-particle wave functions from a Hartree-Fock calculation.
+The methods are briefly described in the following section.
+These calculations will in turn provide the basis for determining a as good as possible
+ground state wave function. This wave function will in turn be used to define the quantum
+mechanical density.  The density will be used to construct a density functional for quantum dots
+using the adiabatic-connection method as described by Teale {\em et al} in J.~Chem.~Phys.~{\bf 130},
+104111 (2009).  The results will be compared with existing density functional for quantum dots.
+
+
+The reliability of the Monte Carlo  method as function of the externally applied magnetic field
+will be compared with ab initio coupled-cluster 
+and large-scale diagonalization techniques. The latter
+two calculations will be performed by other Master of science students.
+
+The results are expected to be published in leading journals.
+
+
+
+
+A progress plan for this thesis project is given at the end.
+
+\subsection*{Variational Monte Carlo}
+The variational quantum Monte Carlo (VMC) has been widely applied 
+to studies of quantal systems. 
+The recipe consists in choosing 
+a trial wave function
+$\psi_T({\bf R})$ which we assume to be as realistic as possible. 
+The variable ${\bf R}$ stands for the spatial coordinates, in total 
+$3N$ if we have $N$ particles present. 
+The trial wave function serves then as
+a mean to define the quantal probability distribution 
+\be
+   P({\bf R})= \frac{\left|\psi_T({\bf R})\right|^2}{\int \left|\psi_T({\bf R})\right|^2d{\bf R}}.
+\ee
+The expectation value of the energy $E$
+is given by
+\be
+   \langle E \rangle =
+   \frac{\int d{\bf R}\Psi^{\ast}({\bf R})H({\bf R})\Psi({\bf R})}
+        {\int d{\bf R}\Psi^{\ast}({\bf R})\Psi({\bf R})},
+\ee
+where $\Psi$ is the exact eigenfunction. Using our trial
+wave function we define a new operator, 
+the so-called  
+local energy, 
+\be
+   E_L({\bf R})=\frac{1}{\psi_T({\bf R})}H\psi_T({\bf R}),
+   \label{eq:locale1}
+\ee
+which, together with our trial PDF allows us to rewrite the 
+expression for the energy as
+\be
+  \langle H \rangle =\int P({\bf R})E_L({\bf R}) d{\bf R}.
+  \label{eq:vmc1}
+\ee
+This equation expresses the variational Monte Carlo approach.
+
+The first part of this thesis deals thus with a VMC calculation of 
+spherical quantum dots as functions of the strength of the applied magnetic field.
+
+The trial wave function is a combination of a Slater determinant 
+and a correlation part. The Slater determinant will be constructed
+using single-particle
+wave functions based on Hartree-Fock theory.
+
+\subsection*{Green's function Monte Carlo (GFMC)}
+The GFMC method is based on rewriting the 
+Schrödinger equation in imaginary time, by defining
+$\tau=it$. The imaginary time Schrödinger equation is then
+\be
+   \frac{\partial \psi}{\partial \tau}=-\OP{H}\psi,
+\ee
+where we have omitted the dependence on $\tau$ and the spatial variables
+in $\psi$.
+
+A Green's function Monte Carlo, although it allows for a formally exact
+solution of Schr\"odinger's equations, needs a clever starting point 
+for the energy. 
+This trial energy is initially chosen to be the VMC energy of 
+the trial  wave function, and is
+updated as the simulation progresses. Use of an optimised 
+trial function minimises the difference between the local 
+and trial energies, and hence
+minimises fluctuations in the calculations. 
+A wave function optimised using VMC is ideal for this purpose, 
+and in practice VMC provides the best
+method for obtaining wave functions that accurately 
+approximate ground state wave functions locally. 
+
+The final aim of this thesis is thus to develop a GFMC program for studying
+quantum dots, based on a VMC calculation first.
+
+These calculations will in turn provide the basis for determining a as good as possible
+ground state wave function. This wave function will in turn be used to define the quantum
+mechanical density.  The density will be used to construct a density functional for atoms
+using the adiabatic-connection method as described by Teale {\em et al} in J.~Chem.~Phys.~{\bf 130},
+104111 (2009).  The results will be compared with existing density functional for variousquantum dots.
+
+
+\section*{Progress plan and milestones}
+The aims and progress plan of this thesis are as follows
+\begin{itemize}
+\item Fall 2009: Develop first a Hartree-Fock code for electrons trapped in a single harmonic oscillator  
+in two dimensions.   This part entails developing a code for computing the Coulomb interaction
+in two dimensions in the laboratory system.
+\item The Hartree-Fock interaction is then used as input to the variational Monte Carlo code.
+The results will be compared with large scale diagonalization and coupled-cluster
+techniques for 2, 6, 12 and 20 
+electrons in a single harmonic oscillator well.
+\item Fall 2009: Write a code which solves the variational Monte-Carlo (VMC) problem
+      for quantum dots. Both closed-core and open shell quantum dots will be studied. 
+Construct  a Green's function Monte Carlo code
+      based on the Variational Monte Carlo code. 
+      The GFMC code receives as input the optimal 
+      variational energy and wave function from the VMC calculation and solves
+      in principle the Schr\"odinger equation exactly.
+      The Slater determinant used in the VMC calculation includes also
+      single-particle wave functions from Hartree-Fock calculations.
+ \item Fall 2010: The obtained ground states will in turn be used to define a as exact as possible 
+density functional for quantum dots
+using the adiabatic-connection method. The density functional can in turn be used to model
+systems with a large number of elctrons in quantum dots. Comparisons with a density functional derived from coupled-cluster methods will also be made in order to
+test the validity of the Monte Carlo approach.
+Possible applications are to mechanical studies of solar cells.
+\end{itemize}
+ 
+
+
+The thesis is expected to be handed in June 1 2010.
+
+\begin{thebibliography}{999}
+
+\bibitem {ref1}  A.~M.~Teale, S.~Coriani, and T.~Helgaker, J.~Chem.~Phys.~{\bf 130},
+104111 (2009).
+
+
+\end{thebibliography}
+
+
+
+\end{document}
+
+
+

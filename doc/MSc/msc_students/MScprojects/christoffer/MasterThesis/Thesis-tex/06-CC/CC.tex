@@ -1,0 +1,3258 @@
+\chapter{Coupled cluster theory}
+Coupled cluster~(CC) is an \textit{ab initio} method for solving the quantum mechanical many-body problem.
+It was first introduced by Coester and Kümmel during the 1950s \cite{NucPhys.7.421,NucPhys.17.477},
+originally developed for problems in nuclear physics, but later reformulated for systems of electrons by \v{C}i\v{z}ek in 1966 \cite{ChemPhys.45.4256}.
+Even though it is somewhat computationally expensive it is one of the most popular post-Hartree-Fock methods today, due to good accuracy as well as important features like size-consistency and size-extensivity.
+
+\section{The exponential ansatz}
+The foundation for most many-body methods is to express the correct wave function by an expansion in a set of basis functions. 
+One example is the Hartree-Fock~(HF) method which employs a unitary transformation of the single-particle wave functions, 
+\begin{equation}
+|\lambda \rangle = \sum_{\psi} C_{\lambda \psi} |\psi \rangle ,
+\end{equation}
+and approximates the ground state with a reference Slater determinant built up by these transformed wave functions.
+Another example is configuration interaction~(CI) where the reference determinant is set to a linear expansion of determinants, including the initial reference determinant, 1p-1h excitations, 2p-2h excitations and so on, i.e.
+\begin{equation}
+|\Psi_{0}^{CI} \rangle = C_0 |\Phi_0 \rangle + \sum_{ia} C_i^a |\Phi_i^a\rangle + \sum_{ijab} C_{ij}^{ab} |\Phi_{ij}^{ab} \rangle + \cdots \hspace{2mm}.
+\end{equation}
+In all these methods one needs to solve a set of coupled equations to find these coefficients.
+
+\paragraph*{}
+The Coupled cluster method also expands the exact solution in a set of Slater determinants, but employs a non-linear expansion through the exponential ansatz,
+\begin{equation}
+\label{eq:CC:expon}
+|\Psi_0^{CC} \rangle = e^{\hat{T}} |\Phi_0 \rangle ,
+\end{equation}
+where $\hat{T}$ is the cluster operator including \textit{all} possible excitations on the reference determinant.
+Sorting excitations by the number of excited electrons, we may generally express this general cluster operator as a sum of a 1p-1h operator, a 2p-2h operator, and so on,
+\begin{equation}
+\hat{T} = \hat{T_1} + \hat{T_2} + \hat{T_3} + \cdots \hspace{2mm}.
+\end{equation}
+In the form of second-quantized operators the 1p-1h cluster operator is defined as
+\begin{equation}
+\hat{T}_1 = \sum_{ia} t_i^a \hat{a}^{\dagger} \hat{i},
+\end{equation}
+the 2p-2h cluster operator as
+\begin{equation}
+\hat{T}_2 = \frac{1}{4} \sum_{ijab} t_{ij}^{ab} \hat{a}^{\dagger} \hat{b}^{\dagger} \hat{j} \hat{i},
+\end{equation}
+continuing up to 
+\begin{equation}
+\hat{T}_n = \left( \frac{1}{n!}\right)^2 \sum_{ij\cdots ab\cdots} t_{ij\cdots}^{ab\cdots} \hat{a}^{\dagger} \hat{b}^{\dagger} \cdots \hat{j} \hat{i} .
+\end{equation}
+As long as we have a complete single-particle basis and include all possible excitations up to $n$p-$n$h in a system with $n$ particles, we should find the exact solution for both CI, $|\Psi_0^{CI}\rangle$, and CC, $|\Psi_0^{CC}\rangle$.
+
+\paragraph*{}
+It is of course not doable to find the exact solution in practice.
+A complete single-particle basis would typically mean an infinite set of basis functions.
+In addition we would need all excitations up to $n$p-$n$h determinants, yielding a huge amount of determinants. 
+This is why all methods need a computational cut-off.
+Two types of truncations are used.
+First we truncate the number of single-particle basis functions, throwing away the ones with the highest energies, which makes sense since our interest is in the ground-state energy.
+Second we truncate the number of excitations we include, giving rise to different types of the coupled cluster method.
+Including the singly excited cluster operator the method is labeled by S, for `single', and including the doubly excited cluster operator the label D is added, for `double'.
+This thesis has an emphasis on CCSD -- `Coupled Cluster Singles and Doubles'.
+
+\section{Derivation of the CCSD-equations}
+It is quite tedious work to derive the CCSD equations by hand, but we will present a diagrammatic approach in this section along with some explaining comments where needed. 
+
+\paragraph{}
+We aim to find the solution to the time-independent energy eigenvalue equation,
+\begin{equation}
+\hat{H} |\Psi_0 \rangle = E_0 |\Psi_0 \rangle
+\cong
+\hat{H} e^{\hat{T}} |\Phi_0 \rangle = E_0 e^{\hat{T}} |\Phi_0 \rangle ,
+\end{equation}
+assuming $|\Psi_0\rangle$ can be approximated by the exponential ansatz~\eqref{eq:CC:expon}. 
+It is useful to project $\langle \Phi_0 | e^{-\hat{T}}$ onto the eigenvalue equation to get an explicit expression for the energy,
+\begin{equation}
+\langle \Phi_0 | e^{-\hat{T}} \hat{H} e^{\hat{T}} |\Phi_0 \rangle 
+=
+\langle \Phi_0 | e^{-\hat{T}} E_0 e^{\hat{T}} |\Phi_0 \rangle
+= E_0 .
+\end{equation}
+We may also project this onto an excited determinant, assuming orthonormal basis functions, and exploit the fact that excited states should be orthogonal to the reference determinant,
+\begin{equation}
+\langle \Phi_{exc.} | e^{-\hat{T}} \hat{H} e^{\hat{T}} |\Phi_0 \rangle 
+=
+\langle \Phi_{exc.} | e^{-\hat{T}} E_0 e^{\hat{T}} |\Phi_0 \rangle
+=
+E_0 \langle \Phi_{exc.} | \hat{1} |\Phi_0 \rangle
+= 0 .
+\end{equation}
+Further simplification is found if we use the normal-ordered Hamiltonian~\eqref{eq:manybody:normhamil}, leading to
+\begin{equation}
+\begin{split}
+\langle \Phi_0 | e^{-\hat{T}} \hat{H}_N e^{\hat{T}} |\Phi_0 \rangle 
+=&
+\langle \Phi_0 | e^{-\hat{T}} \hat{H} e^{\hat{T}} |\Phi_0 \rangle - E_{ref}
+=
+E_0 - E_{ref} \\
+\langle \Phi_{exc.} | e^{-\hat{T}} \hat{H}_N e^{\hat{T}} |\Phi_0 \rangle 
+=&
+\langle \Phi_{exc.} | e^{-\hat{T}} (E_0 - E_{ref}) e^{\hat{T}} |\Phi_0 \rangle
+=
+0 .
+\end{split}
+\end{equation}
+
+
+\paragraph*{}
+In the following derivation $i,j,k$ and $a,b,c$ will refer to indices in the bra state, whereas 
+$d,e,...$ and $l,m,...$ are free indices to be summed over, still restricting $a,b,c,d,e,...$ to particle states and $i,j,k,l,m,...$ to hole states.
+There are three equations that, in the case of singles and doubles, needs to be solved,
+\begin{equation}
+\begin{split}
+\langle \Phi_0 | \bar{H} | \Phi_0 \rangle &= E_0  - E_{ref} \\
+\langle \Phi_{i}^a | \bar{H} | \Phi_0 \rangle &= 0 \\
+\langle \Phi_{ij}^{ab} | \bar{H} | \Phi_0 \rangle &= 0 .
+\end{split}
+\end{equation}
+The first gives us an explicit form for the energy, whereas the other two will determine the amplitudes in the cluster operators.
+The similarity transformed Hamiltonian, denoted $\bar{H}$, can be evaluated as a series of commutators, using the Baker-Campbell-Hausdorff formula,
+\begin{equation}
+\label{eq:CC:BCH}
+\bar{H} \equiv e^{-\hat{T}} \hat{H}_N e^{\hat{T}}
+=
+\hat{H}_N + \left[\hat{H}_N, \hat{T} \right]
++
+\frac{1}{2!} \left[\left[\hat{H}_N, \hat{T}\right], \hat{T}\right]
++
+\frac{1}{3!} \left[\left[\left[\hat{H}_N, \hat{T} \right], \hat{T}\right], \hat{T}\right] + \cdots\hspace{2mm}.
+\end{equation}
+
+Let $\hat{A}$ and $\hat{B}$ be two normal-ordered strings of operators containing an even number of creation and annihilation operators. Using Wick's generalized theorem, their commutator would be
+\begin{equation}
+\left[ \hat{A}, \hat{B} \right]
+=
+\left\lbrace \hat{A}\hat{B} \right\rbrace - \left\lbrace \hat{B}\hat{A} \right\rbrace
++
+\left\lbrace
+\contraction[1ex]{}{\hat{A}}{}{\hat{B}}
+\hat{A}\hat{B} \right\rbrace
+-
+\left\lbrace
+\contraction[1ex]{}{\hat{B}}{}{\hat{A}}
+\hat{B}\hat{A} \right\rbrace ,
+\end{equation}
+where the two uncontracted terms are the same, and we thus end up with
+\begin{equation}
+\left[ \hat{A}, \hat{B} \right]
+=
+\left\lbrace
+\contraction[1ex]{}{\hat{A}}{}{\hat{B}}
+\hat{A}\hat{B} \right\rbrace
+-
+\left\lbrace
+\contraction[1ex]{}{\hat{B}}{}{\hat{A}}
+\hat{B}\hat{A} \right\rbrace .
+\end{equation}
+We observe that the cluster operators are already normal-ordered, and also note how no contractions between a cluster operator on the left and any other operator on the right can be non-zero.
+This is because the $\hat{T}$ operator contains $\hat{a}^{\dagger} \hat{b}^{\dagger} \cdots \hat{j}\hat{i}$, none of which can lead to any non-zero contraction from~\eqref{eq:manybody:referencecontractions}.
+The cluster operators thus commute, yielding
+\begin{equation}
+\left[ \hat{T}_n, \hat{T}_m \right]
+=
+\left\lbrace
+\contraction[1ex]{}{\hat{T}_n}{}{\hat{T}_m}
+\hat{T}_n \hat{T}_m \right\rbrace
+-
+\left\lbrace
+\contraction[1ex]{}{\hat{T}_m}{}{\hat{T}_n}
+\hat{T}_m \hat{T}_n \right\rbrace
+=
+0 .
+\end{equation}
+
+We may also explore how the cluster operators commute with the Hamiltonian.
+Once again terms with $\hat{T}_n$ on the left are zero, and we are left with
+\begin{equation}
+\left[ \hat{H}_N, \hat{T}_n \right]
+=
+\left\lbrace
+\contraction[1ex]{}{\hat{H}_N}{}{\hat{T}_n}
+\hat{H}_N \hat{T}_n \right\rbrace
+-
+\left\lbrace
+\contraction[1ex]{}{\hat{T}_n}{}{\hat{H}_N}
+\hat{T}_n \hat{H}_N \right\rbrace
+=
+\left\lbrace
+\contraction[1ex]{}{\hat{H}}{}{\hat{T}_n}
+\hat{H}_N \hat{T}_n \right\rbrace .
+\end{equation}
+Applying this recursively to write out~\eqref{eq:CC:BCH} it becomes clear that all surviving terms have $\hat{H}_N$ to the left, and all the cluster operators should have at least one contraction each to the Hamiltonian.
+These terms are referred to as connected terms (subscript $\mathit{C}$), and because the electronic Hamiltonian includes no more than four operators it would not be possible to find connected terms with more than four cluster operators, posing a natural truncation to $\bar{H}$, 
+\begin{equation}
+\label{eq:CC:barhconn}
+\bar{H} 
+= \left(\hat{H}_N e^{\hat{T}} \right)_{\mathit{C}}
+= \hat{H}_N 
++ \left( \hat{H}_N \hat{T} \right)_{\mathit{C}}
++\frac{1}{2} \left( \hat{H}_N \hat{T}^2 \right)_{\mathit{C}}
++\frac{1}{3!} \left( \hat{H}_N \hat{T}^3 \right)_{\mathit{C}}
++\frac{1}{4!} \left( \hat{H}_N \hat{T}^4 \right)_{\mathit{C}} .
+\end{equation}
+
+
+\subsection{Diagrammatic rules}
+It is now possible to write out all possible terms and evaluate them diagrammatically. 
+Writing out each term as a diagram, a number of rules exists on how to interpret them, to find the correct algebraic expressions;
+\begin{enumerate}
+\item\label{ite:CC:sumFree} Sum over all \textit{free} indices. Free indices are not connected to the left determinant.
+\item\label{ite:CC:operators} Interpret one-body operators as $\langle out |\hat{f}| in \rangle \equiv f_{out,in}$, and two-body operators as $\langle lout,rout || lin,rin \rangle$.
+\item\label{ite:CC:phase} Add a phase factor of $(-1)^{l+h}$, where $l$ is the number of loops and $h$ is the number of hole lines.
+\item\label{ite:CC:equLines} Multiply by a factor of $\frac{1}{2}$ for each pair of \textit{equivalent lines}.
+Equivalent lines are starting and ending at the same interaction lines.
+\item\label{ite:CC:equVert} Each pair of \textit{equivalent vertices} raises an additional factor of $\frac{1}{2}$.
+Equivalent vertices are vertices of equal type connected to the same interaction lines with equivalent connecting lines.
+\item\label{ite:CC:permut} Each external, unique pair of holes or particles not connected to the same interaction line leads to an antisymmetric permutation $\hat{P}_{l_1 l_2}$.
+\item\label{ite:CC:signTable} If there are multiple ways to connect the diagrams, only one term should exist for each configuration in the Sign-Table technique.
+\end{enumerate}
+The different rules will be discussed in more detail where needed.
+
+\paragraph*{}
+It is possible to split up the sums in the interactions, specifying whether the indices are within the fermi level or not. For the one-body part there exist four possibilities,
+\begin{equation}
+\hat{F}_N 
+=
+\sum_{de} f_{de} \left\lbrace \hat{d}^{\dagger} \hat{e} \right\rbrace
++
+\sum_{lm} f_{lm} \left\lbrace \hat{l}^{\dagger} \hat{m} \right\rbrace
++
+\sum_{ld} f_{ld} \left\lbrace \hat{l}^{\dagger} \hat{d} \right\rbrace
++
+\sum_{dl} f_{dl} \left\lbrace \hat{d}^{\dagger} \hat{l} \right\rbrace,
+\end{equation}
+diagrammatically represented as,
+\begin{equation}
+\begin{split}
+\hat{F}_N
+=
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-F_N-1}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2}
+            \fmf{phantom}{b1,fL,t1}
+            \fmf{phantom}{t2,fR,b2}
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{b1,fL}
+            \fmf{electron}{fL,t1}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-F_N-2}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2}
+            \fmf{phantom}{b1,fL,t1}
+            \fmf{phantom}{t2,fR,b2}
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{t1,fL}
+            \fmf{electron}{fL,b1}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-F_N-3}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2}
+            \fmf{phantom}{b1,fL,t1}
+            \fmf{phantom}{t2,fR,b2}
+            \fmf{phantom}{b1,bC,b2}
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{b1,fL}
+            \fmf{electron}{fL,bC}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-F_N-4}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2}
+            \fmf{phantom}{b1,fL,t1}
+            \fmf{phantom}{t2,fR,b2}
+            \fmf{phantom}{t1,tC,t2}
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{t1,fL}
+            \fmf{electron}{fL,tC}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} .
+\end{split}
+\end{equation}
+The first two terms have the same amount of lines at the top as in the bottom, and we say that these terms have an excitation level zero.
+Such terms have no possibility to neither create nor annihilate a particle-hole pair.
+If there is an incoming 2p-2h excitation in a diagram, there will also be an outgoing 2p-2h excitation.
+The third term is said to have excitation level minus one.
+When connected in a diagram it will destroy one particle-hole pair, transforming for example an incoming 2p-2h excitation into an outgoing 1p-1h excitation.
+Following this reasoning, the last term has excitation level plus one.
+
+Splitting the two-body operator similarly we get 
+\begin{equation}
+\begin{split}
+\hat{V}_N
+=
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-1}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{b1,vL}
+            \fmf{electron}{vL,t1}
+            \fmf{electron}{b4,vR}
+            \fmf{electron}{vR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+&+
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-2}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,b1}
+            \fmf{electron}{t4,vR}
+            \fmf{electron}{vR,b4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-3}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{b1,vL}
+            \fmf{electron}{vL,b2}
+            \fmf{electron}{t3,vR}
+            \fmf{electron}{vR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+&+
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-4}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{b1,vL}
+            \fmf{electron}{vL,t1}
+            \fmf{electron}{b3,vR}
+            \fmf{electron}{vR,b4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-5}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,b1}
+            \fmf{electron}{b3,vR}
+            \fmf{electron}{vR,b4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+&+
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-6}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{b1,vL}
+            \fmf{electron}{vL,t1}
+            \fmf{electron}{t3,vR}
+            \fmf{electron}{vR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-7}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,b1}
+            \fmf{electron}{t3,vR}
+            \fmf{electron}{vR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+&+
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-8}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,t2}
+            \fmf{electron}{t3,vR}
+            \fmf{electron}{vR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-V_N-9}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+			\fmf{phantom}{t1,vL,b2}
+			\fmf{phantom}{t3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electron lines
+            \fmf{electron}{b1,vL}
+            \fmf{electron}{vL,b2}
+            \fmf{electron}{b3,vR}
+            \fmf{electron}{vR,b4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}.
+\end{split}
+\end{equation}
+The excitation levels are $0$ for the first line, $-1$ for the second, $+1$ for the third, and the last two terms have $+2$ and $-2$ respectively.
+
+
+Cluster operators are represented with a solid horizontal line for the amplitude as well as electron-lines for the creation and annihilation operators, i.e.
+\begin{equation}
+\begin{split}
+\hat{T}_1
+=
+\sum_{dl} t_l^d \hat{d}^{\dagger} \hat{l}
+=&
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-T-1}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2}
+            \fmf{phantom}{b1,tL}
+            \fmf{phantom}{tR,b2}
+            \fmf{plain}{tL,tC,tR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron,label=$l$}{t1,tC}
+            \fmf{electron,label=$d$}{tC,t2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}  \\
+ \\
+\hat{T}_2
+=
+\sum_{delm} t_{lm}^{de} \hat{d}^{\dagger} \hat{e}^{\dagger} \hat{m} \hat{l}
+=&
+\parbox{40mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-T-2}
+        \begin{fmfgraph*}(80,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2} \fmftop{t1,t2,t3,t4}
+            \fmf{phantom}{b1,tL}
+            \fmf{phantom}{tR,b2}
+            \fmf{plain,tension=0.25}{tL,tR}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron,label=$l$}{t1,tL}
+            \fmf{electron,label=$d$}{tL,t2}
+            \fmf{electron,label=$m$}{t3,tR}
+            \fmf{electron,label=$e$}{tR,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} .
+\end{split} 
+\end{equation}
+An $n$-body cluster operator creates an $n$p-$n$h excitation, and has thus an excitation level~$+n$.
+
+
+
+\subsection{Energy}
+The coupled cluster energy $\Delta E_{CCSD} = E_{0} - E_{ref}$ is defined as
+\begin{equation}
+\langle \Phi_0 | \bar{H} | \Phi_0 \rangle = \Delta E_{CCSD} .
+\end{equation}
+
+\subsubsection{$\mathbf{\hat{F}_N}$:}
+We will first try to find all terms in eq.~\eqref{eq:CC:barhconn} with cluster operators connected to $\hat{F}_N$.
+No lines can be left unconnected, since both the bra and the ket are reference states.
+Only the third term in $\hat{F}_N$ can obey this, having no lines pointing upwards and an excitation level of $-1$.
+To end up with an excitation level of $0$ we need to connect it with $T_1$ which has a $+1$ excitation level.
+Since no electron lines are connected to the bra, they are summed freely over, labelling the particle $d$, and the hole $l$ (rule~\ref{ite:CC:sumFree}).
+We have one loop, and one hole line leading to a phase factor $(-1)^{1+1} = +1$ (rule~\ref{ite:CC:phase}).
+The interaction has an incoming particle line $d$, and an outgoing hole line $l$, resulting in $f_{out,in} \rightarrow f_{ld}$ (rule~\ref{ite:CC:operators}).
+Setting the correct indices for the amplitude as well, this terms yields
+\begin{equation}
+\hat{F}_N \hat{T}_1 \rightarrow
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-E-1}
+        \begin{fmfgraph*}(50,50)
+            %Upper and lower lines.
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4} \fmftop{t1,t2,t3,t4}
+            \fmf{plain}{b1,b2,b3}
+            \fmf{dashes}{t2,t4}
+            %Electron lines
+            \fmf{electron,right=0.4}{b2,t2}
+            \fmf{electron,right=0.4}{t2,b2}
+            %Operator "cross"
+            \fmfv{decor.shape=cross,decor.size=3mm}{t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + \sum_{ld} f_{ld} t_l^d ,
+\end{equation}
+and is the only contribution from $\hat{F}_N$.
+
+
+\subsubsection{$\mathbf{\hat{V}_N}$:}
+We need to use the last term in $\hat{V}_N$ since all the other terms would leave uncontracted lines pointing upwards, defying the concept of a reference bra state.
+Having an excitation level of $-2$ we need to connect it to amplitudes with a $+2$ excitation level.
+There are only two possible ways to do this; $\hat{V}_N \hat{T}_2$ and $\hat{V}_N \hat{T}_1^2$.
+The first is
+\begin{equation}
+\hat{V}_N \hat{T}_2
+\rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-E-2}
+    \begin{fmfgraph*}(50,50)
+        %Upper and lover lines
+        \fmfstraight
+        \fmfbottom{b1,b2}
+        \fmftop{t1,t2}
+        \fmf{plain}{b1,b2}
+        \fmf{dashes}{t1,t2}
+        %Electron lines
+        \fmf{electron,right=0.4}{b1,t1}
+        \fmf{electron,right=0.4}{t1,b1}
+        \fmf{electron,right=0.4}{b2,t2}
+        \fmf{electron,right=0.4}{t2,b2}
+    \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + \frac{1}{4} \sum_{lmde} \langle lm|| de \rangle t_{lm}^{de}, 
+\end{equation}
+a term with two hole lines as well as two loops and thus a positive phase.
+All indices are freely summed, but since both the pair of particle lines and the pair of hole lines starts and stops and the same interaction, they are equivalent, and should be multiplied by $\left(\frac{1}{2}\right)^2 = \frac{1}{4}$ (rule~\ref{ite:CC:equLines}).
+
+The last term in the energy has also two hole lines and two loops, but since there are two $\hat{T}_1$ operators, the particle and hole lines are no longer equivalent.
+These are two equivalent vertices instead, raising a factor $\frac{1}{2}$ (rule~\ref{ite:CC:equVert}) and resulting in 
+\begin{equation}
+\hat{V}_N \hat{T}_1^2
+\rightarrow
+\parbox{28mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-E-3}
+        \begin{fmfgraph*}(50,50)
+            %references
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4}
+            \fmftop{t1,t2}
+            %bottom t1 lines
+            \fmf{plain}{b1,elBotL,b2}
+            \fmf{plain}{b3,elBotR,b4}
+            %top lines
+            \fmf{phantom,tension=4}{t1,elTopL}
+            \fmf{phantom,tension=4}{elTopR,t2}
+            \fmf{dashes}{elTopL,elTopR}
+            \fmffreeze
+            %electron lines
+            \fmf{electron,right=0.4}{elBotL,elTopL}
+            \fmf{electron,right=0.4}{elTopL,elBotL}
+            \fmf{electron,right=0.4}{elBotR,elTopR}
+            \fmf{electron,right=0.4}{elTopR,elBotR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= +\frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_l^d t_m^e .
+\end{equation}
+
+Adding these terms together we end up with the complete energy equation
+\begin{equation}
+\Delta E_{CCSD} = 
+\sum_{ld} f_{ld} t_l^d
++ \frac{1}{4} \sum_{lmde} \langle lm|| de \rangle t_{lm}^{de}
++\frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_l^d t_m^e,
+\end{equation}
+giving us the correction to the energy as compared to $E_{ref}$ for a given set of amplitudes $t_{i}^{a}$ and $t_{ij}^{ab}$.
+
+
+\subsection{T1 equations}
+We will need the amplitude equations to find these amplitudes, starting with the $\hat{T}_1$ equations derived from
+\begin{equation}
+\langle \Phi_i^a | \bar{H} | \Phi_0 \rangle = 0 .
+\end{equation}
+Because of the singly excited bra determinant we will need a total excitation level of $+1$.
+Terms are presented in the same order as in equation~\eqref{eq:CC:barhconn}.
+
+\subsubsection{$\mathbf{\hat{H}_N}$:}
+With a reference ket at the bottom and expecting a singly excited determinant bra at the top, we need a term with excitation level $+1$ and no electron lines pointing downwards. 
+There is only one appropriate term for this,
+\begin{equation}
+\langle \Phi_i^a | \hat{F}_N | \Phi_0 \rangle 
+\rightarrow 
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-1}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4}
+            \fmftop{t1,t2,t3,t4}
+            %F operator
+            \fmf{dashes}{b2,b4}
+            \fmfv{decor.shape=cross,decor.size=3mm}{b4}
+            %electrons
+            \fmf{electron}{t1,b2}
+            \fmf{electron}{b2,t3}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + f_{ai} .
+\end{equation}
+Both electron lines are connected to the singly excited bra state, labeled $i,a$, and thus not summed freely over.
+With one hole line and one loop (particle-hole excitations are `connected' in the bra determinant) the factor in front is $+1$.
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}}$:}
+Connecting terms from $\hat{H}_N$ first with the $\hat{T}_1$ cluster operators the total excitation level needs to be $+1$, already supplied by the singly excited cluster operator.
+We then require interaction terms that neither create nor destroy particle-hole excitations.
+Three possible interaction terms fit in; two from $\hat{F}_N$,
+\begin{equation}
+\langle \Phi_i^a | \hat{F}_N \hat{T}_1 | \Phi_0 \rangle 
+\rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-2}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4}
+            \fmftop{t1,t2,t3,t4}
+            %T_1 operator
+            \fmf{plain}{b1,b2,b3}
+            %F operator
+            \fmf{phantom}{t4,fR,b4}
+            \fmf{dashes,tension=0}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            %electrons
+            \fmf{electron}{t1,b2}
+            \fmf{electron}{b2,fL}
+            \fmf{electron}{fL,t3}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-3}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2,b3,b4}
+            \fmftop{t1,t2,t3,t4}
+            %T_1 operator
+            \fmf{plain}{b2,b3,b4}
+            %F operator
+            \fmf{phantom}{t1,fL,b1}
+            \fmf{dashes,tension=0}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fL}
+            %electrons
+            \fmf{electron}{t2,fR}
+            \fmf{electron}{fR,b3}
+            \fmf{electron}{b3,t4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + \sum_d f_{ad} t_i^d - \sum_l f_{li} t_l^a ,
+\end{equation}
+and one from $\hat{V}_N$,
+\begin{equation}
+\langle \Phi_i^a | \hat{V}_N \hat{T}_1 | \Phi_0 \rangle 
+\rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-4}
+        \begin{fmfgraph*}(50,50)
+        \fmfstraight
+        \fmfbottom{b1,b2,b3,b4,b5}
+        \fmftop{t1,t2,t3,t4,t5}
+        %prepare fixed middle points
+        \fmf{phantom}{b1,mL,t1}
+        \fmf{phantom}{b5,mR,t5}
+        \fmffreeze
+        %T_1 operator
+        \fmf{plain}{b1,b2,b3}
+        %V_N operator
+        \fmf{phantom,tension=2}{mL,vL}
+        \fmf{phantom,tension=2}{mR,vR}
+        \fmf{dashes}{vL,vR}
+        \fmffreeze
+        %Electrons
+        \fmf{electron}{t3,vR}
+        \fmf{electron}{vR,t5}
+        \fmf{electron,right=0.4}{b2,vL}
+        \fmf{electron,right=0.4}{vL,b2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + \sum_{ld} \langle la||di \rangle t_l^d .
+\end{equation}
+There are also three terms where the interactions are connected to $\hat{T}_2$, requiring the interactions to have the ability to annihilate one particle-hole excitation.
+One term connects to $\hat{F}_N$,
+\begin{equation}
+\label{eq:CC:FnT2}
+\langle \Phi_i^a | \hat{F}_N \hat{T}_2 | \Phi_0 \rangle 
+\rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-5}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{t1,t2,t3}
+            %T_2 operator
+            \fmf{phantom,tension=2}{b1,tL}
+            \fmf{phantom,tension=2}{tR,b2}
+            \fmf{plain}{tL,tR}
+            \fmffreeze
+            %V_N Operator
+            \fmf{phantom}{b2,vL,t2}
+            \fmf{phantom}{b2,vR,t3}
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{vR}
+            \fmffreeze
+            %electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,t2}
+            \fmf{electron,right=0.4}{tR,vL}
+            \fmf{electron,right=0.4}{vL,tR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= + \sum_{ld} f_{ld} t_{il}^{ad},
+\end{equation}
+and the other two to $\hat{V}_N$,
+\begin{equation}
+\label{eq:CC:VnT2}
+\begin{split}
+\langle \Phi_i^a | \hat{V}_N \hat{T}_2 | \Phi_0 \rangle 
+\rightarrow &
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-6}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{t1,t2,t3}
+            %T_2 operator
+            \fmf{phantom,tension=2}{b1,tL}
+            \fmf{plain}{tL,b2}
+            \fmffreeze
+            %electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,vL,t2}
+            \fmf{electron,right=0.4}{b2,vR}
+            \fmf{electron,right=0.4}{vR,b2}
+            \fmf{phantom,tension=2}{vR,t3}
+            %V_N operator
+            \fmf{dashes,tension=0}{vR,vL}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-7}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{t1,t2,t3}
+            %T_2 operator
+            \fmf{phantom,tension=2}{b2,tR}
+            \fmf{plain}{tR,b1}
+            \fmffreeze
+            %electrons
+            \fmf{electron}{t2,vR,tR}
+            \fmf{electron}{tR,t3}
+            \fmf{electron,right=0.4}{b1,vL}
+            \fmf{electron,right=0.4}{vL,b1}
+            \fmf{phantom,tension=2}{vL,t1}
+            %V_N operator
+            \fmf{dashes,tension=0}{vR,vL}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+= & + \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{il}^{de} - \frac{1}{2} \sum_{lmd}
+\langle lm||di \rangle t_{lm}^{da} .
+\end{split} 
+\end{equation}
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}^2}$:}
+The cluster operator to second order has three terms\footnote{Factors in front of terms are found using the diagrammatic rules, allowing us to neglect the factor of two in the cross term.},
+\begin{equation}
+\hat{H}_N \left( \hat{T}_1 + \hat{T}_2 \right)^2
+\rightarrow
+\hat{H}_N \hat{T}_1^2 + \hat{H}_N \hat{T}_1 \hat{T}_2 + \hat{H}_N \hat{T}_2^2,
+\end{equation}
+and we may first note how no contraction between $\hat{T}_2^2$ and any interaction term can be made without resulting in at least a doubly excited bra state.
+This leaves us with $\hat{T}_1^2$ and the cross term $\hat{T}_1\hat{T}_2$.
+For $\hat{T}_1^2$ we can connect the same interaction terms as for $\hat{T}_2$ in eq.~\eqref{eq:CC:FnT2} and~\eqref{eq:CC:VnT2},
+\begin{equation}
+\langle \Phi_i^a | \hat{F}_N \hat{T}_1^2 | \Phi_0 \rangle 
+\rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-8}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{t1,t2}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_1 operators
+            \fmf{plain}{b1,tL,b2}
+            \fmf{plain}{b3,tR,b4}
+            \fmffreeze
+            %Electrons 
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,fL}
+            \fmf{electron}{fL,tR}
+            \fmf{electron}{tR,t2}
+            %F operator
+            \fmf{phantom,tension=2}{t1,fL}
+            \fmf{phantom,tension=2}{t2,fR}
+            \fmf{phantom}{tL,fR,tR}
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= - \sum_{ld} f_{ld} t_i^d t_l^a ,
+\end{equation}
+and 
+\begin{equation}
+\begin{split}
+\langle \Phi_i^a | \hat{V}_N \hat{T}_1^2 | \Phi_0 \rangle \rightarrow &
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-9}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{t1,t2,t3,t4}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_1 operators
+            \fmf{plain}{b1,tL,b2}
+            \fmf{plain}{b3,tR,b4}
+            \fmf{phantom}{t3,phant,t4}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,vL}
+            \fmf{electron}{vL,t3}
+            \fmf{electron,right=0.4}{tR,vR}
+            \fmf{electron,right=0.4}{vR,tR}
+            \fmf{phantom,tension=2}{phant,vR}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-10}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{t1,t2,t3,t4}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_1 operators
+            \fmf{plain}{b1,tL,b2}
+            \fmf{plain}{b3,tR,b4}
+            \fmf{phantom}{t1,phant,t2}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{t2,vR}
+            \fmf{electron}{vR,tR}
+            \fmf{electron}{tR,t4}
+            \fmf{electron,right=0.4}{tL,vL}
+            \fmf{electron,right=0.4}{vL,tL}
+            \fmf{phantom,tension=2}{phant,vL}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+= & + \sum_{lde} \langle al||de \rangle t_i^d t_l^e 
+- \sum_{lmd} \langle lm||di \rangle t_l^d t_m^a .
+\end{split}
+\end{equation}
+For the cross term, $\hat{T}_1 \hat{T}_2$, we need an operator with excitation level $-2$. Only the last $\hat{V}_N$ term has this level, but it can be connected in three distinct ways,
+\begin{equation}
+\label{eq:CC:T1crossT}
+\begin{split}
+\langle \Phi_i^a | \hat{V}_N \hat{T}_1 \hat{T}_2 | \Phi_0 \rangle \rightarrow &
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-11}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{t1,t2}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_1 and T_2
+            \fmf{plain}{b1,tL,b2}
+            \fmf{plain}{b3,tR}
+            \fmf{phantom,tension=3}{tR,b5}
+            \fmffreeze
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,vL}
+            \fmf{electron}{vL,b3}
+            \fmf{electron}{b3,vR}
+            \fmf{electron}{vR,tR}
+            \fmf{electron}{tR,t2}
+            %"Lift" operator line a bit
+            \fmf{phantom,tension=2.0}{t1,vL}
+            \fmf{phantom,tension=2.0}{vR,t2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-12}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{t1,t2}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_1 and T_2
+            \fmf{plain}{b4,tR,b5}
+            \fmf{plain}{tL,b3}
+            \fmf{phantom,tension=3}{b1,tL}
+            \fmffreeze
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,vL}
+            \fmf{electron}{vL,b3}
+            \fmf{electron}{b3,vR}
+            \fmf{electron}{vR,tR}
+            \fmf{electron}{tR,t2}
+            %"Lift" operator line a bit
+            \fmf{phantom,tension=2.0}{t1,vL}
+            \fmf{phantom,tension=2.0}{vR,t2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-13}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{t1,t2,t3,t4,t5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_1 and T_2
+            \fmf{plain}{b4,tR,b5}
+            \fmf{plain}{tL,b3}
+            \fmf{phantom,tension=3}{b1,tL}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,t2}
+            \fmf{electron,right=0.4}{vL,b3}
+            \fmf{electron,right=0.4}{b3,vL}
+            \fmf{electron,right=0.4,tension=0}{vR,tR}
+            \fmf{electron,right=0.4,tension=0}{tR,vR}
+            %V_N operator
+            \fmf{phantom,tension=2}{t3,vL}
+            \fmf{phantom}{b4,vR,t5}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+= &
+ \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_i^d t_{lm}^{ea} 
++ \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_m^a t_{il}^{de}
++ \sum_{lmde} \langle lm||de \rangle t_m^e t_{il}^{ad}.
+\end{split}
+\end{equation}
+In order to find all unique ways of connecting the operators together, the sign-table technique is applied (rule~\ref{ite:CC:signTable}).
+Denoting a plus sign for all particle lines in the interaction that are connectable to amplitudes (below the interaction line), and a minus sign for all connectable hole lines, we set up a table for what lines are connected to which amplitude.
+The term from $\hat{V}_N$ used in eq.~\eqref{eq:CC:T1crossT} has two particle and two hole lines below the interaction line, represented by a string of four signs, $++--$.
+A sign table consists of one column for each of the cluster operators, and distinct terms exist for each unique way the signs are distributed.
+\begin{table}
+\caption{Sign table for the three terms in eq.~\eqref{eq:CC:T1crossT}.}
+\label{tab:CC:SignT1crossT}
+\begin{center}
+\begin{tabular}{c|c}
+$\hat{T}_1$ & $\hat{T}_2$ \\ 
+\hline 
+$+$ & $+--$ \\ 
+$-$ & $++-$ \\ 
+$+-$ & $+-$ 
+\end{tabular} 
+\end{center}
+\end{table}
+The three distinct terms from equation~\eqref{eq:CC:T1crossT} are represented in table~\ref{tab:CC:SignT1crossT} in the same order as the terms appear in the equation.
+Adding more than one $+$ or more than one $-$ to $\hat{T}_1$ would be impossible here, due to its one-particle one-hole nature, and leaving $\hat{T}_1$ empty would lead to an uncontracted term.
+For this reason we get only the three terms seen.
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}^3}$:}
+No term in the normal-ordered Hamiltonian can annihilate more than a 2p-2h excitation, and since the bra determinant is singly excited, at most a triple excitation can arise from the cluster operators.
+The last possible term is thus connected to $\hat{T}_1^3$, 
+\begin{equation}
+\langle \Phi_i^a | \hat{V}_N \hat{T}_1^3 | \Phi_0 \rangle \rightarrow 
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t1-14}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{t1,t2}
+            \fmfbottom{b1,b2,b3,b4,b5,b6}
+            %T_1 operators (left,middle,right)
+            \fmf{plain}{b1,tL,b2}
+            \fmf{plain}{b3,tM,b4}
+            \fmf{plain}{b5,tR,b6}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{t1,tL}
+            \fmf{electron}{tL,vL}
+            \fmf{electron}{vL,tM}
+            \fmf{electron}{tM,vR}
+            \fmf{electron}{vR,tR}
+            \fmf{electron}{tR,t2}
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+            \fmf{phantom,tension=2}{t1,vL}
+            \fmf{phantom,tension=2}{vR,t2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+=
++ \sum_{lmde} \langle lm||de \rangle t_i^d t_l^e t_m^a .
+\end{equation}
+
+
+\paragraph*{}
+Adding all terms together we get the complete $\hat{T}_1$ amplitude equations;
+\begin{equation}
+\label{eq:CC:t1eq_raw}
+\begin{split}
+0 =& f_{ai}
++ \sum_d f_{ad} t_i^d - \sum_l f_{li} t_l^a
+ + \sum_{ld} \langle la||di \rangle t_l^d
+\\
+ &+ \sum_{ld} f_{ld} t_{il}^{ad}
+ + \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{il}^{de} - \frac{1}{2} \sum_{lmd}
+\langle lm||di \rangle t_{lm}^{da}  
+- \sum_{ld} f_{ld} t_i^d t_l^a
+\\
+& + \sum_{lde} \langle al||de \rangle t_i^d t_l^e 
+- \sum_{lmd} \langle lm||di \rangle t_l^d t_m^a
++ \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_i^d t_{lm}^{ea} 
+\\
+&+ \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_m^a t_{il}^{de}
++ \sum_{lmde} \langle lm||de \rangle t_m^e t_{il}^{ad}
++ \sum_{lmde} \langle lm||de \rangle t_i^d t_l^e t_m^a .
+\end{split}
+\end{equation}
+
+
+\subsection{T2 equations}
+We continue by finding algebraic expressions for the $\hat{T}_2$ equations, 
+\begin{equation}
+\langle \Phi_{ij}^{ab} | \bar{H} | \Phi_0 \rangle = 0 ,
+\end{equation}
+utilizing the same techniques as before, also introducing permutatation of external lines in eq~\eqref{eq:CC:t2permutation}.
+Terms are once again sorted in the same order as in $\bar{H}$ $\eqref{eq:CC:barhconn}$, now requiring a doubly excited particle-hole pair to accommodate the bra determinant.
+
+
+\subsubsection{$\mathbf{\hat{H}_N}$:}
+The only interaction term to have a double particle-hole excitation comes from $\hat{V}_N$, 
+\begin{equation}
+\langle \Phi_{ij}^{ab} | \hat{V}_N | \Phi_0 \rangle \rightarrow
+\parbox{25mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-1}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+            \fmf{phantom,tension=4}{b1,vL}
+            \fmf{phantom,tension=4}{vR,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,u4}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+= \langle ab || ij \rangle .
+\end{equation}
+
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}}$:}
+A consequence of having more than one pair of external particle and hole lines from the bra determinant is that two different particle-, or hole-lines may be connected to different operators.
+In the following two terms we have labeled the external lines from left to right, $i,a,j,b$,
+\begin{equation}
+\label{eq:CC:t2permutation}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1 | \Phi_0 \rangle \rightarrow& 
+\parbox{27mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-2}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_1 operator
+            \fmf{plain}{b1,t1,b2}
+            \fmffreeze
+            %Electron lines
+            \fmf{electron}{u1,t1}
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,u4}
+            %Lower the two rightmost to the middle
+            \fmf{phantom}{b3,vR,b4}
+            \fmffreeze
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{27mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-3}
+        \begin{fmfgraph*}(50,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_1 operator
+            \fmf{plain}{b3,t1,b4}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,t1}
+            \fmf{electron}{t1,u4}
+            %Lower the leftmost p/h pair
+            \fmf{phantom}{b1,vL,b2}
+            \fmffreeze
+            %V_N operator
+            \fmf{dashes}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=&
+\hat{P}_{ij} \sum_{d} \langle ab || dj \rangle t_i^d
+-
+\hat{P}_{ab} \sum_l \langle al||ij \rangle t_l^b .
+\end{split}
+\end{equation}
+The first term has $i$ connected to $\hat{T}_1$, whereas $j$ is connected to $\hat{V}_N$, and the second term has $a$ connected to $\hat{V}_N$, whereas $b$ is connected to $\hat{T}_1$.
+Whenever two such lines are connected to the same interaction a permutation is implied through the antisymmetric nature of the elements, i.e.
+\begin{equation}
+\langle pq || rs \rangle = - \langle pq||sr \rangle = \cdots
+\hspace{3mm}\textrm{or}\hspace{3mm}
+t_{ij}^{ab} = -t_{ji}^{ab} = \cdots\hspace{2mm}.
+\end{equation}
+In the cases where such a permutation is not implied, we need to enforce a permutation, as in equation~\eqref{eq:CC:t2permutation}.
+
+No permutations arose in the $\hat{T}_1$ equations due to the fact that only one particle and one hole line were connected upwards to the singly excited determinant.
+Now, in the $\hat{T}_2$ equations, we have a doubly excited determinant, with the consequence of more terms requiring permutations, as seen also in the terms from $\hat{H}_N \hat{T}_2$;
+\begin{equation}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{F}_N \hat{T}_2 | \Phi_0 \rangle \rightarrow& 
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-4}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_2 operator
+            \fmf{phantom}{b1,t2L}
+            \fmf{plain,tension=0.25}{t2L,t2R}
+            \fmf{phantom}{t2R,b4}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,u2}
+            \fmf{electron}{u3,t2R}
+            \fmf{electron}{t2R,fL}
+            \fmf{electron}{fL,u4}
+            %F_N operator
+            \fmf{phantom}{u5,fR,b5}
+            \fmffreeze
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-5}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_2 operator
+            \fmf{phantom}{b2,t2L}
+            \fmf{plain,tension=0.25}{t2L,t2R}
+            \fmf{phantom}{t2R,b5}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u2,fR}
+            \fmf{electron}{fR,t2L}
+            \fmf{electron}{t2L,u3}
+            \fmf{electron}{u4,t2R}
+            \fmf{electron}{t2R,u5}
+            %F_N operator
+            \fmf{phantom}{u1,fL,b1}
+            \fmffreeze
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fL}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=& 
+\hspace{3mm}\hat{P}_{ab} \sum_d f_{bd} t_{ij}^{ad}
+\hspace{3mm}-
+\hspace{3mm}\hat{P}_{ij} \sum_l f_{li} t_{lj}^{ab} ,
+\end{split}
+\end{equation}
+and
+\begin{equation}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_2 | \Phi_0 \rangle \rightarrow& 
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-6}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %T_2 operator
+            \fmf{phantom}{b1,t2L}
+            \fmf{plain,tension=0.25}{t2L,t2R}
+            \fmf{phantom}{t2R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u4,t2R}
+            \fmf{electron}{t2R,vR}
+            \fmf{electron}{vR,u3}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-7}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %T_2 operator
+            \fmf{phantom}{b1,t2L}
+            \fmf{plain,tension=0.25}{t2L,t2R}
+            \fmf{phantom}{t2R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{t2L,u1}
+            \fmf{electron}{u2,vL}
+            \fmf{electron}{vL,t2L}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,t2R}
+            \fmf{electron}{t2R,u4}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-8}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2,b3,b4}
+            %T_2 operator
+            \fmf{phantom}{b1,t2L}
+            \fmf{plain,tension=0.5}{t2L,t2R}
+            \fmf{phantom}{t2R,b3}
+            \fmffreeze
+            %V_N operator
+            \fmf{phantom}{u2,vL,b3}
+            \fmf{phantom}{b3,vR,u4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,u2}
+            \fmf{electron,right=0.4}{t2R,vL}
+            \fmf{electron,right=0.4}{vL,t2R}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,u4}
+       \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=&
+\frac{1}{2} \sum_{de} \langle ab||de \rangle t_{ij}^{de}
++
+\frac{1}{2} \sum_{lm} \langle lm||ij \rangle t_{lm}^{ab}
++
+\hat{P}_{ij} \hat{P}_{ab} \sum_{ld} \langle lb||dj \rangle t_{il}^{ad} .
+\end{split}
+\end{equation}
+
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}^2}$:}
+For $\hat{H}_N \hat{T}_1^2$ three terms meet the requirements of excitation levels, with respectively an equivalent particle-line pair, an equivalent hole-line pair, and no equivalent lines,
+\begin{equation}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1^2 | \Phi_0& \rangle \rightarrow
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-9}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %T_1 operators
+            \fmf{plain}{b1,t1L,bC1}
+            \fmf{phantom}{bC1,bC2}
+            \fmf{plain}{bC2,t1R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t1L}
+            \fmf{electron}{t1L,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u4,t1R}
+            \fmf{electron}{t1R,vR}
+            \fmf{electron}{vR,u3}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-10}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %T_1 operators
+            \fmf{plain}{b1,t1L,bC1}
+            \fmf{phantom}{bC1,bC2}
+            \fmf{plain}{bC2,t1R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{t1L,u1}
+            \fmf{electron}{u2,vL}
+            \fmf{electron}{vL,t1L}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,t1R}
+            \fmf{electron}{t1R,u4}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{30mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-11}
+        \begin{fmfgraph*}(60,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2}
+            %T_1 operators
+            \fmf{plain}{b1,t1L,bC1}
+            \fmf{phantom}{bC1,bC2}
+            \fmf{plain}{bC2,t1R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t1L}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{t1L,vL}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,t1R}
+            \fmf{electron}{t1R,u4}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=&
+\hat{P}_{ij} \frac{1}{2} \sum_{de} \langle ab||de \rangle t_i^d t_j^e
++
+\hat{P}_{ab} \frac{1}{2} \sum_{lm} \langle lm||ij \rangle t_l^a t_m^b
+-
+\hat{P}_{ij} \hat{P}_{ab} \sum_{ld} \langle al||dj \rangle t_i^d t_l^b , 
+\end{split}
+\end{equation}
+raising factors of $\frac{1}{2}$, $\frac{1}{2}$ and $1$, respectively.
+ 
+Only one term from the interaction is possible to match with $\hat{T}_2^2$, due to the need for a doubly de-excitated interaction.
+\begin{table}
+\caption{Sign table for the four terms of eq.~\eqref{eq:CC:VnT22}.}
+\label{tab:CC:SignVnT22}
+\begin{center}
+\begin{tabular}{c|c}
+$\hat{T}_2$ & $\hat{T}_2$ \\ 
+\hline 
+$+-$ & $+-$ \\ 
+$+$ & $+--$ \\ 
+$-$ & $++-$ \\
+$++$ & $--$
+\end{tabular} 
+\end{center}
+\end{table}
+Although only one term fits, it can be connected in four different ways, found by the sign table in table~\ref{tab:CC:SignVnT22},
+\begin{equation}
+\label{eq:CC:VnT22}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_2^2 | \Phi_0 \rangle \rightarrow 
+&\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-12}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_2 operators
+            \fmf{phantom,tension=2}{b1,t2L1}
+            \fmf{plain}{t2L1,t2R1}
+            \fmf{phantom}{t2R1,t2L2}
+            \fmf{plain}{t2L2,t2R2}
+            \fmf{phantom,tension=2}{t2R2,b5}
+            \fmffreeze
+            %V_N operator
+            \fmf{phantom}{b2,vL,u3}
+            \fmf{phantom}{u3,vR,b4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L1}
+            \fmf{electron}{t2L1,u2}
+            \fmf{electron,right=0.4}{t2R1,vL}
+            \fmf{electron,right=0.4}{vL,t2R1}
+            \fmf{electron,right=0.4}{vR,t2L2}
+            \fmf{electron,right=0.4}{t2L2,vR}
+            \fmf{electron}{u4,t2R2}
+            \fmf{electron}{t2R2,u5}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-29}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            %Upper connections
+            \fmf{phantom,tension=3.5}{u1,uC1}
+            \fmf{phantom,tension=7}{uC1,uC2}
+            \fmf{phantom,tension=1}{uC2,u2}
+            %T_2 operators
+            \fmf{phantom,tension=6}{b1,t2L1}
+            \fmf{plain,tension=2}{t2L1,t2R1}
+            \fmf{phantom,tension=3}{t2R1,t2L2}
+            \fmf{plain,tension=2}{t2L2,t2R2}
+            \fmf{phantom,tension=6}{t2R2,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L1}
+            \fmf{electron}{t2L1,uC1}
+            \fmf{electron}{uC2,t2R1}
+            \fmf{electron}{t2R1,vL}
+            \fmf{electron}{vL,t2L2}
+            \fmf{electron}{t2L2,vR}
+            \fmf{electron}{vR,t2R2}
+            \fmf{electron}{t2R2,u2}
+            %V_N
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom,tension=2}{uC2,vL,vR,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+\\
++
+&\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-30}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            %Upper connections
+            \fmf{phantom,tension=1}{u1,uC1}
+            \fmf{phantom,tension=7}{uC1,uC2}
+            \fmf{phantom,tension=3.5}{uC2,u2}
+            %T_2 operators
+            \fmf{phantom,tension=6}{b1,t2L1}
+            \fmf{plain,tension=2}{t2L1,t2R1}
+            \fmf{phantom,tension=3}{t2R1,t2L2}
+            \fmf{plain,tension=2}{t2L2,t2R2}
+            \fmf{phantom,tension=6}{t2R2,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L1}
+            \fmf{electron}{t2L1,vL}
+            \fmf{electron}{vL,t2R1}
+            \fmf{electron}{t2R1,vR}
+            \fmf{electron}{vR,t2L2}
+            \fmf{electron}{t2L2,uC1}
+            \fmf{electron}{uC2,t2R2}
+            \fmf{electron}{t2R2,u2}
+            %V_N
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom,tension=2}{u1,vL,vR,uC1}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-31}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            %Upper connections
+            \fmf{phantom,tension=2}{u1,uC1}
+            \fmf{phantom,tension=1}{uC1,uC2}
+            \fmf{phantom,tension=2}{uC2,u2}
+            %T_2 operators
+            \fmf{phantom,tension=3}{b1,t2L1}
+            \fmf{plain,tension=2}{t2L1,t2R1}
+            \fmf{phantom,tension=3.4}{t2R1,t2L2}
+            \fmf{plain,tension=2}{t2L2,t2R2}
+            \fmf{phantom,tension=3}{t2R2,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L1}
+            \fmf{electron}{t2L1,eC1}
+            \fmf{plain}{eC1,vL}
+            \fmf{electron}{vL,eC2}
+            \fmf{plain}{eC2,t2L2}
+            \fmf{plain}{t2L2,eC3}
+            \fmf{electron}{eC3,uC2}
+            \fmf{electron}{uC1,eC4}
+            \fmf{plain}{eC4,t2R1}
+            \fmf{plain}{t2R1,eC5}
+            \fmf{electron}{eC5,vR}
+            \fmf{plain}{vR,eC6}
+            \fmf{electron}{eC6,t2R2}
+            \fmf{electron}{t2R2,u2}
+            %V_N
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom,tension=3}{uC1,vL,vR,uC2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}\\
+ \\
+=&
+\hat{P}_{ij} \hat{P}_{ab} \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_{il}^{ad} t_{mj}^{eb}
++
+\hat{P}_{ab} \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_{ij}^{ad} t_{lm}^{eb} \\
++&
+\hat{P}_{ij} \frac{1}{2} \sum_{lmde} \langle lm||de \rangle t_{il}^{de} t_{mj}^{ab}
++
+\frac{1}{4} \sum_{lmde} \langle lm||de \rangle t_{ij}^{de} t_{lm}^{ab} .
+\end{split}
+\end{equation}
+One may note how the two $\hat{T}_2$ operators are counted as equivalent, omitting configurations that already exist if we were to switch place of the two operators, i.e. $++|--$ is the same as $--|++$, thus counted only once.
+
+The cross term $\hat{T}_1 \hat{T}_2$ from $\hat{T}^2$ demands for a singly de-excited interaction, found in both $\hat{F}_N$ and $\hat{V}_N$. 
+For the one-particle interaction we have two possible configurations,
+\begin{equation}
+\label{eq:CC:FnT1T2}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{F}_N \hat{T}_1 \hat{T}_2 | \Phi_0 \rangle \rightarrow&
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-13}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            \fmf{phantom,tension=0.5}{u1,uC2}
+            \fmf{phantom,tension=1.0}{uC2,uC3}
+            \fmf{phantom,tension=0.2}{uC3,u2}
+            \fmf{phantom,tension=1.0}{b1,t2L}
+            \fmf{plain,tension=0.33}{t2L,t2R}
+            \fmf{phantom,tension=0.5}{t2R,bC1}
+            \fmf{plain,tension=1.0}{bC1,t1,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,uC2}
+            \fmf{electron}{uC3,t2R}
+            \fmf{electron}{t2R,fL}
+            \fmf{electron}{fL,t1}
+            \fmf{electron}{t1,u2}
+            %Attach F_N operator and lift it a bit
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmf{phantom}{t2R,fR,t1}
+            \fmf{phantom,tension=2}{uC3,fL}
+            \fmf{phantom,tension=2}{fR,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-14}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            \fmf{phantom,tension=0.2}{u1,uC2}
+            \fmf{phantom,tension=1.0}{uC2,uC3}
+            \fmf{phantom,tension=0.5}{uC3,u2}
+            \fmf{plain,tension=1.0}{b1,t1,bC1}
+            \fmf{phantom,tension=0.5}{bC1,t2L}
+            \fmf{plain,tension=0.33}{t2L,t2R}
+            \fmf{phantom,tension=1.0}{t2R,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t1}
+            \fmf{electron}{t1,fL}
+            \fmf{electron}{fL,t2L}
+            \fmf{electron}{t2L,uC2}
+            \fmf{electron}{uC3,t2R}
+            \fmf{electron}{t2R,u2}
+            %Attach F_N operator and lift it a bit
+            \fmf{dashes}{fL,fR}
+            \fmfv{decor.shape=cross,decor.size=3mm}{fR}
+            \fmf{phantom}{t1,fR,t2L}
+            \fmf{phantom,tension=2}{u1,fL}
+            \fmf{phantom,tension=2}{fR,uC2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=&
+- \hat{P}_{ab} \sum_{ld} f_{ld} t_{ij}^{ad} t_l^b
+- \hat{P}_{ij} \sum_{ld} f_{ld} t_{i}^d t_{lj}^{ab},
+\end{split}
+\end{equation}
+as seen in table~\ref{tab:CC:FnT1T2}.
+\begin{table}
+\caption{Sign table for eq.~\eqref{eq:CC:FnT1T2}}
+\label{tab:CC:FnT1T2}
+\begin{center}
+\begin{tabular}{c|c}
+$\hat{T}_1$ & $\hat{T}_2$ \\ 
+\hline 
+$+$ & $-$ \\ 
+$-$ & $+$
+\end{tabular} 
+\end{center}
+\end{table}
+\begin{table}
+\caption{Sign tables for eq.~\eqref{eq:CC:VnT1T2}}
+\label{tab:CC:SignVnT1T2}
+\begin{center}
+\begin{tabular}{c|c}
+$\hat{T}_1$ & $\hat{T}_2$ \\ 
+\hline 
+$+$ & $+-$ \\ 
+$-$ & $++$ \\
+$+-$ & $+$ 
+\end{tabular}
+\hspace{5mm}
+\begin{tabular}{c|c}
+$\hat{T}_1$ & $\hat{T}_2$ \\
+\hline
+$+$ & $--$ \\
+$-$ & $+-$ \\
+$+-$ & $-$
+\end{tabular} 
+\end{center}
+\end{table}
+When it comes to the part connected to $\hat{V}_N$, there are two interactions to use, one having two particle lines and one hole line connectable with the cluster operators, another having two hole lines and one particle line to be connected with the cluster operators.
+In table~\ref{tab:CC:SignVnT1T2}, this provides the two combinations $++-$ and $--+$, in all responsible for six unique configurations,
+\begin{equation}
+\label{eq:CC:VnT1T2}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1 \hat{T}_2 | \Phi_0 \rangle \rightarrow&
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-15}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2,b3,b4}
+            \fmf{phantom}{u2,uC1,u3} % Connection point to lift vR
+            %T_1 and T_2
+            \fmf{plain}{b1,t1,b2}
+            \fmf{phantom}{b2,t2L}
+            \fmf{plain}{t2L,b3,t2R}
+            \fmf{phantom}{t2R,b4}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t1}
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron,right=0.4}{vR,t2L}
+            \fmf{electron,right=0.4}{t2L,vR}
+            \fmf{electron}{u3,t2R}
+            \fmf{electron}{t2R,u4}
+            %V_N
+            \fmf{phantom,tension=2}{uC1,vR}
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-16}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            %Upper connection points
+            \fmf{phantom,tension=1.5}{u1,uC1}
+            \fmf{phantom,tension=3.0}{uC1,uC2}
+            \fmf{phantom,tension=3.0}{uC2,uC3}
+            \fmf{phantom,tension=1.0}{uC3,u2}
+            %Lower connection and T_x operators
+            \fmf{phantom,tension=3.0}{b1,t2L}
+            \fmf{plain,tension=1.0}{t2L,t2R}
+            \fmf{phantom,tension=3.0}{t2R,bC1}
+            \fmf{plain,tension=3.0}{bC1,t1,b2}
+            \fmffreeze
+            %Connecting V_N to some electrons
+            \fmf{electron}{t2L,vL}
+            \fmf{electron}{vL,uC1}
+            \fmf{phantom}{uC3,vR}
+            \fmf{electron}{vR,t1}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Rest of electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{uC2,eC1}
+            \fmf{plain,rubout,tension=2}{eC1,eC2}
+            \fmf{plain}{eC2,t2R}
+            \fmf{electron}{t2R,vR}
+            \fmf{electron}{t1,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} 
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-17}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_x operators
+            \fmf{phantom}{b1,t2L}
+            \fmf{plain,tension=0.25}{t2L,t2R}
+            \fmf{phantom}{t2R,b4}
+            \fmf{plain}{b4,t1,b5}
+            \fmffreeze
+            %V_N
+            \fmf{phantom}{b5,vR,u4}
+            \fmf{phantom}{t2R,vL,u4}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,u2}
+            \fmf{electron}{u3,t2R}
+            \fmf{electron}{t2R,vL}
+            \fmf{electron}{vL,u4}
+            \fmf{electron,right=0.4}{t1,vR}
+            \fmf{electron,right=0.4}{vR,t1}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+\\
++
+&\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-18}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2}
+            \fmfbottom{b1,b2}
+            %upper connection points
+            \fmf{phantom,tension=0.2}{u1,uC1}
+            \fmf{phantom,tension=1.0}{uC1,uC2}
+            \fmf{phantom,tension=0.5}{uC2,u2}
+            %Bottom connection points and T_x operators
+            \fmf{plain,tension=3.0}{b1,t1,bC1}
+            \fmf{phantom,tension=1.5}{bC1,t2L}
+            \fmf{plain,tension=1.0}{t2L,t2R}
+            \fmf{phantom,tension=3.0}{t2R,b2}
+            \fmffreeze
+            %V_N
+            \fmf{phantom}{u1,vL,t2L}
+            \fmf{phantom}{uC2,vR,t2R}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u1,t1}
+            \fmf{electron}{t1,vL}
+            \fmf{electron}{vL,t2L}
+            \fmf{plain}{t2L,eC1}
+            \fmf{electron}{eC1,uC1}
+            \fmf{electron}{uC2,vR}
+            \fmf{electron}{vR,t2R}
+            \fmf{electron}{t2R,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-19}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4}
+            \fmfbottom{b1,b2,b3,b4}
+            \fmf{phantom}{u2,uC1,u3} % Connection point to lift vR
+            %T_1 and T_2
+            \fmf{plain}{b3,t1,b4}
+            \fmf{phantom}{b3,t2R}
+            \fmf{plain}{t2R,b2,t2L}
+            \fmf{phantom}{t2L,b1}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t2L}
+            \fmf{electron}{t2L,u2}
+            \fmf{electron,right=0.4}{vL,t2R}
+            \fmf{electron,right=0.4}{t2R,vL}
+            \fmf{electron}{u3,vR}
+            \fmf{electron}{vR,t1}
+            \fmf{electron}{t1,u4}
+            %V_N
+            \fmf{phantom,tension=2}{uC1,vL}
+            \fmf{dashes,tension=0}{vL,vR}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{33mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-20}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5}
+            \fmfbottom{b1,b2,b3,b4,b5}
+            %T_x operators
+            \fmf{plain}{b1,t1,b2}
+			\fmf{phantom}{b2,t2L}
+			\fmf{plain,tension=0.25}{t2L,t2R}
+			\fmf{phantom}{t2R,b5}
+            \fmffreeze
+            %V_N
+            \fmf{phantom}{b1,vL,u2}
+            \fmf{phantom}{t2L,vR,u2}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u2,vR}
+            \fmf{electron}{vR,t2L}
+            \fmf{electron}{t2L,u3}
+            \fmf{electron}{u4,t2R}
+            \fmf{electron}{t2R,u5}
+            \fmf{electron,right=0.4}{t1,vL}
+            \fmf{electron,right=0.4}{vL,t1}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=
+\hat{P}_{ij} \hat{P}_{ab} \sum_{lde}& \langle al||de \rangle t_{i}^d t_{lj}^{eb}
+-
+\hat{P}_{ab} \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{ij}^{de} t_l^b
++
+\hat{P}_{ab} \sum_{lde} \langle bl||de \rangle t_{ij}^{ad} t_l^e \\
++
+\hat{P}_{ij} \frac{1}{2} \sum_{lmd}& \langle lm||dj \rangle t_i^d t_{lm}^{ab}
+-
+\hat{P}_{ij} \hat{P}_{ab} \sum_{lmd} \langle lm||dj \rangle t_{il}^{ad} t_{m}^b
+-
+\hat{P}_{ij} \sum_{lmd} \langle ml||di \rangle t_m^d t_{lj}^{ab} .
+\end{split}
+\end{equation}
+
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}^3}$:}
+In the case of the $\hat{T}_2$ equations, terms with higher order of cluster operators come forth, as evident for $\hat{T}^3$.
+As high as quadruply excitations can arise in the cluster operators and still be contracted with $\hat{V}_N$ to create a doubly excited determinant.
+Two terms from the two-particle interaction can ensure the correct excitation levels, and at the same time have one contraction to each of the operators in $\hat{T}_1^3$,
+\begin{equation}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1^3 | \Phi_0 \rangle \rightarrow 
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-21}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5,u6}
+            \fmfbottom{b1,b2,b3,b4,b5,b6}
+            %T_1 operators
+            \fmf{plain}{b1,t11,b2}
+            \fmf{plain}{b3,t12,b4}
+            \fmf{plain}{b5,t13,b6}
+            \fmffreeze
+            %V_N operator
+            \fmf{phantom}{t11,vL,u2}
+            \fmf{phantom}{b4,vR,u5}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u1,t11}
+            \fmf{electron}{t11,vL}
+            \fmf{electron}{vL,u2}
+            \fmf{electron}{u3,eC1}
+            \fmf{plain}{eC1,t12}
+            \fmf{electron}{t12,vR}
+            \fmf{electron}{vR,t13}
+            \fmf{electron}{t13,u6}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++&
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-22}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmftop{u1,u2,u3,u4,u5,u6}
+            \fmfbottom{b1,b2,b3,b4,b5,b6}
+            %T_1 operators
+            \fmf{plain}{b1,t11,b2}
+            \fmf{plain}{b3,t12,b4}
+            \fmf{plain}{b5,t13,b6}
+            \fmffreeze
+            %V_N operator
+            \fmf{phantom}{t13,vR,u5}
+            \fmf{phantom}{b2,vL,u3}
+            \fmffreeze
+            \fmf{dashes}{vL,vR}
+            %Electrons
+            \fmf{electron}{u1,t11}
+            \fmf{electron}{t11,vL}
+            \fmf{electron}{vL,t12}
+            \fmf{plain}{t12,eC1}
+            \fmf{electron}{eC1,u4}
+            \fmf{electron}{u5,vR}
+            \fmf{electron}{vR,t13}
+            \fmf{electron}{t13,u6}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+} \\
+ \\
+=
+- \hat{P}_{ij} \hat{P}_{ab} \frac{1}{2} \sum_{lde} \langle al||de \rangle t_i^d t_j^e t_l^b
++& \hat{P}_{ij} \hat{P}_{ab} \frac{1}{2} \sum_{lmd} \langle lm||dj \rangle t_i^d t_l^a t_m^b .
+\end{split}
+\end{equation}
+
+The most complicated sign table to be encountered is for the terms contracting $\hat{V}_N$ with $\hat{T}_1^2 \hat{T}_2$. Five terms are found,
+\begin{table}
+\caption{Sign table for eq.~\eqref{eq:CC:VnT12T2}.}
+\label{tab:CC:SignVnT12T2}
+\begin{center}
+\begin{tabular}{c|c|c}
+$\hat{T}_1$ & $\hat{T}_1$ & $\hat{T}_2$ \\
+\hline 
+$+$  & $+$  & $--$ \\
+$-$  & $-$  & $++$ \\
+$+$  & $-$  & $+-$ \\
+$+-$ & $-$  & $+$  \\
+$+-$ & $+$  & $-$
+\end{tabular}
+\end{center}
+\end{table}
+\begin{equation}
+\label{eq:CC:VnT12T2}
+\begin{split}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1^2 \hat{T}_2 | \Phi_0 \rangle \rightarrow 
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-23}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{u1,u2}
+            %Upper connection points
+            \fmf{phantom}{u1,uC1}
+            \fmf{phantom,tension=4}{uC1,uC2}
+            \fmf{phantom}{uC2,u2}
+            %T_x operators
+            \fmf{plain,tension=3}{b1,t11,bC1}
+            \fmf{phantom,tension=3}{bC1,t2L}
+            \fmf{plain,tension=1}{t2L,t2R}
+            \fmf{phantom,tension=3}{t2R,bC2}
+            \fmf{plain,tension=3}{bC2,t12,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t11}
+            \fmf{electron}{t11,vL}
+            \fmf{electron}{vL,t2L}
+            \fmf{plain}{t2L,eC1}
+            \fmf{electron}{eC1,uC1}
+            \fmf{electron}{eC2,uC2}
+            \fmf{plain}{t2R,eC2}
+            \fmf{electron}{vR,t2R}
+            \fmf{electron}{t12,vR}
+            \fmf{electron}{u2,t12}
+            %V_N operator
+            \fmf{dashes,tension=0.7}{vL,vR}
+            \fmf{phantom,tension=2}{u1,vL}
+            \fmf{phantom,tension=2}{vR,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-24}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{u1,u2}
+            %Upper connection points
+            \fmf{phantom}{u1,uC1}
+            \fmf{phantom,tension=4}{uC1,uC2}
+            \fmf{phantom}{uC2,u2}
+            %T_x operators
+            \fmf{plain,tension=3}{b1,t11,bC1}
+            \fmf{phantom,tension=3}{bC1,t2L}
+            \fmf{plain,tension=1}{t2L,t2R}
+            \fmf{phantom,tension=3}{t2R,bC2}
+            \fmf{plain,tension=3}{bC2,t12,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{t11,u1}
+            \fmf{electron}{vL,t11}
+            \fmf{electron}{t2L,vL}
+            \fmf{plain}{t2L,eC1}
+            \fmf{electron}{uC1,eC1}
+            \fmf{electron}{uC2,eC2}
+            \fmf{plain}{eC2,t2R}
+            \fmf{electron}{t2R,vR}
+            \fmf{electron}{vR,t12}
+            \fmf{electron}{t12,u2}
+            %V_N operator
+            \fmf{dashes,tension=0.7}{vL,vR}
+            \fmf{phantom,tension=2}{u1,vL}
+            \fmf{phantom,tension=2}{vR,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+&+
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-25}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b2}
+            \fmftop{u1,u2}
+            %Upper connection points
+            \fmf{phantom}{u1,uC1}
+            \fmf{phantom,tension=4}{uC1,uC2}
+            \fmf{phantom}{uC2,u2}
+            %T_x operators
+            \fmf{plain,tension=3}{b1,t11,bC1}
+            \fmf{phantom,tension=3}{bC1,t2L}
+            \fmf{plain,tension=1}{t2L,t2R}
+            \fmf{phantom,tension=3}{t2R,bC2}
+            \fmf{plain,tension=3}{bC2,t12,b2}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t11}
+            \fmf{electron}{t11,vL}
+            \fmf{electron}{vL,t2L}
+            \fmf{plain}{t2L,eC1}
+            \fmf{electron}{eC1,uC1}
+            \fmf{electron}{uC2,eC2}
+            \fmf{plain}{eC2,t2R}
+            \fmf{electron}{t2R,vR}
+            \fmf{electron}{vR,t12}
+            \fmf{electron}{t12,u2}
+            %V_N operator
+            \fmf{dashes,tension=0.7}{vL,vR}
+            \fmf{phantom,tension=2}{u1,vL}
+            \fmf{phantom,tension=2}{vR,u2}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}\\
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-26}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b11}
+            \fmftop{u1,u11}
+            \fmfn{phantom}{u}{11}
+            \fmfn{phantom}{b}{11}
+            \fmffreeze
+            %T_x operators
+            \fmf{plain}{b2,b5}
+            \fmf{plain}{b6,b8}
+            \fmf{plain}{b9,b11}
+            %Electrons
+            \fmf{electron}{u1,b2}
+            \fmf{electron}{b2,u3}
+            \fmf{electron}{u4,b5}
+            \fmf{electron}{b5,vL}
+            \fmf{electron}{vL,b7}
+            \fmf{plain}{b7,eC1}
+            \fmf{electron}{eC1,u8}
+            \fmf{electron,right=0.4}{b10,vR}
+            \fmf{electron,right=0.4}{vR,b10}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom,tension=2}{u10,vR}
+            \fmf{phantom}{u5,vL,u7}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
++
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-27}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b11}
+            \fmftop{u1,u11}
+            \fmfn{phantom}{u}{11}
+            \fmfn{phantom}{b}{11}
+            \fmffreeze
+            %T_x operators
+            \fmf{plain}{b1,b3}
+            \fmf{plain}{b4,b6}
+            \fmf{plain}{b7,b10}
+            %Electrons
+            \fmf{electron,right=0.4}{b2,vL}
+            \fmf{electron,right=0.4}{vL,b2}
+            \fmf{electron}{u4,eC1}
+            \fmf{plain}{eC1,b5}
+            \fmf{electron}{b5,vR}
+            \fmf{electron}{vR,b7}
+            \fmf{electron}{b7,u8}
+            \fmf{electron}{u9,b10}
+            \fmf{electron}{b10,u11}
+            %V_N operator
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom,tension=2}{u2,vL}
+            \fmf{phantom}{u5,vR,u7}
+       \end{fmfgraph*}
+    \end{fmffile}
+    }
+}& \\
+ \\
+=
+\hat{P}_{ij} \frac{1}{4} \sum_{lmde} \langle lm||de \rangle t_i^d t_j^e t_{lm}^{ab}
++
+\hat{P}_{ab} \frac{1}{4} \sum_{lmde} \langle lm||de \rangle t_l^a t_m^b t_{ij}^{de} 
+&+
+\hat{P}_{ij} \hat{P}_{ab} \sum_{lmde} \langle lm||de \rangle t_i^d t_m^b t_{lj}^{ae} \\
+-
+\hat{P}_{ab} \sum_{lmde} \langle lm||de \rangle t_m^e t_l^b t_{ij}^{ad} 
+-
+\hat{P}_{ij} \sum_{lmde} \langle lm||de \rangle t_l^d t_i^e t_{mj}^{ab}&,
+\end{split}
+\end{equation}
+one for each of the configurations in table~\ref{tab:CC:SignVnT12T2}.
+
+
+\subsubsection{$\mathbf{\hat{H}_N \hat{T}^4}$:}
+The last term includes four cluster operators, all of which need to be a $\hat{T}_1$ operator to satisfy the needed excitation level. 
+In order to be a connected diagram, all four cluster operators should be attached with at least one contraction each to $\hat{V}_N$.
+This is achieved in only one way due to the interaction containing exactly four operators, 
+\begin{equation}
+\langle \Phi_{ij}^{ab} | \hat{V}_N \hat{T}_1^4 | \Phi_0 \rangle \rightarrow
+\parbox{36mm}{
+    \textrm{
+    \begin{fmffile}{fmf-cc-t2-28}
+        \begin{fmfgraph*}(80,50)
+            \fmfstraight
+            \fmfbottom{b1,b8}
+            \fmftop{u1,u8}
+            \fmfn{phantom}{u}{8}
+            \fmfn{phantom}{b}{8}
+            \fmffreeze
+            %T_1 operators
+            \fmf{plain}{b1,t11,b2}
+            \fmf{plain}{b3,t12,b4}
+            \fmf{plain}{b5,t13,b6}
+            \fmf{plain}{b7,t14,b8}
+            \fmffreeze
+            %Electrons
+            \fmf{electron}{u1,t11}
+            \fmf{electron}{t11,vL}
+            \fmf{electron}{vL,t12}
+            \fmf{plain}{t12,eC1}
+            \fmf{electron}{eC1,u4}
+            \fmf{electron}{u5,eC2}
+            \fmf{plain}{eC2,t13}
+            \fmf{electron}{t13,vR}
+            \fmf{electron}{vR,t14}
+            \fmf{electron}{t14,u8}
+            %Operator V_N
+            \fmf{dashes,tension=0}{vL,vR}
+            \fmf{phantom}{u1,vL,u4}
+            \fmf{phantom}{u5,vR,u8}
+        \end{fmfgraph*}
+    \end{fmffile}
+    }
+}
+=
+\hat{P}_{ab} \hat{P}_{ij} \frac{1}{4} \sum_{lmde} \langle lm||de \rangle t_i^d t_l^a t_j^e t_m^b .
+\end{equation}
+
+
+\section{Implementing CCSD}
+We revisit the $\hat{T}_1$ equation \eqref{eq:CC:t1eq_raw}.
+It is possible to relabel free indices, as long as they still sum over the same region, either hole states or particle states.
+Doing such a re-indexing, and at the same time factor out similar terms, we get
+\begin{equation}
+\begin{split}
+0 =&
+f_{ai}  + \sum_{ld} \langle la||di \rangle t_l^d  + \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{il}^{de} 
++ \sum_d \left[ 
+ f_{ad} + \sum_{le} \langle al||de \rangle t_l^e
+\right]  t_i^d   
+\\
+%
+&- \sum_l \left[
+f_{li} +  \sum_{d} f_{ld} t_i^d  + \sum_{md} \langle ml||di \rangle t_m^d 
++ \sum_{mde} \langle lm||de \rangle t_i^d t_m^e 
++ \frac{1}{2} \sum_{mde} \langle lm||de \rangle t_{im}^{de}
+\right] t_l^a \\
+%
+& + \frac{1}{2} \sum_{lmd} \left[
+\langle lm||id \rangle + \sum_{e} \langle lm||ed \rangle t_i^e 
+\right] t_{lm}^{da}
++
+\sum_{ld} \left[
+\sum_{me} \langle lm||de \rangle t_m^e + f_{ld}
+\right] t_{il}^{ad} .
+\end{split}
+\end{equation}
+The parentheses can be defined as intermediates to be calculated and stored before we solve the complete equations.
+The first four parentheses are now intermediates one to four;
+\begin{equation}
+\left[ \mathcal{I}_1 \right]_{ad} =  f_{ad} + \sum_{le} \langle al||de \rangle t_l^e ,
+\end{equation}
+\begin{equation}
+\left[ \mathcal{I}_2 \right]_{ld} = f_{ld} +  \sum_{me} \langle lm||de \rangle t_m^e  ,
+\end{equation}
+\begin{equation}
+\left[ \mathcal{I}_3 \right]_{li} = 
+f_{li}   + \sum_{md} \langle ml||di \rangle t_m^d 
++ \frac{1}{2} \sum_{mde} \langle lm||de \rangle t_{im}^{de}
++ \sum_d \left[\mathcal{I}_2 \right]_{ld} t_i^d ,
+\end{equation}
+\begin{equation}
+\begin{split}
+\left[ \mathcal{I}_4 \right]_{id}^{lm} &= \langle lm||id \rangle + \sum_e \langle lm||ed \rangle t_i^e \\
+&= \left[\mathcal{I}_5 \right]_{id}^{lm} + \sum_e \frac{1}{2}\langle lm||ed \rangle t_i^e ,
+\end{split}
+\end{equation}
+where the last intermediate depends on
+\begin{equation}
+\left[ \mathcal{I}_5 \right]_{id}^{lm} = \langle lm||id \rangle +\sum_e  \frac{1}{2} \langle lm||ed \rangle t_i^e .
+\end{equation}
+Applying such a simplification the $\hat{T}_1$ amplitude equations reduce to
+\begin{equation}
+\label{eq:CC:t1eq}
+\begin{split}
+0 =& f_{ai}
+ + \sum_{ld}  \langle la||di \rangle t_l^d  + \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{il}^{de} 
++ \sum_d  \left[\mathcal{I}_1\right]_{ad}  t_i^d   
+\\
+&- \sum_l \left[\mathcal{I}_3\right]_{li} t_l^a 
++ \frac{1}{2} \sum_{lmd} \left[\mathcal{I}_4\right]_{id}^{lm} t_{lm}^{da}
++ \sum_{ld} \left[\mathcal{I}_2\right]_{ld} t_{il}^{ad} .
+\end{split}
+\end{equation}
+
+
+We continue, repeating this procedure of simplification, with the $\hat{T}_2$ equations, relabelling indices and factoring out common terms,
+\begin{equation}
+\label{eq:CC:t2eq_raw}
+\begin{split}
+0 =&
+\langle ab || ij \rangle
++\frac{1}{2} \langle ab||de \rangle t_{ij}^{de}
+\\
+&
+- \hat{P}_{ij} \left[
+f_{li} + f_{ld} t_{i}^d + \langle ml||di \rangle t_m^d + \langle ml||de \rangle t_m^d t_i^e 
++\frac{1}{2}\langle ml||de \rangle t_{mi}^{de}  
+\right] t_{lj}^{ab}
+\\
+&
++ \frac{1}{2} \left[
+\langle lm||ij \rangle + \hat{P}_{ij} \langle lm||dj \rangle t_i^d 
++\frac{1}{2} \langle lm||de \rangle t_{ij}^{de} +\hat{P}_{ij} \frac{1}{2} \langle lm||de \rangle t_i^d t_j^e 
+\right]  t_{lm}^{ab}
+\\
+&
++ \hat{P}_{ab} \left[
+f_{bd} - f_{ld} t_l^b + \langle bl||de \rangle t_l^e - \langle lm||de \rangle t_m^e t_l^b 
++ \frac{1}{2} \langle lm||de \rangle t_{lm}^{eb}
+\right] t_{ij}^{ad} 
+\\
+&
++\hat{P}_{ij} \hat{P}_{ab} \left[
+\langle lb||dj \rangle - \langle lm||dj \rangle t_{m}^b + \langle bl||ed \rangle t_{j}^e
+- \langle lm||de \rangle t_j^e t_m^b + \frac{1}{2} \langle lm||de \rangle t_{mj}^{eb}
+\right] t_{il}^{ad}
+\\
+&
+-\hat{P}_{ab} \left[
+\langle al||ij \rangle + \frac{1}{2} \langle al||de \rangle t_{ij}^{de} 
++ \hat{P}_{ij} \langle al||dj \rangle t_i^d 
++ \hat{P}_{ij} \frac{1}{2} \langle al||de \rangle t_i^d t_j^e \right.
+\\&
+\left. + \frac{1}{2} \langle lm||ij \rangle t_m^a
++ \frac{1}{4} \langle lm||de \rangle t_m^a t_{ij}^{de} 
++ \hat{P}_{ij} \frac{1}{2} \langle lm||dj \rangle t_i^d t_m^a
++ \hat{P}_{ij} \frac{1}{4} \langle lm||de \rangle t_i^d t_j^e t_m^a
+\right] t_l^b
+\\
+&
++ \hat{P}_{ij} \left[
+\langle ab || dj \rangle + \frac{1}{2} \langle ab||de \rangle t_j^e
+\right] t_i^d .
+\end{split}
+\end{equation}
+Once again we define intermediates, still having the five intermediates from $\hat{T}_1$ in memory.
+The first parenthesis from $\hat{T}_2$ is already defined in $\left[\mathcal{I}_3\right]_{li}$.
+The following three parentheses are $\left[\mathcal{I}_6\right]$,$\left[\mathcal{I}_7\right]$ and $\left[\mathcal{I}_8\right]$ respectively;
+\begin{equation}
+\begin{split}
+\left[\mathcal{I}_6\right]_{ij}^{lm} 
+=& 
+\langle lm||ij \rangle + \hat{P}_{ij} \langle lm||dj \rangle t_i^d 
++\frac{1}{2} \langle lm||de \rangle t_{ij}^{de} +\hat{P}_{ij} \frac{1}{2} \langle lm||de \rangle t_i^d t_j^e 
+\\
+=&
+\langle lm||ij \rangle 
++\frac{1}{2} \langle lm||de \rangle t_{ij}^{de} 
+- \hat{P}_{ij} \left( \langle lm||jd \rangle t_i^d + \frac{1}{2} \langle lm||ed \rangle t_i^d t_j^e \right)
+\\
+=&
+\langle lm||ij \rangle 
++\frac{1}{2} \langle lm||de \rangle t_{ij}^{de}
+- \hat{P}_{ij} \left[\mathcal{I}_5\right]_{jd}^{lm} t_i^d ,
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\left[\mathcal{I}_7\right]_{bd} 
+=& 
+f_{bd} - f_{ld} t_l^b + \langle bl||de \rangle t_l^e - \langle lm||de \rangle t_m^e t_l^b 
++ \frac{1}{2} \langle lm||de \rangle t_{lm}^{eb}
+\\
+=& 
+\left[\mathcal{I}_1\right]_{bd} - \left[\mathcal{I}_2\right]_{ld} t_l^b 
++ \frac{1}{2} \langle lm||de \rangle t_{lm}^{eb},
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\left[\mathcal{I}_8\right]_{dj}^{lb}
+=&
+\langle lb||dj \rangle - \langle lm||dj \rangle t_{m}^b + \langle bl||ed \rangle t_{j}^e
+- \langle lm||de \rangle t_j^e t_m^b + \frac{1}{2} \langle lm||de \rangle t_{mj}^{eb}
+\\
+=&
+\left[\mathcal{I}_9\right]_{dj}^{lb}
++ \frac{1}{2} \langle bl||ed \rangle t_{j}^e
++ \left[\mathcal{I}_4\right]_{jd}^{lm} t_m^b 
++ \frac{1}{2} \langle lm||de \rangle t_{mj}^{eb}.
+\end{split}
+\end{equation}
+A ninth intermediate, $\left[\mathcal{I}_9\right]$, is a dependency for $\left[\mathcal{I}_8\right]$,
+\begin{equation}
+\begin{split}
+\left[\mathcal{I}_9\right]_{dj}^{lb}
+=& \langle lb||dj \rangle - \frac{1}{2} \langle lb||ed \rangle t_j^e ,
+\end{split}
+\end{equation}
+and the two last parentheses are
+\begin{equation}
+\begin{split}
+\left[\mathcal{I}_{10}\right]_{ij}^{al}
+=&
+\langle al||ij \rangle + \frac{1}{2} \langle al||de \rangle t_{ij}^{de} 
++ \hat{P}_{ij} \langle al||dj \rangle t_i^d 
++ \hat{P}_{ij} \frac{1}{2} \langle al||de \rangle t_i^d t_j^e  
+\\
++& \frac{1}{2} \langle lm||ij \rangle t_m^a
++ \frac{1}{4} \langle lm||de \rangle t_m^a t_{ij}^{de} 
++ \hat{P}_{ij} \frac{1}{2} \langle lm||dj \rangle t_i^d t_m^a
++ \hat{P}_{ij} \frac{1}{4} \langle lm||de \rangle t_i^d t_j^e t_m^a
+\\
+=&
+\langle al||ij \rangle + \frac{1}{2} \langle al||de \rangle t_{ij}^{de} 
+- \hat{P}_{ij} \left[\mathcal{I}_9\right]_{dj}^{la}  t_i^d
+  + \frac{1}{2}\left[\mathcal{I}_6\right]_{ij}^{lm} t_m^a ,
+\end{split}
+\end{equation}
+and	
+\begin{equation}
+\left[\mathcal{I}_{11}\right]_{dj}^{ab} 
+=
+\langle ab || dj \rangle + \frac{1}{2} \langle ab||de \rangle t_j^e .
+\end{equation}
+In its entirety we obtain a simplified $\hat{T}_2$ equation,
+\begin{equation}
+\label{eq:CC:t2eq}
+\begin{split}
+0
+=&
+\langle ab || ij \rangle
++ \frac{1}{2} \langle ab||de \rangle t_{ij}^{de}
+-  \left[\mathcal{I}_3\right]_{li} t_{lj}^{ab}
+-  \left[\mathcal{I}_3\right]_{lj} t_{il}^{ab}
+\\
+&
++  \frac{1}{2} \left[\mathcal{I}_6\right]_{ij}^{lm}  t_{lm}^{ab}
++  \left[\mathcal{I}_7\right]_{bd} t_{ij}^{ad} 
++ \left[\mathcal{I}_7\right]_{ad} t_{ij}^{db} 
+\\
+&
++\hat{P}_{ij} \hat{P}_{ab} \left[\mathcal{I}_8\right]_{dj}^{lb} t_{il}^{ad}
+-\hat{P}_{ab} \left[\mathcal{I}_{10}\right]_{ij}^{al} t_l^b
++ \hat{P}_{ij} \left[\mathcal{I}_{11}\right]_{dj}^{ab} t_i^d .
+\end{split}
+\end{equation}
+
+
+\paragraph*{}
+It is in principle impossible to find closed-form solutions for equation~\eqref{eq:CC:t1eq} and~\eqref{eq:CC:t2eq}, due to their non-linear behavior as well as the large dimensionality.
+Solutions can often be found anyhow, by employing iterative methods, to numerical precision when converging.
+We employ a `Jacobi's method'-like iterative strategy, subtracting the `diagonal' of the simplest terms containing $\hat{T}_1$-amplitudes from both sides of \eqref{eq:CC:t1eq},
+\begin{equation}
+\begin{split}
+\label{eq:CC:t1_iteration}
+\left.t'\right._i^a D_i^a =& f_{ai}
+ + \sum_{ld}  \langle la||di \rangle t_l^d  + \frac{1}{2} \sum_{lde} \langle al||de \rangle t_{il}^{de} 
++ \sum_d  \left[\mathcal{I}_1\right]_{ad}  t_i^d   
+\\
+&- \sum_l \left[\mathcal{I}_3\right]_{li} t_l^a 
++ \frac{1}{2} \sum_{lmd} \left[\mathcal{I}_4\right]_{id}^{lm} t_{lm}^{da}
++ \sum_{ld} \left[\mathcal{I}_2\right]_{ld} t_{il}^{ad}
++ t_i^a D_i^a,
+\end{split}
+\end{equation}
+where the negative diagonal is
+\begin{equation}
+D_{i}^{a} =  - \left[\mathcal{I}_1\right]_{aa} + \left[\mathcal{I}_3\right]_{ii}.
+\end{equation}
+Starting with a guess for $t_i^a$, usually zero or based on an earlier converged result, one calculates a new guess $\left. t' \right._i^a$.
+
+
+The same procedure\footnote{One may notice the use of the new $\hat{T}_1$ amplitudes, $\left. t' \right._i^a$, being used when iterating the $\hat{T}_2$ equations, a trick that often speeds up the convergence. This trick, however, require us to recalculate all intermediates depending on $t_i^a$ using the new amplitudes $\left. t' \right._i^a$ instead.} may equally well be applied to eq.~\eqref{eq:CC:t2eq},
+\begin{equation}
+\label{eq:CC:t2_iteration}
+\begin{split}
+\left. t' \right._{ij}^{ab} D_{ij}^{ab}
+=&
+\langle ab || ij \rangle
++ \frac{1}{2} \langle ab||de \rangle t_{ij}^{de}
+-  \left[\mathcal{I}_3\right]_{li} t_{lj}^{ab}
+-  \left[\mathcal{I}_3\right]_{lj} t_{il}^{ab}
+\\
+&
++  \frac{1}{2} \left[\mathcal{I}_6\right]_{ij}^{lm}  t_{lm}^{ab}
++  \left[\mathcal{I}_7\right]_{bd} t_{ij}^{ad} 
++ \left[\mathcal{I}_7\right]_{ad} t_{ij}^{db} 
+\\
+&
++\hat{P}_{ij} \hat{P}_{ab} \left[\mathcal{I}_8\right]_{dj}^{lb} t_{il}^{ad}
+-\hat{P}_{ab} \left[\mathcal{I}_{10}\right]_{ij}^{al} \left. t'\right._l^b
++ \hat{P}_{ij} \left[\mathcal{I}_{11}\right]_{dj}^{ab} \left. t'\right._i^d + t_{ij}^{ab} D_{ij}^{ab},
+\end{split}
+\end{equation}
+where the subtracted diagonal terms are
+\begin{equation}
+D_{ij}^{ab} 
+= 
+- \frac{1}{2} \langle ab||ab \rangle
++ \left[\mathcal{I}_3\right]_{ii}  
++ \left[\mathcal{I}_3\right]_{jj} 
+- \frac{1}{2} \left[\mathcal{I}_6\right]_{ij}^{ij} 
+- \left[\mathcal{I}_7\right]_{bb}
+- \left[\mathcal{I}_7\right]_{aa}.
+\end{equation}
+After one such iteration we have found a new guess for both $\hat{T}_1$ and $\hat{T}_2$ amplitudes 
+\begin{equation}
+\begin{split}
+t_i^a &= \left. t'\right._i^a , \\
+t_{ij}^{ab} &= \left. t' \right._{ij}^{ab} ,
+\end{split}
+\end{equation}
+and we repeat the process until results are converged, typically defined by 
+\begin{equation}
+\begin{split}
+|\left. t' \right._i^a - t_i^a| <& \epsilon_1 \\
+|\left. t' \right._{ij}^{ab} - t_{ij}^{ab} | <& \epsilon_2   .
+\end{split}
+\end{equation} 
+In practice it is more convenient to use the single criterion,
+\begin{equation}
+\label{eq:CC:convergence}
+|\Delta E_{CCSD}(t') - \Delta E_{CCSD}(t)| < \epsilon_E ,
+\end{equation}
+because we now can control the precision of our results through $\epsilon_E$.
+
+
+
+\subsubsection{Coupled-cluster class -- `CC'}
+We have implemented the iteration scheme defined in \eqref{eq:CC:t1_iteration},~\eqref{eq:CC:t2_iteration}~and~\eqref{eq:CC:convergence} in a class, called `CC'.
+This class should be able to work with any system derived from the `System' base class, effectively exploiting the sparseness of matrix elements if defined in the system's `Basis'.
+
+The workhorse in `CC' is the method `solve\_ground\_state\_energy()', which contains a loop iterating through the scheme.
+The implementation in listing~\ref{lst:CC:iterationLoop} illustrates the operations needed within each iteration.
+\begin{lstlisting}[float,label=lst:CC:iterationLoop,caption=The main content of the iteration loop in CC::solve\_ground\_state\_energy().]
+//Calculate intermediates for T1
+mat i1 = c_i1(t1_old);
+mat i2 = c_i2(t1_old);
+mat i3 = c_i3(i2, t1_old, t2_old);
+vector<mat> i5 = c_i5(t1_old);
+vector<mat> i4 = c_i4(i5, t1_old);
+
+//Calculate diagonal D_i^a
+mat d1 = c_d1(i1, i3);
+
+//One iteration on T1-equations
+mat t1_new = c_t1(i1, i2, i3, i4, d1, t1_old, t2_old);
+
+//Calculate intermediates for T2, usign the new t_i^a values
+i1 = c_i1(t1_new);
+i2 = c_i2(t1_new);
+i3 = c_i3(i2, t1_new, t2_old);
+i5 = c_i5(t1_new);
+i4 = c_i4(i5, t1_new);
+vector<mat> i6 = c_i6(i5, t1_new, t2_old);
+mat i7 = c_i7(i1, i2, t1_new, t2_old);
+vector<mat> i9 = c_i9(t1_new);
+vector<mat> i8 = c_i8(i4, i9, t1_new, t2_old);
+vector<mat> i10 = c_i10(i6, i9, t1_new, t2_old);
+vector<mat> i11 = c_i11(t1_new);
+
+//Diagonal D_{ij}^{ab}
+vector<mat> d2 = c_d2(i3, i6, i7);
+
+//One iteration on T2-equations
+vector<mat> t2_new = c_t2(i3, i6, i7, i8, i10, i11, d2, t1_new, t2_old);
+
+//Store amplitudes for next iteration
+t1_old = t1_new;
+t2_old = t2_new;
+\end{lstlisting}
+It is a slightly stripped-down version as the complete implementation includes methods for printing debugging information, timing the different terms, as well as a test of convergence.
+The motivation to contain the different terms in multiple methods is mainly motivated by the need for a structured code, but at the same time it may ease debugging and profiling.
+Before starting the iteration scheme, an initial guess for the amplitudes is needed, by default zero as in listing~\ref{lst:CC:initialAmplitudes}.
+\begin{lstlisting}[float,label=lst:CC:initialAmplitudes,caption={An initial guess for the amplitudes is needed before doing iterations. By default all amplitudes are zero, unless another starting point is supplied in `t1\_stored' and `t2\_stored' at the same time as the switch `use\_t' is set to true. Amplitudes, $t_{ij}^{ab}$, are stored as one matrix for each channel, $\lambda$, $\left.t_{(\lambda)}\right._{\mu}^{\xi}$.\vspace{2mm}}]
+mat t1_old; //T1 amplitudes
+vector<mat> t2_old; //T2 amplitudes
+
+if (use_t)
+{ //Use a supplied initial guess
+	t1_old = t1_stored;
+    t2_old = t2_stored;
+    
+} else
+{ //Use the default guess t_ij^ab = 0    
+	Basis const * basis = sys->get_basis();
+    vector<uvec> const * mapPP = basis->get_map_lmdXI_de();
+    vector<uvec> const * mapHH = basis->get_map_lmdMU_lm();
+    
+    //T1 is a (n_p x n_h) matrix
+    t1_old = zeros<mat > (basis->get_nP(), basis->get_nH());
+    
+    //T2 has a (n_xi x n_mu) matrix for each channel, lambda.
+    for (size_t lmd = 0; lmd < basis->dim_lmd_2p(); lmd++)
+    {
+    	size_t dimXI = mapPP->at(lmd).size();
+        size_t dimMU = mapHH->at(lmd).size();
+        t2_old.push_back(zeros<mat > (dimXI, dimMU));
+	}
+}
+\end{lstlisting}
+An important feature is how all matrices with four indices is effectively stored as a block-diagonal structure, of type `std::vector\textless arma::mat\textgreater'.
+One matrix is included for each channel, $\lambda$, indexed by configurations $\mu$, $\nu$ or $\xi$.
+
+\paragraph*{}
+In the notation of channels and configurations some terms are more straight forward to implement than other, as shown by the second term in the $\hat{T}_2$ equations~\eqref{eq:CC:t2_iteration}, here stated in a slightly different notation,
+\begin{equation}
+\langle ab |t'_2 | ij \rangle \leftarrow \frac{1}{2} \sum_{de} \langle ab || de \rangle \langle de |t_2| ij \rangle .
+\end{equation}
+In terms of the diagonal blocks,
+\begin{equation}
+\label{eq:CC:t2_t2_diag}
+\langle \xi | t'_2 | \mu \rangle_{(\lambda)} \leftarrow \frac{1}{2} \sum_{\xi'} \langle \xi || \xi' \rangle_{(\lambda)} \langle \xi' |t_2| \mu \rangle_{(\lambda)},
+\end{equation}
+this can easily be recognized as simple matrix multiplications, one for each diagonal block, implemented as shown in listing~\ref{lst:CC:c_t2_t2}.
+\begin{lstlisting}[float,label=lst:CC:c_t2_t2,caption={Implementation of the second term in the $\hat{T}_2$ equations.}]
+for (int lmd = 0; lmd < basis->dim_lmd_2p(); lmd++)
+	t2_new.at(lmd) += 0.5 * sys->get_v_pppp()->at(lmd) * t2_old.at(lmd);
+\end{lstlisting}
+
+
+Unfortunately, not all terms are on a form directly suitable for matrix multiplication.
+We put forth the second term from intermediate $\left[\mathcal{I}_{11}\right]$,
+\begin{equation}
+\left[\mathcal{I}_{11}\right]_{dj}^{ab} \leftarrow \frac{1}{2} \sum_{e} \langle ab||de \rangle  t_j^e ,
+\end{equation}
+or in another notation
+\begin{equation}
+\langle ab | \mathcal{I}_{11} | dj \rangle \leftarrow \frac{1}{2} \sum_{e} \langle ab||de \rangle \langle e | t_1 | j \rangle ,
+\end{equation}
+as an example.
+The main problem with this term is the summation over $e$, whereas elements with four indices are stored using configurations, i.e.
+\begin{equation}
+\langle \xi_{ab} | \mathcal{I}_{11} | \nu_{dj} \rangle_{\lambda} ,
+\textrm{\hspace{3mm}and\hspace{3mm}}
+\langle \xi_{ab}||\xi_{de} \rangle_{\lambda} .
+\end{equation}
+In its initial form the mappings $de \rightarrow \xi_{de}$ and $dj \rightarrow \nu_{dj}$ are needed for all possible combinations of $d,e,j$, implying poor performance.
+If we could reindex this term, making it suitable for efficient matrix multiplication, the number of times mappings are needed would also be reduced.
+We do this in a simple way,
+\begin{equation}
+\langle abd^{-1} | \mathcal{I}_{11} | j \rangle_{\lambda_{1p}} \leftarrow \frac{1}{2}
+\langle abd^{-1} || e \rangle_{\lambda_{1p}} \langle e |t_1|j\rangle_{\lambda_{1p}} ,
+\end{equation}
+where new channels and configurations are declared, redefining symmetries to be 
+\begin{equation}
+\left.
+\begin{array}{ccccccc}
+\overbrace{m^a + m^b}^{\lambda} 
+&=&
+\overbrace{m^d + m^e}^{\lambda} 
+& \rightarrow &
+\overbrace{m^a + m^b - m^d}^{\lambda_{1p}} 
+&=&
+\overbrace{m^e}^{\lambda_{1p}} \\
+%%%%
+m_s^a + m_s^b 
+&=& 
+m_s^d + m_s^e 
+&\rightarrow & 
+m_s^a + m_s^b - m_s^d 
+&=&
+m_s^e 
+\end{array}
+\right\rbrace \textrm{ for } \hat{V}_{N}, 
+\end{equation}
+and
+\begin{equation}
+\left.
+\begin{array}{ccccccc}
+\overbrace{m^a + m^b}^{\lambda} 
+&=&
+\overbrace{m^d + m^j}^{\lambda} 
+& \rightarrow &
+\overbrace{m^a + m^b - m^d}^{\lambda_{1p}} 
+&=&
+\overbrace{m^j}^{\lambda_{1p}} \\
+%%%%
+m_s^a + m_s^b 
+&=& 
+m_s^d + m_s^j 
+&\rightarrow & 
+m_s^a + m_s^b - m_s^d 
+&=&
+m_s^j 
+\end{array}
+\right\rbrace \textrm{ for } \mathcal{I}_{11} .
+\end{equation}
+The index of only one particle's state determines the new channels, thus labelled $\lambda_{1p}$, which are also applicable to the $\hat{T}_1$ amplitudes, $t_j^e$.
+All indices are effectively represented by configurations within each one-particle channel, making this programmable as multiplication of block-diagonal matrices.
+Implementing this we encounter four stages;
+\begin{enumerate}
+\item Map from $\langle \xi_{ab}||\xi_{de} \rangle_{\lambda}$ into $\langle abd^{-1} || e \rangle_{\lambda_{1p}}$, only required on the first iteration, or earlier, as the interaction matrices do not change.
+\item Map $\langle e | t_1 | j \rangle$ into $\langle e |t_1|j\rangle_{\lambda_{1p}}$ at each iteration.
+\item Perform a block diagonal matrix multiplication,
+\begin{equation}
+\langle abd^{-1} | \mathcal{I}_{11} | j \rangle_{\lambda_{1p}} = \frac{1}{2} \sum_e
+\langle abd^{-1} || e \rangle_{\lambda_{1p}} \langle e |t_1|j\rangle_{\lambda_{1p}} .
+\end{equation}
+\item Add the results back into the intermediate,
+\begin{equation}
+\langle ab | \mathcal{I}_{11} | dj \rangle
++=
+\langle abd^{-1} | \mathcal{I}_{11} | j \rangle_{\lambda_{1p}} .
+\end{equation}
+\end{enumerate}
+The four stages are illustrated by listings~\ref{lst:CC:i11_2_1_V}, \ref{lst:CC:i11_2_1_t1}, \ref{lst:CC:i11_2_2} and~\ref{lst:CC:i11_2_3}.
+\begin{lstlisting}[float,label={lst:CC:i11_2_1_V},caption={Mapping from $\langle \xi_{ab}||\xi_{de} \rangle_{\lambda} $ into $\langle abd^{-1} || e \rangle_{\lambda_{1p}}$, only needed once because the matrix elements stay constant during simulations.}]
+//Interaction elements <a_b_d1||e>
+vector<mat> v_abd1_e; //Block diagonal matrix
+
+//Allocate blocks filled with zeros.
+for (int lmd1 = 0; lmd1 < basis->dim_lmd_1p(); lmd1++)
+{ 
+	int dimE = map_p.at(lmd1).size();
+    int dimABD1 = map_p_p_p1.at(lmd1).size();
+	v_abd1_e.push_back(zeros<mat > (dimABD1, dimE));
+}
+
+//Fill elements from v_pppp
+for (int lmd2 = 0; lmd2 < basis->dim_lmd_2p(); lmd2++)
+{ 
+	int dimXI = mapPP->at(lmd2).size();
+    for (int xi_ab = 0; xi_ab < dimXI; xi_ab++)
+    	for (int xi_de = 0; xi_de < dimXI; xi_de++)
+        { 
+        	//Map configurations into indices
+        	int ab = mapPP->at(lmd2)(xi_ab);
+            int a = ab % nP;
+            int b = ab / nP;
+            int de = mapPP->at(lmd2)(xi_de);
+            int d = de % nP;
+            int e = de / nP;
+
+			//Find the new redefined channels and configurations
+            int abd = a + (b + d * nP) * nP; 
+            int abd_idx = map_p_p_p1_inv(1, abd); 
+            int lmd1 = map_p_inv(0, e);
+            int e_idx = map_p_inv(1, e);
+
+			//Insert element            
+			v_abd1_e.at(lmd1)(abd_idx, e_idx) = sys->get_v_pppp()->at(lmd2)(xi_ab, xi_de);
+		}
+}
+\end{lstlisting}
+\begin{lstlisting}[float,label={lst:CC:i11_2_1_t1},caption={Mapping from $\langle e | t_1 | j \rangle$ into $\langle e |t_1|j\rangle_{\lambda_{1p}}$, required at each iteration.}]
+//Rewriting t1
+vector<mat> t1_e_j;
+for (int lmd1 = 0; lmd1 < dimLMD1; lmd1++)
+{
+	//Allocate a zero-filled matrix for each channel.
+	int dimP = map_p.at(lmd1).size();
+    int dimH = map_h.at(lmd1).size();
+    t1_e_j.push_back(zeros<mat > (dimP, dimH));
+
+	for (int e_idx = 0; e_idx < dimP; e_idx++)
+    	for (int j_idx = 0; j_idx < dimH; j_idx++)
+        {
+        	//Find indices from configurations
+        	int e = map_p.at(lmd1)(e_idx);
+            int j = map_h.at(lmd1)(j_idx);
+
+			//Insert correct element
+            t1_e_j.at(lmd1)(e_idx, j_idx) = t1_old(e, j);
+		}
+}	
+\end{lstlisting}
+\begin{lstlisting}[float,label={lst:CC:i11_2_2},caption={Multiply each diagonal block.}]
+//Matrix mult.
+vector<mat> i11_abd1_j;
+for (int lmd1 = 0; lmd1 < dimLMD1; lmd1++)
+	i11_abd1_j.push_back(0.5 * v_abd1_e.at(lmd1) * t1_e_j.at(lmd1));
+\end{lstlisting}
+\begin{lstlisting}[float,label={lst:CC:i11_2_3},caption={Terms are added back into $\mathcal{I}_{11}$.}]
+//Add terms back into i11
+for (int lmd1 = 0; lmd1 < dimLMD1; lmd1++)
+{
+	int dimABD1 = map_p_p_p1.at(lmd1).size();
+    int dimJ = map_h.at(lmd1).size();
+
+    for (int abd_idx = 0; abd_idx < dimABD1; abd_idx++)
+    	for (int j_idx = 0; j_idx < dimJ; j_idx++)
+        {
+        	//Map lmd1 configurations into indices
+        	int abd = map_p_p_p1.at(lmd1)(abd_idx);
+            int a = abd % nP;
+            int bd = abd / nP;
+            int b = bd % nP;
+            int d = bd / nP;
+            int j = map_h.at(lmd1)(j_idx);
+
+			//Map indices into lmd configurations
+            int ab = a + b * nP;
+            int dj = d + j * nP;
+            int lmd2 = (*mapPPinv)(0, ab);
+            int xi_ab = (*mapPPinv)(1, ab);
+            int nu_dj = (*mapPHinv)(1, dj);
+
+			//Add element
+			i11.at(lmd2)(xi_ab, nu_dj) += i11_abd1_j.at(lmd1)(abd_idx, j_idx);
+		}
+}
+\end{lstlisting}
+
+
+
+
+
+\section{Hartree-Fock method}
+The Coupled Cluster method appears as a convenient method, yielding accurate results within reasonable computation time.
+It depends, however, on an initial guess for the amplitudes sufficiently close to the solution.
+Without this guess results will converge slowly, or may not even converge at all.
+The usual starting point is to set all amplitudes to zero, a good guess whenever the solution can be well approximated by a simple reference determinant.
+If this is not sufficient one should either find a better initial guess for the amplitudes or find a better set of basis functions.
+A better initial guess can be hard to find, but basis functions can be transformed by a Hartree-Fock calculation.
+
+\paragraph*{}
+Hartree-Fock (HF) is another \textit{ab initio} many-body method, often used to generate a starting point for later calculations using different \textit{post-Hartree-Fock} methods.
+Initial work was done by Hartree, developing the self-consistent field method, as soon as a year after Schrödinger published his derivation of the well known Schrödinger equation.
+Fock revised Hartree's work in 1930 by pointing out that the self-consistent field method did not fully obey Pauli's exclusion principle, and corrected the method into Hartree-Fock on a functional form.
+
+We will introduce the Hartree-Fock method in the form of linear algebra, employing the same philosophy, following a variational approach.
+With a reference determinant $|\Phi_0^{(HF)} \rangle$ built out of any basis set, one could never underestimate the ground-state energy expectation value, 
+\begin{equation}
+\langle \Phi_0^{(HF)} | \hat{H} | \Phi_0^{(HF)} \rangle = E_{ref} 
+\geq 
+\langle \Psi | \hat{H} | \Psi \rangle = E_0 ,
+\end{equation}
+where $E_0$ is the ground state of the exact solution $|\Psi\rangle$.
+Starting with a basis set $|\alpha \rangle$ and performing a unitary transformation
+\begin{equation}
+| p \rangle = \sum_{\alpha} C_{p\alpha} |\alpha \rangle ,
+\end{equation}
+we will try to minimize the expectation value by varying the unitary matrix $C$.
+If $|\Phi_0^{(HF)}\rangle $ is built up by the $N$ lowest-lying states in the transformed basis we would find its expectation value to be 
+\begin{equation}
+E\left[\Phi_0^{(HF)}\right] = \langle \Phi_0^{(HF)} | \hat{H} | \Phi_0^{(HF)} \rangle 
+= 
+\sum_i \langle i | \hat{h}_0 | i \rangle 
++
+\frac{1}{2} \sum_{ij} \langle ij||ij\rangle ,
+\end{equation}
+expressed in terms of our initial basis as 
+\begin{equation}
+\label{eq:CC:hfEnergy}
+E\left[\Phi_0^{(HF)}\right] 
+=
+\sum_i \sum_{\alpha \beta} C_{i\alpha}^{*} C_{i\beta} \langle \alpha | \hat{h}_0 | \beta \rangle 
++
+\frac{1}{2} \sum_{ij} \sum_{\alpha \beta \gamma \delta}
+ C_{i\alpha}^{*} C_{j\beta}^{*} C_{i\gamma} C_{j\delta} \langle \alpha \beta || \gamma \delta \rangle .
+\end{equation}
+It is here understood that $i$ and $j$ are hole-states in the HF basis, whereas Greek letters come from the original basis whose sums loop over the entire basis set.
+
+Introducing Lagrangian multipliers $\sum_i \omega_i \sum_{\alpha} C_{i\alpha}^{*} C_{i\alpha}$, we find the minima of the energy by
+\begin{equation}
+\begin{split}
+0 
+=&
+\frac{\partial}{\partial C^{*}_{k\kappa}} \left(E\left[\Phi_0^{(HF)}\right]  - \sum_i \omega_i \sum_{\alpha} C_{i\alpha}^{*} C_{i\alpha} \right) \\
+=&
+\sum_{ \beta} C_{k\beta} \langle \kappa | \hat{h}_0 | \beta \rangle 
++
+ \sum_{j} \sum_{ \beta \gamma \delta}
+C_{j\beta}^{*} C_{k\gamma} C_{j\delta} \langle \kappa \beta || \gamma \delta \rangle 
+- 
+\omega_k  C_{k\kappa} ,
+\end{split}
+\end{equation}
+which should hold for all $k,\kappa$, resulting in 
+\begin{equation}
+\label{eq:CC:hfEq}
+\sum_{ \gamma} C_{k\gamma} \left[ 
+\langle \alpha | \hat{h}_0 | \gamma \rangle 
++
+ \sum_{j} \sum_{ \beta \delta}
+C_{j\beta}^{*} C_{j\delta} \langle \alpha \beta || \gamma \delta \rangle 
+\right] 
+=
+\omega_k  C_{k\alpha}  .
+\end{equation}
+The Hartree-Fock Hamiltonian is defined as
+\begin{equation}
+\label{eq:CC:hf_hamilton}
+\hat{h}_{\alpha\gamma}^{HF}
+= 
+\langle \alpha | \hat{h}_0 | \gamma \rangle 
++
+ \sum_{j} \sum_{ \beta \delta}
+C_{j\beta}^{*} C_{j\delta} \langle \alpha \beta || \gamma \delta \rangle ,
+\end{equation}
+in order to simplify the Hartree-Fock equations~\eqref{eq:CC:hfEq} to
+\begin{equation}
+\sum_{ \gamma} \hat{h}_{\alpha\gamma}^{HF} C_{k\gamma}
+=
+\omega_k  C_{k\alpha}  .
+\end{equation}
+In terms of linear algebra the transposed coefficient matrix holds eigenvectors of the Hartree-Fock Hamiltonian \eqref{eq:CC:hf_hamilton}, with eigenvalues $\omega_k$,
+\begin{equation}
+\hat{h}^{HF} (C^T)_{col(k)}
+=
+\omega_k  (C^T)_{col(k)} .
+\end{equation}
+
+
+The HF Hamiltonian~\eqref{eq:CC:hf_hamilton} depends on the transformation coefficient matrix, which in turn consist of the Hamiltonian's eigenvectors, a circular dependency that makes it hard to find exact solutions, and one needs to solve it iteratively.
+A typical approach is to start with an untransformed basis, being equivalent to setting $C = \hat{1}$. 
+With this guess for $C$ one calculates $\hat{h}^{HF}$, whose eigenvectors leads to a new `guess' for $C$. 
+After repeating this procedure a number of times, we abort the iterations when the results converges.
+
+\paragraph*{}
+To obtain a HF basis suitable for the CCSD machinery one simply redefines matrix elements to be
+\begin{equation}
+\langle p | \hat{h}_0 | q \rangle = \sum_{\alpha \beta} C_{p\alpha}^{*} C_{q \beta} \langle \alpha | \hat{h}_0 | \beta \rangle ,
+\end{equation}
+and 
+\begin{equation}
+\langle pq || rs \rangle = \sum_{\alpha \beta \gamma \delta} C_{p\alpha}^{*} C_{q\beta}^{*} C_{r\gamma} C_{s\delta} \langle \alpha \beta || \gamma \delta \rangle .
+\end{equation}
+
+
+
+\subsection{Implementing HF}
+In order to create an efficient Hartree-Fock implementation one needs to rewrite sums into matrix operations, making it as `vectorized' as possible.
+The first simplification we make is to define
+\begin{equation}
+C^{i}_{pq} = \sum_k C_{kp} C_{kq} ,
+\end{equation}
+easily vectorized in listing~\ref{lst:CC:hfCi}.
+\begin{lstlisting}[float,label={lst:CC:hfCi},caption={Vectorized procedure to obtain $C^{i}$ (C\_inner).}]
+mat C_holeXall = C.submat(span(0, numHOLEstates - 1), span::all);
+mat C_inner = C_holeXall.t() * C_holeXall;
+\end{lstlisting}
+It is now possible to simplify the energy from equation~\ref{eq:CC:hfEnergy} to
+\begin{equation}
+E\left[\Phi_0^{(HF)}\right] 
+=
+\sum_{\alpha \beta} C^i_{\alpha\beta} \langle \alpha | \hat{h}_0 | \beta \rangle 
++
+\frac{1}{2} \sum_{\alpha \beta \gamma \delta}
+ C^i_{\alpha\gamma} C^i_{\beta\delta} \langle \alpha \beta || \gamma \delta \rangle .
+\end{equation}
+Although it is slightly simplified it is not possible to streamline the two-particle part due to indices not matching.
+Once again we solve the complication by remapping the matrices.
+The interaction is remapped to matrix blocks diagonal in a redefined channel, $\lambda'$,
+\begin{equation}
+\langle \alpha \beta || \gamma \delta \rangle
+\rightarrow
+\langle \alpha \gamma^{-1} || \delta \beta^{-1} \rangle_{\lambda'}.
+\end{equation}
+Also mapped are the coefficients into vectors in the same channels, one column vector with permuted indices (P), and one row vector that is not (N),
+\begin{equation}
+\label{eq:CC:mapHFcoeff}
+\begin{split}
+C^i_{\alpha \gamma} &\rightarrow C^{N}(\lambda')_{\alpha \gamma^{-1}}  \\
+C^i_{\beta \delta} &\rightarrow C^{P}(\lambda')_{\delta \beta^{-1}} .
+\end{split}
+\end{equation}
+In total we now have 
+\begin{equation}
+\label{eq:CC:hfEmatrixform}
+\begin{split}
+E\left[\Phi_0^{(HF)}\right] 
+=&
+\sum_{\alpha \beta} C^i_{\alpha\beta} \langle \alpha | \hat{h}_0 | \beta \rangle \\
++&
+\frac{1}{2} \sum_{\lambda'} 
+\sum_{(\alpha \gamma^{-1})}
+\sum_{(\delta\beta^{-1})}
+C^{N}(\lambda')_{\alpha \gamma^{-1}}
+\langle \alpha \gamma^{-1} || \delta \beta^{-1} \rangle_{\lambda'}
+C^{P}(\lambda')_{\delta \beta^{-1}}  .
+\end{split}
+\end{equation}
+The energy from single-particle interactions can be obtained by the one simple statement in listing~\ref{lst:CC:hfE_h0}.
+\begin{lstlisting}[float,label={lst:CC:hfE_h0},caption={H0 part of hf E}]
+double E_ref = accu(C_inner % h0);
+\end{lstlisting}
+Two-particle interactions are slightly more complicated since we store matrices based on the region they span,
+\begin{equation}
+\langle hh||hh\rangle, \langle ph||hh\rangle, \langle pp||hh \rangle, \langle pp||ph \rangle, \langle pp||pp \rangle ,
+\end{equation}
+but we need to account for all possibilities;
+\begin{equation}
+\label{eq:CC:hfTPpermutation}
+\begin{split}
+&\langle hh||hh\rangle, \\
+&\langle ph||hh\rangle, \langle hp||hh \rangle, \langle hh||ph\rangle, \langle hh||hp\rangle, \\
+&\langle pp||hh \rangle, \langle hh||pp \rangle, \\
+&\langle ph||ph \rangle, \langle ph||hp\rangle, \langle hp||hp\rangle, \langle hp||ph\rangle,\\
+&\langle pp||ph \rangle, \langle pp||hp \rangle, \langle ph||pp \rangle, \langle hp||pp\rangle, \\
+&\langle pp||pp \rangle .
+\end{split}
+\end{equation}
+For this reason one needs to sort the coefficients whether the span $hh$, $ph$, $hp$ or $pp$, created in listing~\ref{lst:CC:hfE_C}, before we calculate the energy from the two-particle interactions in~\eqref{eq:CC:hfEmatrixform}.
+Taking into account the different permutations of the indices seen from~\eqref{eq:CC:hfTPpermutation}, we get a corresponding number  vector-matrix-vector products, illustrated for one channel in~\ref{lst:CC:hf_E_tp}.
+
+
+
+
+
+\begin{lstlisting}[float,label={lst:CC:hfE_C},caption={Filling the coefficients from eq~\eqref{eq:CC:mapHFcoeff}. $C^N$ is stored in `C\_xx1' whereas $C^P$ is stored in `C\_xx1\_t'.}]
+//FIll C_hh1
+size_t dimHH1 = map_hh1.at(lmd).size();
+vec C_hh1 = zeros<vec > (dimHH1);
+vec C_hh1_t = zeros<vec > (dimHH1);
+for (int idx_db1 = 0; idx_db1 < dimHH1; idx_db1++)
+{
+    int db = map_hh1.at(lmd)(idx_db1);
+    int delta = db % nH;
+    int beta = db / nH;
+    C_hh1_t(idx_db1) = C_inner(beta, delta);
+	C_hh1(idx_db1) = C_inner(delta, beta);
+}
+//Fill C_pp1
+size_t dimPP1 = map_pp1.at(lmd).size();
+vec C_pp1 = zeros<vec > (dimPP1);
+vec C_pp1_t = zeros<vec > (dimPP1);
+for (int idx_db1 = 0; idx_db1 < dimPP1; idx_db1++)
+{
+    int db = map_pp1.at(lmd)(idx_db1);
+    int delta = db % nP + nH;
+    int beta = db / nP + nH;
+    C_pp1(idx_db1) = C_inner(delta, beta);
+	C_pp1_t(idx_db1) = C_inner(beta, delta);
+}
+//Fill C_ph1
+size_t dimPH1 = map_ph1.at(lmd).size();
+vec C_ph1 = zeros<vec > (dimPH1);
+vec C_ph1_t = zeros<vec > (dimPH1);
+for (int idx_ak1 = 0; idx_ak1 < dimPH1; idx_ak1++)
+{
+    int ak = map_ph1.at(lmd)(idx_ak1);
+    int a = ak % nP + nH;
+    int k = ak / nP;
+    C_ph1(idx_ak1) = C_inner(a, k);
+	C_ph1_t(idx_ak1) = C_inner(k, a);
+}
+//Fill C_hp1
+size_t dimHP1 = map_hp1.at(lmd).size();
+vec C_hp1 = zeros<vec > (dimHP1);
+vec C_hp1_t = zeros<vec > (dimHP1);
+for (int idx_lb1 = 0; idx_lb1 < dimHP1; idx_lb1++)
+{
+    int bl = map_hp1.at(lmd)(idx_lb1);
+    int b = bl % nP + nH;
+    int l = bl / nP;
+    C_hp1(idx_lb1) = C_inner(l, b);
+	C_hp1_t(idx_lb1) = C_inner(b, l);
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[float,label={lst:CC:hf_E_tp},caption={Two-particle part of HF energy.}]
+E_tpPart = 0;
+
+//hhhh
+E_tpPart += as_scalar(C_hh1.t()*v_ik1_lj1.at(lmd)*C_hh1_t);
+//phhh
+E_tpPart += as_scalar(C_ph1.t()*v_ak1_lj1.at(lmd)*C_hh1_t);
+E_tpPart += as_scalar(C_ph1.t()*v_ak1_lj1.at(lmd)*C_hh1_t);
+E_tpPart += as_scalar(C_ph1_t.t()*v_ak1_lj1.at(lmd)*C_hh1);
+E_tpPart += as_scalar(C_ph1_t.t()*v_ak1_lj1.at(lmd)*C_hh1);
+//pphh
+E_tpPart += as_scalar(C_ph1.t()*v_ak1_lb1.at(lmd)*C_hp1_t);
+E_tpPart += as_scalar(C_ph1_t.t()*v_ak1_lb1.at(lmd)*C_hp1);
+//phph
+E_tpPart += as_scalar(C_pp1.t()*v_ac1_lj1.at(lmd)*C_hh1_t);
+E_tpPart += as_scalar(C_pp1.t()*v_ac1_lj1.at(lmd)*C_hh1_t);
+E_tpPart -= as_scalar(C_ph1.t()*v_al1_cj1.at(lmd)*C_ph1_t);
+E_tpPart -= as_scalar(C_ph1.t()*v_al1_cj1.at(lmd)*C_ph1_t);
+//ppph
+E_tpPart += as_scalar(C_pp1.t()*v_ac1_lb1.at(lmd)*C_hp1_t);
+E_tpPart += as_scalar(C_pp1.t()*v_ac1_lb1.at(lmd)*C_hp1_t);
+E_tpPart += as_scalar(C_pp1_t.t()*v_ac1_lb1.at(lmd)*C_hp1);
+E_tpPart += as_scalar(C_pp1_t.t()*v_ac1_lb1.at(lmd)*C_hp1);
+//pppp
+E_tpPart += as_scalar(C_pp1.t()*v_ac1_db1.at(lmd)*C_pp1_t);
+
+E_ref += 0.5 * E_tpPart;
+\end{lstlisting}
+
+
+
+
+

@@ -1,0 +1,69 @@
+Apart from the SRG method, there exist several other popular many-methods, that can be used to solve the problem of interacting electrons. Two of these methods have been implemented by us in the course of this thesis, and will therefore present them in more detail:\\
+The first method is the Hartree-Fock (HF) method, which converts the problem of interacting fermions to an effective single-particle problem. The second method is the Diffusion Monte Carlo (DMC) method, a quantum Monte Carlo method solving Schr\"odinger's equation by employing a Green's function.
+
+\section{Hartree-Fock}
+\label{sec:HF}
+The Hartree-Fock method is an \textit{ab initio} method, which was first introduced as self-consistent field method by Hartree, and later corrected and extended by Fock \cite{thijssen2007computational}. Its main assumption is that each particle of the system moves in a mean field potential which is set up by all the other particles in the system. That way, the complicated two-body potential is replaced by an effective single-particle potential, which is much easier to handle. This simple approximation is often the first starting point in many-body calculations and used as input for more complex methods, such as Coupled Cluster (see for example \cite{PhysRevB.84.115302}) and variational Monte Carlo methods. Since in this thesis, we concentrate on closed-shell systems where all orbitals are doubly occupied, we will only present the Restricted Hartree-Fock method. Open-shell systems, where some of the electrons are not paired, can be treated with the Unrestricted Hartree-Fock method, see \cite{thijssen2007computational}.
+
+As an ansatz, one assumes that the wave function can be modelled as single Slater determinant. Based on the variational principle, stating that with an arbitrary wave function, the expectation value of the Hamiltonian can never be smaller than the real ground state energy $E_0$,
+\be 
+E[\Phi] = \frac{\langle \Phi|\hat{H}|\Phi\rangle}{\langle\Phi|\Phi\rangle} \geq E_0,
+\ee
+the ansatz wave function is assigned a set of parameters, that are to be minimized. In this thesis, we use  the approach to expand the single-particle states $|p\rangle$, which we refer to as \mbox{\textit{HF orbitals}}, in terms of a known basis,
+\be 
+|p\rangle = \sum_{\alpha} C_{p\alpha} |\alpha\rangle.
+\label{eq:conversion} 
+\ee
+The elements of the unitary matrix $C$ are used as variational parameters. For a two-body Hamiltonian, as given in Eq. (\ref{eq:tbHamiltonian}), we restate the ground state energy:
+\be
+E \left[ \Phi_0^{HF}\right] = \langle \Phi_0^ {HF} | \hat{H} | \Phi_0^{HF} \rangle = \sum_i \langle i | \hat{h}^{(0)} | i \rangle + \frac{1}{2} \sum_{ij} \langle ij ||ij \rangle.
+\label{eq:HF1}
+\ee
+The wave function $\Phi_0^{HF}$ is a Slater determinant of HF orbitals, and inserting relation (\ref{eq:conversion}), we obtain
+\be
+E \left[ \Phi_0^{HF}\right] = \sum_i \sum_{\alpha \beta} C_{i\alpha}^* C_{i\beta} \langle \alpha | \hat{h}^{(0)}| \beta \rangle + \frac{1}{2} \sum_{ij} \sum_{\alpha\beta\gamma\delta} C_{i\alpha}^* C_{j\beta}^* C_{i\gamma} C_{j\delta} \langle \alpha\beta || \gamma\delta\rangle.
+\label{eq:HF2}
+\ee
+As in the previous chapters, the indices $\lbrace i,j\rbrace$ are assumed to sum over all hole states below the Fermi level. Note that the sums over greek indices run over the complete set of basis functions, which is in principal infinitely large.\\
+To minimize the energy functional (\ref{eq:HF1}), we employ the technique of Lagrange multipliers, with the constraint
+\be 
+\delta_{pq} = \langle p | q \rangle = \sum_{\alpha\beta} C^*_{p\alpha}C_{q\beta} = \sum_{\alpha} C^*_{p\alpha} C_{q\alpha}.
+\ee 
+The function to be minimized reads
+\[
+E \left[ \Phi_0^{HF}\right] - \sum_i \omega_i \sum_{\kappa} C^*_{i\kappa} C_{i\kappa},
+\]
+and minimizing  with respect to $C_{k\alpha}^*$, we obtain
+\begin{align*}
+0 &= \frac{\partial}{\partial C_{k\alpha}^*} \left[ E \left[ \Phi_0^{HF}\right] - \sum_i \omega_i \sum_{\kappa} C_{i\kappa}^* C_{i\kappa} \right] \notag \\
+& = \frac{\partial}{\partial C_{k\alpha}^*} \left[ \sum_i \sum_{\kappa \beta} C_{i\kappa}^* C_{i\beta} \langle \kappa | \hat{h}^{(0)}| \beta \rangle + \frac{1}{2} \sum_{ij} \sum_{\kappa\beta\gamma\delta} C_{i\kappa}^* C_{j\beta}^* C_{i\gamma} C_{j\delta} \langle \kappa\beta || \gamma\delta\rangle - \sum_i \omega_i \sum_{\kappa} C_{i\kappa}^* C_{i\kappa} \right] \notag \\
+&= \sum_{\beta} C_{k\beta} \langle \alpha|\hat{h}^{(0)}|\beta\rangle + \sum_j \sum_{\beta\gamma\delta} C_{j\beta}^* C_{k\gamma} C_{j\delta} \langle \alpha\beta||\gamma\delta\rangle - \omega_k C_{k\alpha}.
+\end{align*}
+Rewriting this identity as
+\[ 
+\sum_{\gamma} C_{k\gamma} \left[ \langle \alpha | \hat{h}^{(0)}| \gamma\rangle + \sum_j \sum_{\beta\delta} C_{j\beta}^* C_{j\delta} \langle \alpha\beta||\gamma\delta\rangle\right] = \omega_k C_{k\alpha},
+\label{eq:HFeq}
+\]
+we define the Hartree-Fock Hamiltonian as
+\be 
+\hat{h}^{HF}_{\alpha\gamma} = \langle \alpha | \hat{h}_0| \gamma \rangle + \sum_{j}\sum_{\beta\delta}  C_{j\beta}^* C_{j\delta} \langle \alpha\beta || \gamma\delta\rangle,
+\label{eq:HF3}
+\ee
+and obtain the simplified Hartree-Fock equations
+\be
+\sum_{\gamma} \hat{h}^{HF}_{\alpha\gamma} C_{k\gamma} = \omega_k C_{k\alpha}
+\label{eq:HF4}.
+\ee
+Solving these equations is an eigenvalue problem and corresponds to the diagonalization of the Hartree-Fock matrix
+\[
+ \hat{h}^{HF} = \lb 
+ \begin{array}{ccc}
+ h^{HF}_{00} &  h^{HF}_{01} & \cdots \\
+  h^{HF}_{10} &  h^{HF}_{11} & \cdots \\
+  \cdots & \cdots & \cdots \\
+ \end{array}
+ \rb.
+\]
+Note that $\hat{h}^{HF}$ links only one-particle-one-hole excitations, which matches the initial aim to replace the complicated two-body by an effective one-body potential.
+
+

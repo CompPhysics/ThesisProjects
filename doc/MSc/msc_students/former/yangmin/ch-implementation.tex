@@ -1,0 +1,2259 @@
+\chapter{Implementations}
+\begin{quote}
+  "There's beauty not just at the dimension of one centimeter; there's also a beauty at smaller dimensions."  (From ``What do you care what other people think?'')
+\end{quote}
+
+\begin{quote}
+  R. P. Feynman
+\end{quote}
+
+
+
+\section{Implementation of the Configuration Class}
+\label{config}
+The code-development made in this thesis is done in collaboration with Marte Hoel J\o rgensen. Before we start getting into the algorithms, we first want to introduce the ''Configuration``-Class or just refer to it as ''Config''. This is the class that is linked both to the Hartree-Fock and The Coupled-Cluster program. It keeps track of our single particle orbital quantum numbers. We choose the harmonic oscillator functions as the basis functions. We have the following mapping of our basis. 
+\begin{align*}
+  \ket{0} & = \{n=0, m=0, m_s = -0.5\} \\ 
+  \ket{1} & = \{n=0, m=0, m_s = 0.5\} \\
+  \ket{2} & = \{n=0, m=-1, m_s = -0.5\} \\
+  \ket{3} & = \{n=0, m=-1, m_s = 0.5\} \\
+  \ket{4} & = \{n=0, m=+1, m_s = -0.5\} \\
+  \ket{5} & = \{n=0, m=+1, m_s = 0.5\}   
+\end{align*}
+%
+Our basis is numbered such that the lowest subshells are filled first, and there is a special sequence for doing this. 
+%
+\begin{figure}[ht]
+\centering
+\scalebox{0.7}{\input{shellfilling}}
+\caption{We fill the states such that the we start with the negative $m$ valued subshells then the positive $m$ ones, and last we label the $m=0$ subshells. The spin down state $m_s$ are always the even numbers.}
+\end{figure}
+% 
+\begin{algorithm}[ht]
+\caption{\emph{Algorithm for the mapping}}
+\begin{enumerate}
+\item Loop over $shellnumber$
+\item Loop over $m=-(shellnumber-1);m<=0; m = m+2$
+\item If $m \neq 0$ Then fill the $m<0$ first and then $m>0$ subshell
+\item If $m = 0$ Fill this subshell
+\end{enumerate}
+\end{algorithm}
+%
+From Eq. (\ref{shellnumber}) we know that given shellnumber $R$ and $m$ we can find the radial quantum number $n$ by
+%
+\begin{equation}
+n = \frac{R - 1 - |m|}{2}
+\label{radialquantum number}  
+\end{equation}
+%
+Next we want to tabulate pairs of states that have equal total $M = m_1 + m_2$ and $M_s = m_{s_1} + m_{s_2}$. This will be used later for the calculation of the  interaction elements. For example for two shells we have 
+ 
+\begin{table}[H]
+\centering 
+\begin{tabular}{rrrr}
+\toprule
+$M$ & $M_s$ & $\alpha$ & State\\
+\midrule
+ -2 &  0 &  1  &$\ket{3,2}$ \\
+ -1 & -1  & 3  &$\ket{2,0}$ \\
+ -1 &  0 &  4  &$\ket{3,0}$ \\
+ -1 &  0  & 4  &$\ket{2,1}$ \\
+ -1 &  1 &  5  &$\ket{3,1}$ \\
+  0 & -1 &  6  &$\ket{4,2}$ \\
+  0 &  0 &  7  &$\ket{1,0}$ \\
+  0 &  0 & 7   &$\ket{5,2}$ \\
+  0 &  0 & 7   &$\ket{4,3}$\\
+  0 &  1 &  8  &$\ket{5,3}$\\
+  1 & -1 &  9  &$\ket{4,0}$ \\
+  1 &  0 & 10  &$\ket{5,0}$\\
+  1 &  0 & 10  &$\ket{4,1}$\\
+  1 &  1 &  11 &$\ket{5,1}$ \\
+  2 &  0 & 13  &$\ket{5,4}$ \\
+\bottomrule
+\end{tabular}
+\caption{In this table we have paired orbitals with same $M$ and $M_s$. Where $\alpha \in \{0,...,N\}$ and $N$ is the number of pairs $\{M,M_s\}$. Notice that for $\alpha = 1$ we only have one pair, and for $\alpha = 4$, we have two pairs.}
+\label{tab:configpair}
+\end{table}
+%
+The algorithm for this is to loop over a pair of single-particle states and test if they have the same $\alpha$ value, i.e. the same $\{M,M_s\}$-pair. This information is stored in the array \texttt{c\_bc} which is a class member of the config class. 
+
+In this class there are also methods that distinguish between a hole-hole pair \texttt{c\_hh}, particle-particle pair \texttt{c\_pp} and particle-hole pair \texttt{c\_ph} for a given $\alpha$. This becomes useful later when we store the two-particle interaction elements.
+ 
+ Note that the states always are classified such that the biggest spin-orbital quantum numbers are labeled first, but this is not uniquely defined, so that the permutations must be considered as well. This is done in the calculations, where we make sure to permute where it needs to be permuted. 
+ 
+ \section{Implementation of the Restriced Hartree-Fock Method}
+In this chapter we shall present the alogrithms involved in the Restriced Hartree-Fock Method (RHF) for a two-dimentional parabolic quantum dot. The restricted Hartree-Fock means that we only consider the closed shell systems, ie all the orbitals in the last shell are filled. We have implemented the Hartree-Fock Scheme presented in Chapter \ref{chapter:hartree-fock}. The Hartree-Fock orbitals are expanded in a Harmonic Oscillator basis. The minima of the Hartree Fock Energy is found iteratively and we use the identiy-matrix as our first guess. A Hartree-Fock calculation is needed to accelerate the convergence of the coupled cluster energy. 
+\\
+\subsection{Input}
+The input parameters of our system are
+\begin{itemize}
+  \item $nh$ is the number of holes in our systems
+  \item $np$ is the number of particles in our systems
+  \item $tol$ is the tolerance needed to stop the iteration
+  \item $max\_iter$ is the maximum number of iteration
+  \item $\bra{\alpha}h\ket{\beta}$ is the one-particle interaction element
+  \item $\bra{\alpha\beta}v\ket{\gamma \delta}$ is the two-particle interaction element
+\end{itemize}
+%
+The spin-orbital quantum numbers $\ket{\alpha}$ of our system are enumerated according to the config class. Next we need the single-particle interaction  elements $\bra{\alpha}h\ket{\beta}$, which we get from the config class. And we also need the two-particle interaction elements $\bra{\alpha\beta}v\ket{\gamma\delta}$. Note that the interaction elements $\bra{\alpha\beta}v\ket{\gamma\delta}$ are antisymmetrized.
+
+\begin{equation}
+\bra{\alpha \beta} v \ket{\gamma \delta}_{\text{AS}} = \bra{\alpha \beta}v\ket{\gamma \delta} - \bra{\alpha \beta}v\ket{\delta \gamma} 
+  \label{antisymmetrized elements}
+\end{equation}
+%
+We will from here on use the notation $\bra{\alpha \beta}v\ket{\gamma \delta}$ for the antisymmetric interaction $\bra{\alpha \beta}v\ket{\gamma \delta}_AS$, if nothing else is specified.
+
+
+\subsection{Output}
+The program prints the Hartree-Fock energy for each iteration. When the energy has converged it use the unitary coefficient-matrix $C_{\alpha \beta}$ to create new single-particle interaction elements $\bra{\alpha'}h\ket{\beta'}$
+and two-particle interaction elements $\bra{\alpha'\beta'}v\ket{\gamma'\delta'}$.
+
+\subsection{Validation of the Code}
+We validate the the Hartree-Fock code by testing the code for a given situation where we know the answer analytically, i.e. the non-interacting system [ref]. For N = 2,6,12 and 20, the non-interacting energy is $2 \hbar \omega$, $10 \hbar \omega$, $28\hbar \omega$ and $60 \hbar \omega$, respectivly. Howerer, this is merely an indication that the code is correct. In order to be satisfyied we need to get the same results as \cite{lohne},\cite{merlot} and \cite{lohne-article}, for the interacting system. 
+
+\subsection{Code Structure}
+The Program is structured into a class, with class methods. This makes the structure of the program flexible and we can modify functions without changing the whole program. The code is tailored for a parabolic quantum dot, but can easily be changed to deal with other quantum systems. As mentioned the Hartree-Fock program is linked up to the config class which establishes the mapping:
+\begin{equation}
+  \ket{\alpha} \rightarrow \ket{n m m_s}
+\end{equation}
+And also pairs 
+\begin{equation}
+  \ket{\alpha \beta} \rightarrow \ket{M M_s}
+\end{equation}
+Where $M$ is the total angular momentum 
+\begin{equation}
+M = m_\alpha + m_\beta
+  \label{totalmomentum}
+\end{equation}
+And the $M_s$ is the total spin
+\begin{equation}
+M_s = m_{s_1} + m_{s_2} 
+  \label{spin}
+\end{equation}
+The single-particle interaction $\bra{\alpha}h\ket{\beta}$ is diagonal for the harmonic oscillator basis
+\begin{equation}
+\bra{\alpha}h\ket{\beta} = \delta_{\alpha \beta} \epsilon_\alpha
+\end{equation}
+%
+These interaction elements are stored in an array \texttt{sp[n]}, where \texttt{n} is the index for the spin-orbital quantum number. \texttt{sp[n]} is an array from the config class. The two-particle interaction elements have to be feed in externally from a binary file generated by a program \texttt{tabulate.cc}, created by Simen Kvaal, see \cite{Kvaal2009}. The binary file is stored with the first four quantum numbers $\alpha,\beta,\gamma,\delta$ as \texttt{short int} (This is because we operate mostly with at most 3 digit numbers), the fifth number is stored as a double and represent our interaction value. The number of elements are therefore given by 
+
+\begin{lstlisting}
+    int number_of_elements = filestat.st_size / (sizeof (double) + 4 * sizeof (short int));
+\end{lstlisting}
+%
+We store all the four quantum numbers in a c++ vector struct \texttt{<string,double>} called \texttt{mymap}. The quantum numbers are stored as a string type in \texttt{mymap}, while the interaction value are stored as double, this can be regared as a dictionary in Python language terms, where the quantum numbers are the \emph{key}, and the interaction is the \emph{value} from the key.  
+\begin{lstlisting}
+    for (int i = 0; i < number_of_elements; i++) {
+        Ifile.read((char*) &q, sizeof (short int));
+        Ifile.read((char*) &r, sizeof (short int));
+        Ifile.read((char*) &s, sizeof (short int));
+        Ifile.read((char*) &t, sizeof (short int));
+        Ifile.read((char*) &value, sizeof (double));
+        sprintf(key, "%d %d %d %d", q, r, s, t);
+        mymap.insert(MapType::value_type(key, value));
+        }
+\end{lstlisting}
+%
+The reason we want to store the two-particle interaction in such a way is to be able to search for the elements faster. We know that the Hamiltonian does not change spin nor the angular momentum. Therefore the only contribution from the two-particle elements are when $M$ and $M_s$ are conserved. 
+
+\begin{equation}
+  \bra{M M_s}v\ket{M' M_s'} = \delta_{MM',M_s M_s'}
+\end{equation}
+%
+\begin{lstlisting}
+    for (int alpha = 0; alpha < Conf->dim_alpha; alpha++) {
+        n1_map = 0;
+        for (int n1 = 0; n1 < 2 * Conf->n_bc[alpha]; n1 += 2) {
+            n2_map = 0;
+            for (int n2 = 0; n2 < 2 * Conf->n_bc[alpha]; n2 += 2) {
+            	p = Conf->c_bc[alpha][n1];
+            	q = Conf->c_bc[alpha][n1 + 1];
+            	r = Conf->c_bc[alpha][n2];
+            	s = Conf->c_bc[alpha][n2 + 1];
+                sprintf(configuration, "%d %d %d %d", p, q, r, s);
+                search_value = mymap.find(configuration);
+                v_matrix[alpha][n1_map][n2_map] = search_value->second;
+                n2_map++;
+
+            }
+            n1_map++;
+        }
+    }
+\end{lstlisting}
+%
+For each \texttt{alpha}, i.e. $\{M, M_s\}$ - pair, we loop over pairs $p,q$ and $r,s$ and store the value in the three-dimensional array \texttt{v\_matrix}, where \texttt{n1\_map} and \texttt{n2\_map} indicate which of the pairs that give contribution to our interaction elements. The number of pairs in each \texttt{alpha} would vary as we see in Table \ref{tab:configpair}. So it is necessary to know the number of pairs for each \texttt{alpha} in advance. This information is stored in the array \texttt{n\_bc} which is a class member of the config class. 
+
+The main Hartree-Fock program is initiated from the constructor of the \texttt{HF-iter} class. 
+\begin{lstlisting}
+  HFinter::HFinter(int nh, int np, double tol, char *filename, Config *Conf) {
+    this->Conf = Conf;
+    this->iter = iter;
+    this->filename = filename;
+    this->tol = tol;
+    shellnumber = int(-1 / 2 + sqrt(1 + 4 * (m_nh + m_np)) / 2);
+    sp_states = shellnumber * (shellnumber + 1);
+    max_mvalue = 2 * (shellnumber - 1);
+    dim_alpha = 2 * (max_mvalue) * 3 + 3;
+
+    //Set up the two-particle interaction
+     setup_coulombmatrix();
+    
+    //Start Hartree Fock Iteration  
+    setup_hf();
+    
+    //Create new single-particle and two-particle interaction elements
+    setup_coulombmatrix_hf();
+
+} //end Constructor
+\end{lstlisting}
+%
+The philosophy of the Hartree-Fock Method is to diagonalize the Hartree-Fock Hamiltonian
+\begin{equation}
+H_{\alpha,\beta}^{HF} = \begin{bmatrix} H_{11} & H_{12} & \hdots & H_{1n} \\ H_{21} & H_{22} & \hdots & H_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ H_{n1} & H_{n2} & \hdots & H_{nn} \end{bmatrix},
+  \label{HF-Hamiltonian}
+\end{equation}
+%
+where 
+\begin{equation}
+  H_{\alpha,\beta}^{HF} = \bra{\alpha}h\ket{\beta} + \sum_{a}^N \sum_{\gamma\delta}C_{a\gamma}^* C_{a\delta}^* \bra{\alpha \gamma} v \ket{\beta \delta}_{AS}.
+\end{equation}
+%
+The eigenvalue equation gives 
+\begin{equation}
+H^{HF} \mathbf{C}_k = \lambda_k \mathbf{C}_k
+  \label{HF-eigenvalue}
+\end{equation}
+%
+Where $\mathbf{C}_k$ are our eigenvectors corresponding to the given eigenvalue $\lambda_k$. The eigenvector contains the expansion coefficients of the $k$-th HF-orbital Eq. \ref{def:spin-orbital expantion}. Since the HF-matrix are dependent on the coefficient vectors $\mathbf{C}_k$, the equation is non-linear and can be solved iteratively. 
+\begin{equation}
+\mathbf{C}_k = \begin{pmatrix}C_{k1} \\ C_{k2} \\ C_{k3} \\ \vdots \\ C_{kn} \end{pmatrix}
+ \label{coeff}
+\end{equation}
+%
+
+There are several LAPACK routines for diagonalization. And we could do this by brute force, but the HF-matrix is very sparse. The two-body operator $v$ and the onebody operator $h$ does not change the spin nor the angular momentum of the harmonic oscillator basis, therefore we can divide the HF-matrix into blocks of $\{m,m_s\}$. That is we can only couple spin-orbitals with the same $m$ and $m_s$-values. For three shells we have the following block matrices
+
+\begin{table}[H]
+\begin{minipage}[b]{0.5\linewidth}\centering 
+\begin{tabular}{ccc}
+\toprule
+$m$ & $m_s$ & $Block$\\
+\midrule
+-2	& -0.5 	 &  $\begin{bmatrix}H_{6,6}\end{bmatrix}$ \\
+-2	& 0.5 	 &  $\begin{bmatrix}H_{7,7}\end{bmatrix}$ \\
+-1	& -0.5 	 &  $\begin{bmatrix}H_{2,2}\end{bmatrix}$ \\
+-1	& 0.5 	 &  $\begin{bmatrix}H_{3,3}\end{bmatrix}$ \\
+0	& -0.5 	 &  $\begin{bmatrix}H_{0,0} & H_{0,10} \\ H_{10,0} & H_{10,10} \end{bmatrix}$ \\
+0	& 0.5 	 &  $\begin{bmatrix}H_{1,1} & H_{1,11} \\ H_{11,1} & H_{11,11} \end{bmatrix}$ \\
+1	& -0.5 	 &  $\begin{bmatrix}H_{4,4}\end{bmatrix}$ \\
+1	& 0.5 	 &  $\begin{bmatrix}H_{5,5}\end{bmatrix}$ \\
+2	& -0.5 	 &  $\begin{bmatrix}H_{8,8}\end{bmatrix}$ \\
+2	& 0.5 	 &  $\begin{bmatrix}H_{9,9}\end{bmatrix}$ \\
+\bottomrule
+\end{tabular}
+\caption{Table of the block we have to diagonalize for three shells, note that the quantum numbers for our HF-basis are indicated as subscript. The corresponding eigenvectors are found and placed in }
+\label{tab:blockdiag}
+\end{minipage}
+\hspace{0.5cm}
+\begin{minipage}[b]{0.5\linewidth}
+  \begin{tabular}{ccc}
+\toprule
+$m$ & $m_s$ & $Block$\\
+\midrule
+-2	& -0.5 	 &  $\begin{bmatrix}C_{6,6}\end{bmatrix}$ \\
+-2	& 0.5 	 &  $\begin{bmatrix}C_{7,7}\end{bmatrix}$ \\
+-1	& -0.5 	 &  $\begin{bmatrix}C_{2,2}\end{bmatrix}$ \\
+-1	& 0.5 	 &  $\begin{bmatrix}C_{3,3}\end{bmatrix}$ \\
+0	& -0.5 	 &  $\begin{bmatrix}C_{0,0} & C_{0,10} \\ C_{10,0} & C_{10,10} \end{bmatrix}$ \\
+0	& 0.5 	 &  $\begin{bmatrix}C_{1,1} & C_{1,11} \\ C_{11,1} & C_{11,11} \end{bmatrix}$ \\
+1	& -0.5 	 &  $\begin{bmatrix}C_{4,4}\end{bmatrix}$ \\
+1	& 0.5 	 &  $\begin{bmatrix}C_{5,5}\end{bmatrix}$ \\
+2	& -0.5 	 &  $\begin{bmatrix}C_{8,8}\end{bmatrix}$ \\
+2	& 0.5 	 &  $\begin{bmatrix}C_{9,9}\end{bmatrix}$ \\
+\bottomrule
+\end{tabular}
+\caption{Table of diagonalized blocks for 3 shells, note that eigenvectors $C_{ka}$ are sorted, so that the lowest eigenvalue is in the leftmost place}
+\label{tab:blockdiag2}
+\end{minipage}
+\end{table}
+%
+The coefficient matrix is set to equal the identity matrix as our first guess $\mathbf{C}_{m,n} = \delta_{m,n}$. 
+
+
+\begin{algorithm}
+\caption{\emph{Hartree - Fock Algorithm}}
+\begin{enumerate}[1.]
+\item Calculate $\bra{\alpha}h\ket{\beta}$ and $\bra{\alpha\beta}v\ket{\gamma\delta}$
+\item Initialize $C_{n,m} = \delta_{n,m}$
+\item Check if $E_{new} - E_{old} < tolerance$
+\begin{enumerate}[1.]
+\item Calculate the HF matrix.
+\item Block-diagonalize the HF matrix and find the eigenvalues and eigenvectors
+\item Sort the eigenvalues and eigenvectors such that the lowest is $k=0$ for $\mathbf{C}_k$
+\item Calculate the HF energy
+\end{enumerate}
+\end{enumerate}
+Output: HF energy and new interaction elements $\bra{a}h\ket{b}$ and $\bra{ab}v\ket{cd}$
+\end{algorithm}
+%
+The new one-body interaction elements are defined in the new basis as
+%
+\begin{equation}
+ \bra{a}h\ket{b} = \sum_{\alpha}^N\sum_{\beta}^N C_{a\alpha}^*C_{b\beta} \bra{\alpha}h\ket{\beta}
+\end{equation}
+%
+And the two-body interaction elements
+%
+\begin{equation}
+ \bra{ab}v\ket{cd} = \sum_{\alpha}^N\sum_{\beta}^N\sum_{\gamma}^N\sum_{\delta}^N C_{a\alpha}^*C_{b\beta}^* C_{c\gamma}C_{d\delta}  \bra{\alpha}\bra{\beta}v\ket{\gamma\delta}
+\end{equation}
+%
+The Hartree Fock energy is defined by
+%
+\begin{equation}
+  E_{HF} = \sum_{k=1}^{nh} \lambda_k + \frac{1}{2} \sum_{ab}^{nh}\sum_{\alpha\beta\gamma\delta}^N  C_{a\alpha}^*C_{b\beta}^* C_{c\gamma}C_{d\delta}  \bra{\alpha}\bra{\beta}v\ket{\gamma\delta}
+\end{equation}
+% 
+Where $nh$ is the number of hole states in our system.
+
+
+\section{Implementation of the Coupled Cluster Singles and Doubles}
+In the following section we will give a general outline of our CCSD code. It is based on Magnus Pedersen Lohnes originial code \cite{lohne}. We (Yang Min Wang and Marte Hoel Joergensen) have jointly optimized the code so that it in some cases has run 200 times faster. The optimization include rewriting the expressions into matrix multiplication so that we could use OpenMP to make it run in parallel CPUs, and storing the interaction elements in a better way, so that we loop over the configurations that give contribution. It is here the config class becomes useful. In comparison the code in \cite{lohne} used 36 hours to run 10 H.O. shells and 20 particles. While our optimized code are using 4 minutes and 20 seconds! Much of that is the overhead caused by Bliz++, and it's ineffective way of accessing elements in the memory.  
+
+The code still only calculates the energy and the amplitudes $t_i^a$ and $t_{ij}^{ab}$ for a closed shell system. The coupled code have a option to run a Hartree-Fock calculation. If we run the Hartree-Fock calculation it will get new single-particle and two-particle elements for the CCSD input.
+
+\subsection{Input}
+The input parameters of our system are
+
+\begin{itemize}
+  \item $nh$ is the number of holes in our systems
+  \item $np$ is the number of particles in our systems
+  \item $tol$ is the tolerance needed to stop the iteration
+  \item $max\_iter$ is the maximum number of iteration
+  \item $\bra{\alpha}h\ket{\beta}$ is the one-particle interaction element
+  \item $\bra{\alpha\beta}v\ket{\gamma \delta}$ is the two-particle interaction element
+\end{itemize}
+%
+The matrix elements $\bra{\alpha}h\ket{\beta}$ and $\bra{\alpha\beta}v\ket{\gamma \delta}$ are tabulated in a binary file with the ordering
+
+\begin{itemize}
+  \item $\begin{matrix}\alpha & \beta & \bra{\alpha}h\ket{\beta} \end{matrix}$       
+  \item $\begin{matrix}\alpha & \beta & \gamma & \delta & \bra{\alpha\beta}v\ket{\gamma \delta} \end{matrix}$      
+\end{itemize}
+%
+$\alpha,\beta,\gamma,\delta$ are the single-particle quantum numbers mapped according to section \ref{config}
+
+\subsection{Output}
+The program prints the CCSD Energy for each iteraction. When the energy has converged it has the option to write the T-amplitudes $t_i^a$ and $t_{ij}^{ab}$ to a textfile.
+
+\subsection{Validation of the Code}
+One of the first checks we can do is to run the code for the non-interacting case, where analytical expressions can be obtained. The program reproduce these results. Next we need to validate the with interacting part of the program. 
+
+The CCCSD code should be compared to an exact diagonalization of the Hamiltonian for the two-particle. The ground state energies should be equal since we only have single and double excitation. The exact diagonalization is popularly called Full Configuration Interaction method (FCI) \cite{Kvaal2008}. We will give a brief outline. 
+
+In general the Schr\"{o}dinger equation can be solved as a matrix eigenvalue problem, section \ref{Heisenberg}. 
+
+\begin{equation}
+  H\ket{\Psi} = E \ket{\Psi}
+  \label{Hket}
+\end{equation}
+%
+Where $\ket{\Psi}$ is a linear combination of slater determinants 
+%
+\begin{equation}
+\ket{\Psi} = \sum_{i=1}^{d} C_i \ket{\Phi_i}
+  \label{d}
+\end{equation}
+%
+Since our system is the parabolic dot, we will choose the Harmonic oscillator as our basis for the Slater determinant $\ket{\Phi}$
+%
+\begin{equation}
+  \ket{\Phi} = \frac{1}{\sqrt{N!}} \sum_p (-1)^p \hh{P} \prod_{i=1}^d \ket{\alpha_i}
+\end{equation}
+%
+The basis
+\begin{equation}
+  \mathcal{B} \equiv \{\ket{\alpha_i}\}_{i=1}^{d}
+\end{equation}
+%
+The Hamiltonian in secondquantized form is given by Eq. 
+%
+\begin{equation}
+\hat{H} = \sum_{ij} \bra{i}\hat{h}\ket{j}a_i^{\dagger} a_j+ \frac{1}{4} \sum_{ijkl} \bra{ij}\hat{v}\ket{kl} a_i^{\dagger} a_j^{\dagger} a_l a_k
+\end{equation}
+%
+In principle $d \rightarrow \infty$ gives the exact energy eigenvalues and eigenvectors for Eq. \ref{Hket}, but we must truncate our model space, yielding an approximation to the eigenfunctions and eigenvalues. The diagonalization and the CCSD should give us the same energy given the same model space.
+
+Using Wick's theorem \ref{def:wicksteorem}, the matrix elements $H_{ij} = \bra{\Phi_i}\hh{H}\ket{\Phi_j}$ can be evaluated in terms of $\bra{\alpha}h\ket{\beta}$ and $\bra{\alpha\beta}v\ket{\gamma \delta}$. The onebody part is defined by
+
+\begin{equation}
+\bra{\alpha}h\ket{\beta} = \delta_{\alpha \beta} \epsilon_\alpha,
+  \label{onebodyinteraction}
+\end{equation}
+%
+where
+\begin{equation}
+\epsilon_\alpha = 2n_\alpha + |m_\alpha| + 1
+\end{equation}
+%
+The two-particle interaction elements $\bra{\alpha\beta}v\ket{\gamma \delta}$ are found analytically from \cite{rontani}. We are going to validate the CCSD code for the 2-electron case with 6 of the lowest basis functions $d=6$, i.e. 2 H.O. shells. As in section \ref{config} we have the following mapping
+
+\begin{align*}
+  \ket{0} & = \{n=0, m=0, m_s = -0.5\} \\ 
+  \ket{1} & = \{n=0, m=0, m_s = 0.5\} \\
+  \ket{2} & = \{n=0, m=-1, m_s = -0.5\} \\
+  \ket{3} & = \{n=0, m=-1, m_s = 0.5\} \\
+  \ket{4} & = \{n=0, m=+1, m_s = -0.5\} \\
+  \ket{5} & = \{n=0, m=+1, m_s = 0.5\}   
+\end{align*}
+%
+\begin{figure}[ht]
+\centering
+\scalebox{0.7}{\input{shellfilling2}}
+\end{figure}
+%
+Since the Coulomb interaction does not depend on spin nor the angular momentum, the only nonzero elements are 
+\begin{equation}
+\bra{M, M_s} v \ket{M, M_s}
+  \label{equation2}
+\end{equation}
+%
+where
+%
+\begin{align}
+  M & = m_\alpha + m_\beta = m_\gamma + m_\delta = 0 \\
+  M_s & = m_{s_\alpha} + m_{s_\beta} = m_{s_\gamma} + m_{s_\delta} = 0
+ \end{align}
+%
+Then we can diagonalize for the cases 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cccc}
+\toprule
+$M$ & $M_s$ & $H$ & $E$\\
+\midrule
+-2  & 0    &  $\begin{bmatrix}\bra{2 3}H\ket{2 3}\end{bmatrix}$   &  $\begin{bmatrix}4.86165\end{bmatrix}$ \\
+-1  & -1   &  $\begin{bmatrix}\bra{0 2}H\ket{0 2}\end{bmatrix}$   &  $\begin{bmatrix}3.62666\end{bmatrix}$ \\
+-1  & 0    &  $\begin{bmatrix}\bra{0 3}H\ket{0 3} & \bra{0 3}H\ket{1 2}\\\bra{1 2}H\ket{0 3} & \bra{1 2}H\ket{1 2}\end{bmatrix}$   &  $\begin{bmatrix}3.62666 & 4.2533\end{bmatrix}$  \\
+-1  & 1    &  $\begin{bmatrix}\bra{1 3}H\ket{1 3}\end{bmatrix}$   &  $\begin{bmatrix}3.6267\end{bmatrix}$ \\
+ 0  & -1   &  $\begin{bmatrix}\bra{2 4}H\ket{2 4}\end{bmatrix}$   &  $\begin{bmatrix}4.6267\end{bmatrix}$  \\
+ 0  & 0    &  $\begin{bmatrix}\bra{0 1}H\ket{0 1} & \bra{0 1}H\ket{2 5} & \bra{0 1}H\ket{3 4}\\ \bra{2 5}H\ket{0 1} & \bra{2 5}H\ket{2 5} & \bra{2 5}H\ket{3 4}\\ \bra{3 4}H\ket{0 1} & \bra{3 4}H\ket{2 5} & \bra{3 4}H\ket{3 4}\end{bmatrix}$ &  $\begin{bmatrix}3.1523 & 4.6267 & 5.1976 \end{bmatrix}$ \\
+\bottomrule
+\end{tabular}
+\caption{Table of the blocks we have to diagonlize for two shells, where $E$ are the eigenvalues. The diagonalization for $M>0$ would be exactly the same as $M<0$}
+\end{table}
+%
+In this case the lowest (groundstates) energy was
+\begin{equation}
+E = 3.1523
+  \label{groundstates}
+\end{equation}
+%
+Which our coupled cluster program reproduces, see \cite{lohne}. FCI could also be used to validate other CC schemes like CCSDT. For this we would need 3 particles in order to test the 3-particle-3-hole excitation. Since triples have at max 3-particle-3-hole excitations. 
+
+\subsection{Code Structure}
+The code is structured such that \texttt{main.cpp} is linked to three \emph{abstract} classes:
+\begin{itemize}
+  \item \texttt{CCalgo}: Class containing the CCSD algorithm
+  \begin{itemize}
+  \item ccsd1: A subclass of \texttt{CCalgo} 
+  \end{itemize}
+  \item \texttt{Fmatrix}: Class for handling the F-matrix
+    \begin{itemize}
+  \item f1: A subclass of \texttt{Fmatrix} 
+  \end{itemize}
+  \item \texttt{Interaction}: Class for handling the interaction elements $\bra{\alpha \beta}v\ket{\gamma \delta}$
+      \begin{itemize}
+  \item int1: A subclass of \texttt{Interaction} 
+  \end{itemize}
+\end{itemize}
+In addition linked to 3 regular classes:
+\begin{itemize}
+  \item \texttt{Amplitudes}: Class for calculating the CCSD amplitudes $t_i^a$ and $t_{ij}^{ab}$. 
+  \item \texttt{Config}: Class containing the one and two-particle basis map
+  \item \texttt{HFiter}: Class for calculating the Hartree-Fock and new interaction elements 
+  \item \texttt{DDot}: Class for calculating the interaction elements for our Double Dot
+\end{itemize}
+%
+The reason we do this is to be able to expand the program to handle different physical problems in the future. The advantages of an abstract is that the subclasses can share the main class methods. The \texttt{CCAlgo} class runs the CCSD algorithm and it goes like this.
+\begin{algorithm}
+\caption{\emph{CCSD Algorithm}}
+\begin{enumerate}[1.]
+\item Setup the model space: $nh,np$
+\item Setup the F-matrix $f_p^q$ and the two-particle interaction elements $\bra{\alpha\beta}v\ket{\gamma\delta}$
+\item Setup the reference energy $E_0 = \bra{\Phi_0}\hh{H}\ket{\Phi_0}$
+\item Initialize the amplitudes $t_i^a$ and $t_{ij}^{ab}$
+\item Check if $E_{new} - E_{old} \leq tolerance$
+\begin{enumerate}[1.]
+\item Calculate the Intermediates
+\item Calculate $t_i^a$-matrix elements
+\item Calculate $t_{ij}^{ab}$-matrix elements
+\item Calculate the energy $E_{new}$
+\item Calculate Set $E_{old} = E_{new}$
+\end{enumerate}
+\end{enumerate}
+Output: HF energy and new interaction elements $\bra{a}h\ket{b}$ and $\bra{ab}v\ket{cd}$
+\end{algorithm}
+%
+The first thing we do in our CCSD code is setting up the interaction elements $\bra{pq}v\ket{rs}$, they are read from file and we want to structure those elements into six arrays: 
+
+ \begin{align*}  
+\texttt{ hhhh}  &= \bra{ij}v\ket{kl} \\
+\texttt{ phhh} &= \bra{aj}v\ket{kl} \\
+\texttt{ pphh} &= \bra{ab}v\ket{kl} \\
+\texttt{ phph} &= \bra{aj}v\ket{bl} \\
+\texttt{ ppph} &= \bra{ab}v\ket{cl} \\
+\texttt{ pppp} &= \bra{ab}v\ket{cd}
+\end{align*}
+%
+Where $ijkl...$ denote the hole states, and $abcd...$ denote the particle states. If we stored the matrix $\bra{pq}v\ket{rs}$ in a four dimentional array we would need $8np^4$ bytes of memory. In the case of 20 shells (420 one-particle states) we would need 232 GB! But many of the matrix-elements are zero and we do not need to store those. Since interaction-elements preserve total $M$ and $M_s$, we can use the Config class to help us find the two-particle pairs that give a nonzero element, viz.
+ 
+\begin{equation}
+  \texttt{hhhh[$\alpha$][1.pair][2.pair]} = \bra{\underbrace{\alpha \beta}_{1.pair}} v \ket{\underbrace{\gamma \delta}_{2.pair}}
+  \label{takenintoaccount}
+\end{equation}
+%
+where $\alpha$ points to the set $\{M,M_s\}$. This makes it possible to calculate for 20 H.O. shells, and we need about 8GB of memory space for this calculation, which is acceptable. Note that our interaction elements are antisymmetrized
+
+\begin{equation*}
+  \bra{pq}v\ket{rs} = -\bra{pq}v\ket{sr}
+\end{equation*}
+%
+This needs to be taken into account, when we use those matrix elements \ref{takenintoaccount}.  
+%
+The next step is to setup the single particle interaction elements and the F-matrix:
+
+\subsubsection{Fmatrix: CLASS implementation}
+
+Fmatrix is an abstract base class with one subclass f1. This class tabulates the single-particle matrix elements $\bra{\alpha}h\ket{\beta}$ and they are used for calculating the F-matrix.
+
+The sp-elements are provided in a text file, which is read and tabulated in the f1-class function \emph{read\_sp\_energy}. See listing \ref{list:impl:fmatrixread}. 
+\begin{figure}[htb!]
+\begin{lstlisting}[label={list:impl:fmatrixread},caption={Illustration of the implemented Fmatrix class function read\_sp\_energy. See the text for description.}]
+void f1::read_sp_energy(char* filename){
+  // open and reading from file
+  ifstream file(filename,ios_base::in);
+  while(!file.eof()){ 
+    // read <bra| = <q|
+    file >> q;
+    // read |ket> = |r>
+    file >> r; 
+    // read single-particle energy <q|h_0|r>
+    file >> value;
+    
+    if(q<(nh+np) && r<(nh+np)){
+      if(q<nh && r<nh){
+	s_hh[q][r] = value;
+      }
+      else if(q<nh && r>=nh){
+	s_hp[q][r-nh] = value;
+      }
+      else if(q>=nh && r<nh){
+	s_ph[q-nh][r] = value;
+      }
+      else if(q>=nh && r>=nh){
+	s_pp[q-nh][r-nh] = value;
+      }
+    }
+  }   
+  file.close(); 
+}// end read_sp_energy
+\end{lstlisting}
+\end{figure}
+The class stores the sp-elements in different two-dimensional arrays according to the placement of holes and particles in the element. This gives four different arrays
+\begin{align}  
+{\bf s\_{hh}}&=\langle i|\hat{h}|j\rangle\nonumber\\
+{\bf s\_{hp}}&=\langle i|\hat{h}|a\rangle\nonumber\\
+{\bf s\_{ph}}&=\langle a|\hat{h}|i\rangle\nonumber\\
+{\bf s\_{pp}}&=\langle a|\hat{h}|b\rangle
+\end{align}
+
+where the subscript $h$ denotes hole states, and the subscript $p$ denotes particle states. Since we have a orthogonal basis of harmonic oscillator functions, we only obtain contribution on the form
+\begin{align}  
+{\bf s\_{hh}}&=\langle i|\hat{h}|i\rangle\nonumber\\
+{\bf s\_{pp}}&=\langle a|\hat{h}|a\rangle\nonumber
+\end{align}
+However all possibilities are implemented making the code more general. Note that the rescaling of particles numbers encountered in the implementation of the \emph{Interaction} class, is a necessary implementation also for this class, when creating the arrays.  
+
+The f1-class function \emph{set\_up\_fmatrix} calculates the F-matrix defined as
+\begin{equation}
+ f_{q}^{p}= \langle p|h|q\rangle+\sum_i^d\langle pi|v|qi\rangle
+\label{eq:impl:fockmatrix}
+\end{equation} 
+where $pq\ldots$ denotes both particle and hole states, $i$ denotes hole states, $d$ is the number of hole states, and the interaction elements are antisymmetrized. Listing \ref{list:impl:fmatrixcalc} illustrates the implementation of \emph{set\_up\_fmatrix}.
+%
+\begin{lstlisting}[label={list:impl:fmatrixcalc},caption={code-snippet illustrating the implementation of the Fmatrix calculation. See the text for description.}]
+void f1::set_up_fmatrix(Interaction *interaction) {
+    int i, j, k, l; // hole states
+    int a, b; // particle states
+    
+    int n1_map, n2_map;
+    
+    // set up f_hh = <i|h_0|j> + SUM_k <i k||j k>
+    for (i = 0; i < nh; i++) {
+        for (j = 0; j < nh; j++) {
+            f_hh[i][j] = s_hh[i][j];
+        }
+    }
+    for (int alpha = C->alpha_hh; alpha < C->dim_alpha_hh; alpha++) {
+        n1_map = 0;
+        for (int n1 = 0; n1 < 2 * C->n_hh[alpha]; n1 += 2) {
+            i = C->c_hh[alpha][n1];
+            j = C->c_hh[alpha][n1 + 1];
+            n2_map = 0;
+            for (int n2 = 0; n2 < 2 * C->n_hh[alpha]; n2 += 2) {
+                k = C->c_hh[alpha][n2];
+                l = C->c_hh[alpha][n2 + 1];
+                if (j == l)
+                    f_hh[i][k] += interaction->hhhh[alpha][n1_map][n2_map];
+                if (i == l)
+                    f_hh[j][k] -= interaction->hhhh[alpha][n1_map][n2_map];
+                if (j == k)
+                    f_hh[i][l] -= interaction->hhhh[alpha][n1_map][n2_map];
+                if (i == k)
+                    f_hh[j][l] += interaction->hhhh[alpha][n1_map][n2_map];
+                n2_map++;
+            }
+            n1_map++;
+        }
+    }
+    for (int alpha = 0; alpha < C->dim_alpha; alpha++) {
+        n1_map = 0;
+        for (int n1 = 0; n1 < 2 * C->n_ph[alpha]; n1 += 2) {
+            a = C->c_ph[alpha][n1];
+            l = C->c_ph[alpha][n1 + 1];
+            n2_map = 0;
+            for (int n2 = 0; n2 < 2 * C->n_hh[alpha]; n2 += 2) {
+                i = C->c_hh[alpha][n2];
+                j = C->c_hh[alpha][n2 + 1];
+                if (l == j) {
+                    f_hp[i][a] += interaction->phhh[alpha][n1_map][n2_map];
+                    f_ph[a][i] += interaction->phhh[alpha][n1_map][n2_map];
+                } else if (l == i) {
+                    f_hp[j][a] = f_hp[j][a] - interaction->phhh[alpha][n1_map][n2_map];
+                    f_ph[a][j] = f_ph[a][j] - interaction->phhh[alpha][n1_map][n2_map];
+                }
+                n2_map++;
+            }
+            n1_map++;
+        }
+    }
+    
+    // set up f_pp = <a|h_0|b> + SUM_k <a k||b k>
+    for (a = 0; a < np; a++) {
+        f_pp[a][a] = s_pp[a][a];
+    }
+
+    for (int alpha = C->alpha_ph; alpha < C->dim_alpha_ph; alpha++) {
+        n1_map = 0;
+        for (int n1 = 0; n1 < 2 * C->n_ph[alpha]; n1 += 2) {
+            a = C->c_ph[alpha][n1];
+            i = C->c_ph[alpha][n1 + 1];
+            n2_map = 0;
+            for (int n2 = 0; n2 < 2 * C->n_ph[alpha]; n2 += 2) {
+                b = C->c_ph[alpha][n2];
+                j = C->c_ph[alpha][n2 + 1];
+                if (i == j)
+                    f_pp[a][b] += interaction->phph[alpha][n1_map][n2_map];
+                n2_map++;
+            }
+            n1_map++;
+        }
+    }
+
+} // end set_up_fmatrix
+\end{lstlisting}
+The F-matrix is also tabulated according to the placement of holes and particles, thus we obtain four arrays
+ \begin{align}  
+{\bf f\_{hh}}&=f_{i}^{j}\nonumber\\
+{\bf f\_{hp}}&=f_{i}^{a}\nonumber\\
+{\bf f\_{ph}}&=f_{a}^{i}\nonumber\\
+{\bf f\_{pp}}&=f_{a}^{b}
+\label{eq:impl:fmatrices}
+\end{align}
+In listing \ref{list:impl:fmatrixcalc} the implementation of ${\bf f\_{hh}}$ and ${\bf f\_{pp}}$ is shown explicit. The \texttt{C->} is a pointer to the Config class, and \texttt{interaction->} points to our Interaction class. Next step is to initialize the amplitudes $t_i^a$ and $t_{ij}^{ab}$.
+%
+\subsubsection{ Amplitudes: CLASS implementation}
+\emph{Amplitudes} is an abstract base class with the derived class amp1. This class implements the amplitude equations for both $\hat{T}_1$ and $\hat{T}_2$. It calculates the amplitudes iteratively. In this section we present the implementation of the $\hat{T}_1$ and $\hat{T}_2$ amplitude equations.. 
+%
+\subsubsection{\bf $\hat{T}_1$-amplitude equation}
+Consider the $\hat{T}_1$-amplitude equation, note that the summation-notation is omitted. We rearrange this equation as follows:
+\begin{align}
+0&=f_i^a+ \langle ja|v|bi \rangle t_{j}^{b}+\frac{1}{2}\langle aj|v|bc\rangle t_{ij}^{bc}+\left( f_{b}^{a}t_{i}^{b}+\langle aj|v|bc\rangle t_i^bt_j^c\right )\nonumber\\
+&+\left(-f_{i}^{j}t_{j}^{a}-f_b^jt_j^at_i^b-\langle jk|v|ib\rangle t_{j}^{a}t_{k}^{b}-\langle jk|v|bc\rangle t_i^bt_j^at_k^c-\frac{1}{2}\langle jk|v|bc\rangle t_j^at_{ik}^{bc} \right)\nonumber\\
+&+\left(-\frac{1}{2}\langle jk|v|ib\rangle t_{jk}^{ab}-\frac{1}{2}\langle jk|v|bc\rangle t_i^bt_{jk}^{ac} \right)+ \left(f_{b}^{j}t_{ij}^{ab}+\langle jk|v|bc\rangle t_j^bt_{ik}^{ac}\right)
+\label{eq:impl:t1amplitude1}
+\end{align}
+which is equivalent to
+\begin{align}
+0&=f_i^a+ \langle ja|v|bi \rangle t_{j}^{b}+\frac{1}{2}\langle aj|v|bc\rangle t_{ij}^{bc}+\left( f_{b}^{a}+\langle aj|v|bc\rangle t_j^c\right )t_i^b\nonumber\\
+&-\left(f_{i}^{j}+f_b^jt_i^b+\langle jk|v|ib\rangle t_{k}^{b}+\langle jk|v|bc\rangle t_i^bt_k^c+\frac{1}{2}\langle jk|v|bc\rangle t_{ik}^{bc} \right)t_{j}^{a}\nonumber\\
+&+\frac{1}{2}\left(\langle jk|v|ic\rangle +\langle jk|v|bc\rangle t_i^b\right)t_{jk}^{ca} + \left(f_{c}^{k}+\langle jk|v|bc\rangle t_j^b\right)t_{ik}^{ac}
+\label{eq:impl:t1amplitude2}
+\end{align}
+In the above equation we have relabeled some of the indices in the last line, in order to extract a common amplitude from the parenthesis. We simplify this expression further by defining the parenthesis in Eq. (\ref{eq:impl:t1amplitude2}) as intermediates. These intermediates are manipulated such that the matrix elements fit the ordering of the six matrices implemented in the \emph{Interaction} class.
+\begin{align}
+[I1]_b^a&=f_{b}^{a}+\langle aj|v|bc\rangle t_j^c\nonumber\\
+&=f_{b}^{a}+\langle bc|v|aj\rangle t_j^c\label{eq:impl:t1intermediates1}\\
+\nonumber\\
+[I2]_c^k&=f_{c}^{k}+\langle jk|v|bc\rangle t_j^b\nonumber\\
+&=f_{c}^{k}+\langle bc|v|jk\rangle t_j^b\label{eq:impl:t1intermediates2}\\
+\nonumber\\
+[I3]_i^j&=f_{i}^{j}+f_b^jt_i^b+\langle jk|v|ib\rangle t_{k}^{b}+\langle jk|v|bc\rangle t_i^bt_k^c+\frac{1}{2}\langle jk|v|bc\rangle t_{ik}^{bc}\nonumber\\
+&=f_{i}^{j}+\langle jk|v|ib\rangle t_{k}^{b}+\frac{1}{2}\langle jk|v|bc\rangle t_{ik}^{bc}+\left(f_b^j+\langle cb|v|kj\rangle t_k^c\right)t_i^b\nonumber\\
+&=f_{i}^{j}-\langle bi|v|jk\rangle t_{k}^{b}+\frac{1}{2}\langle bc|v|jk\rangle t_{ik}^{bc}+[I2]_b^j\phantom{.}t_i^b
+\label{eq:impl:t1intermediates3}
+\end{align}
+%
+\begin{align}
+[I4]_{ic}^{jk}&=\langle jk|v|ic\rangle +\langle jk|v|bc\rangle t_i^b\nonumber\\
+&=-\langle ci|v|jk\rangle+\frac{1}{2}\langle bc|v|jk\rangle t_i^b+\frac{1}{2}\langle bc|v|jk\rangle t_i^b\nonumber\\
+&=[I5]_{ic}^{jk}+\frac{1}{2}\langle bc|v|jk\rangle t_i^b\label{eq:impl:t1intermediates4}\\
+\nonumber\\
+[I5]_{ic}^{jk}&=-\langle ci|v|jk\rangle+\frac{1}{2}\langle bc|v|jk\rangle t_i^b\label{eq:impl:t1intermediates5}
+\end{align}
+We insert these definitions into Eq. (\ref{eq:impl:t1amplitude2}), and obtain the $\hat{T}_1$ amplitude equation:
+\begin{align}
+0&=f_i^a - \langle aj|v|bi \rangle t_{j}^{b}+\frac{1}{2}\langle bc|v|aj\rangle t_{ij}^{bc}+[I1]_b^a\phantom{.}t_i^b\nonumber\\
+&-[I3]_i^j\phantom{.}t_{j}^{a}+\frac{1}{2}[I4]_{ic}^{jk}\phantom{.}t_{jk}^{ca}+[I2]_c^k\phantom{.}t_{ik}^{ac}
+\label{eq:impl:t1amplitude3}
+\end{align}
+Next we wish to obtain an equation for the $\hat{T}_1$ amplitude $t_i^a$. We accomplish this by performing the trick of adding and subtracting the $t_i^a$ amplitude inside eq. \ref{eq:impl:t1amplitude3}. Each term containing a $t_x^y$ amplitude is expressed in terms of the $t_i^a$ amplitude, and added to the equation. This added term is then subtracted by including the original expression multiplied by one or more delta-functions. Thus we obtain
+\begin{align}
+0&=f_i^a - \langle ai|v|ai \rangle t_{i}^{a}-(1-\delta_{ab}\delta_{ij})\langle aj|v|bi \rangle t_{j}^{b}+\frac{1}{2}\langle bc|v|aj\rangle t_{ij}^{bc}\nonumber\\
+&+[I1]_a^a\phantom{.}t_i^a+(1-\delta_{ab})[I1]_b^a\phantom{.}t_i^b-[I3]_i^i\phantom{.}t_{i}^{a}-(1-\delta_{ij})[I3]_i^j\phantom{.}t_{j}^{a}\nonumber\\
+&+\frac{1}{2}[I4]_{ic}^{jk}\phantom{.}t_{jk}^{ca}+[I2]_c^k\phantom{.}t_{ik}^{ac}
+\label{eq:impl:t1amplitude4}
+\end{align}
+We are now able to extract an equation for the amplitude $t_i^a$, which reads
+\begin{align}
+t_i^a&=\frac{1}{D_i^a}\left(f_i^a+\frac{1}{2}\langle bc|v|aj\rangle t_{ij}^{bc}-(1-\delta_{ab}\delta_{ij})\langle aj|v|bi \rangle t_{j}^{b}\right.\nonumber\\
+&\left. +(1-\delta_{ab})[I1]_b^a\phantom{.}t_i^b-(1-\delta_{ij})[I3]_i^j\phantom{.}t_{j}^{a}+\frac{1}{2}[I4]_{ic}^{jk}\phantom{.}t_{jk}^{ca}+[I2]_c^k\phantom{.}t_{ik}^{ac}\right)
+\label{eq:impl:t1amplitude5}
+\end{align} 
+where $D_i^a$ is given as
+\begin{equation}
+D_i^a= \langle ai|v|ai \rangle-[I1]_a^a+[I3]_i^i
+\label{eq:impl:t1denom}
+\end{equation}
+The Eq. (\ref{eq:impl:t1amplitude5}) is implemented in the class function \emph{t1\_uncoupled\_calc}, which is illustrated in Listing \ref{list:impl:calct1}. The implementation of the intermediates will be presented after the derivation of the $\hat{T}_2$ amplitude equation.
+%
+\begin{lstlisting}[label={list:impl:calct1},caption={Implementation of the amp1 class function t1\_uncoupled\_calc()}]
+void Amplitudes::t1_uncoupled_calc(){
+  // calculate t1 intermediates
+  t1_uncoupled_intermediates();
+  
+  // f_i^a
+  for(i=0; i<np; i++){
+    for(j=0; j<nh; j++){
+      t1[i][j] = F->f_ph[i][j];
+    }
+  }
+
+  // -(1-delta_{ab}delta_{ij})<aj|v|bi>t_{j}^{b}
+  t1_uncoupled_term2(t1);
+
+  //(1-delta_{ab})[I1]_{b}^{a} t_{i}^{b}
+  t1_uncoupled_term3(t1);
+  
+  // -(1-delta_{ij})[I3]_{i}^{j}t_{j}^{a}
+  t1_uncoupled_term4(t1);
+
+  //  0.5<bc|v|aj>t_ij^bc
+  t1_uncoupled_term5(t1);
+
+  // 0.5[I4]_{ic}^{jk}t_{jk}^{ca}
+  t1_uncoupled_term6(t1);
+
+  // [I2]_{c}^{k}t_{ik}^{ac}
+  t1_uncoupled_term7(t1);
+
+  // calculate t1 denominator
+  t1_uncoupled_denom(t1);
+  
+} //end t1_uncoupled_calc
+\end{lstlisting}
+In Listing \ref{list:impl:calct1} \texttt{t1}, represents a two-dimensional array with dimension \texttt{t1[np][nh]}, containing all possible $t_i^a$ amplitudes. We proceed by illustrating the implementation of the term-functions in \emph{t1\_uncoupled\_calc}, which represent the terms in Eq. (\ref{eq:impl:t1amplitude5}). First the algebraic expression is given, followed by its implementation. Note how we in these implementations loop effectively over contributing interaction elements only. This technique saves much cpu-time compared with the brute force technique of looping over all interaction elements. Also note that the intermediates are calculated prior to the \texttt{t1} calculations. These intermediates are tabulated in matrices carrying names including \texttt{barh}. These names are not correspondent with the algebraic notation utilized above, however the connection is seen from the algebraic expressions above the implementation. Here we have \texttt{B->} which points to the Config class.
+%
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad-(1-\delta_{ab}\delta_{ij})\langle aj|v|bi \rangle t_{j}^{b}
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:t1term2},caption={implementation of the amp1 class function t1\_uncoupled\_term2()}]
+void Amplitudes::t1_uncoupled_term2(double **t1) {
+    for (alpha = 0; alpha < dim_alpha; alpha++) {
+        map1 = 0;
+        for (ph = 0; ph < phbcount[alpha]; ph += 2) {
+            a = B->c_ph[alpha][ph];
+            j = B->c_ph[alpha][ph + 1];
+            map2 = 0;
+            for (ph2 = 0; ph2 < phbcount[alpha]; ph2 += 2) {
+                b = B->c_ph[alpha][ph2];
+                i = B->c_ph[alpha][ph2 + 1];
+                if (j != i || b != a) {
+                    t1[a][i] = t1[a][i]-V->phph[alpha][map1][map2] * t1_old[b][j];
+                }
+                map2 += 1;
+            }
+            map1 += 1;
+        }
+    }
+} // end t1_uncoupled_term2
+\end{lstlisting}
+%
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad(1-\delta_{ab})[I1]_b^a\phantom{.}t_i^b
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:t1term3},caption={implementation of the amp1 class function t1\_uncoupled\_term3()}]
+void Amplitudes::t1_uncoupled_term3(double **t1){
+  
+  for(a=0; a<np; a++){
+    for(i=0; i<nh; i++){ 
+      temp = 0.0;
+      for(b=0; b<np; b++){
+	if(b!=a){
+	  temp = temp + barh_i02a[a][b]*t1_old[b][i];
+	}
+      }
+      t1[a][i] = t1[a][i] + temp;
+    }
+  }
+
+} // end t1_uncoupled_term3
+\end{lstlisting}
+%
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad-(1-\delta_{ij})[I3]_i^j\phantom{.}t_{j}^{a}\nonumber
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:t1term4},caption={implementation of the amp1 class function t1\_uncoupled\_term4()}]
+void Amplitudes::t1_uncoupled_term4(double **t1){
+ 
+  for(a=0; a<np; a++){
+    for(i=0; i<nh; i++){
+      temp = 0.0;
+      for(j=0; j<nh; j++){
+	if(j!=i){
+	  temp = temp + barh_03[j][i]*t1_old[a][j];
+	}
+      }
+      t1[a][i] = t1[a][i] - temp;
+    }
+  }
+  
+} // end t1_uncoupled_term4
+\end{lstlisting}
+%
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad\frac{1}{2}\langle bc|v|aj\rangle t_{ij}^{bc}\nonumber
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:t1term5},caption={implementation of the amp1 class function t1\_uncoupled\_term5()}]
+void Amplitudes::t1_uncoupled_term5(double **t1){
+  
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    for(i=0; i<nh; i++){
+      map1=0;
+      for(p=0; p<ppbcount[alpha]; p+=2){
+	b = B->c_pp[alpha][p];
+	c = B->c_pp[alpha][p+1];
+	map2=0;
+	for(ph=0; ph<phbcount[alpha]; ph+=2){
+	  a = B->c_ph[alpha][ph];
+	  j = B->c_ph[alpha][ph+1];
+	  t1[a][i] += 0.5*V->ppph[alpha][map1][map2]*t2_old[b][c][i][j];
+	  t1[a][i] -= 0.5*V->ppph[alpha][map1][map2]*t2_old[c][b][i][j];
+	  map2+=1;
+	}
+	map1+=1;
+      }
+    }
+  }
+} // end t1_uncoupled_term5
+\end{lstlisting}
+
+
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad\frac{1}{2}[I4]_{ic}^{jk}\phantom{.}t_{jk}^{ca}\nonumber
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t1term6},caption={implementation of the amp1 class function t1\_uncoupled\_term6()}]
+void Amplitudes::t1_uncoupled_term6(double **t1){
+  
+  for(a=0; a<np; a++){
+    for(i=0; i<nh; i++){
+      temp = 0.0;
+      for(j=0; j<nh; j++){
+	for(k=0; k<nh; k++){
+	  for(c=0; c<np; c++){
+	    temp = temp + barh_07[j][k][i][c]*t2_old[c][a][j][k];
+	  }
+	}
+      }
+      t1[a][i] = t1[a][i] + 0.5*temp;
+    }
+  }
+
+} // end t1_uncoupled_term6
+\end{lstlisting}
+
+
+\begin{equation*}
+t_i^aD_i^a\quad \leftarrow \quad [I2]_c^k\phantom{.}t_{ik}^{ac}
+\end{equation*}
+\begin{lstlisting}[label={list:impl:t1term7},caption={implementation of the amp1 class function t1\_uncoupled\_term7()}]
+void Amplitudes::t1_uncoupled_term7(double **t1){
+  
+  for(a=0; a<np; a++){
+    for(i=0; i<nh; i++){
+      temp = 0.0;
+      for(k=0; k<nh; k++){
+	for(c=0; c<np; c++){
+	  temp = temp + barh_01[k][c]*t2_old[a][c][i][k];
+	}
+      }
+      t1[a][i] = t1[a][i] + temp;
+    }
+  }
+
+} // end t1_uncoupled_term7
+\end{lstlisting}
+
+\begin{equation*}
+t_i^a\quad \leftarrow \quad \frac{t_i^a}{D_i^a}=t_i^a/\left(\langle ai|v|ai \rangle-[I1]_a^a+[I3]_i^i\right)
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t1denom},caption={implementation of the amp1 class function t1\_uncoupled\_denom()}]
+void Amplitudes::t1_uncoupled_denom(double **t1){
+  
+  double **C;
+  C = new double*[np];
+  for(a=0; a<np; a++){
+    C[a] = new double[nh];
+    for(i=0; i<nh; i++){
+      C[a][i] = 0.0;
+    }
+  }
+  
+  //C = [I3]-[I1]
+  for(i=0; i<nh; i++){
+    for(a=0; a<np; a++){
+      C[a][i] = barh_03[i][i] - barh_i02a[a][a];
+    }
+  }
+  //C += <ai|v|ai>
+  for(int alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(ph=0; ph<phbcount[alpha]; ph+=2){
+      a = B->c_ph[alpha][ph]];
+      i = B->c_ph[alpha][ph+1];
+      C[a][i] += V->phph[alpha][map1][map1];
+      map1+=1;
+    }
+  }
+  //t_i^a/D_i^a
+  for(i=0; i<nh; i++){
+    for(a=0; a<np; a++){
+      t1[a][i] = t1[a][i]/C[a][i];
+    }
+  }
+  
+  //deallocating
+  for(a=0; a<np; a++)
+    delete[] C[a];
+  delete[] C;
+  
+} // end t1_uncoupled_denom
+\end{lstlisting}
+
+\subsubsection{$\bf \hat{T}_2$-amplitude equation}
+
+Consider the $\hat{T}_2$-amplitude equation. Again note that the summation-notation is omitted. We rearrange this equation as follows:
+\begin{align} 
+0&=\langle ij|v|ab\rangle+\frac{1}{2}\langle ab|v|cd\rangle t_{ij}^{cd}\\
+&-\left( \hat{P}_{(ij)}f_j^kt_{ik}^{ab}+\hat{P}_{(ij)}f_c^kt_i^ct_{kj}^{ab}+\hat{P}_{(ij)}\langle kl|v|ci\rangle t_k^ct_{jl}^{ba}+\hat{P}_{(ij)}\langle kl|v|cd\rangle t_k^ct_i^dt_{jl}^{ba}\right.\\
+&\phantom{++}\left.+\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_{ki}^{cd}t_{lj}^{ab}\right)\\
+&+\frac{1}{2}\left(\langle kl|v|ij\rangle t_{kl}^{ab}+\hat{P}_{(ij)}\langle kl|v|cj\rangle t_i^ct_{kl}^{ab}+\frac{1}{2}\langle kl|v|cd\rangle t_{kl}^{ab}t_{ij}^{cd}+\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_{kl}^{ab}t_j^d\right)\\
+&+\left(\hat{P}_{(ab)}f_c^bt_{ij}^{ac}-\hat{P}_{(ab)}f_c^kt_k^at_{ij}^{cb}+\hat{P}_{(ab)}\langle ka|v|cd\rangle t_k^ct_{ij}^{db}-\hat{P}_{(ab)}\langle kl|v|cd\rangle t_k^ct_l^at_{ij}^{db}\right.\\
+&\phantom{++}\left.-\frac{1}{2}\hat{P}_{(ab)}\langle kl|v|cd\rangle t_{kl}^{ca}t_{ij}^{db}\right)\\
+&+\left(\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kb|v|cj\rangle t_{ik}^{ac}+\hat{P}_{(ab)}\hat{P}_{(ij)}\langle ak|v|dc\rangle t_i^dt_{jk}^{bc}-\hat{P}_{(ab)}\hat{P}_{(ij)}\langle lk|v|ic\rangle t_l^at_{kj}^{cb}\right.\\
+&\phantom{++}\left.+\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_k^at_{jl}^{bd}+\frac{1}{2}\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_{ik}^{ac}t_{jl}^{bd}\right)\\
+&+\left(-\hat{P}_{(ab)}\langle kb|v|ij\rangle t_k^a-\frac{1}{2}\hat{P}_{(ab)}\langle kb|v|cd\rangle t_k^at_{ij}^{cd}-\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kb|v|cj\rangle t_k^at_i^c\right.\\
+&\phantom{++}\left.-\frac{1}{2}\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kb|v|cd\rangle t_k^at_i^ct_j^d+\frac{1}{2}\hat{P}_{(ab)}\langle kl|v|ij\rangle t_{k}^{a}t_l^b+\frac{1}{4}\hat{P}_{(ab)}\langle kl|v|cd\rangle t_k^at_{ij}^{cd}t_l^b\right.\\
+&\phantom{++}\left.+\frac{1}{2}\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kl|v|cj\rangle t_k^at_i^ct_l^b+\frac{1}{4}\hat{P}_{(ab)}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_k^at_i^ct_l^bt_j^d\right)\\
+&+\left(\hat{P}_{(ij)}\langle ab|v|cj\rangle t_i^c+\frac{1}{2}\hat{P}_{(ij)}\langle ab|v|cd\rangle t_i^ct_j^d\right)
+\label{eq:impl:t2amplitude}
+\end{align}
+This is equivalent to:
+\begin{align}
+0&=\langle ij|v|ab\rangle+\frac{1}{2}\langle ab|v|cd\rangle t_{ij}^{cd}\nonumber\\
+&-\hat{P}_{(ij)}\left(f_i^l + f_c^lt_i^c + \langle kl|v|ci\rangle t_k^c + \langle kl|v|cd\rangle t_k^ct_i^d+\frac{1}{2}\langle kl|v|cd\rangle t_{ki}^{cd}\right)t_{lj}^{ab}\nonumber\\
+&+\frac{1}{2}\left(\langle kl|v|ij\rangle +\hat{P}_{(ij)}\langle lk|v|jc\rangle t_i^c+\frac{1}{2}\langle kl|v|cd\rangle t_{ij}^{cd}+\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_j^d\right)t_{kl}^{ab}\nonumber\\
+&+\hat{P}_{(ab)}\left(f_d^a-f_d^kt_k^a+\langle ka|v|cd\rangle t_k^c-\langle lk|v|cd\rangle t_l^ct_k^a-\frac{1}{2}\langle kl|v|cd\rangle t_{kl}^{ca}\right)t_{ij}^{db}\nonumber\\
+&+\hat{P}_{(ab)}\hat{P}_{(ij)}\left(\langle kb|v|cj\rangle + \langle bk|v|dc\rangle t_j^d-\langle lk|v|jc\rangle t_l^b-\langle kl|v|cd\rangle t_j^dt_l^b+\frac{1}{2}\langle kl|v|cd\rangle t_{jl}^{bd}\right)t_{ik}^{ac}\nonumber\\
+&-\hat{P}_{(ab)}\left(\langle kb|v|ij\rangle +\frac{1}{2}\langle kb|v|cd\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\langle kb|v|cj\rangle t_i^c+\frac{1}{2}\hat{P}_{(ij)}\langle kb|v|cd\rangle t_i^ct_j^d\right.\nonumber\\
+&\phantom{++}\left.-\frac{1}{2}\langle kl|v|ij\rangle t_l^b-\frac{1}{4}\langle kl|v|cd\rangle t_{ij}^{cd}t_l^b-\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cj\rangle t_i^ct_l^b-\frac{1}{4}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_l^bt_j^d\right)t_k^a\nonumber\\
+&+\hat{P}_{(ij)}\left(\langle ab|v|cj\rangle +\frac{1}{2}\langle ab|v|cd\rangle t_j^d\right)t_i^c
+\label{eq:impl:t2amplitude2}
+\end{align}
+where we have relabeled some indices in the first, third and fourth parenthesis in order to extract common factors. We simplify this equation in a similar manner as for $\hat{T}_1$, by defining intermediates. The intermediates corresponding to $\hat{T}_2$ are given explicitly below. Note that we manipulate these expressions so that they correspond to the six matrices defined in the \emph{Interaction} class.
+
+We recognize the first parenthesis of Eq. (\ref{eq:impl:t2amplitude2}) as the intermediate $[I3]$, already defined for the $\hat{T}_1$ amplitude Eq. (\ref{eq:impl:t1intermediates3}), viz...
+\begin{align}
+[I3]_{i}^{l} &= f_i^l + f_c^lt_i^c + \langle kl|v|ci\rangle t_k^c + \langle kl|v|cd\rangle t_k^ct_i^d+\frac{1}{2}\langle kl|v|cd\rangle t_{ki}^{cd}\nonumber\\
+&=f_i^l+\langle ci|v|kl\rangle t_k^c+\frac{1}{2}\langle cd|v|kl\rangle t_{ki}^{cd}+(f_c^l+\langle dc|v|kl\rangle t_k^d)t_i^c\nonumber\\
+&=f_i^l-\langle ci|v|lk\rangle t_k^c+\frac{1}{2}\langle cd|v|lk\rangle t_{ik}^{cd}+(f_c^l+\langle cd|v|lk\rangle t_k^d)t_i^c\nonumber\\
+&=f_i^l-\langle ci|v|lk\rangle t_k^c+\frac{1}{2}\langle cd|v|lk\rangle t_{ik}^{cd}+[I2]_c^l\phantom{.}t_i^c
+\label{eq:impl:t2intermediates3}
+\end{align}
+The second parenthesis reads
+\begin{align}
+[I6]_{ij}^{kl} &= \langle kl|v|ij\rangle +\hat{P}_{(ij)}\langle lk|v|jc\rangle t_i^c+\frac{1}{2}\langle kl|v|cd\rangle t_{ij}^{cd}+\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_j^d\nonumber\\
+&=\langle kl|v|ij\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\left(-\langle cj|v|lk\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_j^d \right)t_i^c\nonumber\\
+&=\langle lk|v|ji\rangle+\frac{1}{2}\langle dc|v|lk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\left(-\langle cj|v|lk\rangle+\frac{1}{2}\langle dc|v|lk\rangle t_j^d \right)t_i^c\nonumber\\
+&=\langle lk|v|ji\rangle+\frac{1}{2}\langle dc|v|lk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I5]_{jc}^{lk}\phantom{.}t_i^c\nonumber\\
+&=\langle kl|v|ij\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I5]_{ic}^{kl}\phantom{.}t_j^c
+\label{eq:impl:t2intermediates6}
+\end{align}
+where the intermediate $[I5]$ is defined in Eq. (\ref{eq:impl:t1intermediates5}). The third parenthesis reads
+\begin{align}
+[I7]_{d}^{a} &= f_d^a-f_d^kt_k^a+\langle ka|v|cd\rangle t_k^c-\langle lk|v|cd\rangle t_l^ct_k^a-\frac{1}{2}\langle kl|v|cd\rangle t_{kl}^{ca}\nonumber\\
+&=\left(f_d^a +\langle dc|v|ak\rangle t_k^c\right)-\left(f_d^k+\langle cd|v|lk\rangle t_l^c\right)t_k^a-\frac{1}{2}\langle cd|v|kl\rangle t_{kl}^{ca}\nonumber\\
+&=[I1]_d^a-[I2]_d^k\phantom{.}t_k^a-\frac{1}{2}\langle dc|v|kl\rangle t_{kl}^{ac}
+\label{eq:impl:t2intermediates7}
+\end{align}
+where the intermediates $[I1]$ and $[I2]$ are defined in eqs. \ref{eq:impl:t1intermediates1} and \ref{eq:impl:t1intermediates2} respectively. The fourth parenthesis reads
+\begin{align}
+[I8]_{cj}^{kb} &=\langle kb|v|cj\rangle + \langle bk|v|dc\rangle t_j^d-\langle lk|v|jc\rangle t_l^b-\langle kl|v|cd\rangle t_j^dt_l^b+\frac{1}{2}\langle kl|v|cd\rangle t_{jl}^{bd}\nonumber\\
+&=\left(-\langle bk|v|cj\rangle + \frac{1}{2}\langle dc|v|bk\rangle t_j^d\right)+\frac{1}{2}\langle dc|v|bk\rangle t_j^d\nonumber\\
+&\phantom{=}-\left(-\langle cj|v|lk\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_j^d+\frac{1}{2}\langle cd|v|kl\rangle t_j^d\right)t_l^b\nonumber\\
+&\phantom{=}+\frac{1}{2}\langle cd|v|kl\rangle t_{jl}^{bd}\nonumber\\
+&=[I9]_{cj}^{kb}+\frac{1}{2}\langle dc|v|bk\rangle t_j^d-[I4]_{jc}^{lk}\phantom{.}t_l^b+\frac{1}{2}\langle cd|v|kl\rangle t_{jl}^{bd}
+\label{eq:impl:t2intermediates8}
+\end{align}
+where $[I4]$ corresponds to Eq. (\ref{eq:impl:t1intermediates4}) and $[I9]$ reads
+\begin{align}
+[I9]_{cj}^{kb} = -\langle bk|v|cj\rangle + \frac{1}{2}\langle dc|v|bk\rangle t_j^d
+\label{eq:impl:t2intermediates9}
+\end{align}
+The fifth parenthesis yields
+\begin{align}
+[I10]_{ij}^{kb}&= \langle kb|v|ij\rangle +\frac{1}{2}\langle kb|v|cd\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\langle kb|v|cj\rangle t_i^c+\frac{1}{2}\hat{P}_{(ij)}\langle kb|v|cd\rangle t_i^ct_j^d\nonumber\\
+&\phantom{=}-\frac{1}{2}\langle kl|v|ij\rangle t_l^b-\frac{1}{4}\langle kl|v|cd\rangle t_{ij}^{cd}t_l^b-\frac{1}{2}\hat{P}_{(ij)}\langle kl|v|cj\rangle t_i^ct_l^b-\frac{1}{4}\hat{P}_{(ij)}\langle kl|v|cd\rangle t_i^ct_l^bt_j^d\nonumber\\
+&=-\langle bk|v|ij\rangle-\frac{1}{2}\langle cd|v|bk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\left(-\langle bk|v|cj\rangle+ \frac{1}{2}\langle dc|v|bk\rangle t_j^d \right)t_i^c\nonumber\\
+&\phantom{=}-\frac{1}{2}\left(\langle kl|v|ij\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\left(\langle cj|v|kl\rangle+ \frac{1}{2}\langle cd|v|kl\rangle t_j^d\right)t_i^c\right)t_l^b\nonumber\\
+&=-\langle bk|v|ij\rangle-\frac{1}{2}\langle cd|v|bk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I9]_{cj}^{kb}\phantom{.}t_i^c\nonumber\\
+&\phantom{=}-\frac{1}{2}\left(\langle lk|v|ji\rangle+\frac{1}{2}\langle dc|v|lk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}\left(-\langle cj|v|lk\rangle+ \frac{1}{2}\langle dc|v|lk\rangle t_j^d\right)t_i^c\right)t_l^b\nonumber\\
+&=-\langle bk|v|ij\rangle-\frac{1}{2}\langle cd|v|bk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I9]_{cj}^{kb}\phantom{.}t_i^c-\frac{1}{2} [I6]_{ij}^{kl}\phantom{.}t_l^b
+\label{eq:impl:t2intermediates10}
+\end{align}
+%
+Finally the sixth parenthesis yields
+\begin{equation}
+[I11]_{cj}^{ab} = \langle ab|v|cj\rangle +\frac{1}{2}\langle ab|v|cd\rangle t_j^d
+\label{eq:impl:t2intermediates11}
+\end{equation}
+We now reinsert these definitions into Eq. (\ref{eq:impl:t2amplitude2}), and obtain the $\hat{T}_2$ amplitude equation
+\begin{align}
+0&=\langle ab|v|ij\rangle+\frac{1}{2}\langle ab|v|cd\rangle t_{ij}^{cd}-\hat{P}_{(ij)}[I3]_{i}^{l}\phantom{.}t_{lj}^{ab}+\frac{1}{2}[I6]_{ij}^{kl}\phantom{.}t_{kl}^{ab}\nonumber\\
+&+\hat{P}_{(ab)}[I7]_{d}^{a}\phantom{.}t_{ij}^{db}+\hat{P}_{(ab)}\hat{P}_{(ij)}[I8]_{cj}^{kb}\phantom{.}t_{ik}^{ac}-\hat{P}_{(ab)}[I10]_{ij}^{kb}\phantom{.}t_{k}^{a}+\hat{P}_{(ij)}[I11]_{cj}^{ab}\phantom{.}t_{i}^{c}
+\label{eq:impl:t2amplitude3}
+\end{align}
+Similarly, as for the $\hat{T}_1$ amplitude, we wish to obtain an equation for the $\hat{T}_2$ amplitude $t_{ij}^{ab}$. This is obtained by using the same technique as in the case of $\hat{T}_1$, thus
+\begin{align}
+0&=\langle ab|v|ij\rangle+\frac{1}{2}\langle ab|v|ab\rangle t_{ij}^{ab}+\frac{1}{2}(1-\delta_{ca}\delta_{db})\langle ab|v|cd\rangle t_{ij}^{cd}\nonumber\\
+&-\hat{P}_{(ij)}[I3]_{i}^{i}\phantom{.}t_{ij}^{ab}-(1-\delta_{il})\hat{P}_{(ij)}[I3]_{i}^{l}\phantom{.}t_{lj}^{ab}+\frac{1}{2}[I6]_{ij}^{ij}\phantom{.}t_{ij}^{ab}\nonumber\\
+&+\frac{1}{2}(1-\delta_{ki}\delta_{lj})[I6]_{ij}^{kl}\phantom{.}t_{kl}^{ab}+\hat{P}_{(ab)}[I7]_{a}^{a}\phantom{.}t_{ij}^{ab}+\hat{P}_{(ab)}(1-\delta_{da})[I7]_{d}^{a}\phantom{.}t_{ij}^{db}\nonumber\\
+&+\hat{P}_{(ab)}\hat{P}_{(ij)}[I8]_{cj}^{kb}\phantom{.}t_{ik}^{ac} -\hat{P}_{(ab)}[I10]_{ij}^{kb}\phantom{.}t_{k}^{a}+\hat{P}_{(ij)}[I11]_{cj}^{ab}\phantom{.}t_{i}^{c}
+\label{eq:impl:t2amplitude4}
+\end{align}
+We extract the $t_{ij}^{ab}$ amplitudes and obtain the $t_{ij}^{ab}$-amplitude equation
+\begin{align}
+t_{ij}^{ab}&=\frac{1}{D_{ij}^{ab}}\left(\langle ab|v|ij\rangle+\frac{1}{2}(1-\delta_{ca}\delta_{db})\langle ab|v|cd\rangle t_{ij}^{cd}-\hat{P}_{(ij)}(1-\delta_{il})[I3]_{i}^{l}\phantom{.}t_{lj}^{ab}\right.\nonumber\\
+&\left. +\frac{1}{2}(1-\delta_{ki}\delta_{lj})[I6]_{ij}^{kl}\phantom{.}t_{kl}^{ab}+\hat{P}_{(ab)}(1-\delta_{da})[I7]_{d}^{a}\phantom{.}t_{ij}^{db}+\hat{P}_{(ab)}\hat{P}_{(ij)}[I8]_{cj}^{kb}\phantom{.}t_{ik}^{ac}\right.\nonumber\\
+&\left.-\hat{P}_{(ab)}[I10]_{ij}^{kb}\phantom{.}t_{k}^{a}+\hat{P}_{(ij)}[I11]_{cj}^{ab}\phantom{.}t_{i}^{c}\right)
+\label{eq:impl:t2amplitude5}
+\end{align}
+where
+\begin{align}
+D_{ij}^{ab}=\hat{P}_{(ij)}[I3]_{i}^{i}-\frac{1}{2}\langle ab|v|ab\rangle-\frac{1}{2}[I6]_{ij}^{ij}-\hat{P}_{(ab)}[I7]_{a}^{a}
+\label{eq:impl:t2denom}
+\end{align}
+Eq. \ref{eq:impl:t2amplitude5} is implemented in the \texttt{amp1} class function \texttt{t2\_uncoupled\_calc}, which is illustrated in Listing \ref{list:impl:calct2}
+%
+\begin{lstlisting}[label={list:impl:calct2},caption={Implementation of the amp1 class function t2\_uncoupled\_calc()}]
+void Amplitudes::t2_uncoupled_calc() {
+    //calculating t2 intermediates
+    t2_uncoupled_intermediates();
+
+    // <ab|v|ij>
+    for (a = 0; a < np; a++)
+        for (b = 0; b < np; b++)
+            for (i = 0; i < nh; i++)
+                for (j = 0; j < nh; j++)
+                    t2[a][b][i][j] = 0.0;
+    for (int alpha = 0; alpha < dim_alpha; alpha++) {
+        map1 = 0;
+        for (i = 0; i < ppbcount[alpha]; i += 2) {
+            a = B->c_pp[alpha][i];
+            b = B->c_pp[alpha][i + 1];
+            map2 = 0;
+            for (j = 0; j < hhbcount[alpha]; j += 2) {
+                m = B->c_hh[alpha][j];
+                n = B->c_hh[alpha][j + 1];
+                t2[a][b][m][n] = V->pphh[alpha][map1][map2];
+                t2[b][a][m][n] = -V->pphh[alpha][map1][map2];
+                t2[a][b][n][m] = -V->pphh[alpha][map1][map2];
+                t2[b][a][n][m] = V->pphh[alpha][map1][map2];
+                map2 += 1;
+            }
+            map1 += 1;
+        }
+    }
+
+    // 0.5(1-delta_{ca}delta_{db}) <ab|v|cd> t_{ij}^{cd}
+    t2_uncoupled_term2(t2);
+
+    // -P_(ij)(1-delta_{il})[I3]_{i}^{l}t_{lj}^{ab}
+    t2_uncoupled_term3(t2);
+
+    // 0.5(1-delta_{ki}delta_{lj})[I6]_{ij}^{kl}t_{kl}^{ab}
+    t2_uncoupled_term4(t2);
+
+    // P_(ab)(1-delta_{da})[I7]_{d}^{a}t_{ij}^{db}
+    t2_uncoupled_term5(t2);
+
+    // P_(ab)P_(ij)[I8]_{cj}^{kb}t_{ik}^{ac}
+    t2_uncoupled_term6(t2);
+
+    // -P_(ab)[I10]_{ij}^{kb}t_{k}^{a}
+    t2_uncoupled_term7(t2);
+
+    // P_(ij)[I11]_{cj}^{ab}t_{i}^{c}
+    t2_uncoupled_term8(t2);
+
+    // calculating t2 denominator
+    t2_uncoupled_denom(t2);
+
+} // end t2_uncoupled_calc
+\end{lstlisting}
+%
+In Listing \ref{list:impl:calct2}, $t2$ represents the four-dimensional array with dimensions \texttt{[np][np][nh][nh]}, containing all possible $t_{ij}^{ab}$ amplitudes. Note how we are utilizing the \emph{Config} class (B) and \emph{Interaction} class (V) to get hold of the interaction elements in question. We proceed by illustrating the implementation of each term-function in \emph{t2\_uncoupled\_calc}, corresponding to the terms of Eq. (\ref{eq:impl:t2amplitude5}). In order to limit the implementation scope, standard procedures, like allocating arrays, are replaced by explanatory comments. The implementations are first presented in listings [\ref{list:impl:t2term2}-\ref{list:impl:t2denom}], followed by a more detailed description of \texttt{t2\_uncoupled\_term2} and \texttt{t2\_uncoupled\_term4}.
+%
+\begin{equation}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad \frac{1}{2}(1-\delta_{ca}\delta_{db})\langle ab|v|cd\rangle t_{ij}^{cd}\nonumber
+\end{equation}
+%
+\begin{lstlisting}[label={list:impl:t2term2},caption={implementation of the amp1 class function t2\_uncoupled\_term2()}]
+void Amplitudes::t2_uncoupled_term2(double ****t2){
+
+  /* allocate matrix C[dim_alpha][ppbcount[alpha]][nh*(nh-1)] */
+  
+  //filling of t2_pppp matrix = 2dimensional t2-old
+  t2pppp_fill();
+  
+  //matrix multiplication
+  for(alpha=0; alpha<dim_alpha; alpha++){
+#pragma omp parallel default(shared) private(v,u,w) 
+    {      
+      nthreads = omp_get_num_threads();
+#pragma omp for schedule (static)
+      for(ab=0; ab<ppbcount[alpha]; ab++){
+	for(ij=0; ij<temp; ij++){
+	  for(cd=0; cd<ppbcount[alpha]; cd++){
+	    C[alpha][ab][ij] += 0.5*v_pppp[alpha][ab][cd]
+                                *t2_pppp[alpha][cd][ij];
+	  }
+	}
+      } 
+    }
+  }
+  //translation from 2dim to 4dim
+  translste(t2,C);
+  
+  /* deallocate matrix C */
+} // end t2_uncoupled_term2
+
+
+void Amplitudes::t2pppp_fill()
+{
+  for(int a=0; a<dim_alpha ; a++){
+    for(int cd=0; cd<ppbcount[a]; cd+=2){
+      map2=0;
+      for(int ij=0; ij<2*nh*(nh-1); ij+=2){
+	t2_pppp[a][cd][map2] =t2_old[B->c_pp[a][cd]][B->c_pp[a][cd+1]]
+                                      [ij_map[ij]][ij_map[ij+1]];
+	t2_pppp[a][cd+1][map2]=t2_old[B->c_pp[a][cd+1]][B->c_pp[a][cd]]
+                                     [ij_map[ij]][ij_map[ij+1]];
+	map2+=1;
+      }
+    }
+  }
+}  //end fill
+
+
+void Amplitudes::translste(double ****t2, double*** C)
+{
+   for(int alpha=0; alpha<dim_alpha; alpha++){
+     for(int ab=0; ab<ppbcount[alpha]; ab+=2){
+       map1=0;
+       for(int ij=0; ij<2*nh*(nh-1); ij+=2){
+	 t2[B->c_pp[alpha][ab]][B->c_pp[alpha][ab+1]]
+           [ij_map[ij]][ij_map[ij+1]] += C[alpha][ab][map1];
+	 t2[B->c_pp[alpha][ab+1]][B->c_pp[alpha][ab]]
+           [ij_map[ij]][ij_map[ij+1]] += C[alpha][ab+1][map1];
+	 map1+=1;
+       }
+     }
+   }
+}  //end translate
+\end{lstlisting}
+%
+\begin{equation*}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad -\hat{P}_{(ij)}(1-\delta_{il})[I3]_{i}^{l}\phantom{.}t_{lj}^{ab}
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2term3},caption={implementation of the amp1 class function t2\_uncoupled\_term3()}]
+void Amplitudes::t2_uncoupled_term3(double ****t2){
+
+  /*allocating new matrix barh03[nh][nh], where if(i!=l) 
+  is implemented in form of zero elements along the diagonal*/
+  for(i=0; i<nh-1; i++){
+    for(l=i+1; l<nh; l++){
+      barh03[i][l] = barh_03[i][l];
+      barh03[l][i] = barh_03[l][i];
+    }
+  }
+  for(i=0; i<nh; i++)
+    barh03[i][i]=0.0;
+  
+  for(a=0; a<np-1; a++){
+    for(b=a+1; b<np; b++){
+      for(i=0; i<nh-1; i++){
+	for(j=i+1; j<nh; j++){
+	  temp=0.0;
+          for(l=0; l<nh; l++){
+	    temp -= barh03[l][i]*t2_old[a][b][l][j] 
+                 -barh03[l][j]*t2_old[a][b][l][i];
+	  }
+	  t2[a][b][i][j] += temp;
+	  t2[b][a][i][j] -= temp;
+	  t2[a][b][j][i] -= temp;
+	  t2[b][a][j][i] += temp;
+	}
+      }
+    }
+  }
+  
+  //deallocating matrix barh03
+} // end t2_uncoupled_term3
+\end{lstlisting}
+
+\begin{equation*}
+ t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad \frac{1}{2}(1-\delta_{ki}\delta_{lj})[I6]_{ij}^{kl}\phantom{.}t_{kl}^{ab}
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2term4},caption={implementation of the amp1 class function t2\_uncoupled\_term4()}]
+void Amplitudes::t2_uncoupled_term4(double ****t2){
+  
+  /* allocating matrix: A[np^2][nh^2], barh[nh^2][nh^2], C[np^2][nh^2]  */
+  //filling matrices A, barh:
+  for(a=0; a<np; a++)
+    for(b=0; b<np; b++)
+      for(k=0; k<nh; k++)
+	for(l=0; l<nh; l++)
+	  A[a*np+b][k*nh+l] = t2_old[a][b][k][l];
+  for(k=0; k<nh; k++)
+    for(l=0; l<nh; l++)
+      for(i=0; i<nh; i++)
+	for(j=0; j<nh; j++)
+	  if(i!=k || j!=l)
+	    barh[k*nh+l][i*nh+j] = barh_09[k][l][i][j];	    
+
+  //matrix multiplication
+#pragma omp parallel default(shared) private(v,u,w) 
+  {      
+    nthreads = omp_get_num_threads();
+#pragma omp for schedule (static)
+    for(ab=0; ab<np*np; ab++){
+      for(ij=0; ij<nh*nh; ij++){
+	for(kl=0; kl<nh*nh; kl++){
+	  C[ab][ij] += 0.5*A[ab][kl]*barh[kl][ij];
+	}
+      }
+    }
+  }
+  //translate
+  for(a=0; a<np; a++){
+    for(b=0; b<np; b++){
+      for(i=0; i<nh; i++){
+	for(j=0; j<nh; j++){
+	  t2[a][b][i][j] = t2[a][b][i][j]+C[a*np+b][i*nh+j];
+	}
+      }
+    }
+  }
+  //deallocating matrix A,barh,C
+} // end t2_uncoupled_term4
+\end{lstlisting}
+%
+\begin{equation*}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad \hat{P}_{(ab)}(1-\delta_{da})[I7]_{d}^{a}\phantom{.}t_{ij}^{db}
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:t2term5},caption={implementation of the amp1 class function t2\_uncoupled\_term5()}]
+void Amplitudes::t2_uncoupled_term5(double ****t2){
+
+  /*allocating new matrix barh02[np][np], which implement 
+  if(a!=d) by introducing zero elements along the diagonal*/
+  for(a=0; a<np-1; a++){
+    for(d=a+1; d<np; d++){
+      barh02[a][d] = barh_02[a][d];
+      barh02[d][a] = barh_02[d][a];
+    }
+  }
+  for(a=0; a<np; a++)
+    barh02[a][a]=0.0;
+  
+  for(a=0; a<np-1; a++){
+    for(b=a+1; b<np; b++){
+      for(i=0; i<nh-1; i++){
+	for(j=i+1; j<nh; j++){	
+	  temp = 0.0;
+	  for(d=0; d<np; d++){
+	    temp += barh02[a][d]*t2_old[b][d][i][j]
+                   -barh02[b][d]*t2_old[a][d][i][j];
+	  }
+	  t2[a][b][i][j] += temp;
+	  t2[b][a][i][j] -= temp;
+	  t2[a][b][j][i] -= temp;
+	  t2[b][a][j][i] += temp;
+	}
+      }
+    }
+  }
+  
+  //deallocating barh02
+} // end t2_uncoupled_term5
+\end{lstlisting}
+
+\begin{equation*}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad\hat{P}_{(ab)}\hat{P}_{(ij)}[I8]_{cj}^{kb}\phantom{.}t_{ik}^{ac}
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2term6},caption={implementation of the amp1 class function t2\_uncoupled\_term6()}]
+void Amplitudes::t2_uncoupled_term6(double ****t2){
+  
+  /*allocating matrix: A[np*nh][np*nh], I[np*nh][np*nh], C[np*nh][np*nh] */
+
+  //filling the matrices
+  for(j=0; j<nh; j++)
+    for(b=0; b<np; b++)
+      for(c=0; c<np; c++)
+	for(k=0; k<nh; k++)
+	  I[k*np+c][j*np+b]= barh_i10c[k][b][c][j];
+
+  for(i=0; i<nh; i++)
+    for(a=0; a<np; a++)
+      for(c=0; c<np; c++)
+	for(k=0; k<nh; k++)
+	  A[i*np+a][k*np+c] = t2_old[a][c][i][k];
+
+  //multiplication
+#pragma omp parallel default(shared) private(v,u,w) 
+  {      
+    nthreads = omp_get_num_threads();
+#pragma omp for schedule (static)
+    for(u=0; u<np*nh; u++){
+      for(v=0; v<np*nh; v++){
+	for(w=0; w<np*nh; w++){
+	  C[u][v]+=A[u][w]*I[w][v];
+	}
+      }
+    }
+  }
+
+  //translate
+  for(a=0; a<np; a++){
+    for(b=0; b<np; b++){
+      for(i=0; i<nh; i++){
+	for(j=0; j<nh; j++){
+	  t2[a][b][i][j] += C[i*np+a][j*np+b];
+	  t2[a][b][i][j] -= C[i*np+b][j*np+a];
+	  t2[a][b][i][j] -= C[j*np+a][i*np+b];
+	  t2[a][b][i][j] += C[j*np+b][i*np+a];
+	}
+      }
+    }
+  }
+  //deallocate matrix: A, I, C 
+} // end t2_uncoupled_term6
+\end{lstlisting}
+
+\begin{equation*}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad-\hat{P}_{(ab)}[I10]_{ij}^{kb}\phantom{.}t_{k}^{a} 
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2term7},caption={implementation of the amp1 class function t2\_uncoupled\_term7()}]
+void Amplitudes::t2_uncoupled_term7(double ****t2){
+  
+  /* t1 used instead if t1_old for a quicker convergence */
+  for(a=0; a<np-1; a++){
+    for(b=a+1; b<np; b++){
+      for(i=0; i<nh-1; i++){
+	for(j=i+1; j<nh; j++){	
+	  temp = 0.0;
+	  for(k=0; k<nh; k++){
+	    temp = temp + (barh_i12a[k][b][i][j]*t1[a][k] 
+                 - barh_i12a[k][a][i][j]*t1[b][k]); 
+	  }
+	  t2[a][b][i][j] -= temp;
+	  t2[b][a][i][j] += temp;
+	  t2[a][b][j][i] += temp;
+	  t2[b][a][j][i] -= temp;
+	}
+      }
+    }
+  }
+} // end t2_uncoupled_term7
+\end{lstlisting}
+
+\begin{equation*}
+t_{ij}^{ab}D_{ij}^{ab}\quad \leftarrow \quad\hat{P}_{(ij)}[I11]_{cj}^{ab}\phantom{.}t_{i}^{c} 
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2term8},caption={implementation of the amp1 class function t2\_uncoupled\_term8()}]
+void Amplitudes::t2_uncoupled_term8(double ****t2){
+  
+  /* t1 used instead if t1_old for a quicker convergence*/
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      a=B->c_pp[alpha][p];
+      b=B->c_pp[alpha][p+1];	  
+      for(j=0; j<nh; j++){
+	for(i=0; i<nh; i++){
+	  temp1=0.0;
+	  temp2=0.0;
+	  for(c=0; c<np; c++){
+	    temp1 += (barh_i11a[a][b][c][j]*t1[c][i] 
+                  - barh_i11a[a][b][c][i]*t1[c][j]);
+	  }
+	  t2[a][b][i][j] +=temp1;
+	  t2[b][a][i][j] -=temp1; 
+	}
+      }
+    }
+  }
+} // end t2_uncoupled_term8
+\end{lstlisting}
+
+\begin{equation*}
+t_{ij}^{ab}\quad \leftarrow \quad \frac{t_{ij}^{ab}}{D_{ij}^{ab}}=t_{ij}^{ab}/\left(\hat{P}_{(ij)}[I3]_{i}^{i}-\frac{1}{2}\langle ab|v|ab\rangle-\frac{1}{2}[I6]_{ij}^{ij}-\hat{P}_{(ab)}[I7]_{a}^{a}\right) 
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:t2denom},caption={implementation of the amp1 class function t2\_uncoupled\_denom()}]
+void Amplitudes::t2_uncoupled_denom(double ****t2){
+
+  /* allocating matrix C[np][np][nh][nh] */
+    
+  for(a=0; a<np; a++){
+    for(b=0; b<np; b++){
+      h2ab = barh_02[a][a] + barh_02[b][b];
+      for(j=0; j<nh; j++){
+	for(i=0; i<nh; i++){
+	  h3ij = barh_03[i][i] + barh_03[j][j];
+	  h9ijij = 0.5*barh_09[i][j][i][j];
+	  C[a][b][i][j] = h3ij - h2ab - h9ijij;
+	}
+      }
+    }
+  }
+
+  double temp;
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      a= B->c_pp[alpha][p];
+      b= B->c_pp[alpha][p+1];
+      temp=0.5*V->pppp[alpha][map1][map1];
+      for(i=0; i<nh; i++){
+	for(j=0; j<nh; j++){
+	  C[a][b][i][j]-= temp;
+	  C[b][a][i][j]-= temp;  
+	}
+      }
+      map1+=1;
+    }
+  }
+  
+  for(b=0; b<np-1; b++){
+    for(a=b+1; a<np; a++){
+      for(j=0; j<nh-1; j++){
+	for(i=j+1; i<nh; i++){
+	  t2[b][a][j][i] =  t2[b][a][j][i]/C[b][a][j][i];
+	  t2[a][b][j][i] = -t2[b][a][j][i];
+	  t2[b][a][i][j] = -t2[b][a][j][i];
+	  t2[a][b][i][j] =  t2[b][a][j][i];	  
+	}
+      }
+    }
+  }
+  
+  //deallocate matrix C
+  
+} // end t2_uncoupled_denom
+\end{lstlisting}
+
+Let us review the class function \texttt{t2\_uncoupled\_term2} and \texttt{t2\_uncoupled\_term4} in detail. We start with the former. The expression calculated in this function reads
+\begin{equation*}
+\frac{1}{2}(1-\delta_{ca}\delta_{db})\langle ab|v|cd\rangle t_{ij}^{cd}
+\label{eq:impl:t2term2expression}
+\end{equation*}
+Originally this calculation was implemented with brute force by M. P. Lohne, see illustration in listing \ref{list:impl:oldt2term2}. 
+\begin{lstlisting}[label={list:impl:oldt2term2},caption={M.P.Lohne's brute force implementation of amp1 class function t2\_uncoupled\_term2}]
+void Amplitudes::t2_uncoupled_term2(Array<double,4> ans){
+
+  for(j=0; j<nh; j++){
+    for(i=0; i<nh; i++){
+      for(b=0; b<np; b++){
+	for(a=0; a<np; a++){
+	  temp = 0.0;
+	  for(d=0; d<np; d++){
+	    for(c=0; c<np; c++){
+	      if(a!=c || b!=d){
+		temp = temp + V->pppp(a,b,c,d)*t2_old(c,d,i,j);
+	      }
+	    }
+	  }
+	  ans(a,b,i,j) = 0.5*temp;
+	}
+      }
+    }
+  }
+} // end t2_uncoupled_term2  
+\end{lstlisting}
+
+The first simplification we make, is to utilize the two-particle basis embedded in the class \emph{Config} (\texttt{B->}), and the corresponding interaction matrices in the class \emph{Interaction} (\texttt{V->}). By coupling the a-loop and the b-loop into one loop over the \texttt{c\_pp} in \emph{Config}, and repeating this for the c-loop and the d-loop, we obtain the simplification illustrated in listing \ref{list:impl:t2term2firstsimplification}
+\begin{lstlisting}[label={list:impl:t2term2firstsimplification},caption={illustrates the first simplification of M.P.Lohne's implementation of amp1 class function t2\_uncoupled\_term2}]
+void Amplitudes::t2_uncoupled_term2(double ****t2){
+
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    for(j=0; j<nh; j++){
+      for(i=0; i<nh; i++){
+	map1=0;
+	for(p=0; p<ppbcount[alpha]; p+=2){
+	  a = B->c_pp[alpha][p];
+	  b = B->c_pp[alpha][p+1];
+	  map2=0;
+	  for(p2=0; p2<ppbcount[alpha]; p2+=2){
+	    c = B->c_pp[alpha][p2];
+	    d = B->c_pp[alpha][p2+1];
+	    if(a!=e || b!=f){
+	      t2[a][b][i][j] = ans[a][b][i][j] 
+                + 0.5*V->pppp[alpha][map1][map2]*t2_old[c][d][i][j];
+	      t2[b][a][i][j] = ans[b][a][i][j] 
+                + 0.5*V->pppp[alpha][map1][map2]*t2_old[d][c][i][j];
+	    }
+	    if(b!=e || a!=f){
+	      t2[b][a][i][j] = ans[b][a][i][j] 
+                - 0.5*V->pppp[alpha][map1][map2]*t2_old[c][d][i][j];
+	      t2[a][b][i][j] = ans[a][b][i][j] 
+                - 0.5*V->pppp[alpha][map1][map2]*t2_old[d][c][i][j];
+	    }
+	    map2+=1;
+	  }
+	  map1+=1;
+	}
+      }
+    }
+  }
+} // end t2_uncoupled_term2  
+\end{lstlisting}
+Next we notice in listing \ref{list:impl:oldt2term2} that the interaction matrix \texttt{pppp} have two common indices with the four-dimensional matrix \texttt{t2\_old}. Thus, this multiplication is in reality a matrix multiplication. Therefore, by mapping the four-dimensional \texttt{t2\_old} into a two-dimensional matrix \texttt{t2\_pppp}, we can replace these loops by a matrix multiplication. This matrix multiplication results in a significant speed up of our code. The new matrix \texttt{t2\_pppp} is created in correspondence with the three-dimensional interaction matrix \texttt{pppp}. For each possible $\{M,M_s\}$-value, we create a two-dimensional \texttt{t2\_pppp[cd][ij]}-matrix. The common dimension \texttt{[cd]} is determined by the \texttt{c\_pp} in \emph{Config} class, while the dimension of \texttt{[ij]} reads
+\begin{equation*}
+ij = nh \cdot (nh-1)
+\label{eq:impl:ijdimension}
+\end{equation*}
+This dimension equals the number of all pairs of i and j, where i and j are different. If i and j are equal it violates the Pauli exclusion principle. The mapping of i and j into one variable is obtained as illustrated in listing \ref{list:impl:ijmap}. We then create an array \texttt{ij\_map} with twice the size of the \texttt{[ij]} dimension Eq. (\ref{eq:impl:ijdimension}), and tabulate the pairs of \texttt{i} and \texttt{j} values constituting the new \texttt{ij} values. This mapping is performed once in the \emph{Amplitudes} constructor.
+\begin{lstlisting}[label={list:impl:ijmap},caption={Illustrates the map of the two quantum numbers i,j into one number ij}]
+//mapping i,j -> ij  
+int ij_map = new int[2*nh*(nh-1)];
+temp=0;
+for(int i=0; i<nh; i++){
+  for(int j=0; j<nh; j++){
+    if(i!=j){
+      ij_map[tmp]=i;
+      ij_map[tmp+1]=j;
+      tmp+=2;
+    }
+  }
+}
+\end{lstlisting}
+We utilize this mapping when filling \texttt{t2\_pppp}, and when we translate the new two-dimensional system back into the four-dimensional system of $t2$, see the functions \texttt{t2pppp\_fill} and \emph{translate} respectively, in listing \ref{list:impl:t2term2}. The matrix multiplication however, is not straightforward because of the if-statements in both listing \ref{list:impl:oldt2term2} and \ref{list:impl:t2term2firstsimplification}. We therefore create a new interaction matrix \texttt{v\_pppp}, where these if-statements are incorporated. We incorporate the if-statements by implementing the unwanted matrix elements as zero. The matrix multiplication between \texttt{t2\_pppp} and \texttt{v\_pppp} is then carried out, and $t2_{ij}^{ab}$ is obtained by translating back into a four-dimensional system, see listing \ref{list:impl:t2term2}.
+
+Next we consider the class function \texttt{t2\_uncoupled\_term4}. This function performs the calculation of the following expression
+\begin{equation*}
+\frac{1}{2}(1-\delta_{ki}\delta_{lj})[I6]_{ij}^{kl}\phantom{.}t_{kl}^{ab}
+\label{eq:impl:t2term4expression}
+\end{equation*}
+Originally this expression was implemented with brute force by M. P. Lohne, see illustration in listing \ref{list:impl:oldt2term4}
+\begin{lstlisting}[label={list:impl:oldt2term4},caption={M.P.Lohne's brute force implementation of amp1 class function t2\_uncoupled\_term4} \cite{lohne}]
+void Amplitudes::t2_uncoupled_term4(Array<double,4> ans){
+
+  for(j=0; j<nh; j++){
+    for(i=0; i<nh; i++){
+      for(b=0; b<np; b++){
+	for(a=0; a<np; a++){
+	  temp = 0.0;
+	  for(l=0; l<nh; l++){
+	    for(k=0; k<nh; k++){
+	      if(i!=k || j!=l){
+		temp = temp + barh_09(k,l,i,j)*t2_old(a,b,k,l);
+	      }
+	    }
+	  }
+	  ans(a,b,i,j) = 0.5*temp;
+	}
+      }
+    }
+  }
+  
+} // end t2_uncoupled_term4
+\end{lstlisting}
+In this implementation there is no direct connections to an interaction element, thus simplification utilizing the two-particle basis embedded in the class \emph{Config} is not obtainable. However, we observe that the four-dimensional matrices \texttt{barh\_09} and \texttt{t2\_old} have two common indices \texttt{k} and \texttt{l}. This means that by mapping the matrices into a two-dimensional form, the performed calculation is equivalent to a matrix multiplication between \texttt{barh\_09[kl][ij]} and \texttt{t2\_old[ab][kl]}, which results in a matrix with dimension [ab][ij]. We create three new two-dimensional matrices, \texttt{barh} representing \texttt{barh\_09[kl][ij]}, \texttt{A} representing \texttt{t2\_old[ab][kl]}, and \texttt{C} for performing the multiplication. The mapping from four to two dimensions is performed with brute force when filling the matrices \texttt{A} and \texttt{barh} in listing \ref{list:impl:t2term4}. The dimensions thus read
+
+\begin{align*}
+ab &= a \cdot b=np^2 \\
+ij &= i \cdot j=nh^2 \\
+kl &= k \cdot l=nh^2
+\label{eq:impl:t2term4dimensions}
+\end{align*}
+
+Note how the if-statement is incorporated in the new matrix \texttt{barh}. From here the matrix multiplication is straightforward, and the final result for \texttt{t2} is obtained by mapping back into the four-dimensional system, in the same manner which we mapped into the two-dimensional system.
+
+In both listing \ref{list:impl:t2term2} and \ref{list:impl:t2term4} we are utilizing Open Multi-Processing (OMP), which is an application for parallellizing programs in a shared memory environment. OMP provides tools which create and manage threads automatically, and this makes parallellizing a much easier job. Parallel computing refers to computations where many calculations are carried out simultaneously, such that large and time consuming problems can be divided between threads into smaller ones, and then solved concurrently. Pragmas are special compiler commands, providing the compiler with additional information. OMP contains a set of pragmas that instructs the compiler to parallellize the code, but only if the compiler support OMP. The most basic pragma is the "$\#$pragma omp parallel", which denotes the region one wishes to parallellize. OMP is thereby a source to speed up our code. However, it is worth noticing that OMP can not run on different remote machines, like in a cluster of machines. This means that the speed up is limited by the number of processors on the single machine performing the calculation.  
+
+\subsubsection{Intermediates}
+
+In the following we present the implementation of the intermediates for both amplitudes $\hat{T}_1$ and $\hat{T}_2$. We calculate the intermediates since those terms appear more than one time in the CCSD equation. Then it would save us some computational time if we just calculate them once. We are not utilizing matrix multiplication when calculating the intermediates, even though this is possible in some of the calculations. We did not prioritize this implementation because the time consumption of calculating the intermediates did not imply that this would constitute a great speed up of our code.
+
+\begin{equation*}
+[I1]_{b}^{a}=f_{b}^{a}+\langle bc|v|aj\rangle t_j^c
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate1},caption={implementation of I1 in the amp1 class function ccsd\_uncoupled\_barh\_i02a\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i02a_store(){
+ 
+  //initializing barh_i02a ([I1]) by including f_{b}^{a}
+  for(int a=0; a<np; a++){
+    for(int b=a; b<np; b++){
+      barh_i02a[a][b] = F->f_pp[a][b];
+      barh_i02a[b][a] = F->f_pp[b][a];
+    }
+  } 
+  // calculating second term of[I1]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      b = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(ph=0; ph<phbcount[alpha]; ph+=2){   
+	a = B->phbasis[alpha][ph];
+	j = B->phbasis[alpha][ph+1];
+	barh_i02a[a][b] += V->ppph[alpha][map1][map2]*t1[c][j];
+	barh_i02a[a][c] -= V->ppph[alpha][map1][map2]*t1[b][j];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+}  //end [I1]
+\end{lstlisting}
+
+\begin{equation*}
+[I2]_c^k =f_{c}^{k}+\langle bc|v|jk\rangle t_j^b
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate2},caption={implementation of I2 in the amp1 class function ccsd\_uncoupled\_barh\_01\_store}]
+void Amplitudes::ccsd_uncoupled_barh_01_store(){
+
+  //initializing barh_01 ([I2]) by including f_{c}^{k}
+  for(int c=0; c<nh; c++){
+    for(int k=0; k<np; k++){
+      barh_01[c][k] = F->f_hp[c][k];
+    }
+  }
+  //calculating second term of [I2]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      c = B->c_pp[alpha][p];
+      b = B->c_pp[alpha][p+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	k = B->c_hh[alpha][h];
+	j = B->c_hh[alpha][h+1];
+	barh_01[k][c] +=  V->pphh[alpha][map1][map2]*t1[b][j];
+	barh_01[k][b] -=  V->pphh[alpha][map1][map2]*t1[c][j];
+	barh_01[j][c] -=  V->pphh[alpha][map1][map2]*t1[b][k];
+	barh_01[j][b] +=  V->pphh[alpha][map1][map2]*t1[c][k];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+
+% }  //end [I2]
+% \end{lstlisting}
+
+\begin{equation*}
+[I3]_i^j=f_{i}^{j}-\langle bi|v|jk\rangle t_{k}^{b}+\frac{1}{2}\langle bc|v|jk\rangle t_{ik}^{bc}+[I2]_b^j\phantom{.}t_i^b
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate3},caption={implementation of I3 in the amp1 class function ccsd\_uncoupled\_barh\_03\_store}]
+void Amplitudes::ccsd_uncoupled_barh_03_store(){
+ 
+  //initializing barh_03 ([I3]) by including f_{i}^{j}
+  for(int i=0; i<nh; i++){
+    for(int j=i; j<nh; j++){
+      barh_03[i][j] = F->f_hh[i][j];
+      barh_03[j][i] = F->f_hh[j][i];
+    }
+  }
+  //calculating [I2]
+  for(j=0; j<nh; j++){
+    for(i=0; i<nh; i++){
+      for(b=0; b<np; b++){ 
+	barh_03[j][i] = barh_03[j][i] + barh_01[j][b]*t1[b][i];
+      }
+    }
+  }
+  //calculating second term of [I3]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(ph=0; ph<phbcount[alpha]; ph+=2){
+      b = B->phbasis[alpha][ph];
+      i = B->phbasis[alpha][ph+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	j = B->c_hh[alpha][h];
+	k = B->c_hh[alpha][h+1];
+	barh_03[j][i] -= V->phhh[alpha][map1][map2]*t1[b][k];
+	barh_03[k][i] += V->phhh[alpha][map1][map2]*t1[b][j];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating third term of [I3]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      b = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	j = B->c_hh[alpha][h];
+	k = B->c_hh[alpha][h+1];
+	for(i=0; i<nh; i++){
+	  barh_03[j][i] += V->pphh[alpha][map1][map2]*t2[b][c][i][k];
+	  barh_03[k][i] -= V->pphh[alpha][map1][map2]*t2[b][c][i][j];
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+} //end [I3]
+
+\end{lstlisting}
+
+\begin{equation*}
+[I4]_{ic}^{jk}=[I5]_{ic}^{jk}+\frac{1}{2}\langle bc|v|jk\rangle t_i^b 
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:intermediate4},caption={implementation of I4 in the amp1 class function ccsd\_uncoupled\_barh\_07\_store}]
+void Amplitudes::ccsd_uncoupled_barh_07_store(){
+
+  //initializing barh_07 ([I4]) by including [I5]_{ic}^{jk}
+  for(int j=0; j<nh; j++){
+    for(int k=j; k<nh; k++){
+      for(int i=0; i<nh; i++){
+	for(int c=0; c<np; c++){
+	  barh_07[j][k][i][c] = barh_i07a[j][k][i][c];
+	  barh_07[k][j][i][c] = barh_i07a[k][j][i][c];
+	}
+      }
+    }
+  }
+  //calculating second term of [I4]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      b = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	j = B->c_hh[alpha][h];
+	k = B->c_hh[alpha][h+1];
+	temp3 = 0.5 * V->pphh[alpha][map1][map2];
+	for(i=0; i<nh; i++){
+	  temp1 = temp3*t1[f][i];
+	  temp2 = temp3*t1[e][i];
+	  barh_07[j][k][i][c] += temp1;
+	  barh_07[j][k][i][b] -= temp2;
+	  barh_07[k][j][i][c] -= temp1;
+	  barh_07[k][j][i][b] += temp2;
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+} //end[I4]
+\end{lstlisting}
+%
+\begin{equation*}
+[I5]_{ic}^{jk}=-\langle ci|v|jk\rangle+\frac{1}{2}\langle bc|v|jk\rangle t_i^b
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate5},caption={implementation of I5 in the amp1 class function ccsd\_uncoupled\_barh\_i07a\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i07a_store(){
+  
+  //calculating first term of [I5] (barh_i07a)
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(ph=0; ph<phbcount[alpha]; ph+=2){
+      c = B->phbasis[alpha][ph];
+      i = B->phbasis[alpha][ph+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	j = B->c_hh[alpha][h];
+	k = B->c_hh[alpha][h+1];
+	barh_i07a[j][k][i][c] = -V->phhh[alpha][map1][map2];
+	barh_i07a[k][j][i][c] = +V->phhh[alpha][map1][map2];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating second term of [I5]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      b = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	j = B->c_hh[alpha][h];
+	k = B->c_hh[alpha][h+1];
+	temp3 = 0.5*V->pphh[alpha][map1][map2];
+	for(i=0; i<nh; i++){
+	  temp1 = temp3*t1[b][i];
+	  temp2 = temp3*t1[c][i];
+	  barh_i07a[j][k][i][c] += temp1;
+	  barh_i07a[k][j][i][c] -= temp1;
+	  barh_i07a[k][j][i][b] += temp2;
+	  barh_i07a[j][k][i][b] -= temp2;
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+} //end [I5]
+\end{lstlisting}
+
+\begin{equation*}
+ [I6]_{ij}^{kl}=\langle kl|v|ij\rangle+\frac{1}{2}\langle cd|v|kl\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I5]_{ic}^{kl}\phantom{.}t_j^c
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate6},caption={implementation of I6 in the amp1 class function ccsd\_uncoupled\_barh\_09\_store}]
+void Amplitudes::ccsd_uncoupled_barh_09_store(){
+ 
+  //calculating first term of [I6] (barh_09)
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(i=0; i<hhbcount[alpha]; i+=2){
+      k = B->c_hh[alpha][i];
+      l = B->c_hh[alpha][i+1];
+      map2=0;
+      for(j=0; j<hhbcount[alpha]; j+=2){
+	i=B->c_hh[alpha][j];
+	j=B->c_hh[alpha][j+1];
+	barh_09[k][l][i][j] =  V->hhhh[alpha][map1][map2];
+	barh_09[k][l][j][i] = -V->hhhh[alpha][map1][map2];
+	barh_09[l][k][i][j] = -V->hhhh[alpha][map1][map2];
+	barh_09[l][k][j][i] =  V->hhhh[alpha][map1][map2];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating the [I5] term of [I6]
+  for(k=0; k<nh; k++){
+    for(l=0; l<nh; l++){
+      for(i=0; i<nh; i++){ 
+	for(j=0; j<nh; j++){	
+	  temp = 0.0;
+	  for(c=0; c<np; c++){
+	    temp = temp + (barh_i07a[k][l][i][c]*t1[c][j] 
+                 - barh_i07a[k][l][j][c]*t1[c][i]);
+	  }
+	  barh_09[k][l][i][j] += temp;
+	}
+      }
+    }
+  }
+  //calculating second term of [I6]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      c = B->c_pp[alpha][p];
+      d = B->c_pp[alpha][p+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){ 
+	k = B->c_hh[alpha][h];
+	l = B->c_hh[alpha][h+1];
+	for(j=0; j<nh; j++){
+	  for(i=0; i<nh; i++){ 
+	    temp1 = V->pphh[alpha][map1][map2]*t2[c][d][i][j];
+	    barh_09[k][l][i][j] += temp1;
+	    barh_09[l][k][i][j] -= temp1;
+	  }
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }    
+} //end [I6]
+\end{lstlisting}
+
+\begin{equation*}
+[I7]_{d}^{a} =[I1]_d^a-[I2]_d^k\phantom{.}t_k^a-\frac{1}{2}\langle dc|v|kl\rangle t_{kl}^{ac}
+\end{equation*}
+%
+\begin{lstlisting}[label={list:impl:intermediate7},caption={implementation of I7 in the amp1 class function ccsd\_uncoupled\_barh\_02\_store}]
+void Amplitudes::ccsd_uncoupled_barh_02_store(){
+ 
+  //initializing barh_02 ([I7]) by including [I1]
+  for(int a=0; a<np; a++){
+    for(int d=a; d<np; d++){
+      barh_02[a][d] = barh_i02a[a][d];
+      barh_02[d][a] = barh_i02a[d][a];
+    }
+  }
+  //including the [I2] term
+  for(a=0; a<np; a++){
+    for(d=0; d<np; d++){ 
+      for(k=0; k<nh; k++){
+	barh_02[a][d] = barh_02[a][d] - barh_01[k][d] * t1[a][k];
+      }
+    }
+  }
+  //calculating the third term of [I7]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    for(a=0; a<np; a++){ 
+      map1=0;
+      for(p=0; p<ppbcount[alpha]; p+=2){
+	d = B->c_pp[alpha][p];
+	c = B->c_pp[alpha][p+1];
+	map2=0;
+	for(h=0; h<hhbcount[alpha]; h+=2){
+	  k = B->c_hh[alpha][h];
+	  l = B->c_hh[alpha][h+1];
+	  temp1= V->pphh[alpha][map1][map2]*t2[a][c][k][l];
+	  temp2= V->pphh[alpha][map1][map2]*t2[a][d][k][l];
+	  barh_02[a][d] -=temp1;
+	  barh_02[a][c] +=temp2;
+	  map2+=1;
+	}
+	map1+=1;
+      }
+    }
+  }
+} //end[I7]
+\end{lstlisting}
+
+\begin{equation*}
+[I8]_{cj}^{kb}=[I9]_{cj}^{kb}+\frac{1}{2}\langle dc|v|bk\rangle t_j^d-[I4]_{jc}^{lk}\phantom{.}t_l^b+\frac{1}{2}\langle cd|v|kl\rangle t_{jl}^{bd}  
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:intermediate8},caption={implementation of I8 in the amp1 class function ccsd\_uncoupled\_barh\_i10b\_store and ccsd\_uncoupled\_barh\_i10c\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i10b_store(){
+  
+  //initializing barh_i10b, equivalent to calculating [I9]
+  for(int k=0; k<nh; k++){
+    for(int b=0; b<np; b++){
+      for(int c=b; c<np; c++){
+	for(int j=k; j<nh; j++){
+	  barh_i10b[k][b][c][j] = barh_i10a[k][b][c][j];
+	  barh_i10b[j][b][c][k] = barh_i10a[j][b][c][k];
+	  barh_i10b[k][c][b][j] = barh_i10a[k][c][b][j];
+	  barh_i10b[j][c][b][k] = barh_i10a[j][c][b][k];
+	}
+      }
+    }
+  }
+  //calculating second term of [I8]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      d = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(ph=0; ph<phbcount[alpha]; ph+=2){
+	b = B->phbasis[alpha][ph];
+	k = B->phbasis[alpha][ph+1];
+	temp = 0.5 * V->ppph[alpha][map1][map2];
+	for(j=0; j<nh; j++){
+	  barh_i10b[k][b][c][j] += temp*t1[d][j];
+	  barh_i10b[k][b][d][j] -= temp*t1[c][j];
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating 0.5*[I4]
+  for(k=0; k<nh; k++){ 
+    for(b=0; b<np; b++){
+      for(c=0; c<np; c++){
+	for(j=0; j<nh; j++){
+	  temp1=0.0;
+	  for(l=0; l<nh; l++){ 
+	    temp1 += 0.5 * barh_07[l][k][j][c]*t1[b][l];
+	  }
+	  barh_i10b[k][b][c][j]-=temp1;
+	}
+      }
+    }
+  }
+} //end part of [I8]
+
+void Amplitudes::ccsd_uncoupled_barh_i10c_store(){
+ 
+ //initializing barh_i10c ([I8]) by including barh_i10b
+  for(int k=0; k<nh; k++){
+    for(int b=0; b<np; b++){
+      for(int c=b; c<np; c++){
+	for(int j=k; j<nh; j++){
+	  barh_i10c[k][b][c][j] = barh_i10b[k][b][c][j];
+	  barh_i10c[j][b][c][k] = barh_i10b[j][b][c][k];
+	  barh_i10c[k][c][b][j] = barh_i10b[k][c][b][j];
+	  barh_i10c[j][c][b][k] = barh_i10b[j][c][b][k];
+	}
+      }
+    }
+  }
+  //calculating 0.5*[I4]
+  for(k=0; k<nh; k++){ 
+    for(b=0; b<np; b++){
+      for(c=0; c<np; c++){
+	for(j=0; j<nh; j++){
+	  temp1=0.0;
+	  for(l=0; l<nh; l++){ 
+	    temp1 += 0.5 * barh_07[l][k][j][c]*t1[b][l];
+	  }
+	  barh_i10b[k][b][c][j]-=temp1;
+	}
+      }
+    }
+  }
+  //calculating last term of [I8]
+  for(b=0; b<np; b++){
+    for(alpha=0; alpha<dim_alpha; alpha++){
+      map1=0;
+      for(p=0; p<ppbcount[alpha]; p+=2){
+	d = B->c_pp[alpha][p];
+	c = B->c_pp[alpha][p+1];
+	map2=0;
+	for(h=0; h<hhbcount[alpha]; h+=2){
+	  l = B->c_hh[alpha][h];
+	  k = B->c_hh[alpha][h+1];
+	  temp1 = 0.5*V->pphh[alpha][map1][map2];
+	  for(j=0; j<nh; j++){
+	    barh_i10c[k][b][c][j] += temp1*t2[b][d][j][l];
+	    barh_i10c[k][b][d][j] -= temp1*t2[b][c][j][l];
+	    barh_i10c[l][b][c][j] -= temp1*t2[b][d][j][k];
+	    barh_i10c[l][b][d][j] += temp1*t2[b][c][j][k];
+	  }
+	  map2+=1;
+	}
+	map1+=1;
+      }
+    }
+  }
+}//end [I8]
+\end{lstlisting}
+
+\begin{equation*}
+[I9]_{cj}^{kb} = -\langle bk|v|cj\rangle + \frac{1}{2}\langle dc|v|bk\rangle t_j^d 
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate9},caption={implementation of I9 in the amp1 class function ccsd\_uncoupled\_barh\_i10a\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i10a_store(){
+  
+  //calculating first term of [I9] (barh_i10a)
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(ph=0; ph<phbcount[alpha]; ph+=2){ 
+      b = B->phbasis[alpha][ph];
+      k = B->phbasis[alpha][ph+1];
+      map2=0;
+      for(ph2=0; ph2<phbcount[alpha]; ph2+=2){
+	c = B->phbasis[alpha][ph2];
+	j =  B->phbasis[alpha][ph2+1];  
+	barh_i10a[k][b][c][j] = -V->phph[alpha][map1][map2];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating second term of [I9]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){ 
+      d = B->c_pp[alpha][p];
+      c = B->c_pp[alpha][p+1];
+      map2=0;
+      for(ph=0; ph<phbcount[alpha]; ph+=2){
+	b = B->phbasis[alpha][ph];
+	k = B->phbasis[alpha][ph+1];
+	temp = 0.5 * V->ppph[alpha][map1][map2];
+	for(j=0; j<nh; j++){
+	  barh_i10a[k][b][c][j] += temp*t1[d][j];
+	  barh_i10a[k][b][d][j] -= temp*t1[c][j];
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+} //end [I9]
+\end{lstlisting}
+
+\begin{equation*}
+[I10]_{ij}^{kb}=-\langle bk|v|ij\rangle-\frac{1}{2} \langle cd|v|bk\rangle t_{ij}^{cd}+\hat{P}_{(ij)}[I9]_{cj}^{kb}\phantom{.}t_i^c-\frac{1}{2} [I6]_{ij}^{kl}t_l^b 
+\end{equation*}
+
+\begin{lstlisting}[label={list:impl:intermediate10},caption={implementation of I10 in the amp1 class function ccsd\_uncoupled\_barh\_i12a\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i12a_store(){
+  
+  //calculating first term of [I10] (barh_i12a)
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(ph=0; ph<phbcount[alpha]; ph+=2){
+      b = B->phbasis[alpha][ph];
+      k = B->phbasis[alpha][ph+1];
+      map2=0;
+      for(h=0; h<hhbcount[alpha]; h+=2){
+	i = B->c_hh[alpha][h];
+	j = B->c_hh[alpha][h+1];
+	barh_i12a[k][b][i][j] = -V->phhh[alpha][map1][map2];
+	barh_i12a[k][b][j][i] = +V->phhh[alpha][map1][map2];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  // calculating the [I9] term of [I10]
+  for(k=0; k<nh; k++){
+    for(b=0; b<np; b++){
+      for(j=0; j<nh; j++){
+	for(i=0; i<nh; i++){
+    	  temp = 0.0;
+	  for(c=0; c<np; c++){
+	    temp = temp + (barh_i10a[k][b][c][j]*t1[c][i] 
+                 - barh_i10a[k][b][c][i]*t1[c][j]);
+	  }
+	  barh_i12a[k][b][i][j] = barh_i12a[k][b][i][j] + temp;
+	}
+      }
+    }
+  }
+  // calculating the [I6] term of [I10]
+  for(k=0; k<nh; k++){
+    for(b=0; b<np; b++){
+      for(j=0; j<nh; j++){
+	for(i=0; i<nh; i++){	
+	  temp = 0.0;
+	  for(l=0; l<nh; l++){
+	    temp = temp + barh_09[k][l][i][j]*t1[b][l];
+	  }
+	  barh_i12a[k][b][i][j] = barh_i12a[k][b][i][j] - 0.5*temp;
+	}
+      }
+    }
+  }
+  //calculating second term of [I10]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      c = B->c_pp[alpha][p];
+      d = B->c_pp[alpha][p+1];
+      map2=0;
+      for(ph=0; ph<phbcount[alpha]; ph+=2){
+	b = B->phbasis[alpha][ph];
+	k = B->phbasis[alpha][ph+1];
+	for(i=0; i<nh; i++){
+	  for(j=0; j<nh; j++){
+	    barh_i12a[k][b][i][j] -= V->ppph[alpha][map1][map2]*t2[c][d][i][j];
+	  }
+	}
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+} //end [I10]
+\end{lstlisting}
+
+\begin{equation*}
+[I11]_{cj}^{ab} = \langle ab|v|cj\rangle +\frac{1}{2}\langle ab|v|cd\rangle t_j^d 
+\end{equation*}
+\begin{lstlisting}[label={list:impl:intermediate11},caption={implementation of I11 in the amp1 class function ccsd\_uncoupled\_barh\_i11a\_store}]
+void Amplitudes::ccsd_uncoupled_barh_i11a_store(){
+   
+  //calculating first term of [11] (barh_i11a)
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    map1=0;
+    for(p=0; p<ppbcount[alpha]; p+=2){
+      a = B->c_pp[alpha][p];
+      b = B->c_pp[alpha][p+1];
+      map2=0;
+      for(ph=0; ph<phbcount[alpha]; ph+=2){
+	c = B->phbasis[alpha][ph];
+	j = B->phbasis[alpha][ph+1];
+	barh_i11a[a][b][c][j] =  V->ppph[alpha][map1][map2];
+	barh_i11a[b][a][c][j] = -V->ppph[alpha][map1][map2];
+	map2+=1;
+      }
+      map1+=1;
+    }
+  }
+  //calculating second term of [11]
+  for(alpha=0; alpha<dim_alpha; alpha++){
+    for(j=0; j<nh; j++){
+      map1=0;
+      for(p=0; p<ppbcount[alpha]; p+=2){
+	a = B->c_pp[alpha][p];
+	b = B->c_pp[alpha][p+1];
+	map2=0;
+	for(p2=0; p2<ppbcount[alpha]; p2+=2){ 
+	  c = B->c_pp[alpha][p2];
+	  d = B->c_pp[alpha][p2+1];
+	  temp3 = 0.5*V->pppp[alpha][pmap][p2map];
+	  temp1 = temp3*t1[f][i];
+	  temp2 = temp3*t1[e][i]; 
+	  barh_i11a[a][b][c][j] += temp1;
+	  barh_i11a[b][a][c][j} -= temp1;
+	  barh_i11a[a][b][d][j] -= temp2;
+	  barh_i11a[b][a][d][j] += temp2;
+	  map2+=1;
+	}
+	map1+=1;
+      }
+    }
+  }
+}//end [I11]
+\end{lstlisting}

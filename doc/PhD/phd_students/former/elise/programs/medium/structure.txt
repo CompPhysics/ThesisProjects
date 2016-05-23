@@ -1,0 +1,133 @@
+
+PROGRAM STRUCURE
+
+% MAIN 
+scfg
+
+% Constants and input
+ globalvalues
+ scgfconstants
+ scgfdata
+
+% Load/generate matrix containing partial waves
+ find_partialwaves
+
+ cm_mesh
+ rel_mesh
+
+% Set initial energy
+
+% Main loop
+
+ % Set most values to zero
+
+ % Find energy-points depending on current fermienergy
+    omega_mesh
+
+   % Loop over partial waves
+      potential
+      gammavertex
+
+      % Loops over cm-momenta and energy
+	  polemomentum
+	   Energyminusomega
+	   fzero
+
+	  % Test if imaginary polemomentum
+	    yes: direct integration
+	     % Construct u-vector
+	        qpaulibarminus
+		Energy
+	     % Construct Amatrix
+	     % Find R
+	     % Keep the diagonal elements of R
+	    no:integration trick
+
+	     rmatrix
+	      % Construct k-vector including kp
+	      % Contruct total potential matrix
+	       potential
+	      % Construct u-vector
+	        qpaulibarminus
+		Energy
+		Blim
+	      % Construct Amatrix
+	      % Find R
+
+	     afactor
+	      qpaulibarplus
+	      Eder
+	       qpaulibarder
+
+	     % Find denominator
+	     % Construct correct partialwavegamma
+	   % End of cm and energy loops
+
+       % Find ReDeltaGamma=Re(Gamma)-V
+
+      % End of loop over partialwaves
+
+      redelta
+       % Loops over cm-momenta and energy
+
+       % If energy<2e_fermi
+	 % Construct points for integration over imaginary part of Gamma
+	 % Loop over relative momentum
+	  % Find imaginary part
+	  % Integrate
+	     imgammapol
+	      interp1
+	    ReDeltaGammaUp = ReDeltaGamma-integral over ImGamma
+	    ReDeltaGammaDown = integral over ImGamma
+	 % End of loop over momenta
+	 
+	 % If energy>2e_fermi
+	 % Construct points for integration over imaginary part of Gamma
+	 % Loop over relative momentum
+	  % Find imaginary part
+	  % Integrate
+	     imgammapol
+	      interp1
+	    ReDeltaGammaDown = ReDeltaGamma-integral over ImGamma
+	    ReDeltaGammaUp = integral over ImGamma
+	 % End of loop over momenta
+
+   % Loop over elements q of input k-vector
+      sigma
+       sigmaV
+        % Integrate as describen in Ramos app C
+       resigmaD
+	 % Construct integration points for P=cm/2,
+	 % start and end depending on whether q is smaller or larger then k_fermi
+	 % Loop over elements P of Pgrid
+	   % Construct integration points for cosinus integration,
+	   % start and end depending on the value of P
+	   % Construct integration variables kprime and krel from q, P and cosgrid
+	   % Find ReDeltaGammaDown-points by interpolation
+	     redeltainterp2
+	      interp3
+	   % Perform integration over cosinus
+	   % Add to the integral over P
+	 % End of loop over Pgrid
+
+       resigmaU
+        % Construct integration points for P=cm/2,
+	% start and end depending on whether q is smaller or larger then k_fermi
+	% Loop over elements P of Pgrid
+	  % Construct integration points for cosinus integration,
+	  % start and end depending on the value of P
+	  % Construct integration variables kprime and krel from q, P and cosgrid
+	  % Find ReDeltaGammaUp-points by interpolation
+	    redeltainterp2
+	     interp3
+	  % Perform integration over cosinus
+	  % Add to the integral over P
+	 % End of loop over Pgrid
+
+   % End of loop over q
+ 
+  newenergy
+   polyfit
+
+% End of main loop
+

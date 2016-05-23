@@ -1,0 +1,1088 @@
+%\setlength{\parindent}{0pt}   % Set no indentation in the beginning of each paragraph.
+%\setlength{\parskip}{2ex}     % Separate lines each paragraph.
+
+\chapter{Software design and implementation}\label{implementation}
+The use of compiled low level languages such as Fortran and C is a deeply-rooted tradition among computational scientifics and physicists for doing numerical simulations requiring high performance. However, the increased demand for more flexibility has motived the deveploment of object oriented languages such as C++  and Fortran 95. The use of encapsulation, polymorphism and heritance lets dividing source codes into a public interface, and a private implementation of that interface. The style includes overloading of standard operators so that they have appropiated behaviour according to the context and creating subclasses that are specializations of their parents. Big projects are splitted into several classes communicating each other, letting the pro\-blem be solved in a divide and konqueror style.  This is advantageous for debbuging, reuse, maintenance and extension of the code. These ideas will be used in the rest of the chapter for designing and implementing a Quantum Varitional Monte Carlo simulator. Three alternatives are explored.
+
+\section{Structuring a software for QVMC in close shell systems}\label{softwareStructure}
+When design software one should take into account the use efficient of memory, possibility for future extensions (flexibility) and software structure (easy to understand for other programmers and the final users)\cite{Shapira2006,Langtangen2003}. \\
+\\
+In general, several approaches exist in the design of software, one of them is the use of prototypes. The high level programming language Python\footnote{Python is an interpreted object-oriented language that shares with matlab many of its characteristics, but which is much more powerfull and flexible when equipped with tools for numerical simulations and visualization. Because Python was designed to be extended with legacy code for efficiency, it is easier to interface it with  software written in C++, C and fortran than in other environments. A balance between computational efficienty, to get fast codes, and programming efficiency, to concentrate more in doing physics, is preferred. 
+
+} has been used in this thesis with this mind. In essence what a prototype does is to help the designer exploring alternatives, making performance test, and modifying design strategies.
+
+\subsection{Implementing a prototype in Python}\label{PythonPrototype}
+We start implementing the Quantum Variational Monte Carlo algorithm from chapter \ref{QMC}. To do so, we implement a \citecode{Vmc} class which serves as administror of the simulation, setting the parameters of simulation, creating objects of related to the algorithm, and running it, as shown below. 
+% \begin{lstlisting}[language=Python]
+\begin{Python}
+...
+#Import some packages
+...
+class VMC():
+  def __init__(self, _dim, _np, _charge, ...,_parameters):
+    ...
+    #Set parameters and create objects for the simulation
+    ...
+    particle = Particle(_dim, _np, _step) 
+    psi      = Psi(_np, _dim, _parameters)
+    energy   = Energy(_dim, _np, particle, psi, _nVar, _ncycles, _charge) 
+    self.mc  = MonteCarlo(psi, _nVar, _ncycles, _dim, _np, particle, energy)
+
+  
+  def doVariationalLoop(self):
+    if (self.mcMethod=='BF'):
+      for var in xrange(nVar):
+		    self.mc.doMonteCarloBruteForce()
+		    self.mc.psi.updateVariationalParameters()
+    else:
+      for var in xrange(nVar):
+	      self.mc.doMonteCarloImportanceSampling()
+	      self.mc.psi.updateVariationalParameters()
+  
+  ...
+\end{Python}
+% \end{lstlisting}
+The information regarding the configuration space can be encapsulated in a class \citecode{Particle} with the straighforward implementation\\
+%%%\begin{lstlisting}[language=Python]
+\begin{Python}
+...
+class Particle(): 
+  def __init__(self, _dim, _np, _step):
+    # Initialize matrices for configuration space
+    ...
+
+  def acceptMove(self, i):
+    for j in xrange(dim):
+      self.r_old[i,j] = self.r_new[i,j]
+
+  def resetPosition(self, i):
+    for k in xrange(self.np):
+      if(k != i):
+				for j in xrange(self.dim):
+					self.r_new[k,j] = self.r_old[k,j]
+
+	def setTrialPositionsBF(self):
+    self.r_old = self.step*random.uniform(-0.5,0.5,size=np*dim).reshape(np,dim)
+
+  def setTrialPositionsIS(self):
+    for i in xrange(self.np):
+      for j in xrange(self.dim):
+				self.r_old[i,j] = random.normal()*sqrt(self.step) # step=dt
+\end{Python}
+
+\begin{Python}
+
+  def updatePosition(self, i):
+    #Note use of vectorized loop
+    self.r_new[i,0:dim]=self.r_old[i,0:dim] + self.step*(random.random()-0.5)
+    self.resetPosition(i)
+\end{Python}
+%%%%\end{lstlisting}
+
+In the \citecode{MonteCarlo} class we implement a function \citecode{thermalize()} for the equilibrium phase, before attempting to do the production part of the simulation. The kind of sampling with which to run the simulation can be choosen from the \citecode{Vmc} class.
+% % \begin{lstlisting}[language=Python]
+\begin{Python}
+
+class MonteCarlo():
+  def __init__(self, psi, ..., _ncycles, ..., particle, energy):
+    #Set data and member functions
+    ...
+  
+  def doMonteCarloImportanceSampling(self):
+    ...  
+    #Matrices storing the quantum force terms
+    Fold = zeros(np*dim).reshape(np, dim)  
+    Fnew = zeros(np*dim).reshape(np, dim)
+    
+    #Reset energies
+    self.energy.resetEnergies()
+    deltaEnergy = 0.0		
+    ...
+    #Set initial trial positions (space configuration)
+    self.particle.setTrialPositionsIS()
+    
+    #Thermalize
+    self.thermalize()
+
+    #Evaluate the trial wave function for the current positions
+    wfold = getPsiTrial(r_old)
+			    
+    #Evaluate the quantum force at the current positions
+    Fold = self.psi.getQuantumForce(r_old, wfold)
+    
+    for c in xrange(1, self.ncycles+1, 1):	# Monte Carlo loop
+      for i in xrange(np):									# Loop over particles
+				for j in xrange(dim):								# Loop over coordinates
+					#Suggest a trial move
+					r_new[i,j] = r_old[i,j] + random.normal()*sqrt(dt) + Fold[i,j]*dt*D
+
+				#Reset the position of the particles, but the ones containing i as its first index
+				resetPostion(i)
+
+				#Evaluate the trial wave function at the suggested position
+				wfnew = self.psi.getPsiTrial(r_new)
+						
+				#Evaluate the quantum force for particles at the suggested position
+				Fnew = self.psi.getQuantumForce(r_new, wfnew)
+						
+				#Compute the Green's function
+				greensFunction = 0.0
+						
+				for j in xrange(dim):
+					greensFunction 	+= 0.5*(Fold[i,j] + Fnew[i,j]) \
+														*(D*dt*0.5*(Fold[i,j] - Fnew[i,j])- r_new[i,j] + r_old[i,j])
+				
+				greensFunction = exp(greensFunction)
+\end{Python}
+
+\begin{Python}
+
+				acceptanceRatio = greensFunction*wfnew*wfnew/wfold/wfold
+
+				#Do the metropolis/hasting test
+				if(random.random() <= acceptanceRatio):
+					for j in xrange(dim):
+						r_old[i,j] = r_new[i,j] 
+						Fold[i,j] = Fnew[i,j]   
+					
+					#Update the wave function
+					wfold = wfnew
+
+      #Compute local energy and its cumulants
+      self.energy.getLocalEnergy(wfold)
+    self.energy.computeEnergyExpectationValue()
+    self.energy.resetEnergies()
+\end{Python}
+% % % % \end{lstlisting}
+% % % % % % % % % The main difference with the brute force method is that it does not include terms related to the quantum force. Moreover, the new position is suggested according to:
+% % % \begin{lstlisting}[language=Python]
+% % % % % % % % % \begin{Python}
+% % % % % % % % % 
+% % % % % % % % % self.particle.r_new[i,j] = self.particle.r_old[i,j] + step*(random.random() - 0.5)
+% % % % % % % % % 
+% % % % % % % % % \end{Python}
+% % % % % % % % % % % % \end{lstlisting}
+
+To encapsulate information concerning the trial wave function and energy we create the \citecode{Psi} and \citecode{Energy} classes, respectively.
+% % % \begin{lstlisting}[language=Python]
+\begin{Python}
+...
+class Psi:
+  def __init__(self, _np, _dim, _parameters):
+    ...
+    self.cusp = zeros((_np*(_np-1)/2)) 		# Cusp factors
+    self.setCusp()
+  
+  def setCusp(self):
+    ...
+    if(self.np==2):
+      self.cusp[0] = 0.5
+    else:
+      for i in xrange(size):
+				self.cusp[i] = 0.5
+	
+      self.cusp[0] = 0.5
+      self.cusp[5] = 0.5
+
+  #Define orbitals (single particle wave functions)
+  def phi1s(self, rij):
+    return exp(-self.parameters[0]*rij)
+    
+  def phi2s(self, rij):
+    return (1.0 - self.parameters[0]*rij/2.0)*exp(-self.parameters[0]*rij/2.0)
+
+  def getPsiTrial(self, r):
+    return self.getModelWaveFunctionHe(r)*self.getCorrelationFactor(r)
+	  
+  def getCorrelationFactor(self, r):
+    correlation = 1.0
+    for i in xrange(self.np-1):
+      for j in xrange(i+1, self.np):
+				idx = i*(2*self.np - i-1)/2 - i + j - 1
+				
+		r_ij = 0.0
+		for k in xrange(self.dim):
+			r_ij += (r[i,k]-r[j,k])*(r[i,k]-r[j,k])
+		r_ij=sqrt(r_ij)
+		
+		correlation *= exp(self.cusp[idx]*r_ij/(1.0 + self.parameters[1]*r_ij))
+    return correlation
+\end{Python}
+
+\begin{Python}
+
+  #Set the Slater determinant part of Be
+  def getModelWaveFunctionBe(self, r):
+    argument = zeros((self.np))
+    wf = 0.0
+    ...
+    psi1s = self.phi1s #Shortcut, convenient in for-loops
+    ...
+    for i in xrange(self.np):
+      argument[i] = 0.0
+      r_singleParticle = 0.0
+				for j in xrange(self.dim):
+					r_singleParticle += 	r[i,j]*r[i,j]
+	
+      argument[i] = sqrt(r_singleParticle)
+	
+    wf = (psi1s(argument[0])*psi2s(argument[1])	\
+				-psi1s(argument[1])*psi2s(argument[0]))	\
+				*(psi1s(argument[2])*psi2s(argument[3])	\
+				-psi1s(argument[3])*psi2s(argument[2]));
+    
+    return wf
+
+  #Set the Slater determinant part of He
+  def getModelWaveFunctionHe(self, r):
+    argument = 0.0
+    for i in xrange(self.np):
+      r_singleParticle = 0.0
+      for j in xrange(self.dim):
+				r_singleParticle += r[i,j]*r[i,j]
+      argument += sqrt(r_singleParticle)
+
+    return exp(-argument*self.parameters[0])
+
+	#Compute the quantum force numerically 
+	def getQuantumForce(self, r, wf): 	 
+    ...
+    for i in xrange(np):
+      for j in xrange(dim):
+      				r_plus[i,j] = r[i,j] + h
+				r_minus[i,j] = r[i,j] - h
+				wfminus = self.getPsiTrial(r_minus) 
+				wfplus = self.getPsiTrial(r_plus)
+				
+				quantumForce[i,j] = (wfplus - wfminus)/wf/h
+				
+				r_plus[i,j] = r[i,j]
+				r_minus[i,j] = r[i,j]
+	
+    return quantumForce
+...
+\end{Python}
+
+Class \citecode{Energy} is also equiped with some functions to do statistical analysis of uncorrelated data.
+
+% % % % 	\begin{lstlisting}[language=Python]
+\begin{Python}
+...
+class Energy:	
+  def __init__(self, dim, np, particle, psi, maxVar, ncycles, charge):	
+    self.cumEnergy = zeros(maxVar)			  #Cumulant for energy
+    self.cumEnergy2= zeros(maxVar)			#Cumulant for energy squared
+		...
+\end{Python}
+
+\begin{Python}
+
+  def getLocalEnergy(self, wfold):
+	  EL 	   = self.getKineticEnergy(wfold) + self.getPotentialEnergy()
+	  self.E  += EL
+	  self.E2 += EL*EL 
+  ...
+
+  def getPotentialEnergy(self):
+    ...
+		PE = 0.0
+		
+    # Contribution from electron-proton potential
+    for i in xrange(np):
+      r_single_particle = 0.0
+      for j in xrange(dim): 
+				r_single_particle += r_old[i,j]*r_old[i,j]
+    PE -= charge/sqrt(r_single_particle) 
+
+    # Contribution from electron-electron potential
+    for i in xrange(0, np-1):
+      for j in xrange(i+1, np):
+			r_12 = 0.0
+			for k in xrange(0, dim):
+				r_12 += (r_old[i,k] - r_old[j,k])*(r_old[i,k] - r_old[j,k])
+			PE += 1.0/sqrt(r_12) 
+    return PE
+
+  def getKineticEnergy(self, wfold):
+		KE = 0.0  		 	 	#Initialize kinetic energy
+		h = 0.001		 		 	#Step for the numerical derivative
+    h2= 1000000.	 		#hbar squared
+    ...
+    for i in xrange(np):
+      for j in xrange(dim):
+				r_plus[i,j] = self.particle.r_old[i,j] + h
+				r_minus[i,j]= self.particle.r_old[i,j] - h
+				wfplus  = self.psi.getPsiTrial(r_plus)
+				wfminus = self.psi.getPsiTrial(r_minus)
+
+				# Get the laplacian_wave_function to wave_function ratio
+				KE -= (wfminus + wfplus - 2.0*wfold)
+				
+				r_plus[i,j]=self.particle.r_old[i,j].copy()
+				r_minus[i,j]  = self.particle.r_old[i,j].copy()
+
+  return 0.5*h2*KE/wfold # include electron mass and hbar squared
+\end{Python}
+% % % % \end{lstlisting}
+The calling code is just
+% % % % \begin{lstlisting}[language=Python]
+\begin{Python}
+import sys
+from VMC import *
+
+#Set parameters of simulation
+dim 	= 3	  						#Number of spatial dimensions
+nVar 	= 10							#Number of variations for a quick optimization method
+ncycles = 10000					#Number of monte Carlo cycles
+np	=2						# Number of electrons
+charge	=2.0		 	# Nuclear charge
+...
+vmc = VMC(dim, np, charge, mcMethod, ncycles, step, nVar, parameters)
+vmc.doVariationalLoop()
+vmc.mc.energy.printResults()
+\end{Python}
+% % % % \end{lstlisting}
+The source code\footnote{For details, we refers to the CD anexing this thesis under \citecode{QVMC/Python}.} above is relatively straigforward to implement, besides being short (600 lines). The syntax used is clear, compact and close to the mathematical language. The language is easy to learn and one can develope program and modify them on the way fast. The dual nature of Python of being both an object oriented and scripting languages is convenient in structuring the problem such that it becomes splitted into smaller parts, while testing quickly the results (output) against analytical or experimental data. A limitation, specially in problems managing a high number of degrees of freedom, as happens in quantum mechanics, is its speed as shown in figures \ref{executionTimeHePyCpp} to \ref{delayExecutionTimeHePyCpp}.\\
+\\
+Computing the ground energy of a He atom (2 electrons) using 10000 Monte Carlo cycles and five parameter variations with this Python simulator takes about  1.5 mi\-nu\-tes in a Pentium-4 laptop running at 2.4 GHz. On the other hand, attempting to do the same for a Be atom (4 electrons) with only $5 \time 10^4$ Monte Carlo cycles (not enought to get an acceptable energies for Be) takes more than one half an hour. Several alternatives exists for being able to simulate bigger systems than He. Three of them are exposed are and explored in the following: 
+\begin{enumerate}
+ \item Keeping the software structure as above, but implement all the classes in C++ (or another low level programming language).
+ \item Integrate Python and C++ in a way that the portions of software requiring high performance being implemented in C++ and the administrative parts in Python.
+ \item Exploting the object-oriented characteristics of C++ for developing a efficient, flexible and easy to use software (optimized algorithm).
+\end{enumerate}
+
+
+\subsection{Moving the prototype to a low level programming language}\label{cppPrototype}
+The implementation of the simulator in C++ follows more or less the recipe above. Here, however, we separate the potential energy from the hamiltonian by introducing a \citecode{Potential} class, which becomes a object member of  \citecode{Energy} class. The use of dynamic memory to manipulate data structures is usually a source of bugs, as C++ does not have automatic garbage collection as Python does. \\
+\\
+In the present implementation we use a ready made class for manipulating array data structures. {\citecode{MyArray} class stores all the array entries in contiguous blocks of me\-mo\-ry\cite{Langtangen2000}. This design is aimed to interface Python and C++, as the Python arrays are, also, stored in the same way. \citecode{MyArray} supports arrays in one, two and three dimensions.}\cite{HPL}. Because it is a template class, it can be reused easily with any type. Moreover, changing its behaviour is easily done in only one place and deleting of me\-mo\-ry is made in its destructor\cite{Langtangen2000}.\\
+
+
+\subsection{Mixing Python and C++}
+There are several ways of integrating Python with C/C++. Two of them are extending and embending. The first one, involves creating a wrapper for C++ that Python imports, builds, and then can execute. The wrapper extension is the focus here. In the second alternative, C++ are given direct access to the Python interpreter. Python is extended for many different reasons. A developer may want to use an existing C++ library, or port work from an old project into a new Python development effort.\\
+\\
+\begin{lstlisting}[language=c++]
+...
+template< typename T > class MyArray
+{
+ public:
+  T* A;                   // the data
+  int ndim;               // no of dimensions (axis)
+  int size[MAXDIM];       // size/length of each dimension
+  int length;             // total no of array entries
+  T* allocate(int n1);
+  T* allocate(int n1, int n2);
+  T* allocate(int n1, int n2, int n3);
+  void deallocate();
+  bool indexOk(int i) const;      
+  bool indexOk(int i, int j) const;
+  bool indexOk(int i, int j, int k) const;
+  
+ public:
+  MyArray() { A = NULL; length = 0; ndim = 0; }
+  MyArray(int n1) { A = allocate(n1); }
+  MyArray(int n1, int n2) { A = allocate(n1, n2); }
+  MyArray(int n1, int n2, int n3) { A = allocate(n1, n2, n3); }
+  MyArray(T* a, int ndim_, int size_[]);
+  MyArray(const MyArray<T>& array);
+  ~MyArray() { deallocate(); }
+
+  bool redim(int n1);           
+  bool redim(int n1, int n2);   
+  bool redim(int n1, int n2, int n3);   
+  
+  // return the size of the arrays dimensions:
+  int shape(int dim) const { return size[dim-1]; }
+  
+  // indexing:
+  const T& operator()(int i) const;
+  T& operator()(int i);
+  const T& operator()(int i, int j) const;
+  T& operator()(int i, int j);
+  const T& operator()(int i, int j, int k) const;
+  T& operator()(int i, int j, int k);
+  
+  MyArray<T>& operator= (const MyArray<T>& v);
+  
+  // return pointers to the data:
+  const T* getPtr() const { return A;}   
+  T* getPtr() { return A; }
+  
+  ...
+};
+\end{lstlisting}
+
+Before attempt to extend Python, we should identify the parts to be moved to C++. The results of a profile of the  prototype discussed in section \ref{PythonPrototype} are summarized in tables \ref{profileHe} and \ref{profileBe}. It fact is not surprising that \citecode{Energy.py}, \citecode{MonteCarlo.py} and \citecode{Psi.py} be the most time consuming parts of the algorithm. It is there where the major number of operations and calls to functions in other classes are carried out. Fortunately, most of the work needed to code this classes to their equivalent has been already carried out in last subsection.\\
+\\
+Now, the class \citecode{Vmc.py} will be the responsable of initializing the C++ objects of type \citecode{Psi}, \citecode{Particle}, \citecode{Potential}, \citecode{Energy} and \citecode{MonteCarlo}. Letting Python create the objects has the advantage of introducing automatic garbage collection, reducing the risk implied in managing memory.\\
+\\
+To access C++ via an extension we write a wrapper. The wrapper acts as glue between the two languages, converting function arguments from Python into C++, and then returning results from C++ back to Python in a way that Python can understand it. Fortunately, SWIG (Simplified Wrapper and Interface Generator)\cite{Beazley} does much of the work automatically.\\
+\\
+Before trying to implement a wrapper for the present application, one should note that the \citecode{Psi} class takes an generic object of type \citecode{MyArray<double>} as argument in its constructor. It means that we should find the way of converting the \emph{variational parameters} (a numpy object) into a reference to an object of type \citecode{MyArray<double>}. This kind of conversion is not supported by SWIG and has to be done manually. Doing this for a lot of functions is a hard and error prone job. \\
+
+\begin{lstlisting}[language=c++]
+...
+#include "MyArray.h"
+...
+class Psi{
+  private:
+    ...
+    MyArray<double> cusp;			// Cusp factors in the Jastrow form
+    MyArray<double> varPar;		// Variational parameters
+    MyArray<double> quantumForce;	
+
+  public:
+    Psi(MyArray<double>& varParam, int _np, int dim);
+    void setParameters(MyArray<double>& varPar);
+    double getCorrelationFactor(const MyArray<double>& r);
+    double getModelWaveFunctionHe(const MyArray<double>& r);
+    MyArray<double>& getQuantumForce(const MyArray<double>& r, double wf);
+    ...
+}; 
+\end{lstlisting}
+
+A conversion class \citecode{Convert} specially adapted for \citecode{MyArray} class has already been proposed in \cite{HPL}. The advantage with it is that we do not need to interface the whole \citecode{MyArray} class. Instead, the conversion class is equiped with static functions for converting a \citecode{MyArray} object to a \citecode{Numpy} array and vice versa. The conversion functions in this class can be called both manually or using SWIG to automatically generate wrapper code. The last option is preferible because the conversion functions has only pointers or reference as input and output data.
+
+\begin{lstlisting}[language=c++]
+...
+#include <Python.h>
+#include <pyport.h>
+#include <numpy/arrayobject.h>
+#include "MyArray.h"
+...
+class Convert
+{
+ public:
+    Convert();
+  ~Convert();
+
+    // borrow data:
+    PyObject*        my2py (MyArray<double>& a);
+    MyArray<double>* py2my (PyObject* a);
+
+    // copy data:
+    PyObject*        my2py_copy (MyArray<double>& a);
+    MyArray<double>* py2my_copy (PyObject* a);
+
+    // npy_intp to/from int array for array size:
+    npy_intp         npy_size[MAXDIM];
+    int              int_size[MAXDIM];
+    void             set_npy_size(int*      dims, int nd);
+    void             set_int_size(npy_intp* dims, int nd);
+
+    // print array:
+    void             dump(MyArray<double>& a);
+
+    ...
+    #Code necessary to make callbacks
+    ...
+ 
+};
+\end{lstlisting}
+
+With the information above we create the SWIG interface file \citecode{ext\_QVMC.i} having the same name as the module\cite{Beazley}
+\begin{src}
+%module ext_QVMC
+%{
+#include "Convert.h"
+#include "Energy.h"
+#include "MonteCarlo.h"
+#include "Psi.h"
+#include "Particle.h"
+#include "Potential.h"
+%}
+%include "Convert.h"
+%include "Energy.h"
+%include "MonteCarlo.h"
+%include "Particle.h"
+%include "Potential.h"
+%include "Psi.h"
+\end{src}
+
+To build a Python module with extension to C++ we run SWIG with the options \citecode{-Python} and \citecode{-c++}. Running
+\begin{src}
+swig -c++ -Python ext_QVMC.i
+\end{src}
+generates a wrapper code in \citecode{ext\_QVMC\_wrp.cxx} and the Python module \citecode{\_ext\_QMVC.py}. Assuming that all the sources files are in the same directory, this file has to be compiled
+\begin{src}
+c++ -c -O3 *.cpp *.cxx -I/usr/include/Python2.6/
+\end{src}
+and linked to a shared library file with name \citecode{\_ext\_QVMC.so}
+\begin{src}
+c++ -shared -o _ext_QVMC.so *.o
+\end{src}
+The Python \citecode{VMC.py} class calling the C++ code has to be slightly adjusted such that it can use the new extension module \citecode{ext\_QVMC}.
+
+\begin{Python}
+
+from math import sqrt   # use sqrt for scalar case
+from numpy import*
+import string
+
+# Set the path to the extensions
+import sys
+sys.path.insert(0, './extensions')
+import ext_QVMC
+
+class Vmc():
+  def __init__(self, _Parameters):
+    # Create an object of the 'conversion class' for 
+    # convert Python-to-C++-to-Python data structure.
+    self.convert = ext_QVMC.Convert()
+    
+    # Get the paramters of the currrent simulation
+    simParameters 	= _Parameters.getParameters()
+    
+    self.nsd 	  	= simParameters[0]
+    self.nel 		= simParameters[1]
+    self.nVar 		= simParameters[2]
+    self.nmcc		= simParameters[3]
+    self.charge		= simParameters[4]
+    self.step 		= simParameters[5]
+    alpha		= simParameters[6]
+    beta		= simParameters[7]
+    
+    # Set the Variational parameters
+    self.varpar = array([alpha, beta])
+    
+    # Convert a Python array to a MyArray object
+    self.v_p = self.convert.py2my_copy(self.varpar)
+\end{Python}
+
+\begin{Python}
+    
+    # Create an wave function object
+    self.psi 		= ext_QVMC.Psi(self.v_p, self.nel, self.nsd)
+    
+    self.particle 	= ext_QVMC.Particle(self.nsd, self.nel, self.step)
+    self.potential 	= ext_QVMC.Potential(self.nsd, self.nel, self.charge)
+    self.energy 	= ext_QVMC.Energy(self.nsd, self.nel, self.potential, self.psi, self.nVar, self.nmcc)
+    self.mc		= ext_QVMC.MonteCarlo(self.nmcc, self.nsd, self.nel, 0.001, self.particle, self.psi, self.energy) 
+    
+  def doVariationalLoop(self):
+    nVar = self.nVar
+    for var in xrange(nVar):
+      self.mc.doMonteCarloLoop()
+  
+ ...
+\end{Python}
+
+The \emph{caller}\footnote{The function that calls another (callee).} code in Python resembles the one in the simulator prototype from section \ref{PythonPrototype}, but with an additional class \citecode{SimParameters.py} that is able to read from a conveniently formatted file containing the parameters of the simulation. An example for the Be atom is:
+\begin{src}
+Number of spatial dimensions 	= 3
+Number of electrons 		= 4
+Number of variations		= 10
+Number of Monte Carlo cycles  	= 100000
+Nuclear charge  		= 4.0
+Step				= 0.01
+Alpha				= 2.765
+Beta				= 0.6
+\end{src}
+
+With this small change, the new caller looks more compact and user friendly.
+
+\begin{lstlisting}[language=Python]
+import sys
+
+from SimParameters import * #Class in Python encapsulating the parameters
+from Vmc import *
+
+# Create an object containing the parameters of the current simulation
+simpar = SimParameters('Be.data')
+
+# Create a Variational Monte Carlo simulation
+vmc = Vmc(simpar)
+
+vmc.doVariationalLoop()
+vmc.energy.doStatistics("resultsBe.data", 1.0)
+\end{lstlisting}
+
+\section{Developing a robust QVMC simulator in pure C++}
+The rest of this chapter is dedicated to describe the way of taking advantages of the object oriented characteristic of C++ to create a flexible and robust QVMC simulator. In order to reduce the computational cost of evaluating quantities associated with the trial wave function, we implement instead the algorithms discussed in chapter (\ref{TWF}).
+This requires add some extra functionality that will be exposed in the rest of the chapter\footnote{The corresponding source codes can be found in the CD following this thesis in \citecode{QVMC/parallel/}. Also, an extense documentation have been prepared and can be compiled by running \citecode{doxygen pyVMC} in a terminal under the directory of the sources codes. It will generate the documentation in html (\citecode{QVMC/parallel/doc}).}.\\
+
+\subsubsection{Parameters of the system}
+The class declared in \citecode{SimParameters.h} encapsules the parameters of the simulation. It creates an object of a class especially designed to read files in ascii format containing comments. In this way the user can easyly know what kind of information the software requires. The function \citecode{readSimParameters()} read the parameters and load them as data members. Moreover, functions to return each of them are provided.
+
+\begin{src}
+sys = 2DQDot2e            # Two dimensional quantum dot with two electrons.
+nsd = 2                   # Number of spatial dimensions.
+nel = 2                   # Number of electrons.
+potpar = 2.0              # Potential parameter (omega).	
+lambda = 1                # Confinament parameter in Coulomb potential.
+nmc = 1.000000e+07        # Number of Monte Carlo cycles.
+nth = 1.000000e+06        # Number of thermalizations.
+dt = 1.0000e-06           # Step size.
+nvp = 2                   # Number of Variational parameters.
+alpha = 0.75              # Variational parameter.
+beta = 0.16               # Variational parameter.
+enableBlocking = no       # Blocking option off.
+enableCorrelation = yes   # Correlation part included.
+\end{src}
+
+This kind of encapsulation reduces the number of parameters sendt to functions and the possibility of make mistakes swaping them.
+
+
+\subsubsection{Initializing and setting in operation a simulation}
+We declare a class \citecode{VmcSimulation.h} having a pointer to the \citecode{SimParameters} class. The parameters of the simulation are then used in setting a Variational Monte Carlo simulator in operation. A function \citecode{setInitialConditions()} initialize the space configuration and the trial wave function (included the gradients and laplacians of the single wave functions and the Jastrow). By declaring the virtual functions \citecode{setWaveFunction()} and \citecode{setHamiltonian} to be called by \citecode{setPhysicalSystem()}, the software is able to handle atomic systems, harmonic oscillators and quantum dots. The particular implementation of these functions happens in the subclass \citecode{VmcApp} depending of the physical system treated.
+\begin{lstlisting}[language=c++]
+void VmcApp::setHamiltonian(){
+  //Set the potential form and add it to the kinetic energy term
+  potential = new CoulombAtom(simParameters);
+  
+  energy = new Energy(simParameters, potential, psi, parallelizer);
+}
+\end{lstlisting}
+By calling \citecode{setHamiltonian()}, the application create a \citecode{Potential} object which is sendt as a pointer to the class \citecode{Energy}. In the same function, we call \citecode{setWaveFunction()} to set the \citecode{Jastrow} and the \citecode{SlaterDeterminant} objects, which are used as argument to initialize the \citecode{WaveFnc} class.\\ 
+\\
+At the time the \citecode{VmcSimulation} is created, we construct a \citecode{RandomNumberGenerator()} object handling (pseudo) random numbers and use it together with other parameters to create a \citecode{MonteCarlo} object implementing the thermalization step and a sampling algorithm as the one shown in figure (\ref{chartFlowMA}). The Monte Carlo for-loop is initiated by \citecode{VmcSimulation::runSimulation()}. Although the current code does not provide an interface for the Monte Carlo class, it should be straiforward to create one  with the following functions declared as virtual: \citecode{doMonteCarloLoop()}, \citecode{suggestMove()} and  \citecode{doMetropolisTest()}.\\
+\begin{lstlisting}[language=c++]
+...
+class VmcSimulation{
+  protected:
+    ...
+    Energy *energy;	        // Interface Hamiltonian
+    MonteCarlo* mc; 		// Interface monte Carlo method
+    Optimizer *optimizer;	// Optimization algorithm
+    Parallelizer *para;		// Encapsulate MPI
+    Potential *potential;	
+    RandomGenerator *random;
+    RelativeDistance *relativeDistance;		// Vectorial and scalar relative distances
+    SimParameters *simpar;			// Parameters of simulation
+    SingleStateWaveFuncs **singleStates;	// Single state wave functions
+    Slater *slater; 
+    WaveFnc *psi;				// Trial wave function
+      
+    int numprocs;
+    int myRank;
+    int rankRoot;
+    ...
+  public:
+    VmcSimulation(SimParameters *_simpa, int argc, char** argv);
+    virtual ~VmcSimulation();
+    void dumpResults(string resultsFile);
+    void runSimulation();
+    void setPhysicalSystem(){}
+    void setInitialConditions(long& idum);
+    void setPhysicalSystem(long& idum);
+    
+    virtual void optimizeWaveFunction(MyArray<double>& p, ...); 
+    virtual void setRandomGenerator();
+    virtual void setHamiltonian(){}
+    virtual void setWaveFunction(){}
+};
+
+\end{lstlisting}
+Attention should be paid to the fact that in order to create a trial wave function object, we first instanciate objects of type \citecode{singleStateWaveFuncs} and \citecode{JastrowForm} and then we use them in creating the \citecode{SlaterDeterminant} and the \citecode{Jastrow} objects. Function objects are used to encapsulate the forms of the Jastrow function\footnote{In this case in particular we use a function object, an instance of an class that behaves like a function by virtue of its \emph{function call operator ()} are those that can be called as if they were a function.}. For the case of the single particle wave states the approach is a bit different. The expression 
+\begin{lstlisting}[language=c++]
+int size = nel/2;
+SingleSateWaveFnc **singleState = new SingleState*[size]
+\end{lstlisting}
+
+is a array of pointers to objects of type \citecode{SingleSateWaveFnc}. 
+%%%%%\begin{figure*}
+\begin{lstlisting}[language=c++]
+void VmcApp::setWaveFunction(){
+
+  // Set single state wave functions (spin orbitals in atoms)
+  singleStates = new SingleStateWaveFuncs*[2]; 
+  orbitals[0] = new phi1s(nsd, varPar); 
+  orbitals[1] = new phi2s(nsd, varPar);
+
+  // Set Slater determinant
+  slater  = new Slater(varPar, relativeDistance, orbitals); 
+
+  // Set Jastrow exponential.
+  Function fnc(varPar(1)); 
+  
+  // Set Jastrow object doing whatever with the Jastrow term
+  jastrow = new Jastrow(nsd, nel, varPar, relativeDistance, fnc);	
+														  
+  // Set the total trial wave function
+  psi = new SlaterJastrow(slater, jastrow, varPar, relativeDistance); 
+} 
+\end{lstlisting}
+%%%%\end{figure*}
+% % % \end{src}
+% % % \end{center}
+
+\subsubsection{Class structure of the trial wave function}
+
+The definition of the trial wave function, single particle wave functions, the Jastrow, etc, has to be flexible enought in order to easily be provided by the user for different physical systems and computation methods (numerial or analytical). This kind of behaviour is known as \emph{polymorfism} and it is achieved with the use of interfaces, classes defining a general behaviour without specifying it. Examples are \citecode{WaveFnc}, \citecode{Potential.h} and the interface for the single particle wave functions \citecode{SingleStateWaveFuncs.h}.
+\begin{lstlisting}[language=c++]
+...
+class SingleStateWaveFuncs{
+  ...
+  public:
+    ...
+    virtual double evaluate(int p, const MyArray<double>& r)=0;
+    virtual MyArray<double>& getStateGradient(int p, const MyArray<double>& r)=0;
+    virtual double getSecondDerivative(int p, const MyArray<double>& r)=0;
+    virtual double getParametricDerivative(int p, const MyArray<double>& r)=0;
+    ...
+  };
+  ...
+\end{lstlisting}
+A convenient class derived from the interface above is \citecode{SlaterNOJastrow}. Because it does not include a Jastrow factor, it can be used both for computing energies of harmonic oscillators and in the validitation results derived from simulations with trial wave function including only the Slater determinant part. What one should expect in the last case is that experiments carried out in this way reproduce some of the analytical results derivated in chapter \ref{cases}. Moreover, because a Slater determinant is an exact wave function when no correlation is included, it is expected that the variance resulting of the experiments becomes zero. 
+\begin{lstlisting}[language=c++]
+class WaveFnc{
+  public:
+    virtual ~WaveFnc(){} 
+    virtual double getLapPsiRatio(int i)=0;
+    virtual double getPsiPsiRatio(int p, const MyArray<double>& rnew)=0;
+    virtual MyArray<double>& getVariationalParameters()=0;
+    virtual MyArray<double>& getParametricDerivative(const MyArray<double>& r)=0;
+    virtual void getQuantumForce(int p, MyArray<double>& F)=0;
+    virtual void resetJastrow(int i)=0;
+    virtual void getTrialRow(int p, const MyArray<double>& rnew)=0;
+    virtual void getTrialQuantumForce(int p, MyArray<double>& Fnew, ...) = 0;
+    virtual void initializePsi(const MyArray<double>& rold)=0;
+    virtual void updatePsi(int k, const MyArray<double>& rnew)=0;	
+    virtual void setVariationalParameters(MyArray<double>& varPar)=0;	
+ };
+\end{lstlisting}
+On the other hand, the class \citecode{SlaterJastrow} has \citecode{SlaterDeterminant} and \citecode{Jastrow} as data members. Thus, functionalities of \citecode{SlaterJastrow} can be carried out independently on each of the member classes and sometimes, as in the case of computing the total quantum force, summed up in the calling class, as suggested by table (\ref{psiFunctions}). Furthemore, since the the Slater determinant equals the product of two determinants, we create a \citecode{SlaterDeterminant} class containing two pointers, pointing to a \citecode{SlaterMater} storing particles with spin up and down, respectively\footnote{The way the spin is set up is by placing half of electrons each of the matrices.}. Besides the functionality shown in table(\ref{psiFunctions}), this class has some arrays for storing $\phi_j(\bfv{x^{cur}_i})$,  $\phi_j(\bfv{x^{trial}_i})$, $\bfv{\nabla}_i \phi_j(\bfv{x^{cur}_i})$, $\bfv{\nabla}_i \phi_j(\bfv{x^{new}_i})$ and $\nabla^{2}_{i}(\bfv{x_i})$.
+% % % \begin{src}
+\begin{lstlisting}[language=c++]
+class SlaterJastrow: public WaveFnc
+{
+  private:
+    SlaterDeterminant *slater;  
+    Jastrow           *jastrow;
+    MyVector<double>   varPar;    // variational parametes
+    ...
+  public:
+    ...
+    SlaterJastrow(Slater *_slt, Jastrow *_jtr,...);
+    void getPsiPsiRatio(...);
+    double getLapPsiRatio(...);
+    MyArray<double>& getGradPsiRatio(...);
+    void setVariationalParameters(MyArray<double>& _varPar);
+    ...
+}
+\end{lstlisting}
+% % % % \end{src}
+% \end{center}
+
+\noindent Because the operations with Slater matrices are done by moving one particle (one row) at the time, the \citecode{SlaterDeterminant} class need to know what matrix to operate on. Therefore during the initialization process we define an array of pointers to \citecode{SlaterMatrix} objects called \citecode{curSM} of size equaling the number of electrons in the system. Half of its entries point to a Slater matrix with spin up and the rest to the one with spin down. This can be used to decide which matrix to compute with. Doing so is more efficient that using \citecode{if-test} each time an electron is moved.\\
+
+% % % % The flow of information in the \citecode{SlaterMatrix} is schematized in figure\footnote{In the updating algorithm we need only to invert the Slater determinant matrix once. This can by calling standard LU decomposition methods.} ({\color{red}{CITAR DIAGRAMA QUE ME FALTA HACER}}).\\
+\begin{table}\label{psiFunctions}
+\centering
+\begin{tabular}{llr}
+\toprule[1pt]
+\textbf{Class} & \textbf{Function} & \textbf{Implemented equation}\\
+\midrule[1pt]
+\citecode{SlaterMatrix} & \citecode{getDetDetRatio()}  & \ref{RSD}\\
+                        & \citecode{getGradDetRatio()} & \ref{gradDetRatioO}-\ref{gradDetRatioN}\\
+			& \citecode{getLapDetRatio()}  & \ref{lapDetRatio}\\
+			& \citecode{updateInverse()}   & \ref{updatingInverse}\\
+\hline
+\citecode{Jastrow}	& \citecode{getJasJasRatio()}  & \ref{padepadeRatio}\\
+			& \citecode{getGradJasRatio()} & \ref{padeJastrowGradJasRatio}\\
+			& \citecode{getLapJasRatio()}  & \ref{lapJasRatio}\\
+\hline
+\citecode{SlaterJastrow}& \citecode{getPsiPsiRatio()}  & \ref{acceptanceRatio}\\
+			& \citecode{getGradPsiRatio()} & \ref{grad_det_ratio_gen}\\
+			& \citecode{getLapPsiRatio()}  & \ref{laplacian_psi_psi_ratio}\\
+\bottomrule[1pt]
+\end{tabular}\caption{Some functions implemented in relation with the trial wave function.}
+\end{table}
+For the \citecode{Jastrow} we create upper-triangular matrices for the scalar quantities $g(r_{ij})$ and $\nabla^2 g(r_{ij})$ (two per term) , and two for the vectorial term $\bfv{\nabla} g(r_{ij})$, all of them evaluated at the current and new positions. A similar storage scheme is used for the matrix $a_{ij}$ containing the electron-electron cusp condition factors given in (\ref{cusp2D}) and (\ref{cusp3D}). The access to the scalar and vectorial (interelectronic) distances is carried out by means of a pointer to a \citecode{RelativeDistance} object\footnote{Information on scalar and vectorial interelectronic relative distances are also stored in upper-triangular matrices by the \citecode{RelativeDistance} class.}. Each time a move is suggested, accepted or rejected, the matrices in \citecode{Jastrow} has to be updated following the algorithms described in (\ref{optimizingCorrelation}) to (\ref{lapCorOpt}). Similar comments yields for the \citecode{RelativeDistance} class.\\
+\\
+Each scalar and vectorial matrix has a size $N(N-1)/2$ and $N(N-1)/2 \times nsd$, respectively, with $N$ equaling the number of electrons in the system and $nsd$ being the number of spatial dimensions. In the implementation, the matrices are stored as one-dimensional arrays in contiguous blocks of memory, using the \emph{generic class} \citecode{MyArray}\footnote{Arrays will be read and written a large number of times during the simulation, so the access should be fast as possible. It is reache by storing all the array entries in contiguous bloks and accesing them using pointer arithmetic\cite{Langtangen2001}}. \citecode{MyArray} supports arrays in one, two and three dimensions. The mapping between the entry $(i,j)$ in the upper triangular matrix and the index $idx$ in the 1D-array is given by the equation $idx = i(2 N - i-1)/2 - i + j - 1$, with $0\leq i < N-1$ and $i+1 \leq j < N$.
+
+\subsubsection{Computing the energy, parallelizing with MPI and optimizing with a quasi-Newton method}
+The collection of samples and evaluation of the energy happens in the class \citecode{Energy}, which has a pointer to a \citecode{Potential} class with some functions declared virtual. 
+\begin{lstlisting}[language=c++]
+class Potential{
+  public:
+    virtual ~Potential(){};
+    virtual double getPotentialEnergy(const MyArray<double>& r){
+      ...
+    };
+};
+\end{lstlisting}
+
+In this way, what we need to do for implementing new potential forms is to inherit from it and overriding its functions in subclases. The creation of a new object and its use has the form
+\begin{lstlisting}[language=c++]
+  // Create a potential form for atoms
+  Potential *coulombAt = new CoulombAtoms(...);
+  
+  // Get the potential energy
+  coulombsAt->getPotentialEnergy(...); 
+\end{lstlisting}
+On the other hand, the class \citecode{Energy} does not care about the kind of potential gotten in its constructor. Therefore we do not need to modify it when the potential form changes.
+% % % % % For the kinetic energy we use the optimized expression 
+% % % % % \begin{equation}\label{lap_det_ratio}
+% % % % %  \boxed{KE = -\frac{1}{2}\left[\frac{\nabla^2 \Det{D}_{\uparrow}}{\Det{D}_{\uparrow}} + \frac{\nabla^2 \Det{D}_{\downarrow}}{\Det{D}_{\downarrow}} + \frac{\nabla^2 \Psi_C}{\Psi_C}\right] - \left[\frac{\Grad{\Det{D}_{\uparrow}}}{\Det{D}_{\uparrow}} +  \frac{\Grad{\Det{D}_{\downarrow}}}{\Det{D}_{\downarrow}}\right]\bullet \frac{\Grad{\Psi_C}}{\Psi_C}},
+% % % % % \end{equation}
+% % % % % where each of the components computed by the \citecode{SlaterJastrow} class are obtained by pointers acting on functions.\\
+\begin{lstlisting}[language=c++]
+....
+class Parallelizer{
+  
+  private:
+    int numprocs;       // Number of procesors
+    int myRank;         // Number (label) of this procesor
+    int rankRoot;       // Number (label) of the root procesor
+    
+    #if PARALLEL
+      MPI_Status status;
+    #endif
+
+  public: 
+    Parallelizer(int argc, char** argv);
+    ~Parallelizer(){mpi_final();}
+    void mpi_final();	// Finalize MPI
+    int read_MPI_numprocs() const;
+    int read_MPI_myRank() const;
+    int read_MPI_rankRoot() const;
+};// end of Parallelizer class
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[language=c++]
+...
+#include "Parallelizer.h"
+...
+class Energy{
+  private:
+    ...// 
+    double eMean;	// Mean energy
+    double eSum;	// Cumulative energy 
+    double eSqSum;	// Cumulative energy squared
+    
+    #if OPTIMIZER_ON
+      MyArray<double> daMean;	  // Mean value of dPhi/dAlpha
+      MyArray<double> daSum;	  // Cumulative dPhi/dAlpha
+      MyArray<double> ELdaMean;	  // Mean of local energy times dPhi/dAlpha
+      MyArray<double> ELdaSum;	  // Cumulative local energy times dPhi/dAlpha
+    #endif
+                      
+    ofstream ofile, blockofile; 
+    int totalNMC;
+  
+    #if PARALLEL
+      double totalESum;
+      double totalESqSum;
+      MyArray<double> allEnergies;	// Save all the local energies
+      MPI_Status status;
+    #endif
+  
+    Potential *potential;
+    WaveFnc *psi;
+    int numprocs, rankRoot, myRank;
+    Parallelizer *para;
+    
+  public:  
+    Energy(SimParameters *simpar, Potential *potential, WaveFnc *psi,Parallelizer * para);
+    ~Energy();
+    void computeExpectationValues(int mcCycles);
+    void computeLocalEnergy(int cycle, const MyArray<double>& rnew);
+    void dumpResults(const char* resultsFile);
+    double getEnergy();
+    MyArray<double>& getLocalParametricDerivative(const MyArray<double>& r);
+    void getParametricDerivatives(MyArray<double>& dEda); 
+    void resetCumulants();
+    void sum_dPda(double E_Local, const MyArray<double>& r);
+    void updateCumulants(double E_Local, const MyArray<double>& r);
+};
+...
+\end{lstlisting}
+Furthemore, the class defined by \citecode{Parallelizer.h}, appearing on the top of \citecode{Energy.h} and \citecode{VmcSimulation.h} files encapsulates information to handle with MPI in a straighforward way.\\
+\\
+When working in parallel (by setting \citecode{PARALLEL=1} during the compilation time) each processor executes the QVMC algorithm separately. The data of energy for each processor is commulated in its own \citecode{eSum} member. To get the expectation value form all the computations we call \citecode{Energy::dumpResults()} with \citecode{PARALLEL=1} directive. Because \citecode{Energy.h} has access to \citecode{MPI} by means of \citecode{Parallelizer.h}, the only we need to do is to execute inside this function
+\\
+\begin{lstlisting}[language=c++]
+  // Collect data in total averages
+  MPI_Reduce(&eSum, &totalESum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&eSqSum, &totalESqSum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+\end{lstlisting}
+
+which in the herga of \citecode{MPI} can be translate as: "Collect the cumulative energies from all the processors, sum them and divide by the total number of processors to get the mean energy". When no correlation is assumed, the mean energy, variance and error can be computed in
+\\
+\begin{lstlisting}[language=c++]
+  if(myRank==rankRoot){
+    ...
+    energy    = totalESum/totalNMC;
+    variance  = totalESqSum/totalNMC - energy*energy;
+    error     = sqrt(variance/(totalNMC - 1)); 
+    ...
+  }
+\end{lstlisting}
+
+The way the energy is computed above gives only an estimated of the real variance, and it serves only as a reference to be compared with the real variance getting by the method of blocking. The data necessary to do it are getting from the same function by
+\\
+\begin{lstlisting}[language=c++]
+...
+// Set file name for this rank
+  ostringstream ost;
+  ost << "blocks_rank" << myRank << ".dat";
+  
+  // Open file for writting in binary format
+  blockofile.open(ost.str().c_str(), ios::out | ios::binary); 
+  
+  // Write to file
+  blockofile.write((char*)(allEnergies.A), ncycles*sizeof(double));
+  
+  blockofile.close(); // close file
+\end{lstlisting}
+\noindent
+The \citecode{Energy.h} class is also equipped with functions computing and returning the expectation value of the energy and its derivative with respect to the variational parameters. This information is used by \citecode{Optimizer.h} to optimize the parameters of the wave function that hopefully will lead to computation of the minimum variational energy. The process of optimizing before attempting to run the production stage of a simulation is illustred below:
+
+\begin{lstlisting}[language=c++]
+#include "SimParameters.h"
+#include "VmcSpecificApplication.h"
+#include "VmcSimulation.h"
+...
+int main(int argc, char *argv[]){
+  // Set some trial variational parameters
+  ...
+  // Declarations for the optimization
+  int iter; double minEnergy=0.0;
+
+  // Set the name of the files for the parameters 
+  // of this simulation and the output
+  ...
+  // Encapsulate the parameters of this simulation
+  // in an object
+  SimParameters *simpa = new SimParameters(dataFile);
+  ...
+  // Create a "simulation" 
+  VmcSimulation *vmcatoms = new VmcAtoms(simpa,varParam, argc, argv);
+
+  // Set the Hamiltonian and the trial wave function corresponding
+  // to atoms. Initialize space configuration
+  vmcatoms->setPhysicalSystem(idum);
+	
+  // Run the optimizer
+  vmcatoms->OptimizeWaveFunction(varParam, iter, minEnergy);
+  
+  // Output the results of the optimization
+  ...
+  return 0;
+} // end main
+\end{lstlisting}
+And the class implementing the optimizer is:
+%%%\begin{figure*}
+\begin{lstlisting}[language=c++]
+#include "Energy.h"
+#include "MonteCarloIS.h"
+#include "WaveFnc.h"
+...
+class Optimizer{
+  private:
+		int n;  		   				// Number of variational parameters
+    double gtol;	   			// Tolerance for convergence
+    Energy *pt2energy;
+    MonteCarloIS *pt2mc;
+    WaveFnc *pt2psi;
+    ...
+  public:
+    Optimizer(int _n, double _gtol, Energy *_pt2energy, 
+	      MonteCarloIS *_pt2mc, WaveFnc *_pt2psi):
+	      n(_n), gtol(_gtol), pt2energy(_pt2energy), 
+	      pt2mc(_pt2mc), pt2psi(_pt2psi){
+      ...
+    } 
+		...
+\end{lstlisting}
+
+\begin{lstlisting}[language=c++]
+    // Function to be called from VmcApp::OptimizeWaveFunction(...).
+    void run(MyArray<double>& p, int& _iter, double& _fret){
+      dfpmin(p, _iter, _fret); _iter = _iter+1;
+    }
+
+    // Gets the expectation value of the energy for a set of variational 
+    // parameters in the current Monte Carlo loop. 
+    double func(MyArray<double>& p){
+      pt2psi->setVariationalParameters(x);
+      pt2mc->doMonteCarloLoop();
+      return pt2energy->getEnergy();
+    }
+
+    // Sets the vector gradient g=df[1...n] of the function returned by 
+    // func() evaluated using the input parameters p.
+    void dfunc(MyArray<double>& p, MyArray<double>& g){
+      pt2energy->getParametricDerivatives(x, g); 
+    }
+    
+    // Given a starting set of parameters p[1...n] performs a Fletcher-
+    // Reeves-Polak-Ribiere minimization on func(). 
+    void dfpmin(MyArray<double>& p, int& _iter, double& _fret); 	
+   ...   
+};
+\end{lstlisting}
+
+\subsubsection{Running a simulation}
+The body of the main method for the productive phase has almost the same form. One only need to run a simulation with the optimal parameters found in the step above.
+\begin{lstlisting}[language=c++]
+...
+int main(int argc, char** argv){
+  ...
+  // Set some trial variational parameters
+  ...
+  // Encapsulate the parameters of this simulation in an object
+  SimParameters *simpa = new SimParameters(dataFile);
+  ...
+  // Create a "simulation" 
+  VmcSimulation *vmcatoms = new VmcAtoms(simpa,varParam, argc, argv);
+
+  // Initialize the simulation
+  vmcatoms->setPhysicalSystem(idum);
+	
+  // Start the simulation
+  vmcatoms->runSimulation();
+
+  // Print results to file
+  vmcatoms->dumpResults(resultsFile);
+  ...
+  return 0;
+}
+\end{lstlisting}
+% % % % \end{figure*}
+% \end{src}
+% \end{center}
+\noindent
+A overview of the classes and some of the functions to be implemented by the end user of the simulator are summarized in table (\ref{endUserData}). The data input to be read by the program should be written in plain ascii format and has the form:
+\begin{src}
+-Number of spatial dimensions.
+-Number of electrons.
+-Parameter in the potential term (charge or omega).
+-Number of variatioal parameters.
+-Number of Monte Carlo cycles.
+-Step size for the move of the electrons.
+\end{src}
+
+\begin{table}\label{psiFunctions}
+\centering
+\begin{tabular}{llr}
+\toprule[1pt]
+\textbf{Class} & \textbf{Function}\\
+\midrule[1pt]
+\citecode{-} & \citecode{main()}  \\
+\hline
+\citecode{SingleStateWaveFncApp}  & \citecode{evaluate(...)}\\
+				  & \citecode{getStateGradient(...)}\\
+				  & \citecode{getLaplacian(...)}\\
+				  & \citecode{...}\\
+\hline
+\citecode{PotentialApp}& \citecode{getPotentialEnergy(...)}\\
+			& \citecode{getOneBodyPotential(...)}\\
+			& \citecode{...}\\
+\hline
+\citecode{VmcApp}	&\citecode{setHamiltonian(...)}\\
+			& \citecode{setWaveFunction(...)}\\
+			& \citecode{...}\\
+\bottomrule[1pt]
+\end{tabular}\caption{Classes and functions to be implemented by the end user of the software in this thesis.}
+\label{endUserData}
+\end{table}
+\noindent
+Because of limitations of space and time, it is impossible to make a more detailed description of the simulator. The interested reader is, therefore, invited to consult the documentation of the source code following the appended CD of this thesis.
+
+
+\clearemptydoublepage

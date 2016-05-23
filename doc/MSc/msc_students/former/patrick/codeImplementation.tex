@@ -1,0 +1,216 @@
+\chapter{Implementation}
+\label{implementation}
+
+This chapter presents the simulator, its structure and a description of its implementation.
+First we give a description of the project to clarify the structure of the code implementation. Then we focus on important parts of the simulator and we finally explain how to run it and obtain the approximated ground state of a quantum dot.
+
+The $C++$ language has been chosen in this project for its efficiency as a low-level language which becomes important when running expensive simulations, and for its flexibility as an object oriented language. Classes have been developed in order to reflect the independent parts of the simulator or to define global functions. We make important use of the \textsc{Blitz++} and \textsc{Lpp / Lapack} libraries which provides performances on par with $Fortran \;77/90$, respectively managing dense arrays and vectors, and  providing routines for linear algebra.
+
+
+\section{Overview}
+\label{sec:overview}
+
+Our \textit{simulator} \cite{codeLink} computes approximations to the ground state energy of quantum dots in two-dimensions using two many-body techniques: the \textit{Hartree-Fock} method and the \textit{many-body perturbation theory}. Both calculations are implemented in an harmonic oscillator basis, but our simulator allows also to combine the methods in order to compute the second and third order many-body perturbation corrections to the HF energy. Making use of the nice properties of the harmonic oscillator eigenstates, we developed a simple and efficient code in the \textit{energy basis}. This means that we actually avoid to compute the matrix elements by numerical integration, but we use analytical expressions to compute them.
+
+This short description already lets us identify the following classes: \citecode{simulator}, \citecode{HartreeFock}, \citecode{PerturbationTheory}, \citecode{singleOrbitalEnergies}. Other classes can be derived  on the need for flexibility and will be detailled in the following.
+% 
+% The quantum dot itself is characterized by the number of particles trapped in the harmonic oscillator potential and eventually squeezed by an external magnetic field. As described in chapter~\ref{sec:HamiltonianScaling} for the model of the quantum dot and the inputs required by the simulator can be limited to a set of \textit{parameters}.
+
+The accuracy and the stability of the simulator will depend on the arbitrary set of input parameters associated to the Hartree-Fock technique (size of the basis set, precision required in the self-consistent process), and also the parameters used to model the quantum dot (the number of electrons trapped into the dot, the strength of its parabolic potential), leading to the following set of simulation parameters:
+
+\paragraph{The Fermi level $R^f$}
+ ($R^f\in\mathbb{N} \; R^f\geq 0$) which characterizes the number of charge-carriers trapped into the dot, since our closed-shell system ``fills'' the shells with electrons up to the Fermi level (i.e.\ in the harmonic oscillator basis: $R^f = 0 \Rightarrow 2$ electrons in the dot, $R^f=1 \Rightarrow 6$ electrons  in the dot, $R^f = 2 \Rightarrow 12$ electrons, $\cdots$).
+
+\paragraph{The size of the basis set characterized by $R^b$} 
+($R^b\in\mathbb{N} \; R^b\geq R^f$) which defines the maximum shell number in the model space (i.e.\ the shell-truncated Hilbert space) for our Hartree-Fock computation. It implies the number of orbitals in which each single particle wavefunction will be expanded. So the bigger the basis set, the more accurate the single particle wavefunction is expected. In mathematical notation, $R^b$ and the size of the basis set $\mathcal{B}$ are defined by
+\begin{equation}
+ \mathcal{B} = \mathcal{B}(R^b) = \left\{ | \phi_{n m_l}(\textbf{r})\rangle   \quad : 2n+ |m_l| \leq R^b  \right\},
+\end{equation} 
+where $| \phi_{n m_l}(\textbf{r})\rangle$ are the single orbital in the Harmonic oscillator basis with quantum numbers $n$, $m_l$ such that the single orbital energy reads: $\epsilon_{n m_l}=2n+\abs{m_l}+1$ in two-dimensions.
+
+\paragraph{The confinement strength $\lambda$}  ($\lambda \in\mathbb{R^+}$) defines the strength of the Coulomb interaction. It is a dimensionless parameter which depends on the type and size of the material, and also  incorporate the change in confinement strength due to an external magnetic field as described in section~\ref{sec:scaling}.
+
+ \paragraph{The precision of the self-consistent Hartree-Fock process $\epsilon^{HF}$} ($\epsilon^{HF} \in\mathbb{R^+}$) has default value set to $10^{-12}$ which is a good approximation with respect to the accuracy of other constants of the system (i.e.\ $e$, $m_e$, $a_0^*$, $\hbar$, $\dots$ whose accuracy does not undergo $10^{-12}$ \cite{wiki:physConstants}). This arbitrary parameter may have important consequences for the convergence of Hartree-Fock when the electron interaction becomes too high if a maximum number of iterations was not set.
+
+
+
+\section{Class implementation}
+\label{sec:mainClasses}
+This section presents a short description of the important classes implemented in our simulator.
+
+\subsection{The \citecode{simulator} class}
+Figure \ref{fig:diagramSimu} is a flowchart of the overall simulator where each block corresponds to a specific function and most of the time associated to one or several classes.
+\begin{figure}
+\centering
+\scalebox{0.7}{\input{IMAGES/diagramSimulator.tex}}
+\caption{\label{fig:diagramSimu}Flowchart of the complete simulator.}
+\end{figure}
+The \citecode{simulator} class is the main class which links all the building blocks of the simulator. It starts by initializing the parameters with the input file written in the configuration file \citecode{parameters.inp} and  eventual overwrite them using arguments given in the command line.
+The simulator checks if the combination of parameters is correct in order to avoid any memory conflict. For example one cannot compute a 20-electron quantum dot within a model space containing only the first two shells.
+The model space is built by allocating memory for all the particle states and the hole states. This is done by creating an \citecode{orbitalsQuantumNumbers} object. Once the tables of states are built and containes their associated quantum numbers $n, \,m_l$ and $m_s$, the simulator is almost ready to start the Hartree-Fock algorithm. 
+
+A way to improve greatly the performance is done by computing the matrix of the two-body interactions in the harmonic oscillator basis (also called the \textit{Coulomb matrix}) apart from the HF algorithm and to store it for all future simulation using the same model space.
+This is done in a specific class called \citecode{CoulombMatrix} which reads the matrix from file when it exists. Otherwise it builds it and store it to file for other simulations. The \citecode{HartreeFock} is then used to compute the Hartree-Fock approximation to the ground state energy of the quantum dot. Other outputs of the Hartree-Fock algorithm includes  the HF eigenenergies, the HF eigenstates and eventually  the HF matrix of the two-body interaction which can be reused as input for other \textit{ab initio} techniques to improve their performance.
+Once HF has converged, the functions of the class \citecode{PerturbationTheory} can be used to compute the second and third-order many-body perturbation corrections using the new HF interaction matrix and the HF eigenenergies.
+Independently of the Hartree-Fock algorithm, the simulator can reuse the table of particle and hole states, as well as the Coulomb matrix in order to compute all many-body perturbation corrections up to third order directly in the harmonic oscillator basis set Therefore our simulator permits an easy comparison of the performance of both many-body techniques (HF, MBPT) and also permits to investigate the performance of HF imporved by MBPT corrections.
+
+The overall simulation can be optimized using parallelization of the code on a cluster of nodes and using the Message-Passing Interface (MPI) to manage the communication between the nodes. This gretaly improves some bottlenecks of the simulator which are: the construction of the two-body interaction matrices and the high order terms in the many-body perturbation theory. This is implemented in our simulator using the \citecode{mpi\_parameters} class. The performance of the parallelization is discussed in section~\ref{sec:MPI}.
+
+
+\subsection{The \citecode{orbitalsQuantumNumbers} class}
+The \citecode{orbitalsQuantumNumbers} class mainly generates the list of all possible states ($|\alpha \rangle  \rightarrow |n, ml, ms \rangle $) in the model space up to a maximum number of shell defined by the parameter $R^b$. It also generates a list of couple of states that will be used in the computation of the two-body interactions.
+In order to reduce the complexity of the computations, we exploit invariance of the Hamiltonian with respect to angular momentum and spin. Indeed, since $[\hat{H},\hat{L}^2]=[\hat{H},\hat{L}_z]=0$ and $[\hat{H},\hat{S}^2]=[\hat{H},\hat{S}_z]=0$, the Hamiltonian matrix can be written as a block diagonal matrix where each block can be trated independently thus improving drastically the computation of the eigenvalue problem. This requires a function \citecode{orbitalsQuantumNumbers::sort\_TableOfStates()} to organize the harmonic oscillator states  with respect to their angular momentum and spin quantum numbers.
+
+\subsection{The \citecode{CoulombMatrix} class}
+The Coulomb matrix in our simulator corresponds to the two-body Coulomb interaction computed in the harmonic oscillator basis set:
+\begin{equation}
+  \nonumber
+  V_{\alpha \beta \gamma \delta}=\langle \alpha \beta|V_{ij}| \gamma \delta \rangle_{as}.
+\end{equation}
+
+ This matrix will increase exponentially with respect to the size of the basis. As for the Hamiltonian, we should note that the Coulomb interaction conserves the total spin and the total angular momentum of the two-body interaction. This also requires some sorting of the table of couple of state. This is also done in the \citecode{orbitalsQuantumNumbers} class.
+Instead of computing the matrix element (\ref{twoBodyElement}), using numerical integration, we implemented the analytical expression derived by Anisimovas and Matulis~\cite{anisimovasMatulis} (The analytical expression and its implementation is given in appendix~\ref{app:rontani}). The implementation requires many loops over the quantum numbers of the four states involved in the two-body interaction, and the  computation of each element can really slow down the complete simulation.
+Therefore we implemented a way to read the direct terms from files generated from \textsc{OpenFCI}, an open source simulator computing the full configuration interaction ground state of quantum dots. An exhausive list of direct terms is generated with a simple modification of the \citecode{tabulate()} function provided by \textsc{OpenFCI}. The results are stored in an textual output file (e.g.\ \citecode{R06.txt} for direct terms in a model space with $R^b=6$), which is then used by our simulator to compute the matrix elements of the Coulomb interaction. A comparison of the results obtained using the anaytical expression and using the numerical integration of \textsc{OpenFCI} is given in section~\ref{sec:checkDirectTerm}.
+
+
+\subsection{The \citecode{HartreeFock} class}
+ An important part of our simulator is included in the \citecode{HartreeFock} class. A flowchart of the Hartree-Fock algorithm is given in figure~\ref{fig:diagramHF} which resumes the initialization of HF and iterative procedure already discussed in section \ref{HFdetails}.
+
+\begin{figure}
+\centering
+\scalebox{0.7}{\input{IMAGES/diagramHF.tex}}
+\caption{\label{fig:diagramHF}Flowchart of our implementation of the Hartree-Fock algorithm computing the Hartree-Fock energy, the $2^{nd}$ and $3^{rd}$-order many-body perturbation corrections to the HF energy, and the many-body perturbation corrections in the harmonic oscillator basis set from $1^{st}$ to $3^{rd}$-order.}
+\end{figure}
+
+While the eigenvalue problem may lead to an impracticable matrix diagonalization in a big model space, the use of symmetry and invariance greatly simplifies the problem. As we mentionned it, the construction of the Fock matrix to diagonalize and its splitting into smaller matrices depends on the block diagonal form of the Coulomb matrix, since the one-body part of the Hamiltonian is simply a diagonal matrix in the harmonic oscillator basis set.
+
+Therefore the construction of the eigenvalue problem is really quick and easy in the energy basis once the Coulomb matrix is known. We initialize the coefficients $C_i^{\alpha}$ for particle $i$ such that each state below the Fermi level is occupied by one and only one particle. This corresponds to the implementation of the closed-shell model.
+
+With this first set of coefficients, we can now compute the initial effective Coulomb potential $U$ defined in equation~(\ref{eq:effCoulombInterac}). The HF algorithm simply reads the harmonic oscillator energies ($|\alpha \rangle  \rightarrow \epsilon_{\alpha}=\langle \alpha|\hat{h} | \alpha \rangle$) from the \citecode{singleOrbitalEnergies} class in order to complete the Fock matrix with elements $\mathcal{O}_{\alpha \gamma}$ defined in~(\ref{eq:FockMatrix}).
+In order to solve the eigenvalue problem, we implemented the class \citecode{algebra} which interfaces \textsc{Blitz++} and \textsc{Lapack} and computes the Hartree-Fock eigenenergies and eigenvectors.
+
+The function  \citecode{HartreeFock::compute\_Sigma()} computes the average difference between eigenvalues of two successive iterations. This provides a criteria for stopping the iterative process when compared to the precision parameter arbitrary set in the configuration file. If the eigenvalues differ from the ones of the previous iteration, the HF algorithm will use the HF eigenvectors to compute a new effective Coulomb potential $U^{(k+1)}$, which then leads to a new eigenvalue problem and so on until self-consistency is reached.
+
+The total energy is then computed with the optimized coefficients $C_i^{\alpha}$ as detailled in eq.(\ref{eq:EnergyFunctionalExpanded}).
+
+
+\subsection{The \citecode{PerturbationTheory} class}
+
+The computation of the many-body perturbation corrections is developed in a general form, to be computed  either with the eigenenergies/eigenvectors of the either the harmonic oscillator basis, or with those computed from the Hartree-Fock algorithm. We simply implemented the different many-body perturbation corrections, from $0^{th}$-order, to $3^{rd}$-order.
+Each correction term can be computed in any basis set, which makes it general for computing the pure many-body perturbation energy in the harmonic oscillator basis from $0^{th}$-order, to $3^{rd}$-order, or to compute only $2^{nd}$-order and $3^{rd}$-order corrections to the Hartree-Fock energy using the HF eigenstates and eigenvalues as single particle states and single particles energies as detailled in~\ref{MBPTcorrections1},\ref{MBPTcorrections2} and \ref{MBPTcorrections3}.
+
+\section{Running a simulation}
+\label{sec:run}
+Running the simulator~\cite{codeLink} for different set of parameters is rather easy. The main program \textsc{project} reads the input parameters from file (\citecode{parameters.inp}) and eventually overwrite them with command line arguments before proceeding with the Hartree-Fock algorithm and the calculations of the many-body corrections. While running the executable, the Hartree-Fock approximation of the total energy is computed in a self-consistent way, followed by the many-body perturbation corrections first wihtin the Hartree-Fock basis, then in the harmonic oscillator basis. The results are finally printed out to screen and to file.
+
+You can either launch the simulator with default parameters included in the configuration file with:
+\begin{verbatim}
+> ./project
+\end{verbatim}
+or overwrite some of the parameters with a set of command line arguments, like in the following example:
+\begin{verbatim}
+> ./project dim 2 Rf 1 Rb 5 lambda 1.4
+\end{verbatim}
+which runs a simulation in two-dimensions, with particles filling the harmonic oscillator states $|n,m_l,m_s \rangle$ up to the maximum shell number $R^f=2n+|m_l|=1$ (including spin degeneracy), in a model space containing all harmonic oscillator states up to the maximum shell number $R^b=5$, and finally with a confinement strength set to $\lambda=1$.
+
+A list of command line parameters is given in table~\ref{tab:commandLine} and an example of configuration file is given in table~\ref{configFile}. 
+
+The command lines are particularly useful for production runs where the scripts can simply change the arguments in the command line in order to run a different set simulation.
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}[c]{l|l|l} 
+\toprule[1pt]
+\multicolumn{1}{c|}{PARAMETERS}  &\multicolumn{2}{c}{COMMAND LINE SHORTCUTS}  \\
+  &\multicolumn{1}{c}{[OPTIONS]} &\multicolumn{1}{c}{[VALUES]} \\
+\hline
+\hline
+\multirow{2}{6cm}{Dimension of the dot} & & \\
+&  \multirow{-2}{5cm}{\citecode{d} OR \citecode{dim}} & \multirow{-2}{*}{\{2,3\}} \\		
+\hline
+\multirow{2}{6cm}{Size of the closed-shell model ($R^f$)} & & \\
+  & \multirow{-2}{5cm}{\citecode{f} OR \citecode{Rf} OR \citecode{Rfermi}} &  \multirow{-2}{*}{$\in \mathbb{N}$} \\
+\hline
+\multirow{2}{6cm}{Size of the model space ($R^b$)}  & & \\
+ & \multirow{-2}{5cm}{\citecode{b} OR \citecode{Rb} OR \citecode{R\_basis}} &  \multirow{-2}{*}{$\in \mathbb{N}$ with $R^b \geq R^f$}\\
+\hline
+\multirow{2}{6cm}{Dimensionless confinement strength ($\lambda$)}   & & \\
+& \multirow{-2}{5cm}{\citecode{lambda} OR \citecode{l}} &   \multirow{-2}{*}{$\in \mathbb{R^+}$} \\
+\hline
+\multirow{2}{6cm}{SCF precision}   & & \\
+& \multirow{-2}{5cm}{\citecode{epsilon} OR \citecode{e}} &  \multirow{-2}{*}{ $\in \mathbb{R^{+*}}$} \\
+\hline
+\multirow{2}{6cm}{boolean for including the Coulomb interactions} & & \\
+  & \multirow{-2}{5cm}{\citecode{coulomb} OR \citecode{cp}} & \multirow{-2}{*}{ \{0,1\}} \\
+\hline
+\multirow{2}{6cm}{boolean for computing MBPT in the harmonic oscillator basis} & & \\
+  & \multirow{-2}{5cm}{\citecode{perturbationTheory} OR \citecode{pt}} &  \multirow{-2}{*}{\{0,1\} }\\
+\hline
+\multirow{2}{6cm}{boolean for computing MBPT corrections in HF basis}  & & \\
+ & \multirow{-2}{5cm}{\citecode{HF\_PT\_correction} OR \citecode{HF\_PT}} &  \multirow{-2}{*}{\{0,1\} }\\
+\hline
+\multirow{2}{6cm}{boolean for reading the direct terms from \textsc{OpenFCI} output files} & & \\
+  & \multirow{-2}{5cm}{\citecode{openFCI} OR \citecode{readCI} OR \citecode{r}}
+& \multirow{-2}{*}{\{0,1\}} \\
+\hline
+\multirow{2}{6cm}{boolean for writing input/output data to file} & & \\
+ & \multirow{-2}{5cm}{\citecode{logInfos} OR \citecode{log}} &  \multirow{-2}{*}{\{0,1\}} \\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{List of possible command line arguments for running the HF/MPBT simulator.\newline ex.:\  \citecode{> ./project [option1] [value1] [option2] [value2]\dots}
+}
+\label{tab:commandLine} 
+\end{table} 
+
+
+
+%%%\lstinputlisting{parameters.inp}
+
+\begin{table}[ht]
+\centering      % used for centering table
+\scriptsize 
+\begin{verbatim}
+######################################################################
+# *** parameters.inp contains input parameters for the simulation of #
+#     a quantum dot using closed-shell Hartree-Fock  ***             #
+######################################################################
+
+################################
+# --- model space parameters ---
+ 
+dimension = 2   # [dim or d] 2D or 3D
+R_basis = 3    # [Rb or b] maximum shell number for the HO basis
+	  	    set (ex. R=2n+|m| in 2D)
+R_fermi = 1     # [Rf or f] Fermi level defining #electrons in the
+	  	    closed shell system
+includeCoulombInteractions = yes # [coulomb or c] Switch ON/OFF the
+			     	   Coulomb piece
+
+################################
+# --- interaction parameters --- 
+lambda = 1.0    # [lambda or l] strength of the interaction
+
+################################
+# --- Hartree-Fock parameters ---
+epsilon = 1e-12; # [epsilon or e] precision used for self-consistency
+                   of the total energy
+
+################################
+# --- computational parameters --- 
+readFromOpenFCI = yes # [openFCI or r] read single element for Coulomb
+		      	piece from OpenFCI instead of analytical
+                        expression of Rontani
+perturbationTheory  = yes # compute the Perturbation theory up to 3rd order
+		      	    with the interaction expressed in the HO basis
+HF_PT_correction    = yes # compute the Perturbation theory up to 3rd order
+		      	    with the interaction expressed in the HF basis
+
+save_states         = no # write table of quantum states
+
+save_EigValPb       = no # write the Blocks to diagonalize and the
+		      	      eigenvalues to file
+\end{verbatim}
+\caption{Example of input file configuration.}
+\label{configFile}
+\end{table} 

@@ -1,0 +1,218 @@
+\documentstyle[a4wide]{article}
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bra}[1]{\left\langle #1 \right|}
+\newcommand{\ket}[1]{\left| #1 \right\rangle}
+\newcommand{\braket}[2]{\left\langle #1 \right| #2 \right\rangle}
+
+
+\begin{document}
+
+\pagestyle{plain}
+
+\section*{Computational Physics thesis project for Johannes Rekkedal: Ab initio studies of infinite matter}
+
+
+
+The aim of this thesis is to perform coupled-cluster calculations of infinite nuclear matter    
+with the inclusion of so-called singles and doubles correlations to infinite order. 
+Such studies have crucial consequences for our understanding of dense matter such as the interiors of stars
+and neutron stars.  Proper calculations of the ground state of infinite matter in neutrons stars,
+are crucial ingredients in studies of superfluidity in such stars and their cooling history
+
+The summation to infinite order of important  correlations  remains an unsolved problem in nuclear many-body physics. 
+By utilizing our recently developed coupled cluster codes for nuclei, where we can now perform ab initio
+calculations with unrenomarlized nuclear forces for nuclei up to $^{100}$Sn, the aim of this thesis is to extend the application
+of the codes to infinite matter.
+
+The goal is to use
+a representation of the nuclear interaction in a plane wave basis  given by two-body matrix elements 
+in the laboratory system but coupled to final angular momenta (partial wave expansion). The technicalities  are given below.
+
+These matrix elements will in turn be used as input to two many-body codes, the coupled-cluster code and the code for many-body perturbation 
+to third order in the interaction. 
+
+Since the amount of such two-body matrix elements will be huge, the code for the generating them has to be parallelized.
+To develop such a code and interfacing it  with the existing many-body codes is the first task of this thesis.
+
+With these codes working, the last part is to compute the equation of state for infinite nuclear matter  and neutron-star
+matter in $\beta$-equilibrium. If successful, these calculations can most likely be published in Physical Review Letters.
+With the addition of triples correlations, the work done at the master level can easily be extended to a PhD degree
+with topics such as studies of superfluidity and neutrino emission in neutron stars.
+
+\subsection*{Technicalities}
+\begin{enumerate} 
+\item 
+The first task is to compute the matrix elements of the nucleon-nucleon interaction in the laboratory frame,
+with two particles coupled to final angular momentum $J$, 
+starting from the momentum-space version of the 
+nucleon-nucleon (NN) interaction $V$ in the relative and center of mass system.
+The NN interaction is normally provided with quantum numbers of the relative and center of mass frame.
+In this reference frame, 
+the NN interaction $V$ 
+is defined in terms of various quantum numbers as follows
+\begin{equation}
+\left\langle klKL({\cal J})S T_z\right |
+      V\left | k'l'KL({\cal J})S T_z \right\rangle,
+\end{equation}
+where the variables $k$, $k'$ and $l$, $l'$
+denote respectively relative and angular momenta,
+while
+$K$ and $L$ are the quantum numbers of the center of mass
+motion. ${\cal J}$, $S$ and $T_z$ represent the total angular
+momentum in the relative and center of mass system, spin and isospin projections,
+respectively. 
+
+One can obtain the corresponding matrix elements in the laboratory system
+through appropriate transformation coefficients \cite{balian69,wc72,kkr79}. This transformation proceeds through the definition
+of a two-particle state in the laboratory system.
+With these coefficients,
+the expression for a two-body wave function in momentum space
+using the laboratory coordinates can be written as
+\begin{equation}
+   \begin{array}{ll}
+     &\\
+     \left | (k_al_aj_at_{z_a})(k_bl_bj_bt_{z_b})JT_z\right \rangle =&
+      {\displaystyle \sum_{lL\lambda S{\cal J}}}\int k^{2}dk\int K^{2}dK
+      \left\{\begin{array}{ccc}
+      l_a&l_b&\lambda\\\frac{1}{2}&\frac{1}{2}&S\\
+      j_a&j_b&J\end{array}
+      \right\}\\&\\
+      &\times (-1)^{\lambda +{\cal J}-L-S}
+      F\hat{{\cal J}}\hat{\lambda}^{2}
+      \hat{j_{a}}\hat{j_{b}}\hat{S}
+      \left\{\begin{array}{ccc}L&l&\lambda\\S&J&{\cal J}
+      \end{array}\right\}\\&\\
+      &\times \left\langle klKL| k_al_ak_bl_b\lambda\right\rangle
+      \left | klKL({\cal J})SJT_z\right \rangle ,
+   \end{array}
+   \label{eq:relcm-lab}
+\end{equation}
+where $\left\langle klKL| k_al_ak_bl_b\lambda\right\rangle$
+is the transformation coefficient (vector bracket) from the relative and center of mass system 
+to the laboratory system  defined in Refs.~\cite{wc72,kkr79}.
+The factor $F$ is defined as $F=(1-(-1)^{l+S+T_z})/\sqrt{2}$ if
+we have identical particles only ($T_z=\pm 1$) and $F=1$ for 
+different particles (protons and neutrons here, $T_z=0$). The other factors are $6j$ and $9j$ symbols.
+
+
+The transformation coefficient $\left\langle klKL| k_al_ak_bl_b\right\rangle$ is 
+given by \cite{balian69,wc72,kkr79}
+\begin{equation}
+\left\langle klKL| k_al_ak_bl_b\lambda\right\rangle=\frac{4\pi^2}{kKk_ak_b}\delta(w)\theta(1-x^2)A(x),
+\label{eq:vectorbras}
+\end{equation}
+with
+\begin{equation}
+w= k^2+\frac{1}{4}K^2-\frac{1}{2}(k_a^2+k_b^2),
+\end{equation}
+\begin{equation}
+x=(k_a^2-k^2-\frac{1}{4}K^2)/kK,
+\end{equation}
+and
+\begin{equation}
+A(x) = \frac{1}{2\lambda+1}\sum_{\mu}[Y^l(\hat{k})\times Y^L(\hat{K})]_{\mu}^{\lambda *}\times
+[Y^{l_a}(\hat{k}_a)\times Y^{l_b}(\hat{k}_b)]_{\mu}^{\lambda}.
+\end{equation}
+The functions $Y^l$ are the standard spherical harmonics, $x$ is the cosine of the angle 
+between $\vec{k}$ and $\vec{K}$ so that the step function takes input values from
+0 to 1. In the codes, the coordinate system of Kuo {\em et al.}  \cite{kkr79} gives a practical algorithm.
+ 
+To compute the NN interaction in the laboratory frame we need to perform two such transformation, one on the
+bra-side and one on the ket-side, resulting in a final matrix element
+\begin{equation}
+   \left\langle (k_al_aj_at_{z_a})(k_bl_bj_bt_{z_b})JT_z\right |
+    V\left | (k_cl_cj_ct_{z_c})(k_dl_dj_dt_{z_d})JT_Z \right\rangle,
+\end{equation}
+where the labels $a,b,c$ and $d$ represent plane waves
+All matrix elements discussed here are assumed to be 
+antisymmetrized (AS).
+
+The computation of these matrix elements, with typically 20-30 mesh points in $k$-space and cutoff  $l\le 6-10$,
+has to be parallelized.
+
+
+
+\item  The next task is to interface the code for computing these matrix elements with the computation of
+the equation of state (binding energy per nucleon) for infinite matter using many-body perturbation theory to
+third-order.  
+
+\item The final stage is to perform coupled-cluster calculations with these interactions 
+for infinite nuclear matter  and neutron-star
+matter in $\beta$-equilibrium.
+
+\end{enumerate}
+
+\subsection*{Local organization}
+
+The activity will be based within the 
+Computational Quantum Mechanics project at the Department of Physics and 
+CMA. The main location is the Computational Physics group. 
+The Computational Physics  group consists  
+presently of two full professors (Hjorth-Jensen and Malthe-S\o renssen) and two professor Emeriti (Engeland and Osnes), 
+one Adjunct Professor (Dean, Oak Ridge National Lab and CMA), four PhD
+students (CMA(2), Dept ot Physics (2)) and fourteen Master students (Dept of Physics) with five new to come from fall 2008, totalling
+19 master students, 4 PhD students and two permanent researchers.
+More inofrmation at the webpage of the group at http://www.fys.uio.no/compphys.
+
+The computational quantum mechanics part of the computational physics group
+has extensive collaborations on ab initio quantum mechanics with Oak Ridge national laboratory (ORNL), Michigan State University
+and Tokyo University.
+\section*{Progress plan and milestones}
+The thesis is expected to be finished June 1 2009.
+\begin{itemize}
+\item Fall 2008: Develop a parallel code for setting up the nucleon-nucleon
+interaction in  a plane wave basis and perform many-perturbation theory to third
+order in infinite matter.
+A stay in november 2008 (duration 2-3 weeks) at Oak Ridge national Laboratory (Oak Ridge, Tennessee) is included.
+Here Johannes Rekkedal will perform the coupled cluster calculation at the level of singles and doubles excitations.
+\item Spring 2009:  
+Conclusion of coupled cluster calculations and 
+writeup of thesis and final thesis exam
+\end{itemize}
+
+
+\begin{thebibliography}{53}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname bibnamefont\endcsname\relax
+  \def\bibnamefont#1{#1}\fi
+\expandafter\ifx\csname bibfnamefont\endcsname\relax
+  \def\bibfnamefont#1{#1}\fi
+\expandafter\ifx\csname citenamefont\endcsname\relax
+  \def\citenamefont#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\providecommand{\bibinfo}[2]{#2}
+%\providecommand{\eprint}[2][]{\url{#2}}
+
+
+
+\bibitem[{\citenamefont{Balian and Brezin}(1969)}]{balian69}
+\bibinfo{author}{\bibfnamefont{R.}~\bibnamefont{Balian}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{E.}~\bibnamefont{Brezin}},
+  \bibinfo{journal}{Nuovo Cim.} \textbf{\bibinfo{volume}{61}},
+  \bibinfo{pages}{403} (\bibinfo{year}{1969}).
+
+\bibitem[{\citenamefont{Wong and Clement}(1972)}]{wc72}
+\bibinfo{author}{\bibfnamefont{C.~W.} \bibnamefont{Wong}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{D.~M.} \bibnamefont{Clement}},
+  \bibinfo{journal}{Nucl. Phys. A} \textbf{\bibinfo{volume}{183}},
+  \bibinfo{pages}{210} (\bibinfo{year}{1972}).
+
+\bibitem[{\citenamefont{Kung et~al.}(1979)\citenamefont{Kung, Kuo, and
+  Ratcliff}}]{kkr79}
+\bibinfo{author}{\bibfnamefont{C.~L.} \bibnamefont{Kung}},
+  \bibinfo{author}{\bibfnamefont{T.~T.~S.} \bibnamefont{Kuo}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{K.~F.}
+  \bibnamefont{Ratcliff}}, \bibinfo{journal}{Phys. Rev. C}
+  \textbf{\bibinfo{volume}{19}}, \bibinfo{pages}{1063} (\bibinfo{year}{1979}).
+
+
+
+\end{thebibliography}
+
+\end{document}

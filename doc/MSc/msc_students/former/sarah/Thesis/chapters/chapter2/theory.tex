@@ -1,0 +1,552 @@
+\chapter{Quantum mechanical background}
+\label{chap:theory}
+
+\textit{Quantum mechanics}, also referred to as \textit{quantum physics} in general, is a theory in physics which deals with the description of matter and its laws and properties. In contrast to classical physics, it allows the calculation of physical properties also at microscopic and up to subatomic length scales. Hence it is one of the main foundations of modern physics and forms the basis for atomic physics, condensed matter physics, nuclear physics and elementary particle physics, as well as related disciplines such as quantum chemistry.
+
+This thesis is based on the theories and methods of quantum physics, too, and it it therefore necessary to explain the main and general concepts forming the basis of topics  more closely related to this thesis. This chapter deals with those basic concepts and especially introduce the notations we use in this thesis. Since quantum physics is a very large area, and even introductory text books often cover several hundred pages, we only focus on the most fundamental aspects that are relevant for the following parts of this work.
+
+\section{Historical overview}
+In the 19th century, physics was based on what we nowadays refer to as 'classical physics': The essential foundations were classical mechanics (following Newton), electrodynamics (following Maxwell) and thermodynamics (following Boltzmann). However, in the end of the 19th century and particularly in the beginning of the 20th century, a number of experiments cast doubts on the former concepts, since the results could not be properly explained with the available theories.\\
+In 1900, to derive his law of radiation, Max Planck made the hypothesis that an oscillator absorbs and emits energy only as multiples of an energy quantum
+\[
+\Delta E = h\nu,
+\]
+where $h$ is Planck's constant and $\nu$ the oscillator frequency. In 1905, Albert Einstein went one step further and explained the photoelectric effect, stating that light consists of discrete particles of the same energy $E$. Further developments include the atom model by Rutherford (1911), the quantum theory of spectra by Bohr (1913) and the scattering of photons, studied by Compton (1922). \\
+Numerous experiments made in this period showed that light waves sometimes behave as if they were particles.
+In 1924, de Broglie finally proposed that particles can exhibit wave characteristics, too. In particular, he suggested that each particle with momentum $p$ corresponds to a wave with wave length $\lambda$ and frequency $\omega$, given by
+\be 
+\lambda = \frac{h}{p}, \qquad \omega = \frac{E}{\hbar},
+\label{eq:th1}
+\ee
+where $\hbar$ is the reduced Planck constant $\hbar = h/2\pi$.
+This hypothesis has been confirmed by several experiments, for instance the Davison-Germer experiment (1927), studying the reflection of electron beams on crystal surfaces.
+
+Thus quantum mechanics had gradually come into the focus of scientists, and during the first half of the 20th century, further scientists, including Schr\"odinger, Hilbert and Dirac,
+helped to put the new observations and concepts into a mathematical framework. 
+
+In the following sections, we will discuss the basic features of quantum mechanics using the standard formalisms used today. Unless explicit references are stated, we base our explanations, as in this section  on \cite{liboff1992introductory, griffiths2005introduction, SkriptZ,SkriptR}.
+
+
+\section{Hilbert space and Dirac notation}
+All physical states we will consider, lie in a complex vector space, which we refer to as \mbox{\textit{Hilbert space $\mathcal{H}$}}, named after David Hilbert \cite{hilbert}. To be a Hilbert space, \hilbert must hold a positive-definite inner product and be complete with respect to its norm. The inner product $\langle\cdot|\cdot\rangle$ is a mapping
+\[
+\langle\cdot|\cdot\rangle: \mathcal{H}\times \mathcal{H}\rightarrow\mathbb{C}
+\]
+with the following properties:
+\begin{enumerate}
+\item The inner product is linear in the second argument,
+\be 
+\langle \psi| \alpha \chi_1+\beta \chi_2\rangle = \alpha \langle \psi|\chi_1\rangle + \beta\langle\psi|\chi_2\rangle.
+\ee
+\item Forming the complex conjugate of the inner product gives
+\be 
+\langle \psi|\chi \rangle^*= \langle \chi|\psi \rangle.
+\ee
+In particular, the inner product is anti-linear in the first argument,
+\[
+\langle \alpha\chi_1 + \beta\chi_2|\psi\rangle = \alpha^* \langle \chi_1|\psi\rangle + \beta^* \langle \chi_2|\psi\rangle.
+\]
+Therefore an inner product is not a bilinear, but a \textit{sesquilinear} form. 
+\item The inner product is positive definite,
+\be 
+\langle\psi|\psi\rangle \geq 0, \qquad\text{and}\qquad \langle\psi|\psi\rangle =0\Rightarrow \psi=0.
+\ee
+\end{enumerate}
+Here $\psi,\chi$ are elements of \hilbert and $\alpha,\beta\in\mathbb{C}$. Each inner product defines a norm by
+\be 
+\Vert\psi\Vert = \sqrt{\langle\psi|\psi\rangle}.
+\label{eq:th16}
+\ee
+A complex vector space \hilbert with an inner product is now called \textit{Hilbert space}, if \hilbert is complete with respect to the norm (\ref{eq:th16}). This means that each Cauchy series of vectors $\phi_n\in\mathcal{H}$ converges to an element in \hilbert\footnote{A Cauchy series $\phi_n$ is a series with the following property: For each $\epsilon>0$, there exists a $N\in\mathrm{N}$, such that for all $n,m>N$, $\Vert \phi_n-\phi_m\Vert<\epsilon$. For more mathematical details, we refer to textbooks in calculus and linear algebra.},
+\[
+\lim_{n\rightarrow\infty}\phi_n = \phi\in\mathcal{H}.
+\]
+ Loosely speaking, it means that \hilbert has enough restrictions such that calculations with vectors $\psi\in\mathcal{H}$ produce results also lying in \hilbert. The easiest example of a Hilbert space is the $n$-dimensional complex vector space $\mathbb{C}^n$, with the inner product defined as
+\be  
+\left\langle\lb \begin{array}{c}
+x_1\\
+\vdots\\
+x_n
+\end{array}\rb
+\right|\left.
+\lb \begin{array}{c}
+y_1\\
+\vdots\\
+y_n
+\end{array}\rb\right\rangle
+= \sum_{i=1}^n x_i^* y_i.
+\ee
+%In quantum mechanics of real physical systems we often encounter infinite-dimensional vector spaces. Fortunately, these ones are typically separable, i.e. they have a countable basis.
+
+To apply the concept of states to wave functions, which will be discussed in detail in \mbox{section \ref{sec:wf}} and describe our quantum mechanical states,  we use the \textit{bra-ket} notation developed by the physicist Paul Dirac \cite{Diracnot}. It is named after splitting the word 'bracket' and is a standard notation for describing quantum states. Instead of dealing with functions $\psi$,  one refers to ket-states $|\psi\rangle$ and their dual states $\langle\psi|$. For a finite-dimensional Hilbert space, the ket-state $|\psi\rangle$ can be viewed as column vector,
+\[
+\psi = \left[\begin{array}{c}
+c_1\\
+c_2\\
+\vdots
+\end{array}\right]
+\]
+and its dual bra-state as Hermitian transpose
+\[
+\langle\psi| = \left[ c_1^*,c_2^*, \dots\right].
+\]
+The connection between the bra- and ket-state is given by the inner product, in bra-ket notation compactly written as
+\be 
+\langle\psi_{\alpha}|\psi_{\beta}\rangle = \int dx\; \psi_{\alpha}^*(x)\psi_{\beta}^*(x).
+\ee
+Let us at this stage summarize some definitions which we will frequently use later on:
+\begin{itemize}
+\item A function $\psi\in\mathcal{H}$ is said to be \textit{normalized} if the inner product with itself equals one,
+\[
+\langle \psi | \psi \rangle = 1.
+\]
+\item Two functions $\psi,\chi\in\mathcal{H}$ are \textit{orthogonal} if their inner product is zero,
+\[
+\langle \psi | \chi \rangle = 0.
+\]
+\item A set of two or more functions is called \textit{orthonormal} of each if the functions is normalized and each pair of functions is orthogonal.
+\end{itemize}
+Assuming a $d$-dimensional Hilbert space, a discrete orthonormal basis $\mathcal{B} = \lbrace |\phi_i\rangle\rbrace_{i=1}^d$ is given by a set of functions $\lbrace \phi_1,\phi_2,\dots\rbrace$ with orthonormality condition
+\be 
+\langle \phi_i|\phi_j\rangle = \delta_{ij} = \begin{cases}
+0, & i\neq j \\
+1, & i=j.
+\end{cases}
+\ee
+Moreover, for the basis to be complete, it must fulfil the completeness relation
+\be 
+\sum_i^d |\phi_i\rangle\langle\phi_i| = \mathbf{1}.
+\ee
+That way,
+each function in \hilbert can be expressed as linear combination of the basis vectors,
+\be
+|\Psi\rangle = \sum_{i=1}^d |\phi_i\rangle\langle\phi_i|\Psi\rangle = \sum_{i=1}^d c_i |\phi_i\rangle.
+\label{eq:thbas}
+\ee
+
+\section{Observables and operators}
+In quantum physics, each physical observable $A$ is associated with an operator $\hat{A}$, which acts on wave functions $\psi$ to yield the expectation value of $A$:
+\be 
+\langle A \rangle = \int dx\; \psi^*(x)\hat{A}\psi(x).
+\ee
+Note that $x$ and $dx$ here for simplicity contain all degrees of freedom, such that integration is understood to be over all dimensions, not only one. \\
+Since all measurements must yield real values, the operators must be \textit{Hermitian} or \textit{self-adjoint}, which means
+\[
+\hat{A} = \hat{A}\da.
+\]
+Here, $\hat{A}\da$ is the Hermitian conjugate of $\hat{A}$, defined by
+\[
+\langle \chi |\hat{A}\psi\rangle^* = \langle \hat{A}\da\psi|\chi\rangle.
+\]
+With these properties, the expectation value of an observable $A$ can in bra-ket notation easily be expressed by
+\be 
+\langle A \rangle = \langle \psi | \hat{A}\psi\rangle = \langle \hat{A}\psi|\psi\rangle \equiv \langle \psi | \hat{A}|\psi\rangle.
+\ee
+Two fundamental examples of operators are the position operator in one dimension
+\[
+\hat{x} = x,
+\]
+and the momentum operator 
+\[
+\hat{p} = -i\hbar\nabla.
+\]
+\subsection{Commutation relations}
+At a later stage of this thesis, we will frequently encounter so-called \textit{commutation relations} of operators. The point is that the order in which two  operators $\hat{A}$ and $\hat{B}$ are applied to a function $\psi$, generally makes a difference, suggesting that
+\[
+\hat{A}\hat{B} \neq \hat{B}\hat{A}.
+\]
+The commutator is defined as
+\be 
+[\hat{A},\hat{B}] = \hat{A}\hat{B}-\hat{B}\hat{A},
+\label{eq:thcom}
+\ee
+and has the properties
+\begin{align*}
+[\hat{A},\hat{B}] &= -[\hat{B},\hat{A}],\\
+[\hat{A},a\hat{B}] &= [a\hat{A},\hat{B}] = a[\hat{A},\hat{B}], \qquad a\in\mathbb{C}\\
+[\hat{A}+\hat{B},\hat{C}] &= [\hat{A},\hat{C}] + [\hat{B},\hat{C}],\\
+[\hat{A}\hat{B},\hat{C}] &= \hat{A}[\hat{B},\hat{C}] + [\hat{A},\hat{C}]\hat{B},
+\end{align*}
+which can easily be proved by applying  definition (\ref{eq:thcom}). This list is not complete and summarizes just those properties most relevant for this thesis. For more properties, we refer to \cite{liboff1992introductory}.\\
+In the case that the order in which two operators act on a function $\psi$ makes no difference, the two operators are said to \textit{commute}, i.e.
+\[
+[\hat{A},\hat{B}] = \hat{A}\hat{B}-\hat{B}\hat{A} = 0.
+\]
+As stated before, this is not the case in general, and even the well-known position and momentum operator do not commute, but follow the canonical commutation relation\footnote{For derivation, we refer to \cite{griffiths2005introduction}, pp.42-43.}
+\[
+[\hat{x},\hat{p_x}] = i\hbar.
+\]
+
+\subsection{Eigenvalues and eigenfunctions}
+If the action of an operator $\hat{A}$ on a function $\psi$ yields the following relation,
+\be 
+\hat{A}\psi = a\psi,
+\label{eq:theigenvalue} 
+\ee
+then the constant $a$ is called \textit{eigenvalue} of $\hat{A}$ with corresponding eigenfunction $\psi$. Equation (\ref{eq:theigenvalue}) is referred to as \textit{eigenvalue equation}. \\
+Eigenvalues and eigenfunctions have several useful properties, which we will shortly summarize following \cite{griffiths2005introduction}, which we also refer to for the corresponding proofs.\footnote{Note that we restrict us to discrete spectra, i.e. the eigenvalues are separated from each other. If the spectrum is continuous, the eigenfunctions are not normalizable and the first two properties do not hold. However, in this thesis we will only deal with discrete spectra.}
+\begin{itemize}
+\item All eigenvalues of Hermitian operators are real.
+\item Eigenfunctions belonging to distinct eigenvalues are orthonormal.
+\item For any operator with a finite set of eigenfunctions, the eigenfunctions are complete and span the full Hilbert space \hilbert. 
+This makes it possible to express any arbitrary function in this space as linear combination of eigenfunctions,
+\[
+\Psi = \sum_i^d c_i\psi_i,
+\]
+where $d$ is the dimension of \hilbert. For infinite-dimensional Hilbert spaces, this property can not be proven in general. However, since it is essential for the internal consistency of quantum mechanics, it is taken as restriction on operators representing observables.  
+\end{itemize}
+
+\section{Wave mechanics}
+\label{sec:wf}
+In this section we will look in more detail on how quantum mechanical systems can be represented by functions $\Psi$, referred to as $wave functions$, and how the formalisms of the previous sections can be applied to describe the evolution of a system. 
+
+
+\subsection{Properties of the  wave function}
+According to de Broglie, each particle with momentum $p$ is associated with a wave of wave length $\lambda$ and frequency $\omega$, as stated in Eq.~(\ref{eq:th1}), and we will denote this wave function with $\Psi(\rv,t)$. Following Born's statistical interpretation, we understand the square $|\Psi(\rv,t)|^2$ as probability distribution for finding the particle at time $t$ at position $\rv$. More generally, the probability of finding a particle at a time $t$ in a region $\Omega\subset\mathcal{H}$ is 
+\be 
+P_{\Omega}(t) = \int_{\Omega} d\rv\Psi^*(\rv,t) \Psi(\rv,t),
+\label{eq:th8}
+\ee
+where $\Omega$ is a subspace of the full Hilbert space $\mathcal{H}$. In order for this interpretation to be correct, $\Psi(\rv,t)$ must be normalized, suggesting that for all $t$
+\be 
+\int_{\mathcal{H}} d\rv\; |\Psi(\rv,t,)|^2 = 1.
+\label{eq:th9}
+\ee
+An alternative approach is to work with unnormalized wave functions and normalize the integrals themselves, dividing by $\int_{\mathcal{H}} d\rv\; |\Psi(\rv,t,)|^2$.
+
+
+\subsection{Time-dependent Schr\"odinger's equation}
+To get a concrete expression for the wave function, let us first
+ consider the easy case that our system consists of only one single particle.
+An easy constructable wave function with the above mentioned parameters, momentum $p$ and wave length $\lambda$, is given by
+\be 
+\Psi(x,t) = \Psi(0,0)e^{i\frac{2\pi x}{\lambda}-i\omega t},
+\label{eq:th2}
+\ee
+where $\Psi(0,0)$ is a constant determining the amplitude of the wave. Taking the derivative with respect to time and space, we obtain
+\begin{align}
+\frac{\partial}{\partial x}\Psi(x,t) &= i \frac{2\pi}{\lambda} \Psi(x,t) = i \frac{p}{h} \Psi(x,t)
+\label{eq:th3}\\
+\frac{\partial}{\partial t}\Psi(x,t) &= -i\omega\Psi(x,t) = -i \frac{E}{h}\Psi(x,t).
+\label{eq:th4}
+\end{align}
+In the non-relativistic limit, the energy of a free particle with momentum $p$ and mass $m$ is 
+\[
+E = \frac{p^2}{2m}.
+\]
+Combining equations (\ref{eq:th3}) and (\ref{eq:th4}) with this expression yields
+\be 
+i\hbar \frac{\partial}{\partial t}\Psi(x,t) = E \Psi(x,t) = -\frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2}\Psi(x,t).
+\label{eq:th5}
+\ee
+If the particle is not free, but moving in an external potential $V(x)$, we have to add that contribution to the time-evolution and obtain
+\be 
+i\hbar \frac{\partial}{\partial t}\Psi(x,t)=  -\lb \frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2} + \hat{V}(x) \rb \Psi(x,t).
+\label{eq:th5}
+\ee
+We use the notation $\hat{V}(x)$ to emphasize that $V$ acts as an operator, possibly containing derivatives etc.\\
+Equation (\ref{eq:th5}) is the \textit{time-dependent Schr\"odinger equation}, which is one of the main foundations of quantum mechanics and regarded as the quantum-mechanical analogue to Newton's laws of motion . Generalized to three dimension, it reads
+\be 
+i\hbar \frac{\partial}{\partial t}\Psi(\rv,t) = - \lb\frac{\hbar^2}{2m}\nabla^2 + V(\rv,t)\rb \Psi(\rv,t).
+\ee
+The Schr\"odinger equation can be simplified to
+\be  
+i\hbar \frac{\partial}{\partial t}\Psi(\rv,t) = \hat{H}\Psi(\rv,t)
+\label{eq:th6}
+\ee
+by defining the Hamiltonian operator,
+\be  
+\hat{H} = \hat{T} + \hat{V}
+\label{eq:th7}.
+\ee
+Here, $\hat{T}$ is the operator of kinetic energy,
+\be
+\hat{T} = \frac{\hat{p}^2}{2m} = -\frac{\hbar^2}{2m}\nabla^2,
+\label{eq:th72}
+\ee
+and $\hat{V}$ as before the operator of the potential energy. Hence our Hamiltonian represents the total energy of this particle and, for systems of more than just one particle, can be extended to correspond to the total energy of the system, including interaction energies etc.
+
+\subsection{Time-independent Schr\"odinger equation}
+
+To get a more specific expression for the wave function, let us assume that the potential $V$ is time-independent, a reasonable first approach. In this case, Schr\"odinger's equation can be solved with separation of variables, and we make the ansatz
+\be 
+\Psi(\rv,t) = \psi(\rv)\chi(t),
+\label{eq:th10}
+\ee
+which decouples space and time. To account for the case that multiple of such products are solutions, we extend our ansatz to
+\be 
+\Psi(\rv,t) = \sum_n c_n \psi_n(\rv)\chi_n(t),
+\ee
+which is possible since any linear combination of solutions to Schr\"odinger's equation is solution, too.
+
+For each of the solutions,  Schr\"odinger's equation now implies
+\be
+i\hbar \psi_n(\rv)\frac{d}{dt}\chi_n(t) = \chi_n(t) \lb -\frac{\hbar^2}{2m} \nabla^2\psi_n(\rv) + V(\rv)\psi_n(\rv) \rb.
+\label{eq:th11}
+\ee
+Formally, we can divide Eq.~(\ref{eq:th11}) by $ \psi_n(\rv)\chi_n(t)$, which yields
+\be 
+i\hbar \frac{1}{\chi_n}\frac{d\chi_n}{dt} = -\frac{\hbar^2}{2m}\frac{1}{\psi_n}\nabla^2\psi_n + V\psi_n.
+\label{eq:th12}
+\ee
+Note that we drop the $t$- and $\rv$-dependence for better readability. We observe that now the left side is only a function of time $t$, whereas the right side is only a function of space $\rv$. This can only hold true if both expressions equal a constant, which we denote by $E_n$. That way, we have divided the time-dependent Schr\"odinger equation into two separate equations,
+\begin{align}
+i\hbar \frac{d\chi_n}{dt} &= E_n\chi_n
+\label{eq:th13} \\
+\hat{H}\psi_n(\rv) &= E_n\psi_n(\rv),
+\label{eq:th14}
+\end{align}
+where $\hat{H}$ is the Hamiltonian operator of Eq.~(\ref{eq:th7}).
+The first equation can easily be solved, giving for the time-dependent part of the wave function
+\be 
+\chi_n(t) = \exp \lb -i\frac{E_n}{\hbar}t \rb.
+\label{eq:th15}
+\ee
+The spatial part $\psi_n(\rv)$ can be obtained by solving Eq.~(\ref{eq:th14}), which is also called 
+\textit{time-independent Schr\"odinger equation}. Since the Hamiltonian operator represents the energy of the wave function, the constants $E_n$ correspond to the energy eigenvalues of the functions $\psi_n$. The full, time dependent Schr\"odinger equation (\ref{eq:th6}) is now solved by the wave function
+\be 
+\Psi(\rv,t) = \sum_n \psi_n(\rv) \exp \lb -i\frac{E_n}{\hbar}t \rb.
+\label{eq:th15}
+\ee
+
+\section{The postulates of quantum mechanics}
+With the concepts and formalisms of the previous sections, the basics of quantum mechanics can be summarized in a few postulates. Depending on the author, they are presented in a slightly different manner, and we will here closely follow \cite{liboff1992introductory}.
+
+\paragraph{Postulate I}
+To each well-defined observable $A$ in physics, there exists an operator $\hat{A}$, such that measurements of $A$ yield values $a$, which are eigenvalues of $\hat{A}$. In particular, the values $a$ are those values for which the equation
+\[
+\hat{A}\psi = a\psi
+\]
+has solution $\psi$. The function $\psi$ is called \textit{eigenfunction} with \textit{eigenvalue} $a$.
+
+\paragraph{Postulate II}
+Consider the set of eigenvalue equations
+\[
+\hat{A}\psi_i = a_i\psi_i,
+\]
+meaning that the operator $\hat{A}$ has different eigenvalues with corresponding eigenfunctions. If the measurement of observable $A$ yields a value $a_i$ , then the system is left in the state $\psi_i$, with the eigenfunction corresponding to eigenvalue $a_i$.
+
+\paragraph{Postulate III}
+At any instance of time, the state of a system may be represented by a wave function $\Psi$, which is continuous and differentiable, and contains all information regarding the state of the system. In particular, if the state of a system is described by a wave function $\Psi(\rv,t)$, then the average of any physical observable $A$ at time $t$ is
+\[
+\langle A \rangle = \int d\rv\; \Psi^*(\rv,t)\hat{A}\Psi(\rv,t).
+\]
+The average $\langle A \rangle$ is called the \textit{expectation value} of $\hat{A}$.
+
+\paragraph{Postulate IV}
+The time development of the wave function $\Psi(\rv,t)$ is given by the \textit{time-dependent Schr\"odinger equation}
+\[
+i\hbar \frac{\partial}{\partial t}\Psi(\rv,t) = - \lb\frac{\hbar^2}{2m}\nabla^2 + V(\rv,t)\rb \Psi(\rv,t).
+\]
+
+\section{Special case: Harmonic oscillator}
+\label{sec:HO}
+One quantum-mechanical system of highest interest is the harmonic oscillator. Not only is it easily analytically solvable and allows to demonstrate the concepts of the previous sections, but many more complex problems can be reduced to the harmonic oscillator and get thereby exactly solvable. \\
+Serving as basis for the Hamiltonian, it will have an important role in this thesis, too, and we will therefore discuss it in more detail.
+
+In classical mechanics, a harmonic oscillator is a system where a mass $m$ experiences a restoring force $F$ when displaced from its equilibrium position. The force is proportional to the displacement $\Delta x$ and described by Hooke's law,
+\be
+F = m \frac{d^2x}{dt^2} =-k\Delta x,
+\label{eq:thHO}
+\ee
+where $k>0$ is the spring constant. Solving Eq.~(\ref{eq:thHO}) for $x$ yields the periodic function
+\be 
+x(t) = A \sin \omega t + B \cos \omega t,
+\ee
+where $A$ and $B$ are constants determined by the initial conditions and the oscillator frequency $\omega$ describes the periodicity of the motion,
+\be 
+\omega = \sqrt{\frac{k}{m}}.
+\ee
+The potential energy can easily be obtained by integration,
+\be 
+V(x) = - \int_0^x dx'\; (-kx') = \frac{1}{2}k x^2 = \frac{1}{2}m\omega^2 x^2.
+\label{eq:thHO2}
+\ee
+
+For the quantum-mechanical analogue, we use Eqs. (\ref{eq:th7}) and (\ref{eq:th72}) combined with the oscillator potential (\ref{eq:thHO2}), where we replace $x$ with the corresponding operator $\hat{x}$, and obtain for one dimension
+\be 
+\hat{H} = - \frac{\hbar^2}{2m} \frac{d^2}{dx^2} + \frac{1}{2}m\omega^2 \hat{x}^2.
+\label{eq:HOham}
+\ee
+
+The time-independent Schr\"odinger equation (\ref{eq:th14}) is then given by
+\be 
+\lb -\frac{\hbar^2}{2m} \frac{d^2}{dx^2} + \frac{1}{2} m \omega^2 x^2 \rb \psi_n = E_n\psi_n
+\ee
+and can be solved in different ways.
+
+\subsection{Conventional solution}
+The conventional approach is rather tedious and we will therefore only sketch the main steps. To make life a bit easier, we go over to dimensionless variables,
+\be 
+\hat{x} \leftarrow \sqrt{\frac{m\omega}{\hbar}}\hat{x}, \qquad \hat{p} \leftarrow -i \sqrt{m\hbar\omega}\frac{d}{dx},
+\ee
+which simplifies the eigenvalue problem to
+\be 
+\lb \frac{d^2}{dx^2} + \lambda -x^2 \rb \psi_n = 0, \qquad \lambda=\frac{2E_n}{\hbar\omega}.
+\ee 
+Since the leading term for $x\rightarrow\infty$ is
+\[
+\lb \frac{d^2}{dx^2} - x^2\rb \psi_n = 0,
+\]
+the wave function $\psi_n$ must asymptotically behave as
+\[
+\psi_n \propto e^{-x^2/2}.
+\]
+In this case, we have that $\frac{d}{dx}\psi_n = -x\psi_n$, suggesting that $\frac{d^2}{dx^2}\psi_n = -\psi_n + x^2\psi_n \approx x^2 \psi_n$ in the limit $x\rightarrow\infty$.\\
+We we make the ansatz $\psi_n(x) = H(x)e^{-x^2/2}$ and get the following differential equation for $H(x)$,
+\be 
+\lb \frac{d^2}{dx^2} - 2x\frac{d}{dx} + (\lambda - 1)\rb H(x) = 0.
+\ee
+For solving this equation, we use Fuchs' ansatz
+\be 
+H(x) = x^s \sum_{n\in\mathbb{N}} a_n x^n,
+\ee 
+with $a_0\neq 0$ and $s\geq 0$. After comparison of coefficients and some additional mathematical considerations\footnote{See \cite{SkriptZ} for mathematical details.}, we get for each $n\in\mathbb{N}$ the differential equation
+\[
+H''(x) - 2xH'(x) + 2nH(x).
+\]
+This equation is solved by the Hermite polynomials $H_n(x)$, fulfilling the orthogonality relation
+\be 
+\int_{-\infty}^\infty  H_m(x)  H_n(x) e^{-x^2} dx = 2^n n! \sqrt{\pi} \delta_{nm},
+\ee 
+and the recurrence relation
+\be 
+H_{n+1}(x) = 2xH_n(x) - 2nH_{n-1}(x).
+\ee 
+The first few polynomials are
+\begin{align*}
+H_0(x) &= 1, \\
+H_1(x) &= 2x, \\
+H_2(x) &= (2x)^2 -2,\\
+H_3(x) &= (2x)^3 - 6(2x).
+\end{align*}
+That way, we have found our solution $\psi_n$ expanded in Hermite polynomials,
+\be 
+\psi_n(x) = N_n H_n(x) e^{-x^2/2}.
+\label{eq:HOconv}
+\ee
+with corresponding eigenvalues $\lambda_n = 2n+1$, suggesting
+\be 
+E_n = \hbar\omega \lb n + \frac{1}{2} \rb,
+\label{eq:theenergy}
+\ee
+and normalization factors
+\[
+N_0 = 1/\pi^{1/4}, \qquad N_n = N_0/\sqrt{2^n n!}.
+\]
+The energies $E_n$ represent the one-particle harmonic oscillator spectrum, are quantized and equally spaced, with spacing $\frac{1}{2}\hbar\omega$. Note that the lowest possible energy state is given by $E_0 = \frac{1}{2}\hbar\omega$, and not by 0, a result of vacuum fluctuations.
+
+The solution shown here represents the standard approach, known to yield the correct solution. However, in addition, there exists a more elegant way, which is  also of conceptual importance.
+
+\subsection{Elegant solution with ladder operators}
+This second solution approach is based on an operator technique with creation and annihilation operators.
+%, which  are of great importance in many areas of theoretical physics, for instance in field quantization. \\
+\\We define the creation (rising) operator
+\be 
+a\da = \sqrt{\frac{m\omega}{2\hbar}}\lb \hat{x}- \frac{i\hat{p}}{m\omega}\rb
+\ee
+and its Hermitian adjoint, the annihilation (lowering) operator\footnote{Depending on the author, the operators are often called \textit{ladder} operators, explicitly \textit{rising} and \textit{lowering} operator, in connection with the representation theory of Lie algebras,  whereas in quantum field and many-body theory, they are referred to as \textit{creation} and \textit{annihilation} operator, respectively. To be consistent with our next chapter, we use the latter terms already here.}
+\be 
+a = \sqrt{\frac{m\omega}{2\hbar}} \lb \hat{x} + \frac{i\hat{p}}{m\omega} \rb.
+\ee
+Moreover, we define the number operator
+\be 
+\hat{N} = a\da a, \qquad \hat{N}|\psi \rangle = n|\psi\rangle,
+\ee
+where $n$ is an integer eigenvalue, and obtain the commutation relations\footnote{For the more or less straightforward proofs in this section, we refer to \cite{griffiths2005introduction}.}
+\be 
+[a,a\da] = 1, \qquad [\hat{N},a\da] = \ad, \qquad [\hat{N},a] = -a.
+\label{eq:HOcomm}
+\ee
+The reversion of the latter operators yields
+\begin{align}
+\hat{x} &= \sqrt{\frac{\hbar}{2m\omega}}(a+a\da),\\
+\hat{p} &= i \sqrt{\frac{\hbar m \omega}{2}}(a\da - a).
+\end{align}
+Inserting this into our Hamiltonian (\ref{eq:HOham}), we get
+\be 
+\hat{H} = \hbar\omega\lb a\da a + \frac{1}{2} \rb = \hbar\omega \lb \hat{N} + \frac{1}{2} \rb.
+\ee
+The eigenvalue problem $\hat{H}|\psi_n\rangle = E_n|\psi_n\rangle$ reduces to
+\[
+\hat{N}|\psi_n\rangle = n \psi_n\rangle,
+\]
+suggesting that $\hat{H}$ and $\hat{N}$ have common eigenstates. Obviously, the eigenvalues are the same ones as in Eq.~(\ref{eq:theenergy}), $
+E_n = \hbar\omega \lb n + \frac{1}{2} \rb$.
+The states 
+\[
+\ad |\psi_n\rangle, \qquad a|\psi_n\rangle
+\]
+define new eigenvectors for $\hat{N}$ with eigenvalues $n+1$ and $n-1$, respectively:
+\begin{align*}
+\hat{N}\ad |\psi_n\rangle &= (\ad \hat{N} + [\hat{N},\ad])|\psi_n\rangle = \ad n |\psi_n\rangle + \ad |\psi_n\rangle = (n+1)\ad |\psi_n\rangle \\
+\hat{N} a |\psi_n\rangle &= (a\hat{N} + [\hat{N},a])|\psi_n\rangle = an|\psi_n\rangle - a |\psi_n\rangle = (n-1)a |\psi_n\rangle,
+\end{align*}
+where we make use of the relations in Eq.~(\ref{eq:HOcomm}). Hence the operators $\ad$ and $a$ increase/decrease the eigenvalue $n$ of a eigenstate $|\psi_n\rangle$ by 1, which explains the terms \textit{creation} and \textit{annihilation} operator, respectively.\\
+To stop this iteration, one defines for the lowest value $n=0$
+\be 
+a|\psi_0\rangle = 0.
+\label{eq:aladder}
+\ee
+Starting from this, all eigenstates $|\psi_n\rangle$ can be obtained by applying the creation operator $\ad$,
+\[
+|\psi_n\rangle = \frac{\lb \hat{a}^{\dagger} \rb^n}{\sqrt{n!}}|\psi_0\rangle,
+\]
+and we get the lowest-lying state by solving Eq.~(\ref{eq:aladder}) explicitly:
+\begin{align*}
+&\sqrt{\frac{m\omega}{2\hbar}}\lb \hat{x} + \frac{i}{m\omega}\lb -i\hbar \frac{d}{dx}\rb\rb |\psi_0\rangle = 0 \\
+&\Rightarrow \int \frac{d|\psi_0\rangle}{|\psi_0\rangle} = -\frac{m\omega}{\hbar} \int dx\; x\\
+&\Rightarrow |\psi_0\rangle = N e^{-\frac{m\omega}{2\hbar}}.
+\end{align*}
+With the normalization constant $N$ specified, we obtain
+\[
+|\psi_0\rangle = \lb \frac{m\omega}{\pi \hbar}\rb^{1/4} e^{-\frac{m\omega}{2\hbar}}.
+\]
+For a coordinate representation of our wave functions, we form the inner product
+\be 
+\langle x|\psi_n\rangle = \lb \sqrt{\frac{m\omega}{\pi\hbar}}\frac{1}{2^n n!}\rb^{1/2} H_n\lb\sqrt{\frac{m\omega}{\hbar x}}\rb e^{-\frac{m\omega x^2}{2\hbar}},
+\label{eq:HOsol}
+\ee 
+and get the same result as the conventional approach yielded in Eq.~(\ref{eq:HOconv}), provided that we rewrite it from dimensionless units.
+
+The here discussed method of creation and annihilation operators is of fundamental importance for further proceedings in quantum theory, as well as in pure mathematics. In quantum field theory, an expansion in creation and annihilation operators forms the foundation of percolation theory and is related to \textit{second quantization}, a concept we will come back to in the next chapter.
+
+\subsection{The harmonic oscillator in $d>1$ dimensions}
+For the harmonic oscillator potential, moving from $d=1$ to two or three dimensions is rather straightforward, since the Hamiltonian operator can be decomposed into a sum of contributions for each dimension. The general expression for the Hamiltonian is
+\be 
+\hat{H} = -\frac{\hbar^2}{2m}\nabla^2 + \frac{1}{2}m\omega^2r^2,
+\ee
+which for $d=2$ dimensions explicitly reads
+\be 
+\hat{H} = -\frac{\hbar^2}{2m}\lb \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}\rb + \frac{1}{2}m\omega^2(x^2 + y^2),
+\ee 
+and for $d=3$ dimensions
+\be 
+\hat{H} = -\frac{\hbar^2}{2m}\lb \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2} + \frac{\partial^2}{\partial z^2}\rb + \frac{1}{2}m\omega^2(x^2 + y^2 +z^2).
+\ee 
+For the example $d=2$, we rewrite the Hamiltonian as the following sum,
+\begin{align*}
+\hat{H} &= \hat{H}_x + \hat{H}_y \\
+&= \lb -\frac{\hbar^2}{2m}\frac{\partial^2}{\partial x^2} + \frac{1}{2}m\omega^2 x^2 \rb +  \lb -\frac{\hbar^2}{2m}\frac{\partial^2}{\partial y^2} + \frac{1}{2}m\omega^2 y^2 \rb,
+\end{align*}
+which enables us to approach the eigenvalue problem by separation of variables. In particular, we assume that
+each state $|\psi_n\rangle \equiv |n\rangle$ is a product of independent states in each dimension,
+\[
+|n\rangle = |n_x\rangle \otimes |n_y\rangle.
+\]
+The time-independent Schr\"odinger equation for eigenstates $|n\rangle$ now reads
+\be 
+\hat{H}|n\rangle = \lb \hat{H}_x|n_x\rangle\rb \otimes |n_y\rangle + |n_x\rangle\otimes \lb \hat{H}_y|n_y\rangle\rb \overset{!}{=} E_n \lb |n_x\rangle \otimes |n_y\rangle \rb.
+\ee
+Inserting the well-known solution in one dimension, $E_{n_i} = \hbar\omega\lb n_i + \frac{1}{2} \rb$ for $i\in\lbrace x,y\rbrace$, the total energy is
+\begin{align}
+E_n(n_x,n_y) &= \hbar\omega\lb n_x + \frac{1}{2} \rb + \hbar\omega\lb n_y + \frac{1}{2} \rb\notag\\
+&= \hbar\omega\lb n_x + n_y + 1\rb.
+\end{align}
+In other words, one simply adds the eigenvalues of each dimension. For $d=3$ dimensions, an analogue derivation yields
+\begin{align}
+E_n(n_x,n_y,n_z) &= \hbar\omega\lb n_x + \frac{1}{2} \rb + \hbar\omega\lb n_y + \frac{1}{2}\rb + \hbar\omega\lb n_z + \frac{1}{2}\rb \notag\\
+&= \hbar\omega\lb n_x + n_y +n_z + \frac{3}{2}\rb.
+\end{align}
+
+% maybe Heisenbergs matrix formalism

@@ -1,0 +1,239 @@
+%\documentstyle[a4wide]{article}
+\documentclass[twocolumn]{revtex4}
+\usepackage{graphicx,amsmath,amssymb,bm}
+
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+\title{Thesis title: Quantum-mechanical systems in traps and density functional theory}
+\author{H\aa kon Sebastian Bakke M\o rk}
+\maketitle
+\section*{Aims}
+The aim of this thesis is to study the structure of quantum dots
+(mainly two- and three-dimensional electronic systems) using {\em ab initio} 
+variational and diffusion function Monte Carlo
+techniques. The thesis will explore various Monte Carlo optimalization
+strategies and implement systems were electrons are confined to move
+in one or two potential wells.
+
+\subsection*{General introduction to possible physical systems}
+
+What follows here a general introduction to systems of confined electrons in two or three dimensions.
+However, although the thesis will focus on such systems, the codes will be written so that other systems of trapped 
+fermions or eventually bosons can be handled. Examples could be neutrons in trap as done in Ref.~\cite{bogner2011} or ions in various traps \cite{yoram2008}.  
+
+Strongly confined electrons
+offer a wide variety of complex and subtle phenomena which pose severe 
+challenges to existing many-body methods.
+Quantum dots in particular, that is, electrons confined in semiconducting heterostructures,
+exhibit, due to their small size, discrete quantum levels. 
+The ground states of, for example, circular dots
+show similar shell structures and magic numbers 
+as seen for atoms and nuclei. These structures are particularly evident in
+measurements of the change in electrochemical potential due to the addition of
+one extra electron, 
+$\Delta_N=\mu(N+1)-\mu(N)$. Here $N$ is the number of electrons in the quantum dot, and
+$\mu(N)=E(N)-E(N-1)$ is the electrochemical potential of the system.
+Theoretical predictions of $\Delta_N$ and the excitation energy spectrum require
+accurate calculations of ground-state and of excited-state energies.
+Small confined systems, such as quantum dots (QD), have become very popular for experimental 
+study. Beyond their possible relevance for nanotechnology, they are highly tunable 
+in experiments and introduce level quantization and quantum interference in a controlled way. In a finite system, 
+there can not, of course, be a true phase transition, but a cross-over between weakly and strongly correlated regimes is 
+still expected. There are several other fundamental differences between quantum dots and bulk systems: (a)\,Broken translational 
+symmetry in a QD reduces the ability of the electrons to delocalize. As a result, a Wigner-type cross-over 
+is expected for a smaller value of $r_s$. (b)\,Mesoscopic fluctuations, inherent in any confined system, 
+lead to a rich interplay with the correlation effects. These two added features make strong correlation physics particularly 
+interesting in a QD. As clean 2D bulk samples with large $r_s$ are regularly fabricated these days in semiconductor 
+heterostructures, it seems to be just a matter of time before these systems are patterned into a QD, 
+thus providing an excellent probe of correlation effects.
+
+
+
+The above-mentioned quantum mechanical levels can, in turn, be tuned by means
+of, for example, the application of various external fields.  
+The spins of the electrons in quantum dots
+provide a natural basis for representing so-called qubits \cite{divincenzo1996}. The capability to manipulate
+and study such states is evidenced by several recent experiments \cite{exp1,exp2}.
+Coupled quantum dots are particularly interesting since so-called  
+two-qubit quantum gates can be realized by manipulating the 
+exchange coupling which originates from the repulsive Coulomb interaction 
+and the underlying Pauli principle.  For such states, the exchange coupling splits singlet and triplet states, 
+and depending on the shape of the confining potential and the applied magnetic field, one can allow
+for electrical or magnetic control of the exchange coupling. In particular, several recent experiments and 
+theoretical investigations have analyzed the role of effective spin-orbit interactions 
+in quantum dots \cite{exp5,exp6,pederiva2010,spinorbit} and their influence on the exchange coupling.
+
+A proper theoretical understanding of the exchange coupling, correlation energies, 
+ground state energies of quantum dots, the role of spin-orbit interactions
+and other properties of quantum dots as well, requires the development of appropriate and reliable  
+theoretical  few- and many-body methods. 
+Furthermore, for quantum dots with more than two electrons and/or specific values of the 
+external fields, this implies the development of few- and many-body methods where   
+uncertainty
+quantifications are provided.  
+For most methods, this means providing an estimate of the error due 
+to the truncation made in the single-particle basis and the truncation made in 
+limiting the number of possible excitations.
+For systems with more than three or four electrons,  {\em ab initio} methods that have 
+been employed in studies of quantum dots are
+ variational and diffusion Monte Carlo \cite{harju2005,pederiva2001, pederiva2003}, path integral approaches \cite{pi1999}, 
+large-scale diagonalization (full configuration 
+interaction) \cite{Eto97,Maksym90,simen2008,modena2000}, and to a very limited extent 
+coupled-cluster theory \cite{shavittbartlett2009,bartlett2007,bartlett2003,indians,us2011}. 
+Exact diagonalization studies are accurate for a very small number
+of electrons, but the number of basis functions needed to obtain a given
+accuracy and the computational cost grow very rapidly with electron number.
+In practice they have been used for up to eight electrons\cite{Eto97,Maksym90,modena2000}, but the accuracy is
+very limited for all except $N\le 3$ .  
+Monte Carlo methods have been applied up to $N=24$ electrons 
+\cite{pederiva2001,pederiva2003}. Diffusion Monte Carlo, with statistical and systematic errors, provide, in principle,
+exact benchmark solutions to various properties of quantum dots. However, 
+the computations start becoming rather time-consuming for larger systems.   
+Hartree\cite{Kum90}, restricted Hartree-Fock, spin- and/or space-unrestricted
+Hartree-Fock\cite{Fuj96,Mul96,Yan99} and
+local spin-density, and current density functional methods\cite{Kos97,Hir99,finns1,finns2}
+give results that are satisfactory for a qualitative understanding of some
+systematic properties. However, comparisons with exact results show
+discrepancies in the energies that are substantial
+on the scale of energy differences. 
+
+For systems with many electrons many, the dimensionalities of the systems render the usage of many of the above methods almost impossible. Density functional theory is now the computational paradigm for quantum mechanical calculations of energies and other properties of molecules and condensed matter. Furthermore, the 
+time-dependent theory applies particularly to electronic excitations and interactions with 
+the electromagnetic field, see for example Lecture Notes in Physics, volume 837. 
+
+\subsection*{Specific tasks}
+The specific aim of this thesis is, based on an already developed Variational Monte Carlo code by the candidate,
+ to develop a diffusion Monte Carlo program for quantum dots (a program which could be extended to other systems as well and to electrons confined in three dimensions) which will allow for exact benchmarks and reference for
+closed-shell systems with up to approximately $\sim 50-70$ electrons. 
+
+The final aim is to be able to describe two-dimensional and
+three-dimensional electron systems where the motion of the electrons
+is confined to either one potential well or two potential wells.  The
+single-particle basis obtained from such solutions will in turn be
+used to in the construction of the Slater determinant which enters the
+calculation of energies, onebody and twobody densities. 
+Systems like double quantum-dot wells have been used as potential candidates for constructing quantum gates and their structure and dynamical properties are central to our development of quantum circuits. 
+
+\section*{Progress plan and milestones}
+The aims and progress plan of this thesis are as follows.
+\begin{enumerate}
+\item Fall 2015
+\begin{itemize}
+\item Based on the variational Monte Carlo code developed by H\aa kon, study single-well quantum dots (in oscillator like potentials) for two, six, twelve and twenty electrons. Compare the results with the published results
+of Ref.~\cite{us2011}. 
+\item Perform thereafter a Hartree-Fock calculations for single-well quantum dots for the same number of electrons as in the previous steps. Parametrize the Hartree-Fock solutions in terms of harmonic oscillator functions and 
+use these parametrized single-particle energies in the calculation of the Slater determinant and repeat the above
+variational Monte Carlo calculations.
+\item The code should be made flexible enough to be extended to trapped electrons or other trapped
+fermionic systems in two and three dimensions. An optimized and parallel version of the code should be tested
+for systems up to or larger than $\sim 70$ electrons. 
+\item Construct thereafter a single-particle basis for an electron moving in a double quantum well
+\[
+V(x,y) = \frac{1}{2} m^*\omega^2(x^2+y^2-2L_x\vert x\vert +L_x^2),
+\]
+with the mass $m^*=0.067m_e$ and is the effective electron mass in materials like GaAs. The confinment strength is
+$\hbar\omega = 3.0$ meV. The two minima are of the potential wells are separated by a distance $2L_x$. The following Python program produces a plot of the potential well.
+\begin{verbatim}
+import numpy as np
+from  matplotlib import pyplot as plt
+from matplotlib import rc, rcParams
+import matplotlib.units as units
+import matplotlib.ticker as ticker
+rc('text',usetex=True)
+rc('font',**{'family':'serif','serif':['Double-well potential']})
+font = {'family' : 'serif',
+        'color'  : 'darkred',
+        'weight' : 'normal',
+        'size'   : 16,
+        }
+m = 0.067
+homega = 3.0
+Lx = 50.0
+x = np.linspace(-120.0, 120.0)
+v = 0.5*m*homega*(x*x-2*Lx*abs(x)+Lx*Lx)
+
+plt.plot(x, v, 'b-')
+plt.title(r'{\bf Double-well potential for $L_x=50$ [nm]}', fontsize=20)     
+plt.text(-100, 350, r'Parameters: $m*=0.067m_e$, $\hbar\omega=3.0$ [meV]', fontdict=font)
+plt.text(-100, 300, r'$L_x=50$ [nm]', fontdict=font)
+plt.xlabel(r'$x$ [nm]',fontsize=20)
+plt.ylabel(r'$V(x,0)$ [MeV]',fontsize=20)
+
+# Tweak spacing to prevent clipping of ylabel
+plt.subplots_adjust(left=0.15)
+plt.savefig('double.pdf', format='pdf')
+\end{verbatim}
+Find the eigenvalues and the eigenfunctions for the lowest-lying electron states and parametrize these again in terms of harmonic oscillator functions. 
+Other potentials are also possible, like the smoother Gaussian barrier potential
+\[
+V(x,y) = \frac{1}{2}\omega \left(x^2+y^2+V_0\exp{-(\frac{-x^2}{2\sigma})}\right). 
+\]
+\end{itemize}
+Chapter 6.4 of the MSc thesis of Yang Min Wang, see \url{https://www.duo.uio.no/handle/10852/11049}, contains many of the needed details.
+\item Spring 2016
+\begin{itemize}
+\item Perform thereafter a Hartree-Fock calculation for the double well for closed-shell systems up to $20$ electrons
+and parametrize these wave functions again in terms of harmonic oscillator functions. Use these wave functions 
+in the calculation of the Slater determinant.
+ \item The next step is to perform variational Monte Carlo calculations for two and more electrons confined
+to move in the above double potential well.
+\item The final step, if time allows, is to extend the variational Monte Carlo calculations to a diffusion Monte Carlo calculation. 
+\end{itemize}
+\end{enumerate}
+The thesis is expected to be handed in June 1 2016.
+
+
+\begin{thebibliography}{200}
+\bibitem{bogner2011} S. K. Bogner, R. J. Furnstahl, H. Hergert, M. Kortelainen, P. Maris, M. Stoitsov, and J. P. Vary, Phys.~Rev.~C {\bf 84}, 044306 (2011).
+\bibitem{yoram2008} Y. Alhassid, G. F. Bertsch, and L. Fang, Phys.~Rev.~Lett.~{\bf 100}, 230401 (2008).
+\bibitem{divincenzo1996} D.~Loss and D.~P.~DiVincenzo, Phys.~Rev.~A {\bf 57}, 120 (1998).
+\bibitem{exp1} R.~Hanson, L.~H.~Willems van Beveren, I.~T.~Vink, J.~M.~Elzerman, W.~J.~M. Naber, F.~H.~L.~Koppens, L.~P.~Kouwenhoven, and L.~M.~K.~Vandersypen, \prl {\bf 94}, 196802 (2005).
+\bibitem{exp2} H.-A.~Engel, V.~N.~Golovach, D.~Loss, L.~M.~K.~Vandersypen, J.~M.~Elzerman, R.~Hanson, and L.~P.~ Kouwenhoven, \prl {\bf 93}, 106804 (2004). 
+\bibitem{exp5} C.~Fasth, A.~Fuhrer, L.~Samuelson, V.~N.~Golovach, and D.~Loss, \prl {\bf 98}, 266801 (2007).
+\bibitem{exp6} S.~Roddaro {\em et al.}, \prl {\bf 101}, 18682 (2008).
+\bibitem{pederiva2010}A.~Ambrosetti, J.~M.~Escartin, E.~Lipparini, and F.~Pederiva, arXiv:1003.2433.
+\bibitem{spinorbit} F.~Baruffa, P.~Stano, and J.~Fabian, \prl {\bf 104}, 126401 (2010).
+\bibitem{harju2005} A.~Harju, J.~Low Temp.~Phys.~{\bf 140}, 181 (2005).
+\bibitem{bolton} F.~Bolton, Phys.~Rev.~B {\bf 54}, 4780 (1996).
+\bibitem{pederiva2001}F.~Pederiva, C.~J.~Umrigar, and E.~Lipparini, \prb {\bf 62}, 8120 (2000).
+\bibitem{pederiva2003}L.~Colletti, F.~Pederiva, and  E.~Lipparini,  Eur.~Phys.~J.~B {\bf 27}, 
+385 (2002).
+\bibitem{pi1999} M.~Harowitz, D.~Shin, and J.~Shumway, J.~Low.~Temp.~Phys.~{\bf 140}, 211 (2005).
+\bibitem{Eto97} M. Eto, Jpn. J. Appl. Phys. {\bf 36}, 3924 (1997).
+\bibitem{Maksym90} P.~A.~Maksym and T.~Chakraborty, Phys.~Rev.~Lett.~{\bf 65}, 108 (1990);
+D.~Pfannkuche, V.~Gudmundsson, and P.~A.~Maksym, Phys. Rev. B {\bf 47}, 2244 (1993);
+P.~Hawrylak and D.~Pfannkuche, Phys.~Rev.~Lett.~{\bf 70}, 485 (1993); J.J. Palacios,
+L.~Moreno, G.~Chiappe, E.~Louis, and C.~Tejedor, Phys.~Rev.~B {\bf 50}, 5760 (1994);
+T.~Ezaki, N.~Mori, and C.~Hamaguchi, Phys.~Rev.~B {\bf 56}, 6428 (1997).
+\bibitem{simen2008} S.~Kvaal, Phys.~Rev.~C {\bf 78}, 044330 (2008).
+\bibitem{simen2008b} S.~Kvaal, arXiv:0810.2644, unpublished.
+\bibitem{modena2000} M.~Rontani, C.~Cavazzoni, 
+D.~Belucci, and G.~Goldoni, J.~Chem.~Phys.~{\bf 124}, 124102 (2006).
+\bibitem{shavittbartlett2009} I.~Shavitt and R.\ J.\ Bartlett, {\em Many-body Methods in Chemistry and Physics},  
+(Cambridge University Press, Cambridge UK, 2009). 
+\bibitem{bartlett2007} R.\ J.\ Bartlett and M.\ Musia{\l}, \rmp {\bf 79}, 291 (2007).
+\bibitem{bartlett2003} T.~M.~Henderson, K.~Runge, and R.~J.~Bartlett, Chem.~Phys.~Lett.~{\bf 337}, 138 (2001); \prb {\bf 67}, 045320 (2003).
+\bibitem{indians} I.~Heidari, S.~Pal, B.~S.~Pujari, and D.~G.~Kanhere, J.~Chem.~Phys.~{\bf 127}, 
+114708 (2007).
+\bibitem{us2011} M. Pedersen Lohne, G. Hagen, M. Hjorth-Jensen, S. Kvaal, and F. Pederiva, Phys.~Rev.~B {\bf 84}, 115302 (2011).
+\bibitem{Kum90} A.~Kumar, S.~E.~Laux, and F.~Stern, Phys.~Rev.~B {\bf 42}, 5166 (1990).
+\bibitem{Fuj96} M.~Fujito, A.~Natori, and H.~Yasunaga, Phys.~Rev.~B {\bf 53}, 9952 (1996).
+\bibitem{Mul96} H.~M.~Muller and S.~Koonin, Phys.~Rev.~B {\bf 54}, 14532 (1996).
+\bibitem{Yan99} C.~Yannouleas and U.~Landman, Phys. Rev. Lett. {\bf 82}, 5325 (1999).
+\bibitem{Kos97} M. Koskinen, M. Manninen, and S.M. Reimann, Phys. Rev. Lett. {\bf 79}, 1389 (1997).
+\bibitem{Hir99} K. Hirose and N. S. Wingreen, Phys. Rev. B {\bf 59}, 4604 (1999).
+\bibitem{finns1} P.~Gori-Giorgi, M.~Seidl, and G.~Vignale, \prl {\bf 103}, 166402 (2009).
+\bibitem{finns2} E.~R\"as\"anen, S.~Pittalis, J.~G.~Vilhena, M.~A.~L.~Marques, Int.~J.~Quantum Chem.~{\bf 110}, 2308 (2010). 
+\end{thebibliography}
+
+
+
+\end{document}
+
+
+

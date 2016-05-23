@@ -1,0 +1,191 @@
+\chapter{Ordinary Differential Equations}
+An essential part of this thesis is to solve a set of coupled ordinary differential equations. Although we do not implement the corresponding functions by ourselves, but instead use a library \cite{odesolver}, it is necessary to understand the basic formalism and  adjust it to our needs. For that reason, this chapter explains the basic theoretical aspects of ordinary differential equations. The algorithm we use in our code has been developed by Shampine and Gordon \cite{shampine1975computer} and bases on Adams methods, which we therefore put focus on in the following. Unless otherwise stated, we follow the explanations in \cite{1377857,hairer2011solving}.
+
+\section{Basic concepts}
+Ordinary differential equations (ODEs) are equations involving the derivative of an unknown function with respect to a single variable $x$. In particular, they are usually given in the form
+\be 
+y'(x) = f(x,y(x)),
+\ee
+where $x$ is defined on an interval $[a,b]$. More generally,
+\begin{align}
+\begin{split}
+\mathbf{y} &= (x,y_1,\dots,y_n), \\
+\mathbf{f}(x,\mbfy) &= (x,\mbff_1(x,y_1,\dots,y_n),\dots,\mbff_n(x,y_1,\dots,y_n))
+\end{split}
+\end{align}
+ are vectors in an $n$-dimensional Euclidean space. This gives a set of \textit{coupled} ordinary differential equations,
+\begin{align*}
+y_1'(x) &= f_1(x,y_1(x),y_2(x),\dots, y_n(x))\\
+y_2'(x) &= f_2(x,y_1(x),y_2(x),\dots, y_n(x))\\
+\vdots& \\
+y_n'(x) &= f_n(x,y_1(x),y_2(x),\dots, y_n(x)),
+\end{align*}
+which in simplified notation is described by
+\be 
+\mathbf{y}'(x) = \mathbf{f}(x,\mathbf{y}(x)).
+\label{eq:ODE2}
+\ee
+It seems reasonable that, for well-behaved $\mbff$, any point $\mbfy_0$ completely determines a trajectory, satisfying Eq. (\ref{eq:ODE2}). This defines the \textit{initial value problem} (IVP),
+\begin{align}
+\begin{split}
+\mathbf{y}'(x) &= \mathbf{f}(x,\mathbf{y}(x)),\\
+\mbfy(x_0) &= \mbfy_0.
+\label{eq:IVP}
+\end{split}
+\end{align}
+
+
+\section{Solution methods}
+For problems arising in practice, it is generally not possible to find explicit solutions to the IVP. Instead, on approximates the solution using various numerical methods.
+One fundamental class, which we will present in the following, is based on \textit{discrete variables}.
+
+Consider the initial value problem given in Eq. (\ref{eq:IVP})
+on an interval $x\in[a,b]$. This interval can be divided by a set of mesh points $\lbrace x_0,x_1,... \rbrace$ with  mesh spacing $h$ between them. In the general case, where the mesh points are separated by unequal spacings $\lbrace h_1,h_2,\dots\rbrace$, we have that
+\begin{align*}
+x_0 &= a, \\
+x_{i+1} &= x_i + h_i, \qquad i = 0,1,2,\dots
+\end{align*}
+In order to solve the initial value problem (\ref{eq:IVP}) numerically, the solution $\mbfy(x)$ has to be approximated at each mesh point $x_i$:
+\[
+\mbfy_i \equiv \mbfy(x_i).
+\]
+
+\subsection{One-step methods}
+
+The simplest methods of this discrete type are \textit{one-step methods}, where the value of $\mbfy_{i+1}$  is computed only using $\mbfy_i$,  but no other preceding values. One possibility is, for example, to employ a Taylor series, such that
+\be 
+\mbfy_{i+1} = \mbfy_i + h_i \mbff(x_i,\mbfy_i) + \frac{h^2}{2}\mbff^{(1)}(x_i,\mbfy_i) + \cdots + \frac{h^p}{p!}\mbff^{(p-1)}(x_i,\mbfy_i).
+\ee 
+For $p=1$, this is the well-known method of Euler,
+\[
+\mbfy_{i+1} = \mbfy_i + h_i \mbff(x_i,\mbfy_i).
+\]
+
+\subsubsection{Runge-Kutta methods}
+One disadvantage of Taylor-series methods is that they require exact formal differentiation of $\mbff(x,\mbfy)$, which may be very inefficient or even impossible. Instead of computing those derivatives formally, the family of Runge-Kutta methods aims to  produce an approximation to the Taylor-series by evaluating $\mbff(x,\mbfy)$ at values between $x_i$ and $x_{i+1}$. In general, one sets
+\begin{align*}
+\mathbf{k}_j &= \mbff(x_i + \alpha h_i, \mbfy + h_i \sum_{l=1}^{j-1} \beta_{jl} \mathbf{k}_l), \qquad j = 1,2,\dots J\\
+\mbfy_{i+1} &= \mbfy_i + h_i \sum_{j=1}^J \gamma_k \mathbf{k}_j.
+\end{align*}
+The constants $a_j,\beta_{jl},\gamma_j$ are chosen in such a way, that the series expansion of $\mbfy_{i+1}$ matches the Taylor-series expansion to as high a degree as possible, at the same time aiming at small computational complexity.
+
+The most widely used Runge-Kutta method is of fourth order, with the usual form
+\begin{align}
+\begin{split}
+\mathbf{k}_1 &= \mbff(x_i,\mbfy_i),\\
+\mathbf{k}_2 &= \mbff(x_i + \frac{1}{2}h_i, \mbfy_i + \frac{1}{2}h_i \mbfk_1),\\
+\mbfk_3 &= \mbff(t_i + \frac{1}{2}h_i, y_i + \frac{1}{2}h_i \mbfk_2),\\
+\mbfk_4 &= \mbff(t_i + h_i, \mbfy_i + h_i\mbfk_3),\\
+\mbfy_{i+1} &= \mbfy_i + \frac{1}{6}h_i (\mbfk_1 + 2\mbfk_2 + 2\mbfk_3 + \mbfk_4).
+\end{split}
+\end{align}
+From a geometrical point of view, the derivative is evaluated at four points: once at the initial point, two times at trial midpoints at $x_{i+1/2}$ and once at the trial endpoint at $x_{i+1}$. All four derivatives are part of one single Runge-Kutta step, yielding the final value of $\mbfy_{i+1}$. Since $\mbfk$ can be interpreted as slope used to predict solutions of $\mbfy$ that are afterwards corrected, the Runge-Kutta methods belong to the so-called \textit{predictor-corrector methods}.
+ Compared to Euler's method, which runs with a mathematical truncation of $\mathcal{O}(h)$, fourth-order Runge-Kutta has a global truncation error which goes like $\mathcal{O}(h^4)$.
+
+
+\subsection{Multi-step methods}
+Although the one-step methods give good results, they do only use the information provided by the last point, and not the ones before.  For this reason, other methods have been developed which are called \textit{multi-step methods}.
+
+\subsubsection*{Adam's methods}
+Rigorously, any solution of Eq.~(\ref{eq:IVP}) can be written as
+
+\be 
+\mbfy_{i+1} = \mbfy_i + \int_{x_i}^{x_{i+1}} \frac{d\mbfy}{dt} dt = \mbfy_i + \int_{x_i}^{x_{i+1}} \mbff(t,\mbfy(t)) dt.
+\label{eq:int1}
+\ee
+Adams methods are based on the idea of approximating the integrand with a polynomial on the interval $(x_i,x_{i+1})$. A polynomial of order $k$ results in a ($k+1$)th order method. 
+\pagebreak[4]
+
+The algorithm of Adams consists of two parts:
+\begin{itemize}
+\item[-] A \textit{starting procedure} provides the approximate solutions $\mbfy_1,\dots,\mbfy_{k-1}$ at the points $x_1,\dots,x_{k-1}$.
+\item[-] A multi-step formula is used to obtain $\mbfy_{k}$. One can then proceed recursively to obtain $\mbfy_{k+1},\mbfy_{k+2},\dots$, based on the numerical approximation of $k$ successive steps.
+\end{itemize}
+To obtain the missing starting points, there exist several possibilities. One way is to employ a Taylor-series expansion, as done by the developer of the method, J.C. Adams, himself, another one the use of any one-step method, for instance a Runge-Kutta method. \\
+The Adams methods exist in two types, the explicit type 
+(\textit{Adams-Bashforth)} and the implicit type (\textit{Adams-Moulton)}. While 
+explicit methods calculate functions at later points from previous ones only, 
+implicit methods find a solution by solving equations involving both previous and successive points. 
+
+\paragraph{Adams-Bashforth method}
+The explicit Adams-Bashforth method is one of the multi-step methods to solve Eq. (\ref{eq:IVP}). Assuming that the $k$ preceding points $\mbfy_i, \mbfy_{i-1},\dots,\mbfy_{i-k+1}$ are known, the values
+\[
+\mbff_n = \mbff(x_n,\mbfy_n), \qquad \text{for } n= i-k+1,\dots,i
+\]
+are available, too. That way, the function $\mbff(t,\mbfy(t))$ in Eq. (\ref{eq:int1}) can be replaced by the interpolation polynomial through the points $\lbrace (x_n,\mbff_n)| n= i-k+1,\dots,i\rbrace$. Employing Newton's interpolation formula, this polynomial can be expressed as follows:
+\be 
+p(t) = p(x_i + sh) = \sum_{j=0}^{k-1}(-1)^j \binom{-s}{j}\nabla^j \mbff_i,
+\label{eq:inPol}
+\ee
+with the relations
+\[
+\nabla^0 \mbff_i = \mbff_i, \qquad \nabla^{j+1} \mbff_i - \nabla^j f_{i-1}.
+\]
+Thus the practically used analogue to Eq. (\ref{eq:int1}) is given by
+\begin{align}
+\begin{split}
+\mbfy_{i+1}  &= \mbfy_{i} + \int_{x_i}^{x_{i+1}} p(t) dt \\
+&= \mbfy_i + \sum_{j=0}^{k-1} \gamma_j \nabla^j \mbff_i,
+\label{eq:AB}
+\end{split}
+\end{align}
+where one usually takes the same step length $h$ for $k$ consecutive points, and the coefficients $\gamma_j$ satisfy
+\[
+\gamma_j = (-1)^j \int_0^1 \binom{-s}{j} dt.
+\]
+
+For $k=1$, one obtains the explicit Euler method, $\mbfy_{i+1} = \mbfy_i + h\mbff_i$.
+
+\paragraph{Adams-Moulton method}
+The explicit Adams method is based on integrating the interpolation polynomial (\ref{eq:inPol}) from $x_i$ to $x_{i+1}$, which means outside the interpolation interval $(x_{i-k+1},x_i)$. However, usually an interpolation  is a rather poor approximation outside this interval. \\
+The algorithm of Shampine and Gordon\footnote{See subsection \ref{subsec:SRG}.}, that is used in this thesis, therefore bases on the implicit Adams-Moulton method, where the interpolation polynomial (\ref{eq:inPol}) uses an additional point $(x_{i+1},\mbff_{i+1})$. This suggests
+\be 
+p^*(t) = p^*(x_i+sh) = \sum_{j=0}^k (-1)^j \binom{-s+1}{j}\nabla^j \mbff_{i+1},
+\ee
+ and Eq. (\ref{eq:int1}) can be approximated by
+\be 
+\mbfy_{i+1} = y_i + h \sum_{j=0}^k \gamma_j^* \nabla^j \mbff_{i+1},
+\label{eq:AM} 
+\ee
+with coefficients
+\[
+\gamma_j^* = (-1)^j \int_0^1 \binom{-s+1}{j}ds.
+\]
+The formulas obtained with Eq. (\ref{eq:AM}) are of the form
+\be 
+\mbfy_{i+1} = \mbfy_i + h(\beta_k \mbff_{i+1} + \dots + \beta_0 \mbff_{i-k+1}),
+\ee
+and the first examples are:
+\begin{align*}
+k=0: \qquad &\mbfy_{i+1} = \mbfy_i + h \mbff_{i+1}\\
+k=1: \qquad &\mbfy_{i+1} + h\lb \frac{1}{2}\mbff_{i+1} + \frac{1}{2} \mbff_i\rb \\
+k=2: \qquad &\mbfy_{i+1} = \mbfy_i + h\lb \frac{5}{12}\mbff_{i+1} + \frac{8}{12}\mbff_i - \frac{1}{12}\mbff_{i-1}\rb\\
+k=3: \qquad &\mbfy_{i+1} = \mbfy_i + h \lb \frac{9}{24} \mbff_{i+1} + \frac{19}{24}\mbff_i - \frac{5}{24}\mbff_{i-1} + \frac{1}{14} \mbff_{i-1}\rb.
+\end{align*}
+The special case $k=0$ is the \textit{implicit Euler method}, and the case $k=1$ the \textit{trapezoidal rule}. Both methods actually correspond to one-step methods.
+
+In general, Eq. (\ref{eq:AM}) gives a more accurate approximation to the exact solution than \mbox{Eq. (\ref{eq:AB})} and is subject to less numerical instability for relatively large values of the step length. However, these benefits bring the disadvantage that $\mbfy_{i+1}$ is only defined implicitly, which in general results in a non-linear equation at each step. To solve this equation, J.C. Adams himself used Newton's method, which is still done when encountering stiff equations \cite{hairer2011solving}. Another possibility are predictor-corrector methods, which we already mentioned in the previous section. For the Adams-Moulton method, one proceeds as follows:
+\begin{itemize}
+\item[] \textbf{P}: Using the explicit Adams method (\ref{eq:AB}),  compute a reasonable approximation to $\mbfy_{i+1}$:
+\[
+\tilde{\mbfy}_{i+1} = \mbfy_i + h\sum_{j=0}^{k-1} \gamma_j \nabla^j \mbff_i.
+\]
+\item[] \textbf{E}: At this point $x_{i-1}$, evaluate the derivative
+$
+\tilde{\mbff}_{i+1} = \mbff(x_{i+1},\tilde{\mbfy}_{i+1}).
+$
+\item[] \textbf{C}: Apply the corrector formula
+\[
+\mbfy_{i+1} = \mbfy_i + h(\beta_k \tilde{\mbff}_{i+1} + \beta_{k-1}\mbff_i + \dots + \beta_0 \mbff_{i-k+1})
+\]
+to obtain the final point $\mbfy_{i+1}$.
+\item[] \textbf{E}: Evaluate the derivative again:
+$
+\mbff_{i+1} = f(x_{i+1},\tilde{\mbfy}_{i+1})
+$.
+\end{itemize}
+This most common procedure, denoted by PECE, is also used by Shampine and Gordon's algorithm employed in this thesis. Other often encountered versions are PECECE, with two fixed point iterations per step, and PEC, where  subsequent steps use $\tilde{\mbff}_{i+1}$ instead of $\mbff_{i+1}$.
+
+Due to the variable order of Adams methods, they are the method of choice if accuracy is needed over a wide range of tolerances. Moreover, they outperform classical one-step methods when output at many points is needed and function evaluations are expensive. On the other hand, if moderate accuracy is required and memory for storage is limited, Runge-Kutta methods are usually preferred.
+
+%Usually, one starts with low-order Adams methods and very small step sizes.

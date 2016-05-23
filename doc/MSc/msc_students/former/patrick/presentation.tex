@@ -1,0 +1,1336 @@
+\documentclass[xcolor=pdftex,hyperref={pdfpagelabels=false},table]{beamer}
+%%\documentclass[handout,xcolor=pdftex,dvipsnames,table,hyperref={pdfpagelabels=false},notes,handout]{beamer} %%% for printed version of the slides
+
+%\usepackage{beamerthemeBerkeley}
+% Use either the one above or the one below
+
+%\usetheme{Berkeley}
+\usepackage{beamerthemeshadow}
+%\usepackage{beamerthemesplit}
+
+\setbeamertemplate{caption}[numbered]
+\setbeamerfont{caption}{size=\tiny}
+
+\usepackage{booktabs} %%%% for using toprule in tables
+\usepackage{amsmath, amssymb,amsfonts}
+\usepackage{etex}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{array}
+\usepackage{../mystyles}    %%%% my commands
+
+
+
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{shapes,arrows,calc,plotmarks}
+%%%% Define block styles for Flowchart in TIKZ
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, text width=4.5em, text badly centered, node distance=2.5cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, text width=8em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{longblock} = [rectangle, draw, fill=blue!20, text width=13em, text centered, rounded corners, minimum height=3em]
+\tikzstyle{line} = [draw, very thick, color=black!50, -latex']
+\tikzstyle{cloud} = [draw, ellipse,fill=red!20, node distance=2.5cm, minimum height=2em]
+\def\radius{.7mm}
+\tikzstyle{branch}=[fill,shape=circle,minimum size=3pt,inner sep=0pt]
+
+% For every picture that defines or uses external nodes, you'll have to
+% apply the 'remember picture' style. To avoid some typing, we'll apply
+% the style to all pictures.
+\tikzstyle{every picture}+=[remember picture]
+% By default all math in TikZ nodes are set in inline mode. Change this to
+% displaystyle so that we don't get small fractions.
+\everymath{\displaystyle}
+
+%%% TIKZ-LUA PACKAGE REQUIRED TO PLOT RESULTS !!!!!
+\usepackage{gnuplot-lua-tikz} %% PACKAGE for calling TIKZ code generating by an external script with Gnuplot, see http://www.texample.net/tikz/examples/gnuplot-tikz-terminal/
+
+\usepackage{shadow}
+\usepackage{bezier}
+
+
+
+%%%% Color wavelengths
+\newcount\WL \unitlength.75pt
+
+\title{Many-Body Appproaches to Quantum Dots}
+\author[MSc. in Computational Physics]{Patrick Merlot}
+\institute[University of Oslo]{Department of Computational Physics}
+\date[UiO]{\today}
+\subject{Many-Body Appproaches to Quantum Dots}
+
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\frame{\titlepage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section[Outline]{}
+\frame{\tableofcontents}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % % % \frame{
+% % % % \frametitle{Computational Study}
+% % % % \setbeamercovered{invisible}
+% % % % %%%CaptionFIG 1:Quantum dot defined by 5 metallic gates fabricated on the surface of a GaAs based heterostructure, in which a two-dimensional electron gas recides.
+% % % % %%%CaptionFIG 2: Micrograph of pyramid-shaped quantum dots grown from indium, gallium, and arsenic. Each dot is about 20 nanometers wide and 8 nanometers in height. 
+% % % % \begin{table}
+% % % % \centering
+% % % % \scalebox{0.9}{
+% % % % {\footnotesize
+% % % %   \begin{tabular}{m{3cm}m{5cm}m{3cm}}
+% % % %   \multirow{2}{3cm}{Real system} &  \includegraphics[width=0.2\textheight]{IMAGES/QDcavity}   \tiny{Courtesy of C. Sch\"onenberger, Univ. of Basel} & \\ 
+% % % % 			&  \includegraphics[width=0.2\textheight]{IMAGES/PyramideQD_GaAs}  \tiny{Courtesy of F. McGehan, NIST} & \\ %%%%%%%&  \\ \hline%%& \onslide<8->{X} & \onslide<2->{X} \\ \hline
+% % % % 
+% % % %  \multirow{2}{3cm}{Model}&  & \\ 
+% % % % 	& \multirow{-2}{5cm}{$\Rightarrow \quad$ Schr\"odinger equation  $\hat{H} |\Psi \rangle= E |\Psi \rangle$} & \multirow{-2}{*}{with $\hat{H}=\hat{T}+\hat{V}$} \\ 
+% % % % \multirow{1}{3cm}{Computational technique} &  &\\
+% % % % 			& \multirow{-1}{5cm}{$\Rightarrow \quad$ Approximations/Algorithms} & \scalebox{0.5}{\input{IMAGES/diagramHF.tex}}  \\ 
+% % % % \multirow{2}{3cm}{Implementation into computer language} &   &\\ 
+% % % % 			& \multirow{-2}{5cm}{$\Rightarrow \quad$ \citecodeBeamer{C++}, \citecodeBeamer{FORTRAN}} &
+% % % %   \end{tabular}
+% % % % 
+% % % % } %%% end small font
+% % % % } %% end scalebox
+% % % % \end{table} 
+% % % % } %% end Frame
+% % % % 
+
+
+\section{Quantum Dots}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{What is a quantum dot?}
+\begin{frame}
+\frametitle{What is a quantum dot?}
+%%%%\begin{center}
+\begin{columns}[T,c]
+\column{5cm}
+\scriptsize
+\begin{block}{Definition}
+\begin{itemize}
+\item Semiconductor whose charge-carriers are confined in space.
+\item $\neq$ types/shapes/fabrication \newline $\Rightarrow$ $\neq$ QDs
+\item Applications (Qubits for QCA, nanobiological sensors)
+\end{itemize}
+  \end{block}
+
+\begin{block}{Quantum dot properties}
+\begin{itemize}
+\item Semiconductor band gap increased by size quantization
+\item Tunable optical/electrical properties
+\item Perfect system for computational studies
+\end{itemize}
+  \end{block}
+\column{6cm}
+
+\begin{figure}
+	\begin{center}
+\scalebox{0.3}{
+	\begin{tabular}{rl}
+		\huge{(a)} & \scalebox{1.2}{\includegraphics{IMAGES/QDshapes/verticaldots}} \\ 
+		\huge{(b)} & \scalebox{3.6}{\includegraphics{IMAGES/QDshapes/evifluorModified}} \\ 
+		\huge{(c)} & \scalebox{0.3}{\includegraphics{IMAGES/QDcavity}} \\ 
+		%%%\huge{(c)} & \scalebox{0.3}{\includegraphics{IMAGES/QDshapes/cap_178486}}
+	\end{tabular}
+}%%end Scalebox
+	\vspace{-5pt}
+	\caption{Possible types/shapes of QDs.
+	\newline (a) Various shapes of QDs pillars$\sim 0.5 \mu m$,
+	\newline (b) Colloidal QD (InGaP+ZnS+lipid)$\sim 10 nm$,
+	\newline (c) QD defined by 5 metallic gates on GaAs where 2-DEG is trapped.
+	%%%\newline (c) InAs islands grown on GaAs.
+	}%%end caption
+	\vspace{-5pt}
+	\end{center}
+\end{figure}
+\end{columns}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Applications of QDs}
+\begin{frame}
+\frametitle{Applications of QDs}
+%%%%\begin{center}
+\begin{columns}[T,c]
+\column{5cm}
+\scriptsize
+\begin{block}{Definition}
+\begin{itemize}
+\item Semiconductor whose charge-carriers are confined in space.
+\item $\neq$ types/shapes/fabrication \newline $\Rightarrow$ $\neq$ QDs
+\item Applications (Qubits for QCA, nanobiological sensors)
+\end{itemize}
+  \end{block}
+
+\begin{block}{Quantum dot properties}
+\begin{itemize}
+\item Semiconductor band gap increased by size quantization
+\item Tunable optical/electrical properties
+\item Perfect system for computational studies
+\end{itemize}
+  \end{block}
+\column{6cm}
+\TwofigTopDownScaled{0.17}{../IMAGES/InVivoTargetting01}{../IMAGES/InVivoTargetting02}{QDs imaging in live animals compared to classical organic dyes.\newline (Courtesy of X.~Gao)}{}
+\end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Physics of QDs}
+\begin{frame}
+\frametitle{Physics of QDs}
+%%%%\begin{center}
+\begin{columns}[T,c]
+\column{5cm}
+\scriptsize
+\begin{block}{Definition}
+\begin{itemize}
+\item Semiconductor whose charge-carriers are confined in space.
+\item $\neq$ types/shapes/fabrication \newline $\Rightarrow$ $\neq$ QDs
+\item Applications (Qubits for QCA, nanobiological sensors)
+\end{itemize}
+  \end{block}
+
+\begin{block}{Quantum dot properties}
+\begin{itemize}
+\item Semiconductor band gap increased by size quantization
+\item Tunable optical/electrical properties
+\item Perfect system for computational studies
+\end{itemize}
+  \end{block}
+\column{6cm}
+\begin{figure}
+	\begin{center}
+\scalebox{0.3}{
+	\begin{tabular}{l}
+		\scalebox{0.78}{\includegraphics{../IMAGES/Isolator-metal}} \\ 
+		\scalebox{0.78}{\includegraphics{../IMAGES/CdS_winter}} \\ 
+		%%%\huge{(c)} & \scalebox{0.3}{\includegraphics{IMAGES/QDshapes/cap_178486}}
+	\end{tabular}
+}%%end Scalebox
+	\vspace{-5pt}
+	\caption{Electronic band structure of semiconductor and quantum dots (Courtesy of J.Winter\cite{Winter2004}).}%%end caption
+	\vspace{-5pt}
+	\end{center}
+\end{figure}
+\end{columns}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Physics of QDs}
+%%%%\begin{center}
+\begin{columns}[T,c]
+\column{5cm}
+\scriptsize
+\begin{block}{Definition}
+\begin{itemize}
+\item Semiconductor whose charge-carriers are confined in space.
+\item $\neq$ types/shapes/fabrication \newline $\Rightarrow$ $\neq$ QDs
+\item Applications (Qubits for QCA, nanobiological sensors)
+\end{itemize}
+  \end{block}
+
+\begin{block}{Quantum dot properties}
+\begin{itemize}
+\item Semiconductor band gap increased by size quantization
+\item Tunable optical/electrical properties
+\item Perfect system for computational studies
+\end{itemize}
+  \end{block}
+\column{6cm}
+\begin{figure}
+	\begin{center}
+\scalebox{0.3}{
+	\begin{tabular}{l}
+		\scalebox{0.78}{\includegraphics{../IMAGES/fluo02}} \\ 
+		\scalebox{0.65}{\includegraphics{../IMAGES/QDwavelength}} \\ 
+		%%%\huge{(c)} & \scalebox{0.3}{\includegraphics{IMAGES/QDshapes/cap_178486}}
+	\end{tabular}
+}%%end Scalebox
+	\vspace{-5pt}
+	\caption{Fluorescent emission (Courtesy of J.Winter\cite{Winter2004}) and emission spectra of various QDs.}%%end caption
+	\vspace{-5pt}
+	\end{center}
+\end{figure}
+\end{columns}
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Model, Methods and Implementation}
+\subsection{Model of a quantum dot}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Model of a quantum dot}
+\begin{block}{Simple model of a quantum dot}
+\scriptsize
+\begin{itemize}
+\item \textbf{Atomic scale} problem $\Rightarrow$ \textbf{Quantum mechanics} for an accurate description of the system.\\ $\Rightarrow$ at rest, solve the time-independent Schr\"odinger equation $\hat{H} |\Psi \rangle=E |\Psi \rangle$.
+ \item Not modelling all nuclei/electrons %of a QD and their interactions would just ask for too much resources. \\
+$\Rightarrow$ just model the few quasiparticles confined by the semiconductor. %The Schr\"odinger equation becomes
+% % %  \begin{equation}
+% % %  %%\hat{H}(\bf{r_1},\bf{{r_2},\dots,\bf{{r_N}) |\Psi_\kappa(\bf{{r_1},\bf{{r_2},\dots,\bf{{r_N}) \rangle=E_\kappa |\Psi_\kappa(\bf{{r_1},\bf{{r_2},\dots,\bf{{r_N}) \rangle
+% % %  \end{equation} 
+% % %  \\ where $\bf{r_i}$ reprensents the (spatial/spin) coordinates of quasiparticle $i$, $\kappa$ stands for all quantum numbers need to classify a given $N$-particle state and $ | \Psi_\kappa \rangle$, $E_\kappa$ the respective eigenfunctions and eigenenergies of the system.
+\end{itemize}
+  \end{block}
+
+\begin{columns}[T,l]
+\column{5.5cm}
+\begin{figure}
+	\begin{center}
+	\scalebox{0.3}{	\scalebox{0.4}{\includegraphics{IMAGES/schemaQD}}}%%end Scalebox
+	\end{center}
+\end{figure}
+\column{5.5cm}
+\begin{figure}
+	\begin{center}
+	\scalebox{0.3}{\scalebox{0.65}{\includegraphics{IMAGES/SimenDoubleDot}}}%%end Scalebox
+	\end{center}
+	\caption{Illustration of a quantum dot model \newline (Courtesy of S.Kvaal\cite{SimenThesis}).}
+\end{figure}
+
+% % %   \end{alertblock}
+\end{columns}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Model of a $N$-particle system}
+%\scriptsize
+\small
+\begin{block}{The Schr\"odinger equation}
+\begin{itemize}
+\item The Schr\"odinger equation of a $N$-particle system
+\begin{equation}
+\hat{H}(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) | \Psi_\kappa (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) \rangle=E_\kappa | \Psi_\kappa (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}) \rangle
+\end{equation} 
+ \\ where $\bf{r_i}$ reprensents the (spatial/spin) coordinates of quasiparticle $i$, $\kappa$ stands for all quantum numbers needed to classify a given $N$-particle state, \newline $ | \Psi_\kappa \rangle$ and $E_\kappa$ are the respective eigenstates and eigenenergies of the system.
+\end{itemize}
+  \end{block}
+\begin{alertblock}{How to define our Hamiltonian?}
+\begin{itemize}
+\item $\hat{H}= \sum_{i=1}^{N_e} \frac{\mathbf{p_i}^2}{2m^*} +\dots$
+% % % % % \item $\hat{H} = \hat{T} + \hat{V}$
+% % % % %  \newline where $\hat{T}$: kinetic energy operator,\newline $\hat{V}$: potential energy operator (including confining potential and particle interaction potential).
+\end{itemize}
+  \end{alertblock}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Definitions of the interactions/potentials}
+\begin{small}
+%\scriptsize
+Forces/Fields acting on the quasiparticles:
+\begin{itemize}
+ \item Forces confining the particles $\Rightarrow$ \alert{Confining potential}
+\item Interactions between the particles $\Rightarrow$ \alert{Interaction potential}
+\end{itemize}
+
+The Hamiltonian of our two-electron quantum dot model \\
+$\equiv$ the Hamiltonian of 2 particles trapped in a harmonic oscillator potential repealing each other by a Coulomb interaction:
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{itemize}%[<+-| alert@+>]
+ \item Confining potential $\Rightarrow$ \alert{the harmonic}
+	\tikz[na] \node[coordinate] (n1) {}; 
+ \alert{oscillator (parabolic) potential}
+
+\end{itemize}
+
+\begin{equation}
+  \hat{H}= \sum_{i=1}^{N_e=2} \frac{\mathbf{p_i}^2}{2m^*} +
+        \tikz[baseline]{
+            \node[fill=blue!20, anchor=base] (t1)
+            {$\sum_{i=1}^{N_e=2} \frac{1}{2} m^* \omega_0^2 \norm{\mathbf{r_i}}^2$};
+        } +
+        \tikz[baseline]{
+            \node[fill=green!20,anchor=base] (t2)
+            {$\frac{e^2}{4 \pi \epsilon_0 \epsilon_r} \frac{1}{\norm{\mathbf{r_1}-\mathbf{r_2}}},$};
+	}
+\end{equation}
+\begin{itemize}%[<+-| alert@+>]
+\item Interaction potential  $\Rightarrow$  \alert{the two-body Coulomb interaction}
+	\tikz[na] \node[coordinate] (n2) {};
+\end{itemize}
+
+where $\mathbf{p_i}$ is the canonical momentum of the particle $i$.
+
+% Now it's time to draw some edges between the global nodes. Note that we
+% have to apply the 'overlay' style.
+\begin{tikzpicture}[overlay]
+% % % %         \path[->]<1-> (n1) edge [bend left] (t1);%to [out=270,in=90] (t1);
+% % % %         \path[->]<2-> (n2) to [out=90,in=270] (t2);
+        \path[->]<1-> (n1) edge [bend left] (t1);%to [out=270,in=90] (t1);
+        \path[->]<1-> (n2) edge [bend right] (t2);
+\end{tikzpicture}
+
+\end{small}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Applying an external magnetic field}
+\begin{scriptsize}
+%\scriptsize
+%%%%Within a magnetic field:
+\begin{enumerate}
+ \item 
+	$\mathbf{p_i} \longrightarrow \mathbf{p_i}+e\mathbf{A}$, %%%and the Hamiltonian of a $N$-particle QD becomes:
+% % % \tikzstyle{na} = [baseline=-.5ex]
+% % % \begin{equation}
+% % %   \hat{H}= \sum_{i=1}^{N_e}\left(  \frac{(\mathbf{p_i}+e\mathbf{A})^2}{2m^*}  + \frac{1}{2} m^* \omega_0^2 \norm{\mathbf{r_i}}^2  \right) + \frac{e^2}{4 \pi \epsilon_0 \epsilon_r} \sum_{i<j}^{N_e}\frac{1}{\norm{\mathbf{r_i}-\mathbf{r_j}}},
+% % % \end{equation}
+where $\mathbf{A}$ is the vector potential defined by $\mathbf{B}=\nabla \times \mathbf{A}$.
+\end{enumerate}
+\begin{itemize}
+ \item
+	in coordinate space $\mathbf{p_i} \rightarrow -i \hbar \nabla_i$,
+\item
+	using a Coulomb gauge $\nabla \cdot \mathbf{A} = 0$ (by choosing $\mathbf{A}(\mathbf{r_i}) = \frac{\mathbf{B} \times \mathbf{r_i}}{2}$),
+\begin{equation}
+(\mathbf{p_i}+e\mathbf{A})^2 \rightarrow  \left( -\frac{ \hbar^2}{2m^*} \nabla_i^2- i \hbar \frac{e}{m^*} \mathbf{A}\cdot \nabla_i + \frac{e^2}{2m^*}\mathbf{A}^2  \right).
+\end{equation}
+In terms of  $\mathbf{B}$, the linear and quadratic terms in  $\mathbf{A}$ have the form
+$\frac{-i \hbar e}{m^*} \mathbf{A} \cdot \nabla_i = \frac{ e}{2m^*} \mathbf{B} \cdot \mathbf{L}$, and $\frac{e^2}{2m^*} \mathbf{A}^2 = \frac{e^2}{8m^*} B^2 r_i^2$.
+where $\mathbf{L}=-i \hbar (\mathbf{r_i} \times \nabla_i)$ is the orbital angular momentum operator of the electron $i$.
+\end{itemize}
+\begin{enumerate}
+\setcounter{enumi}{1}
+\item 
+	$\mathbf{B}$ also act on spin with the additional energy term: $\hat{H_s}= g^*_s \frac{\omega_c}{2} \hat{S_z}$, where $\hat{S}$ is the spin operator of the electron and $g^*_s$ its effective spin gyromagnetic ratio and $\omega_c=e B/m^*$ is known as the cyclotron frequency.
+\end{enumerate}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Final Hamiltonian}
+\begin{small}
+The final Hamiltonian reads:
+\begin{align}
+  \hat{H}&=\sum_{i=1}^{N_e} \bigg(  \frac{- \hbar^2}{2m^*} \nabla_i^2 + \overbrace{\frac{1}{2} m^* \omega_0^2 \norm{\mathbf{r_i}}^2}^{\begin{smallmatrix}
+  \text{Harmonic ocscillator} \\
+  \text{potential}
+\end{smallmatrix}} \bigg) + \overbrace{\frac{e^2}{4 \pi \epsilon_0 \epsilon_r} \sum_{i<j}\frac{1}{\abs{\mathbf{r_i}-\mathbf{r_j}}}}^{\begin{smallmatrix}
+  \text{Coulomb} \\
+  \text{interactions}
+\end{smallmatrix}}  \nonumber \\
+& + \underbrace{\sum_{i=1}^{N_e} \left( \frac{1}{2} m^* \left( \frac{\omega_c}{2} \right)^2 \norm{\mathbf{r_i}}^2 + \frac{1}{2}  \omega_c \hat{L}_z^{(i)}+ \frac{1  }{2} g_s^*  \omega_c \hat{S}_z^{(i)}\right)}_{\begin{smallmatrix}
+  \text{single particle interactions} \\
+  \text{with the magnetic field}
+\end{smallmatrix}},
+\end{align}
+\end{small}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Scaling the problem: dimensionless form of $\hat{H}$}
+\begin{footnotesize}
+New constant, the oscillator frequency $\omega = \sqrt{\omega_0+\left( \frac{\omega_c}{2} \right)^2}$, \newline
+New units:
+\begin{itemize}
+\item the energy unit $\hbar \omega$,
+\item 	the length unit, the oscillator length defined by $l=\sqrt{\hbar /(m^* \omega)}$.
+\end{itemize}
+The dimensionless Hamiltonian gives
+\begin{equation}
+  \hat{H}=\sum_{i=1}^{N_e} \left[  -\frac{1}{2} \nabla_i^2 + \frac{1}{2} r_i^2  \right]+ \lambda \sum_{i<j}\frac{1}{r_{ij}} +  \sum_{i=1}^{N_e} \left(  \frac{1}{2}  \frac{\omega_c}{\hbar \omega} m_l^{(i)}+ \frac{1  }{2} g_s^* \frac{\omega_c}{\hbar \omega} m_s^{(i)}\right).
+\end{equation}
+where new dimensionless parameter $\lambda=l / a_0^*$ describes the strength of the electron-electron interaction ($a_0^*= 4 \pi \epsilon_0 \epsilon_r \hbar^2 / (e^2 m^*)$ being the effective Bohr radius).
+\end{footnotesize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hamiltonian solved in this project}
+\begin{footnotesize}
+
+\begin{columns}[T,l]
+\column{6cm}
+$\lambda(B)=\frac{1}{a_0^*} \left( \frac{4 \hbar^2}{4 \omega_0^2 m^{*2}+e^2 B^2} \right)^{\frac{1}{4}}$
+
+\begin{alertblock}{Does this model make sense including $\mathbf{B}?$}%%%How a strong $\mathbf{B}$ field will affect the model?}
+\begin{itemize}
+\item
+	Squeezing the particles should increase the strength of the electron-electron interaction.
+\item
+	$\lambda$ only decreases as the magnetic field increases in this model.
+\end{itemize}
+\end{alertblock}
+\column{5cm}
+\begin{figure}
+	\begin{center}
+		\scalebox{0.7}{\input{../IMAGES/lambdaB.tex}}
+	\end{center}
+	\caption{Dimensionless confinement strength $\lambda$ as a function of the magnetic field strength in GaAs.}
+\end{figure}
+\end{columns}
+In the rest of the project, we will solve the following Hamiltonian:
+\begin{equation}
+  \hat{H}=\sum_{i=1}^{N_e} \left[  -\frac{1}{2} \nabla_i^2 + \frac{1}{2} r_i^2  \right]+ \lambda \sum_{i<j}\frac{1}{r_{ij}}.
+\end{equation}
+
+\end{footnotesize}
+\end{frame}
+
+
+
+\subsection{The method of Variational calculus}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The method of variational calculus}
+\begin{scriptsize}
+\begin{definition}
+  Method to solve the Schr\"odinger eq. much more efficiently than using numerical integration.
+\end{definition}
+\begin{itemize}
+\item Based on the method of Lagrange multipliers, where the functional to minimize (the energy functional) is an integral over the unknown wave function $| \Phi \rangle$
+\begin{equation} 
+  E[\Phi]= \frac{\langle \Phi |H | \Phi \rangle}{\langle \Phi | \Phi \rangle}= \frac{ \int \Phi^* H  \Phi d \tau}{\int  \Phi^*  \Phi d \tau},
+\end{equation}
+while subject to a normalization constraint $\langle \Phi | \Phi \rangle=1$.
+\item The method introduces new variables for each of the constraints (the Lagrange multipliers $\epsilon$) and defines  the Lagrangian ($\Lambda$) with respect to $| \Phi \rangle$ as
+\begin{equation} 
+  \Lambda(\Phi,\epsilon)= E[\Phi] - \epsilon \left( \langle \Phi | \Phi \rangle -1 \right),
+\end{equation}
+\item Find stationnary solutions by solving the set of equations by writing $\frac{\partial \Lambda}{\partial\Phi}=0$.
+\end{itemize}
+
+\end{scriptsize}
+\end{frame}
+
+\subsection{The Hartree-Fock method}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock method}
+\begin{footnotesize}
+\begin{definition}
+The HF method is a particular case of variational method in accordance with
+\begin{itemize}
+ \item the independent particle approximation,
+\item the Pauli exclusion principle.
+\end{itemize}
+\end{definition}
+\begin{alertblock}{The approximated wave function}
+To fullfil these criteria, the wave-function must be antisymmetric with respect to an interchange of any two particles: \begin{equation}
+\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_i},\dots, \mathbf{r_j},\dots,\mathbf{r_N})=-\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_j},\dots, \mathbf{r_i},\dots,\mathbf{r_N}).
+\end{equation}
+
+The Slater determinant is an elegant way of writing the antisymmetric product of single particle orbitals.
+\end{alertblock}
+\end{footnotesize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock wave function}
+\begin{scriptsize}
+% \begin{block}{The Slater determinant}
+The \alert{Slater determinant} is an antisymmetric product of the single particle orbitals:
+\begin{equation}
+\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N},\alpha,\beta,\dots,\sigma)= \frac{1}{\sqrt{N!}}\left|
+ \begin{array}{cccc}
+  \psi_{\alpha}(\mathbf{r}_1)&\psi_{\alpha}(\mathbf{r}_2)&\dots&\psi_{\alpha}(\mathbf{r}_N) \\ [4pt]
+  \psi_{\beta}(\mathbf{r}_1)&\psi_{\beta}(\mathbf{r}_2)&\dots&\psi_{\beta}(\mathbf{r}_N) \\[4pt]
+  \vdots              & \vdots            &\ddots&\vdots\\[4pt]
+  \psi_{\sigma}(\mathbf{r}_1)&\psi_{\sigma}(\mathbf{r}_2)&\dots&\psi_{\sigma}(\mathbf{r}_N)
+ \end{array}
+ \right|,
+\end{equation}
+% where the variables $\mathbf{r_i}$ include the coordinates of spin and space of particle $i$, and $\alpha,\beta,\dots,\sigma$ encompass all possible quantum numbers needed to specify a particular system.
+It can be rewritten as 
+\begin{align}
+\Phi_T(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}, \alpha, \beta, \dots, \sigma)&=\frac{1}{\sqrt{N!}}\sum_p (-)^p P \Psi_\alpha(\mathbf{r_1})\Psi_\beta(\mathbf{r_2}) \dots \Psi_\sigma(\mathbf{r_N})\\
+&=\sqrt{N!} \mathcal{A} \Phi_H,
+\end{align}
+by introducing the \alert{antisymmetrization operator $\mathcal{A}$} defined by the summation over all possible permutations of 2 particles $\mathcal{A}=\frac{1}{N!} \sum_P (-)^p \hat{P}$.
+% \end{block}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Matrix elements calculations}
+\begin{scriptsize}
+\begin{definition}
+We write the Hamiltonian for $N$ electrons as $\hat{H}=\hat{H}_0+\hat{H}_1=\sum_{i=1}^{N}\hat{h}_i+ \sum_{i<j}^{N}v(\mathbf{r_i},\mathbf{r_j})$,
+where $r_{ij}=\norm{\vec{r_i}-\vec{r_j}}$, $\hat{h}_i$ and $v(\mathbf{r_i},\mathbf{r_j})$  are respectively the one-body and the two-body Hamiltonian.
+\end{definition}
+Using properties of $\mathcal{A}$ and commutation rule with $\hat{H}_0$ and $\hat{H}_1$, one can write:
+
+\begin{align}
+&\int \Phi_T^* \hat{H}_0 \Phi_T d\tau = \sum_{\mu=1}^N  \int \Psi_\mu^*(\mathbf{r}) \hat{h} \Psi_\mu(\mathbf{r}) d\mathbf{r} = \sum_{\mu=1}^N \langle \mu |h| \mu \rangle.\\
+&\int \Phi_T^*\hat{H}_1 \Phi_T d\tau = \frac{1}{2}  \sum_{\mu=1}^N \sum_{\nu=1}^N \langle \mu \nu |V| \mu \nu \rangle_{AS}.
+\end{align}
+where we define the antisymmetrized matrix element as $\langle \mu \nu |V| \mu \nu \rangle_{AS} = \langle \mu \nu |V| \mu \nu \rangle - \langle \mu \nu |V| \nu \mu \rangle$, with the following shorthands $\langle \mu \nu |V| \mu \nu \rangle = \int \Psi_\mu^*(\mathbf{r_i}) \Psi_\nu^*(\mathbf{r_j}) V(r_{ij}) \Psi_\mu(\mathbf{r_i}) \Psi_\nu(\mathbf{r_j}) d\mathbf{r_i} d\mathbf{r_j}$.
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock energy in the harmonic oscillator basis}
+\begin{scriptsize}
+\begin{block}{The energy functional}
+The energy functional is our starting point for the Hartree-Fock calculations.
+\begin{align}
+E [ \Phi_T ] &= \langle \Phi_T | \hat{H}_0 | \Phi_T  \rangle + \langle \Phi_T | \hat{H}_1 | \Phi_T  \rangle \\
+ &= \sum_{\mu=1}^N \langle \mu |h| \mu \rangle + \frac{1}{2}  \sum_{\mu=1}^N \sum_{\nu=1}^N \langle \mu \nu |V| \mu \nu \rangle_{AS}.
+\end{align}
+\end{block}
+We expand each single-particle eigenvector $\Psi_i$ in terms of a convenient complete set of single-particle states $|\alpha \rangle$ (the harmonic oscillator eigenstates in our case),
+\begin{equation}
+\Psi_i= |i \rangle = \sum_{\alpha} c_i^\alpha |\alpha \rangle.
+\end{equation}
+The energy functional now reads
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{equation}
+         \tikz[baseline]{
+            \node[fill=blue!20, anchor=base] (a1)
+            {$E[\Phi] = \sum_{i=1}^N \sum_{\alpha \gamma} C_i^{\alpha *} C_i^{\gamma} \langle \alpha |h| \gamma \rangle + \frac{1}{2}   \sum_{i,j=1}^N \sum_{\alpha \beta \gamma \delta} C_i^{\alpha *} C_j^{\beta *} C_i^{\gamma} C_j^{\delta}  \langle \alpha \beta |V| \gamma \delta \rangle_{AS}.$};
+        }
+\end{equation}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock equations (1)}
+\begin{scriptsize}
+\begin{alertblock}{Remember the method of the Lagrange multipliers}
+\begin{enumerate}
+ \item Define a functional $E [ \Phi_T ]$,
+\item  Identify the constraints: $\langle \Psi_i |\Psi_j \rangle= \delta_{ij}$ which implies $\langle \Phi_T | \Phi_T  \rangle=1$, \newline with $\langle \Psi_i |\Psi_j \rangle = \sum_{\alpha \beta} C_i^{\alpha *} C_j^\beta \underbrace{\langle \alpha | \beta \rangle}_{\delta_{ \alpha \beta } } = \sum_{\alpha} C_i^{\alpha *} C_j^\alpha $
+\item Define the Lagrangian $\Lambda$
+\begin{equation}
+\Lambda(C_1^{\alpha},C_2^{\alpha},\dots,C_N^{\alpha},\epsilon_1,\epsilon_2,\dots,\epsilon_N)= E[\Phi_T] - \sum_{i=1}^N \epsilon_i \left( \sum_\alpha C_i^{\alpha *} C_i^{\alpha} - \delta_{ij} \right).
+\end{equation}
+where $\epsilon_i$ are the Lagrange multipliers for each of the normalization constraints.
+\item Get the system of equations to solve by setting $\Lambda$
+\begin{equation}
+\frac{d \Lambda}{d\Phi_T}  \equiv \frac{d}{dC_i^{\alpha *}} \left[ \Lambda(C_1^{\alpha},C_2^{\alpha},\dots,C_N^{\alpha},\epsilon_1,\epsilon_2,\dots,\epsilon_N) \right] = 0, \quad \forall \; i \in \mathbb{N}^*.
+\end{equation}
+\end{enumerate}
+\end{alertblock}
+\end{scriptsize}
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock equations (2)}
+\begin{scriptsize}
+Treating $C_i^\alpha$ and  $C_i^{\alpha *}$ as independent, we arrive at the Hartree-Fock equations \newline (one equation for each basis state $|\alpha \rangle$)
+
+
+\tikzstyle{na} = [baseline=-.5ex]
+\begin{equation}
+         \tikz[baseline]{
+            \node[fill=blue!20, anchor=base] (a1)
+            {$\sum_\gamma \langle \alpha | h| \gamma \rangle \; C_i^\gamma +   \sum_\gamma \overbrace{\Bigg[ \sum_{j=1}^N \sum_{\beta \delta} C_j^{\beta *} \underbrace{\langle \alpha \beta | V | \gamma  \delta \rangle_{AS}}_{\begin{smallmatrix}
+  \text{Two-body interaction} \\
+  \text{matrix element} V_{\alpha \beta \gamma \delta}
+\end{smallmatrix}}  \; C_j^\delta \Bigg] }^{\begin{smallmatrix}
+  \text{Effective potential} \\
+  \langle \alpha |U| \gamma \rangle
+\end{smallmatrix}} C_i^\gamma = \epsilon_i \ C_i^\alpha,$};}
+\end{equation}
+which we can rewrite as $\sum_\gamma \mathcal{O}_{\alpha \gamma} \; C_i^\gamma = \epsilon_i \ C_i^\alpha, \quad \forall \; \alpha \in \mathcal{H}$.
+
+$\Rightarrow$ \alert{System of non-linear equations} in the $C_i^{\alpha *}$, since $\mathcal{O}_{\alpha \gamma}$ depends itself on the unknowns.
+
+$\Rightarrow$ \alert{To be solved by an iterative procedure}.
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The Hartree-Fock (self-consistent) iterative procedure}
+\begin{scriptsize}
+\begin{columns}[T,l]
+\column{8cm}
+\begin{enumerate}
+ \item Compute the effective Coulomb interaction potential $\langle \alpha |U^{(0)}| \gamma \rangle$ with an initial guess of the $C_i^{\alpha(0)}$.
+\item Build the resulting Fock matrix $\mathcal{O}$.
+\item Solve the linearised system given by the equations \newline (Fock matrix diagonalization)
+ \begin{equation}
+\nonumber
+\sum_\gamma \left[ \langle \alpha | h| \gamma \rangle +  \langle \alpha | U| \gamma \rangle \right] C_i^\gamma = \epsilon_i \ C_i^\alpha.
+\end{equation}
+at iteration $(k)$, store the output eigenenergies $\epsilon_i^{(k)}$  \newline and the coefficients of the new eigenvectors $C_i^{\alpha(k)}$.
+\item Substitute back the new coefficients to compute a new Coulomb interaction potential.
+\item $\dots$
+\item Continue the process until self-consistency is reached  \newline (i.e.\ convergence of the $\epsilon_i$ for an arbitrary precision.)
+\end{enumerate}
+\column{3cm}
+\begin{figure}
+\centering
+\scalebox{0.5}{\input{IMAGES/diagramHF.tex}}
+\caption{Flowchart of Hartree-Fock algorithm.}
+\end{figure}
+\end{columns}
+\end{scriptsize}
+\end{frame}
+
+\subsection{The many-body perturbation theory}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Many-body perturbation theory}
+\begin{scriptsize}
+Take the Hamiltonian  $\hat{H}=\hat{H}_0+\hat{H}'$, and treat $\hat{H}'$ as a perturbation, such as the Coulomb interaction.
+
+Suppose $\Phi_n$ eigenfunctions of $\hat{H}_0$ corresponding to the eigenvalues $E_n$: $\hat{H}_0 \Phi_n = E_n \Phi_n$.
+Consider the effect of the perturbation on a particular state $\Phi_0$.
+
+We denote by $\Psi_0$ the state into which $\Phi_0$ changes under the action of the perturbation, so that $\Psi_0$ is an eigenfunction of $\hat{H}$, corresponding to the eigenvalue $E$.
+\begin{align}
+ \hat{H}_0 \Phi_0 &= E_0 \Phi_0. \\
+\hat{H}_0 \Psi_0 &= E \Psi_0.
+\end{align}
+Therefore $\Phi_0$ and $\Psi_0$ denote the ground states of the unperturbed and perturbed systems respectively.
+
+Since $\hat{H}_0$ is Hermitian, one can show that:
+\begin{equation}
+E-E_0 = \frac{\langle \Phi_0 |\hat{H}'| \Psi_0 \rangle}{\langle \Phi_0 |\Psi_0 \rangle}.
+\end{equation}
+which is an exact expression and independent of any particular perturbation method.
+
+Since $\Psi_0$ is unknown, using a \textit{projection operator} $\mathbf{R}$ for the state $\Phi_0$ defined by the equation
+\begin{equation}
+\mathbf{R} \Psi = \Psi - \Phi_0 \langle \Phi_0 | \Psi\rangle,
+\end{equation}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The perturbed energy}
+\begin{scriptsize}
+The perturbed energy can be derived from the iterated $\Psi_0$ which gives
+\begin{equation}
+\label{eq:176}
+E-E_0 = \sum_{n=0}^{\infty} \big\langle   \Phi_0  | \hat{H}' \left(  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \right)^n   |   \Phi_0 \big\rangle.
+\end{equation}
+It will be observed that the right-hand side of this equation also contains $E$, but this is eliminated when the terms are expanded.
+We shall write
+\begin{equation}
+\nonumber
+\Delta E = E -E_0 = \Delta E^{(1)} + \Delta E^{(2)} +\Delta E^{(3)} + \dots
+\end{equation}
+where the $m^{th}$-order energy correction $\Delta E^{(m)}$ contains the $m^{th}$-order power of the perturbation $\hat{H}'$.
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The many-body perturbation corrections}
+\begin{scriptsize}
+
+\begin{itemize}
+ \item The $1^{st}$-order correction is 
+\begin{equation}
+\Delta E^{(1)} = \langle   \Phi_0  | \hat{H}' | \Phi_0 \rangle.
+\end{equation}
+\item The $2^{nd}$-order correction is 
+\begin{equation}
+\Delta E^{(2)} = \langle   \Phi_0  | \hat{H}'  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}')   |   \Phi_0 \rangle.
+\end{equation}
+\item The $3^{rd}$-order energy correction reads
+\begin{align}
+\label{eq:3rdOrderMBPT}
+\Delta E^{(3)} &= \sum_{n=0}^{\infty} \sum_{n=0}^{\infty}  \frac{  \langle \Phi_0 |\hat{H}'| \Phi_m  \rangle  \langle \Phi_m |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_m)(E_0 - E_n)} \\ \nonumber
+&  - \langle \Phi_0 |\hat{H}'| \Phi_0  \rangle \sum_{n=0}^{\infty} \frac{ \langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_n)^2}.
+\end{align}
+\end{itemize}
+
+\end{scriptsize}
+\end{frame}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The MBPT corrections expanded in a basis set}
+\begin{scriptsize}
+It is possible to rewrite the many-body energy corrections in particle and hole state formalism by using the expression of $\hat{H}'$ as expressed in terms of anihilation ($c_k$) and creation ($c_k^{\dagger}$) operators 
+\begin{equation}
+\nonumber
+\hat{H}'= \frac{1}{2} \sum_{ijkl} \langle ij | v | kl \rangle c_i^{\dagger} c_j^{\dagger}  c_l c_k,
+\end{equation}
+
+The previous many-body perturbation corrections now read
+\begin{align}
+\Delta E^{(1)} &= \langle   \Phi_0  | \hat{H}' | \Phi_0 \rangle.= \frac{1}{2} \sum_{h_1 h_2} \langle h_1 h_2 |v| h_1 h_2\rangle_{as}, \\ \nonumber
+\Delta E^{(2)} &= \sum_{n=0}^{\infty} \frac{\langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0 \rangle}{E_0 - E_n} = \frac{1}{4} \sum_{h_1 h_2 p_1 p_2} \frac{\abs{\langle h_1 h_2 |v|p_1 p_2 \rangle}_{as}^2}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}},
+\end{align}
+where $h_i$ and $p_i$ are respectively hole states and particles states, and $\epsilon_i$ are the single particle energies of the basis set.
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The MBPT corrections expanded in a basis set}
+\begin{scriptsize}
+The $3^{rd}$-order many-body perturbation correction reads
+\begin{align}
+\nonumber
+\Delta E^{(3)} &= \sum_{n=0}^{\infty} \sum_{n=0}^{\infty}  \frac{  \langle \Phi_0 |\hat{H}'| \Phi_m  \rangle  \langle \Phi_m |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_m)(E_0 - E_n)} \\ \nonumber
+&  - \langle \Phi_0 |\hat{H}'| \Phi_0  \rangle \sum_{n=0}^{\infty} \frac{ \langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_n)^2}\\
+&= \Delta E^{(3)}_{4p-2h} + \Delta E^{(3)}_{2p-4h} + \Delta E^{(3)}_{3p-3h},
+\end{align}
+where 
+\begin{itemize}
+ \item $\Delta E^{(3)}_{4p-2h}$ is the contribution to the third-order energy correction due to the 4-particle/2-hole excitations,
+\item  $\Delta E^{(3)}_{2p-4h}$ is the contribution to the third-order energy correction due to the 2-particle/4-hole excitations,
+\item  $\Delta E^{(3)}_{3p-3h}$ is the contribution to the third-order energy correction due to the 3-particle/3-hole excitations.
+\end{itemize}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{The MBPT corrections expanded in a basis set}
+\begin{scriptsize}
+The contributions to the third-order energy correction can be written as
+\begin{align*}
+\Delta E^{(3)}_{4p-2h} &= \frac{1}{8} \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}}  \sum_{p_3 p_4} \frac{\langle p_1 p_2 |v|p_3 p_4 \rangle_{as} \langle p_3 p_4 |v|h_1 h_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_3}-\epsilon_{p_4}}    \right),\\ \nonumber
+\Delta E^{(3)}_{2p-4h} &= \frac{1}{8} \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}}  \sum_{h_3 h_4} \frac{\langle h_1 h_2 |v|h_3 h_4 \rangle_{as} \langle h_3 h_4 |v|h_1 h_2 \rangle_{as}}{\epsilon_{h_3}+\epsilon_{h_4}-\epsilon_{p_1}-\epsilon_{p_2}}    \right),\\ \nonumber
+\Delta E^{(3)}_{3p-3h} &=  \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}} \left( \sum_{h_3}\sum_{p_3} \frac{\langle h_1 h_3 |v|p_1 p_3 \rangle_{as} \langle p_3 h_2 |v|h_3 h_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_3}-\epsilon_{p_1}-\epsilon_{p_3}}  \right)  \right),\nonumber
+\end{align*}
+where the $p_i$ denote the  particle states, $h_i$ the hole states, and $\epsilon_{i}$ the single particle energies of the corresponfing state.
+\end{scriptsize}
+\end{frame}
+
+\subsection{Implementation}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Code implementation}
+\begin{scriptsize}
+\begin{block}{Tools}
+ \begin{itemize}
+ \item \citecodeBeamer{C++} language: for flexibility using classes and efficiency.
+\item \textsc{Blitz++} library: managing dense arrays.
+\item \textsc{Lpp / Lapack} library: (\citecodeBeamer{Fortran}) routines for solving linear algebra.
+\item  \textsc{Message-Passing Interface}: to build a cluster for parallel computing 
+\end{itemize}
+\end{block}
+\begin{block}{Functionality}
+ \begin{itemize}
+ \item Read parameters from a unique textual input file or command line.
+\item The \citecodeBeamer{simulator} class performs the initialization and calls other objects.
+\item The \citecodeBeamer{orbitalsQuantumNumbers} class: generates the 	harmonic oscillator states.
+\item The \citecodeBeamer{CoulombMatrix} class generates the Coulomb interaction matrix outside Hartree-Fock.
+\item The \citecodeBeamer{HartreeFock} class computes the HF energy and generates the interaction matrix in the HF basis.
+\item The \citecodeBeamer{PerturbationTheory} class computes many-body perturbation corrections from $1^{st}$-	 to $3^{rd}$-order, either in the harmonic oscillator or in the HF basis set.
+\end{itemize}
+\end{block}
+\end{scriptsize}
+\end{frame}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Implementation issues}
+\begin{scriptsize}
+\begin{alertblock}{Difficulties encountered}
+ \begin{itemize}
+\item Huge Fock matrix to diagonalize (grows exponentially with $R^b$).
+\item Huge Coulomb interaction matrix to store $V_{\alpha \beta \gamma \delta}=\langle (n_1,m_{l1})(n_2,m_{l2})|V|(n_3,m_{l3})(n_4,m_{l4})\rangle$ is a 8-dimensional array.
+\end{itemize}
+\end{alertblock}
+\begin{block}{Solutions implemented}
+By using the symmetry and invariance of the antisymmetrized Coulomb interaction:
+ \begin{itemize}
+\item $V_{\alpha \beta \gamma \delta}$ does not act on spin: $m_{s1}=m_{s3}$ \& $m_{s2}=m_{s4}$.
+\item $V_{\alpha \beta \gamma \delta}$ conserves the total spin and angular momentum: $m_{l1}+m_{l2}=m_{l3}+m_{l4}$.
+\end{itemize}
+  By sorting the states of the basis by blocks of identical angular ($m_l$) and spin ($m_s$) quantum numbers:
+ \begin{itemize}
+\item It allows to reduce the storage of the Coulomb interactions per blocks of couple of states by avoiding to store zeros's elements.
+\item The Fock matrix appears as block diagonal, allowing much smaller eigenvalue problems to solve.
+\end{itemize}
+\end{block}
+\end{scriptsize}
+\end{frame}
+
+\section{Results and Discussions}
+\subsection{Validation of the simulator}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Validation of the simulator}
+\begin{scriptsize}
+\begin{columns}[T,l]
+\column{5cm}%%%%%%%%%%%%%%%%	\begin{figure}
+\begin{figure}
+\begin{center}
+\scalebox{1}{
+	\begin{tabular}{c}
+		\scalebox{0.23}{\includegraphics{../IMAGES/WaltMBPT}} \\ 
+		\scalebox{0.35}{\input{../IMAGES/waltMBPT.tex}}
+	\end{tabular}
+}%%end Scalebox
+	\vspace{-5pt}
+	\caption{$2^{nd}$-order perturbation theory correction for the $2e^-$ QD. Comparison between results of Waltersson (top)~\cite{Waltersson2007} and our results (down).}
+	\vspace{-5pt}
+\end{center}
+\end{figure}
+\column{6cm}
+\begin{block}{Simple checks}
+ \begin{itemize}
+\item  Reproduce the non-interacting ground state energies.
+\item  Reproduce the two-body interaction matrix elements of \textsc{OpenFCI} almost with machine precision
+\end{itemize}
+\end{block}
+\begin{block}{Comparison of MBPT results with similar experiments}
+ \begin{itemize}
+\item  Reproduce the non-interacting ground state energies.
+\item  Reproduce the two-body interaction matrix of \textsc{OpenFCI} almost with machine precision
+\end{itemize}
+\end{block}
+\end{columns}
+\end{scriptsize}
+\end{frame}
+ 
+\subsection{Limit of the closed-shell model as a function of $\lambda$}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Level crossing as a function of $B$ without interactions (1/2)}
+\begin{scriptsize}
+\begin{block}{Fock-Darwin orbitals}
+When neglecting the repulsions between the particles, the eigenenergies $\epsilon_{n \, m_l}$ as a function of the magnetic field $B$ can be solved analytically for a parabolic confining potential $V(r)=1/(2m^*\omega_0^2 r^2)$ leading to a spectrum known as the Fock-Darwin states
+
+Rewriting the eigenenergies in units of $\hbar \omega_0$, $\epsilon_{n \, m_l}$ becomes dimensionless and we obtain
+\begin{align}
+ \epsilon_{n \, m_l} &= (2n+|m_l|+1)  \sqrt{1+\frac{(\omega_c/ \omega_0)^2}{4}} -\frac{1}{2}(\omega_c /\omega_0) \, m_l\\
+&= (2n+|m_l|+1)  \sqrt{1+(\frac{e B}{2m^* \omega_0})^2} -\frac{e B}{2m^* \omega_0} \, m_l.
+\end{align}
+ \end{block}
+\end{scriptsize}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Level crossing as a function of $B$ without interactions (2/2)}
+\begin{scriptsize}
+\begin{columns}[T,l]
+\column{5.5cm}
+\begin{figure}
+\centering
+\scalebox{0.45}{\input{../IMAGES/FockFDarwin06.tex}}
+\caption{Spectrum of Fock-Darwin orbitals for 6 non-interacting particles (GaAs:$\hbar \omega_0=5meV$,$\epsilon_r=12$).}
+\end{figure}
+\column{5.5cm}%%%%%%%%%%%%%%%%	\begin{figure}
+\begin{figure}
+\centering
+\scalebox{0.45}{\input{../IMAGES/FockFDarwin12.tex}}
+\caption{Spectrum of Fock-Darwin orbitals for 12 non-interacting particles (GaAs:$\hbar \omega_0=5meV$,$\epsilon_r=12$).}
+\end{figure}
+\end{columns}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Level crossing as a function of $\lambda$ with interactions (1/2)}
+\begin{scriptsize}
+\begin{figure}
+	\begin{center}
+\begin{tabular}{cc}
+	\scalebox{0.25}{\input{../../qdot/OpenFCI_RESULTS/E_matR4L0p1.tikz}} & \scalebox{0.25}{\input{../../qdot/OpenFCI_RESULTS/E_matR5L1.tikz}} \\
+	\scalebox{0.25}{\input{../../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L15.tikz}} & \scalebox{0.25}{\input{../../qdot/OpenFCI_RESULTS/E_matR5L50.tikz}} \\
+	%\hline
+\end{tabular}
+	\end{center}
+	\vspace{-5pt}
+	\caption{FCI ground state energies for a 6-electron QD with $\lambda=\{0.1,1\}$ (top) and $\lambda=\{15,50\}$ (bottom).}
+\end{figure}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Level crossing as a function of $\lambda$ with interactions (2/2)}
+\begin{scriptsize}
+\begin{alertblock}{Summary of FCI results using \textsc{OpenFCI}}
+\begin{columns}[T,l]
+\column{4.5cm}
+\begin{center}
+\rowcolors[]{1}{blue!20}{blue!10}
+\begin{tabular}{l!{\vrule}||p{1.5cm}|c}
+  $\lambda$ & FCI ground state energy (in unit of $\hbar \omega$) & (M,S)  \\\hline
+0.1 & 11.197 & (0,0)\\
+0.5 & 15.561&  (0,0)\\
+1 & 20.257&  (0,0)\\
+2 & 28.032&  (0,0)\\
+5 & 46.482&  (0,0)\\
+10 & 73.067&  (0,0)\\
+11 & 78.143&  (0,0)\\
+12 & 83.168&  (0,0)\\
+13 & 88.152&  (0,0)\\
+15 & 98.027&  \textbf{(1,2)}\\
+20 & 122.325&  \textbf{(1,2)}\\
+50 & 266.157&  \textbf{(1,4)}
+\end{tabular}
+\end{center}
+\column{5.5cm}
+\begin{center}
+\begin{itemize}
+ \item For a 6-particle QD, break of the model of a single Slater determinant  from $\lambda \simeq 13$.
+\item A similar study performed on a 2-particle QD indicates a break of the closed-shell model from $\lambda \simeq 150$.
+
+\end{itemize}
+
+\end{center}
+\end{columns}
+\end{alertblock}
+\end{scriptsize}
+\end{frame}
+
+
+
+\subsection{Convergence/Stability/Accuracy of HF}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Exponential convergence of HF as a function of $R^b$ (1/3)}
+\begin{scriptsize}
+\begin{definition}
+The size of the basis set characterized by $R^b$ ($R^b\in\mathbb{N} \; R^b\geq R^f$)
+
+It defines the maximum shell number in the model space for our Hartree-Fock computation. It implies the number of orbitals in which each single particle wavefunction will be expanded, with spin degeneracy the number of states $N_S$ is
+\begin{equation}
+ N_S=(R^b+1)(R^b+2)
+\end{equation}
+
+The bigger the basis set, the more accurate the single particle wavefunction is expected. In mathematical notation, $R^b$ and the size of the basis set $\mathcal{B}$ are defined by
+\begin{equation}
+ \mathcal{B} = \mathcal{B}(R^b) = \left\{ | \phi_{n m_l}(\textbf{r})\rangle   \quad : 2n+ |m_l| \leq R^b  \right\},
+\end{equation} 
+where $| \phi_{n m_l}(\textbf{r})\rangle$ are the single orbital in the Harmonic oscillator basis with quantum numbers $n$, $m_l$ such that the single orbital energy reads: $\epsilon_{n m_l}=2n+\abs{m_l}+1$ in two-dimensions.
+\end{definition}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Exponential convergence of HF as a function of $R^b$ (2/3)}
+\begin{scriptsize}
+\begin{figure}
+	\begin{center}
+\begin{tabular}{cc}
+	\scalebox{0.35}{\input{../IMAGES/HF_Rb02new}} & 	\scalebox{0.35}{\input{../IMAGES/HF_Rb06new}}  \\
+	\scalebox{0.35}{\input{../IMAGES/HF_Rb12new}}  & 	\scalebox{0.35}{\input{../IMAGES/HF_Rb20new}}  \\
+	%\hline
+\end{tabular}
+	\end{center}
+	\vspace{-5pt}
+	\caption{Hartree-Fock ground state $(E^{HF}$ as a function of $R^b$ for 2-,6-electron QD (top) and 12-,20-electron QD (bottom).}
+\end{figure}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Exponential convergence of HF as a function of $R^b$ (3/3)}
+\begin{scriptsize}
+\begin{figure}
+	\begin{center}
+\begin{tabular}{cc}
+	\scalebox{0.35}{\input{../IMAGES/HF_RelErr02new.tex}} & 	\scalebox{0.35}{\input{../IMAGES/HF_RelErr06new.tex}}  \\
+	\scalebox{0.35}{\input{../IMAGES/HF_RelErr12new.tex}}  & 	\scalebox{0.35}{\input{../IMAGES/HF_RelErr20new.tex}}  \\
+	%\hline
+\end{tabular}
+	\end{center}
+	\vspace{-5pt}
+	\caption{Hartree-Fock relative error $(E^{HF}(R^b)-E^{HF}_{min})/E^{HF}_{min}$ as a function of $R^b$ for 2-,6-electron QD (top) and 12-,20-electron QD (bottom).}
+\end{figure}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{``Convergence history'' as a function of $\lambda$ (1/3)}
+\begin{scriptsize}
+\begin{definition}
+The convergence history of a simulation shows how the convergence ``improve'' over iterations.
+We could plot
+\begin{itemize}
+ \item the energy difference from one iteration to the next
+\begin{equation*}
+\delta (iter)= \abs{E^{HF}(iter)-E^{HF}(iter-1)}.
+\end{equation*}
+\item  the difference between eigenvalues from one iteration to the next (more adapted to our algorithm).
+\begin{equation*}
+\delta (iter)= \frac{1}{nbStates} \left( \sum_{n\,m_l} \abs{\epsilon_{n\,m_l}(iter)-\sum_{n\,m_l} \epsilon_{n\,m_l}(iter-1)} \right),
+\end{equation*}
+where $\epsilon_{n\,m_l}$ is the eigenenergy of the system of the single orbital $|n\,m_l \rangle$.
+\item more intuitive: on the form:  $\delta (iter) \simeq 10^{- \beta \, iter}$, where $\beta$ indicates how many digits are gained from one iteration to the next.
+\end{itemize}
+
+\end{definition}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{``Convergence history'' as a function of $\lambda$ (2/3)}
+\begin{scriptsize}
+
+\begin{columns}[T,l]
+\column{7.5cm}
+\begin{figure}
+	\begin{flushleft}
+\begin{tabular}{cc}
+	\scalebox{0.25}{\input{../../qdot/RESULTS/processedData/iterb0.tikz}} & 	\scalebox{0.25}{\input{../../qdot/RESULTS/processedData/iterb1.tikz}}  \\
+	\scalebox{0.25}{\input{../../qdot/RESULTS/processedData/iterb2.tikz}}  & 	\scalebox{0.25}{\input{../../qdot/RESULTS/processedData/iterb3.tikz}}  \\
+	%\hline
+\end{tabular}
+	\end{flushleft}
+	\vspace{-5pt}
+	\caption{Convergence history of the Hartree-Fock iterative process  for 2-,6-electron QD (top) and 12-,20-electron QD (bottom).}
+\end{figure}
+\column{3.5cm}
+\begin{itemize}
+ \item slower convergence as $\lambda$ increases.
+\item much less impact due to $R^b$ or to the nb.of particles, except when leading to unstability.
+\end{itemize}
+\end{columns}
+\end{scriptsize}
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{``Convergence history'' as a function of $\lambda$ (3/3)}
+\begin{scriptsize}
+\begin{columns}[T,l]
+\column{6cm}
+\begin{flushleft}
+\begin{figure}
+\centering
+\scalebox{0.4}{\input{../../qdot/RESULTS/processedData/iterb3zoom.tikz}}
+\caption{Zoom over the limit of convergence of the Hartree-Fock iterative process for a 20-particle QD.}
+\end{figure}
+\end{flushleft}
+\column{5cm}
+\begin{itemize}
+ \item  expected ``plateau'' when reaching machine precision.
+\end{itemize}
+
+However it seems that increasing the interaction strength:
+\begin{itemize}
+ \item  slows down the convergence process, as adding error at each iteration,
+\item induces a lower accuracy, as if it could ``decrease the machine precision'',
+\newline $\Rightarrow$ Phenomena maybe due to round-off error, proportional to $\lambda$, and entering the eigenvalue solver in a non-trivial way.
+\end{itemize}
+\end{columns}
+\end{scriptsize}
+\end{frame}
+
+\subsection{Comparison on HF/MBPT/FCI calculations}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\frametitle{Quadratic error growth of HF/MBPT wrt FCI ground state}
+\begin{figure}
+\begin{tabular}{cc}
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/allFixedAxis_02e_R8.tex}} & 	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/allFixedAxis_06e_R8.tex}}  \\
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/allFixedAxis_12e_R8.tex}}  & \\
+	%\hline
+\end{tabular}
+	\vspace{-5pt}
+	\caption{Comparison of HF/MBPT and HF corrected by MBPT up to $3^{rd}$-order wrt to the FCI ground state taken as reference for 2-,6-electron QD (top) and 12-electron QD (bottom).}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{Respective accuracy of HF and MBPT (1/2)}
+\begin{figure}
+\begin{tabular}{cc}
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomQuadratic_02e_R8.tex}} & 	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomQuadratic_06e_R8.tex}}  \\
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomQuadratic_12e_R8.tex}}  & \\
+	%\hline
+\end{tabular}
+	\vspace{-5pt}
+	\caption{Zoom on the quadratic growth of the error when $\lambda$ is relatively small ($\lambda < 0.05$), showing different accuracies with respect to the method, the number of particles and the size of the basis. for 2-,6-electron QD (top) and 12-electron QD (bottom).}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+%%\frametitle{Respective accuracy of HF and MBPT (2/2)}
+\begin{table}
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|r l} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{Basis size ($R^b$)} & \multicolumn{2}{c}{Relative error shift between each method}\\
+\hline
+\multirow{8}{*}{2}&  	& MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\
+		& 	&    MBPT(H0)-$2^{nd}$order and MBPT(H0)-$3^{rd}$order  & $\rightarrow 6.6 \, \epsilon_{min}$ \\ 
+		& 	&    HF							& $\rightarrow 12.6 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&    MBPT(HO)-$1^{st}$ order		& $\rightarrow 20.7 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    MBPT(H0)-$2^{nd}$order and MBPT(H0)-$3^{rd}$order  & $\rightarrow 2.5 \, \epsilon_{min}$ \\ 
+		&	&    HF							& $\rightarrow 8.5 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{8}	&    MBPT(HO)-$1^{st}$ order		& $\rightarrow 12.7 \, \epsilon_{min}$ \\ \cline{2-4}
+\hline
+\multirow{8}{*}{6} &	& MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    HF& $\rightarrow 9.8 \, \epsilon_{min}$ \\ 
+		&	&    MBPT(H0)-$2^{nd}$order and MBPT(H0)-$3^{rd}$order  & $\rightarrow 40.9\, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&    MBPT(HO)-$1^{st}$ order		& $\rightarrow 54.1 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    HF& $\rightarrow 1.3 \, \epsilon_{min}$ \\ 
+		&	&   MBPT(H0)-$2^{nd}$order and MBPT(H0)-$3^{rd}$order  & $\rightarrow 5.3\, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{8}	&    MBPT(HO)-$1^{st}$ order		& $\rightarrow 7.9 \, \epsilon_{min}$ \\ \cline{2-4}
+\hline
+\multirow{8}{*}{12}& 	& MBPT(HO)-$2^{nd}$order and MBPT(HO)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    MBPT(HO)-$1^{st}$ order  & $\rightarrow 1.3\, \epsilon_{min}$ \\ 
+		&	&    HF							& $\rightarrow 1.8 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&   MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order & $\rightarrow 2 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBPT(HO)-$2^{nd}$order and MBPT(HO)-$3^{rd}$order   & $\rightarrow \epsilon_{min}$ \\ 
+		&	&  MBPT(HO)-$1^{st}$ order	   & $\rightarrow 1.6 \, \epsilon_{min}$ \\
+		&	&    HF							& $\rightarrow 2.3 \, \epsilon_{min}$ \\
+	& \multirow{-4}{*}{8}	&    MBPT(HF)-$2^{nd}$order and MBPT(HF)-$3^{rd}$order & $\rightarrow 2.8\, \epsilon_{min}$ \\ 
+\toprule[1pt]
+\end{tabular}
+}
+\vspace{-7pt}
+ \caption{Classification of the methods with respect to their relative accuracy in the range of $\lambda$ that exhibits a quadractic error growth.}
+\end{table} 
+\end{frame}
+
+\begin{frame}
+\frametitle{Break of the methods}
+\begin{figure}
+\begin{tabular}{cc}
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomGarbage_02e_R8.tex}} & 	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomGarbage_06e_R8.tex}}  \\
+	\scalebox{0.32}{\input{../IMAGES/comparisonMethods/zoomGarbage_12e_R8.tex}}  & \\
+	%\hline
+\end{tabular}
+	\vspace{-5pt}
+	\caption{The plots display a zoom for $\lambda$ approaching the limit of the closed-shell model for 2-,6-electron QD (top) and 12-electron QD (bottom).}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Summary of the results}
+\begin{scriptsize}
+\begin{itemize}
+ \item Exponential convergence of HF as a function of $R^b$.
+\item Increasing $\lambda$ slows down the convergence of HF, and decreases its accuracy.
+\item Compared to FCI, HF and MBPT have a quadratic error growth wrt $\lambda$.
+\item Unstability of the $2^{nd}$- $3^{rd}$-order MBPT corrections before $1^{st}$-order MBPT and HF.
+\end{itemize}
+\begin{alertblock}{Break of the method before the closed-shell model}
+\begin{center}
+\rowcolors[]{1}{blue!20}{blue!10}
+\begin{tabular}{p{1.5cm}|p{1.5cm}|p{1.5cm}}
+  \# particles & Break of the method & Break of the model  \\\hline
+2 & $\lambda \simeq$5 & $\lambda \simeq$150 \\\hline
+6 & $\lambda \simeq$2 & $\lambda \simeq$14 \\\hline
+12 & $\lambda \simeq$1 & $\lambda \simeq$??? \\\hline
+\end{tabular}
+\end{center}
+\end{alertblock}
+\end{scriptsize}
+\end{frame}
+
+
+\begin{frame}
+\begin{center}
+\textbf{Thank you for your attention ;)}
+\end{center}
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    BIBLIOGRAPHY      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}
+\begin{small}
+ {\scriptsize
+\beamertemplatebookbibitems
+\begin{thebibliography}{10}
+\bibitem{Kouwenhoven1997}
+L.~P. Kouwenhoven.
+{\em Electron transport in quantum dots}, Proceedings of the Advanced Study
+  Institute, 1997.
+\bibitem{Gao2004} X.~Gao, Y.~Cui, R.~M. Levenson, L.~W. Chung, and S.~Nie.
+ In vivo cancer targeting and imaging with semiconductor quantum dots.
+ {\em Nat Biotech}, 22:969--976, 2004.
+\bibitem{fewElectronQDExperiment}
+L.~P. Kouwenhoven, D.~G. Austing, and S.~Tarucha.
+ Few-electron quantum dots.
+ {\em Reports on Progress in Physics}, 64:701--736, 2001.
+\bibitem{Kvaal2008}
+S.~Kvaal.
+ Open source fci code for quantum dots and effective interactions.
+ {\em arXiv.org}, 2008.
+\bibitem{SimenThesis}
+S.~Kvaal.
+{\em Analysis of many-body methods for quantum dots}.
+PhD thesis, University of Oslo, 2009.
+\bibitem{Moshinsky}
+M.~Moshinsky and Y.~F. Smirnov.
+ {\em The Harmonic Oscillator in Modern Physics: From Atoms to
+  Quarks}.
+ Taylor \& Francis, 1996.
+\end{thebibliography}
+%\input{../main.bbl}
+}
+ \end{small}
+\end{frame}
+
+\begin{frame}
+\begin{small}
+ {\scriptsize
+\beamertemplatebookbibitems
+\begin{thebibliography}{10}
+\bibitem{pdgvmp1993}
+D.~Pfannkuche, V.~Gudmundsson, and P.~A. Maksym.
+ Comparison of a hartree, a hartree-fock, and an exact treatment of
+  quantum-dot helium.
+ {\em Phys. Rev. B}, 47:2244--2250, 1993.
+\bibitem{Raimes1972}
+S.~Raimes.
+ {\em Many-electron Theory}.
+ North-Holland Publishing, 1972.
+\bibitem{Waltersson2007}
+E.~Waltersson and E.~Lindroth.
+ Many-body perturbation theory calculations on circular quantum dots.
+ {\em Phys. Rev. B}, 76:045314, 2007.
+\bibitem{Winter2004}
+J.~O. Winter.
+ {\em Development and optimization of quantum dot-neuron interfaces}.
+ PhD thesis, The University of Texas at Austin, 2004.
+\end{thebibliography}
+%\input{../main.bbl}
+}
+ \end{small}
+\end{frame}
+\end{document}

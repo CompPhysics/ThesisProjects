@@ -1,0 +1,826 @@
+\chapter{Quantum Mechanics for Many-Body Systems}
+In this chapter, we introduce the notation that is common in many-body physics. We will also introduce the formalism of second-quantization and Wick's theorem.
+
+\section{Introduction}
+The underlying fundamentals of quantum mechanics as we know today have not changed much since its birth. We still need to know the Hamiltonian and solve the Schr\"{o}dinger equation. But how we use this theory is a different story. In the real world we have to deal with systems of more than one quantum particle, we therefore need to expand our Schr\"{o}dinger equation to include those particles, and this we call the many-body Schr\"{o}dinger equation. The degrees of freedom increase as our system size gets bigger. We are not able to solve our manybody Schr\"{o}dinger equation with conventional techniques, not analytically nor numerically. Another limiting factor is our knowlegde of the interactions, as the exact Hamiltonian is not known.
+
+Therefore we have to make some assumptions and use approximations, and here is where the \emph{many-body methods} comes in. The first approximation we use is to the Hartree-Fock method on closed shells, assuming that all our electrons interact in the same way. The next method we are going to use is the coupled cluster (CC) method. They are all different in the sense that they have their regions of effectiveness. HF is very fast and gives reasonable result compared to  when we have small systems for very closed shells and the ground state is stable. The CC method, on the other hand, has applications for systems up to 40 electrons, but has problems with convergence and non-variational energies.
+
+
+%26.01.2011
+%Many of manybody methods we are called \emph{ab initio} methods. That means the calculation start from some fundamental interaction. These methods are not based on any empirical assumptions or parametrizations %[ask Morten] What about when we fit trial wave functions to STO's and parametrize the trial wave function. The whole HF is based on educated guess? empirical guess? some knowelgde about empiri gives us the guess? and the Electron Correlation energy Diagram to show how good HF is compared to other methods see page 32 in Patrick.
+\section{The Many-Body Problem}
+\label{sec:many-body problem}
+Let us assume that we have a non-relativistic isolated system of $N$ particles. And assume we can describe the system with a time-independent Hamilton operator $\hat{H}$, then we could reduce the problem to solve the time-independent Schr\"{o}dinger equation:
+
+\begin{equation}
+ \hat{H}(r_1, r_2,...,r_N)\psi_\lambda(r_1,r_2,...,r_N) = E_\lambda \psi_\lambda(r_1, r_2,...,r_N).
+\label{def:manybodyschrodinger}
+\end{equation}
+%
+where the $r_i$ represents particle $i$ with spin $\ket{m_s}$. $\lambda$ denotes the set of quantum numbers for particles 1,...N. 
+
+The many-body wavefunction $\Psi_\lambda$ is a N-body \emph{vector} in the composite Hilbert space:
+
+\begin{equation}
+\psi_\lambda \in \mathcal{H}_N := \mathcal{H}_1 \oplus \mathcal{H}_1 \oplus \ldots \oplus \mathcal{H}_1,
+  \label{maybodyinhilbert}
+\end{equation}
+%
+or
+\begin{equation}
+\ket{\Psi_\lambda} = \ket{\psi_1}  \oplus \ket{\psi_2} \oplus ... \oplus \ket{\psi_N} \equiv \ket{\psi_1\psi_2 ... \psi_N},
+ \label{def:productstates}
+\end{equation}
+%
+where $\ket{\psi_i}$ is a state in a single-particle Hilbert space $\mathcal{H}_1$, which is the space of square integrable function over  
+$\mathbb{R}^d \oplus (\sigma)$, or formally:
+
+\begin{equation}
+\mathcal{H}_1:= L^2(\mathbb{R}^d \oplus (\sigma)).
+\label{hilbertspacedim}
+\end{equation}
+%
+\subsection{The Electronic Hamiltonian}
+We want to describe our physical system with an \emph{ab initio} method, which basically means that we want our Hamiltonian to include the basic forces with no parametrization, in atomic units ($\hbar = c = m_e = 1$) the Hamiltonian is:
+
+\begin{equation}
+\hat{H}  = \hat{T} + \hat{V}.
+ \label{eq:tplussv}
+\end{equation}
+%
+Where $\hat{T}$ is the total kinetic energy operator, and $\hat{V}$ is the total potential energy operator.
+ 
+\begin{equation}
+\hat{T} = \sum_{k} \hat{t}_k.
+ \label{eq:kinetic}
+\end{equation}
+%
+$\hat{t}_k$ is the kinetic energy operator for particle $k$. 
+
+In general we have:
+
+\begin{equation}
+ \hat{V} = \hat{V}_1 + \hat{V}_2 + ...  
+ \label{eq:potential}
+\end{equation}
+ %
+where 
+
+\begin{equation}
+ \hat{V}_n = \frac{1}{n!} \sum_{abc..z} \hat{v}^{(n)}_{abc...z}
+\end{equation}
+$n!$ is because we have indistinguishable particles. For systems of electrons like quantum dots, we will truncate our total potential operator to include up to the two-body potential operator $\hat{V}_2$. But some papers in nuclear physics (ref(papers of three body force)) have proven that the three-body force is a important contributor to the binding energy. Then the electronic Hamiltonian the reads (in atomic units)
+
+\begin{equation}
+\hat{H} = \sum_{k} \hat{t}_k + \frac{1}{2} \sum_{ij} \hat{v}_{ij},
+ \label{def:electronic hamiltonian}
+\end{equation}
+%
+where (in atomic units)
+
+\begin{equation}
+\hat{h}_k = -\frac{1}{2}\nabla^2_k + \sum_{A} \hat{c}_{kA}, \qquad \hat{v}_{ij} = \frac{1}{r_{ij}}.
+ \label{def:electronic hamiltonian parts}
+\end{equation}
+%
+Where the last sum is the Coulomb contribution of interaction of the single-particles with the \emph{core} particles $A$, e.g. electrons around a proton core. 
+
+
+\subsection{Identical Particles}
+In quantum mechanics particles are indistinguishable, and thus we can not tell which of the electrons are in which state. This means that the expectation value would have to be the same when we interchange the coordinates of particle $i$ and $j$. 
+
+\begin{equation}
+|\Psi_{\lambda}(r_1,r_2,..,r_i,..,r_j,..,r_N)|^2 = |\Psi_{\lambda}(r_1,r_2,..,r_j,..,r_i,..,r_N)|^2,
+ \label{eq:interchange}
+\end{equation}
+%
+gives us possible antisymmetric ($-$) and symmetric ($+$) solutions
+
+\begin{equation}
+\Psi_{\lambda}(r_1,r_2,..,r_i,..,r_j,..,r_N) = \pm \Psi_{\lambda}(r_1,r_2,..,r_j,..,r_i,..,r_N).
+\end{equation}
+%
+We will later refer to the symmetric solution as bosons, and the other as fermions.
+Introducing the Permutation operator 
+%
+\begin{equation}
+\hat{P}_{ij}\Psi_\lambda(r_1,r_2,..,r_i,..,r_j,..,r_N) = \Psi_\lambda(r_1,r_2,..,r_j,..,r_i,..,r_N) 
+ \label{eq:poperator}
+\end{equation}
+%
+The eigenvalue equation for $\hat{P}$ gives 
+
+\begin{equation}
+ \hat{P}_{ij}\Psi_\lambda(r_1,r_2,..,r_i,..,r_j,..,r_N) = \beta \Psi_\lambda(r_1,r_2,..,r_i,..,r_j,..,r_N),
+ \label{eq:poperatoreq}
+\end{equation}
+
+\begin{equation}
+\beta = \pm 1 \qquad \text{Since} \qquad \hat{P}^2_{ij} = 1.
+ \label{eq:beta} 
+\end{equation}
+%
+wavefunctions with $(\beta = +1)$ are the bosons, and $(\beta = -1)$ are the fermions. The Hamiltonian is invariant under the interchange of particles and therefore commutes with the permutation operator.
+
+\begin{proof}
+\begin{equation}
+\hat{P}_ {jk} \hat{H} \Psi = \hat{P}_{jk}(\hat{H}_{jk}\Psi_{jk}) =  \hat{H}_{kj}\Psi_{kj} 
+\label{eq:overst}
+\end{equation}
+%
+\begin{equation}
+\hat{H} \hat{P}_{jk} \Psi = \hat{H}_{jk}\hat{P}_{jk}\Psi_{jk} = \hat{H}_{jk} \Psi_{kj}
+\label{eq:nederst}
+\end{equation}
+%
+We then subtract equation (\ref{eq:overst}) with (\ref{eq:nederst}) 
+%
+\begin{equation}
+ \hat{P}_{jk}(\hat{H}\Psi) - \hat{H}(\hat{P}_{jk}\Psi) = \hat{H}_{kj}\Psi_{kj} - \hat{H}_{jk} \Psi_{kj}
+\end{equation}
+%
+or equivalently
+%
+\begin{equation}
+ \left[\hat{P}_{jk},\hat{H} \right] = \left(\hat{H}_{kj} - \hat{H}_{jk}\right)\Psi_{kj}
+\end{equation}
+\end{proof}
+%
+\noindent The permutation operator commutes with the Hamiltonian if and only if $\hat{H}_{kj} = \hat{H}_{jk}$.
+
+According to (\ref{eq:kinetic}) and (\ref{eq:potential}) Hamiltonian is a sum of of onebody and two-body operators. The sums converge and are therefore interchangeable with respect to particles without changing our Hamiltonian.
+
+\begin{equation}
+H_{jk} = H_1... + H_j + ... + H_k + ... = H_1... + H_k + ... + H_j + ... = H_{kj}.
+ \label{eq:HkjequalsHjk}
+\end{equation}
+%
+Then it follows that $\hat{H}$ and $\hat{P}$ are compatible observable (\cite{griffiths}). i.e. there exists eigenfunctions for $\hat{H}$ that are also eigenfunctions of $\hat{P}$. We know we need to construct symmetric wavefunctions for the bosons and antisymmetric for the fermions. One way of doing this is using a symmetrization operator for bosons
+
+\begin{equation}
+\hat{S} = \frac{1}{N!} \sum_p \hat{P}
+ \label{def:symmetrizer}
+\end{equation}
+%
+where $p$ is the called the permutation number and is the \emph{set} of all possible permutations including the empty set. $p = \{\emptyset,[1,2],[1,3],[2,3]\}$  for three particles.
+The normalized symmetric state $\Phi_S$ is then given by
+
+\begin{equation}
+\Phi_S(r_1,r_2,...,r_N) = \sqrt{\frac{N!}{n_\alpha!n_\beta!...n_\gamma!}} \hat{S} \phi_\alpha(r_1)\phi_\beta(r_2)...\phi_\gamma(r_N)
+ \label{def:symmetricwave}
+\end{equation}
+%
+Similarly we have the anti-symmetrization operator for fermions
+
+\begin{equation}
+\hat{A} = \frac{1}{N!} \sum_p (-1)^p \hat{P},
+ \label{def:antisymmetrizer}
+\end{equation}
+%
+and the normalized antisymmetric states
+
+\begin{equation}
+\Phi_{AS}(r_1,r_2,...,r_N) = \sqrt{N!} \hat{A} \psi_\alpha(r_1)\psi_\beta(r_2)...\psi_\gamma(r_N).
+ \label{def:antisymmetricwave}
+\end{equation}
+%
+or equivalently
+
+\begin{equation}
+  \Phi_{\alpha\beta...\gamma}(r_1,r_2,...,r_N) = \frac{1}{\sqrt N!} 
+\left|\begin{array}{cccc} 
+\phi_\alpha(r_1) & \phi_\beta(r_1) & ... & \phi_\gamma(r_1) \\
+\phi_\alpha(r_2) & \phi_\beta(r_2) & ... & \phi_\gamma(r_2) \\
+\vdots & \vdots & \vdots & \vdots \\
+\phi_\alpha(r_N) & \phi_\beta(r_N) & ... & \phi_\gamma(r_N) \\
+\end{array} \right|.
+\label{def:slaterdeterminant}
+\end{equation}
+%
+This was first introduced by J.C. Slater \cite{slaterdeterminant} in 1929 and is popularly called a Slater determinant. It obeys the Pauli Exclusion Principle (PEP): The determinant would be zero if two of the single-particle wavefunctions have the same quantum numbers $\alpha, \beta, ... \gamma$. 
+
+
+The most general way of writing our wavefunction of the N-fermion system is to have a linear combination of the Slater determinants (\ref{def:slaterdeterminant}).
+
+\begin{equation}
+\Psi_\lambda(r_1,r_2,....,r_N) = \sum_{\alpha\beta...\gamma} C_{\alpha\beta...\gamma}^{\lambda}  \Phi_{\alpha\beta...\gamma}(r_1,r_2,...,r_N)
+ \label{def:generalslaterdeterminant}
+\end{equation}
+
+\section{Second Quantization}
+\label{sec:second quantization}
+The second-quantization formalism was first introduced by Dirac (1927) and extended to fermion systems by Jordan and Klein (1927) and by Jordan and Wigner (1928) \cite{bartlett}. The formalism of \emph{second quantization} is just a simplification in the description of a many-body system, a reformulation of the original Schr\"{o}dinger equation. The quantum mechanical states are represented by annihilation and creation operators working on the physical vacuum state. 
+
+We will look at fermionic systems, therefore we will restrict the many-particle functions to be antisymmetric and choose the \emph{Slater determinant} (\ref{def:slaterdeterminant}) as our candidate. And introduce the occupancy notation for Slater determinants
+%
+\begin{equation}
+\Phi_{\alpha_1 \alpha_2...\alpha_N} \equiv \ket{\alpha_1\alpha_2...\alpha_N}.
+ \label{def:state}
+\end{equation}
+%
+Note: this is not the same as the product states in (\ref{def:productstates}). This is antisymmetrized 
+
+\begin{equation}
+\ket{\alpha_1..\alpha_i\alpha_j..\alpha_N} = -\ket{\alpha_1..\alpha_j\alpha_i..\alpha_N}.
+ \label{def:antisymmetricstate}
+\end{equation}
+%
+And the state ''lies`` in what we called the Fock space,  which is a tensor product space of antisymmetric Hilbert spaces:
+
+\begin{equation}
+\mathcal{F}_N = \bigoplus_{n=0}^N \mathcal{H}_n^{AS}.
+ \label{def:fockspace}
+\end{equation}
+%
+In this case we have a state in an $N$-dimentional Fock space. 
+
+\subsection{Creation and Annihilation Operators}
+The creation and annihilation operators are mappings between different $N$ and $N\pm1$ dimentional Hilbert spaces,
+
+\begin{equation}
+a_{\alpha}^{\dagger}: \mathcal{H}_{N}^{AS} \rightarrow \mathcal{H}_{N+1}^{AS},
+ \label{def:creation}
+\end{equation}
+
+\begin{equation}
+a_{\alpha}: \mathcal{H}_N^{AS} \rightarrow \mathcal{H}_{N-1}^{AS},
+ \label{def:annihilation}
+\end{equation}
+%
+where 
+
+\begin{equation}
+ \alpha \in \mathcal{H}_1.
+\end{equation}
+%
+A creation operator $a_{\alpha}^{\dagger}$ will create a fermion with quantum number(s) $\alpha$ from the antisymmetric state (\ref{def:state})
+ 
+
+\begin{equation}
+a_{\alpha}^{\dagger} \ket{0} = \ket{\alpha}.
+ \label{ex:creation}
+\end{equation}
+%
+$\ket{0}$ is the vacuum state. If $\alpha$ is already occupied, the result is zero due to PEP. 
+
+\begin{equation}
+a_{\alpha}^{\dagger} \ket{\alpha} = 0.
+ \label{ex:creationpep}
+\end{equation}
+%
+An annihilation operator $a_{\alpha}$ will remove a fermion with quantum number(s) $\alpha$ from the antisymmetric state (\ref{def:state})
+
+\begin{equation}
+a_{\alpha}\ket{\alpha} = \ket{0},
+ \label{ex:annihilation}
+\end{equation}
+
+\begin{equation}
+a_{\alpha}\ket{0} = 0.
+ \label{ex:annihilationvacuum}
+\end{equation}
+%
+If $\alpha$ does not exist, the result is zero due to annihilation of a vacuum state. 
+
+\begin{equation}
+a_{\alpha} \underbrace{\ket{\alpha_1\alpha_2...\alpha_N}}_{\alpha \notin} = 0.
+ \label{ex:annihilationpep}
+\end{equation}
+%
+Our Slater determinant (\ref{def:state}) can now be written as a product of creation operators
+
+\begin{equation}
+\ket{\alpha_1\alpha_2...\alpha_N} = \prod_{i=1}^N a_{\alpha_i}^\dagger \ket{0}.
+ \label{eq:slatercreationproduct}
+\end{equation}
+%
+Using the antisymmetry of the states (\ref{def:antisymmetricstate}) we can show that
+
+\begin{equation}
+a_{\alpha_i}^\dagger a_{\alpha_k}^\dagger = - a_{\alpha_k}^\dagger a_{\alpha_i}^\dagger,
+ \label{eq:creationcommute}
+\end{equation}
+%
+leading to the anticommutation rule for creation operators
+
+\begin{equation}
+\{a_{\alpha}^\dagger ,a_{\beta}^\dagger \} = a_{\alpha}^\dagger a_{\beta}^\dagger  + a_{\beta}^\dagger a_{\alpha}^\dagger = 0.
+ \label{eq:creationanticommute}
+\end{equation}
+%
+Note: If $\alpha = \beta$ we would also get zero because of PEP. The hermitian conjugate (adjoint) of $a_{\alpha}^\dagger$ is the annihilation operator,
+
+\begin{equation}
+\left(a_{\alpha}^\dagger \right)^\dagger = a_\alpha
+ \label{def:creationadjoint]}
+\end{equation}
+%
+We have the following anticommutation relation for the annihilation operators (see \cite{bartlett} for details)
+
+\begin{equation}
+\{a_\alpha, a_\beta \} = a_\alpha a_\beta + a_\beta a_\alpha = 0
+ \label{eq:annihilationanticommute}
+\end{equation}
+%
+and 
+
+\begin{equation}
+\{a_{\alpha}^\dagger, a_\beta \} = \{a_{\alpha}, a_\beta^\dagger \}  = \delta_{\alpha \beta}
+ \label{eq:creationannihilationanticommute}
+\end{equation}
+%
+where $\delta_{\alpha \beta}$ is $0$ if $\alpha \neq \beta$ and $1$ if $\alpha = \beta$.
+
+\subsection{Representation of Operators}
+Now that we have a formalism for our states, we want to calculate matrix elements and expectation values of our \emph{many-body} operators. Starting with the number-operator. It is a way to test that our many-body formalism conserves the particle number. 
+
+\begin{equation}
+\hat{N} = \sum_\alpha a_{\alpha}^\dagger a_{\alpha},
+ \label{def:numberoperator}
+\end{equation}
+%
+and operating this on a state gives us the eigenvalue of $n$, which is the number of fermions in that state.
+
+\begin{equation}
+\hat{N} \ket{\alpha_1 \alpha_2... \alpha_N} = \sum_\alpha a_{\alpha}^\dagger a_{\alpha} \ket{\alpha_1 \alpha_2... \alpha_N} = n  \ket{\alpha_1 \alpha_2... \alpha_N} 
+ \label{def:numberoperatorstate}
+\end{equation}
+%
+Because from  (\ref{ex:creation}),(\ref{ex:annihilationpep}) and (\ref{ex:annihilationpep}) we get 
+
+\begin{equation}
+ a_{\alpha}^\dagger a_{\alpha} \ket{\alpha_1 \alpha_2... \alpha_N}= \left\{ \begin{array}{ll}
+ 0 & \mbox{$\alpha \notin \{\alpha_i\}$} \\
+  \ket{\alpha_1 \alpha_2... \alpha_N} & \mbox{$\alpha \in \{\alpha_i\}$}
+       \end{array} \right..
+ \label{def:becausenumberoperators}
+\end{equation}
+% 
+The number operator is a one-body operator since it acts on one single-particle state at a time. Another type is the one-body operator \cite{bartlett}.
+
+\begin{equation}
+\hat{F} = \sum_{\alpha \beta} \bra{\alpha} \hat{f} \ket{\beta} \ket{\alpha}\bra{\beta}
+ \label{def:onebodyoperator}
+\end{equation}
+%
+where $\ket{\alpha},\ket{\beta}$ is the chosen single-particle basis. It can be rewritten and expressed with creation and annihilation operators. The second quantisized form of $\hat{F}$
+
+\begin{equation}
+\hat{F} = \sum_{\alpha \beta} \bra{\alpha} \hat{f} \ket{\beta} a_{\alpha}^\dagger a_{\beta}
+ \label{def:rewrittenonebodyoperator}
+\end{equation}
+
+
+%One spesial case is the one-body operator for the kinetic energy plus an external one-body %potential.
+
+%\begin{equation}
+%\hat{H}_0 = \sum_{\alpha \beta} \bra{\alpha} \hat{h}_0 \ket{\beta} a_{\alpha}^\dagger a_{\beta}
+% \label{def:spesialonebodyoperator}
+%\end{equation}
+
+%where $\hat{h}_0 = \hat{t} + \hat{u}$. 
+
+The operator $\hat{F}$ removes a fermion from the state $\beta$ and creates a new one in state $\alpha$. This transition is given by the probability amplitude $\bra{\alpha}\hat{f}\ket{\beta}$.
+
+Generally we can do this for an N-body operator. But we will only consider a two-body operator:
+
+\begin{equation}
+\hat{V} = \sum_{\alpha \beta \gamma \delta} \bra{\alpha \beta} v \ket{\gamma \delta}   \ket{\gamma \delta} \bra{\alpha \beta}.
+ \label{def:twobodyoperator}
+\end{equation}
+%
+For an $N$-particle system we have
+
+\begin{equation}
+V_N = \sum_{i<j=1}^N \hat{v}_{ij} = \frac{1}{2} \sum_{i\neq j}^N \hat{v}_{ij}.
+ \label{def:N-twobodyoperator}
+\end{equation} 
+%
+This can be used to rewrite $\hat{V}$ to
+
+\begin{align}
+\hat{V} &= \frac{1}{2} \sum_{\alpha\beta\gamma\delta}\bra{\alpha \beta} v \ket{\gamma \delta} a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta}, a_{\gamma} \\
+        &= \frac{1}{4} \sum_{\alpha\beta\gamma\delta} \bra{\alpha \beta}|v|\ket{\gamma \delta} \, a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta}, a_{\gamma} 
+ \label{eq:secondquantized}
+\end{align}
+%
+where we have defined the antisymmetric matrix element to be
+\begin{align}
+\bra{\alpha \beta} |v| \ket{\gamma \delta} = \bra{\alpha \beta} v \ket{\gamma \delta} - \bra{\alpha \beta} v \ket{\delta\gamma}.
+ \label{def:antisymmetrizedmatrix}
+\end{align}
+%Note that if alpha = beta, gamma, delta we would automatically get 0, no need to have the condition alpha != beta like in the def:N-twobodyoperator. That is restriction of the summation index are not needed because of PEP
+see \cite{manybodyjensen} and \cite{dick} for details of this derivation. The interpretation of the operator $\hat{V}$ is that it removes two fermions in the states $\gamma$ and $\delta$, and creates two others in states $\alpha$,$\beta$. This is done with probability amplitude  $\frac{1}{4}\bra{\alpha \beta} v \ket{\gamma \delta}_{\text{AS}}$. 
+%
+But what is interesting here is to calculate expectation values of the operator (\ref{eq:secondquantized}). Let us find the expectation value of $\hat{V}$ with respect to the two-particle product states $\ket{\alpha_1 \alpha_2}$ and $\ket{\beta_1}{\beta_2}$
+
+\begin{align}
+\bra{\alpha_1\alpha_2}\hat{V}\ket{\beta_1\beta_2} &= \frac{1}{4} \sum_{\alpha\beta\gamma\delta} 
+ \bra{\alpha \beta} |v| \ket{\gamma \delta}\bra{\alpha_1 \alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta} a_{\gamma} \ket{\beta_1\beta_2}, \\ 
+  & = \frac{1}{4} \sum_{\alpha\beta\gamma\delta} \bra{\alpha \beta} |v| \ket{\gamma \delta}\bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta} a_{\gamma} a_{\beta_1}^\dagger a_{\beta_2}^\dagger \ket{0}.
+\end{align}
+%Derivate the expectation value
+Using the anticommutation relations (\ref{eq:creationanticommute}),(\ref{eq:annihilationanticommute}) and (\ref{eq:creationannihilationanticommute}), we get
+
+\begin{align}
+ &\bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta} a_{\gamma} a_{\beta_1}^\dagger a_{\beta_2}^\dagger \ket{0} \nonumber \\
+&= \bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger \left( a_{\delta} \delta_{\gamma\beta_1} a_{\beta_2}^{\dagger} -  a_\delta a_{\beta_1}^\dagger a_\gamma a_{\beta_2}^\dagger \right) \ket{0} \\ 
+&= \bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger \left( \delta_{\gamma\beta_1}\delta_{\delta \beta_2} - \delta_{\gamma \beta_1} a_{\beta_2}^{\dagger} a_{\delta} - a_{\delta} a_{\beta_1}^{\dagger} \delta_{\gamma \beta_2} + a_\delta a_{\beta_1}^{\dagger}a_{\beta_2}^{\dagger} a_\gamma \right) \ket{0}\\
+&=\bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger \left(\delta_{\gamma\beta_1}\delta_{\delta \beta_2} - \delta_{\gamma \beta_1} a_{\beta_2}^{\dagger} a_{\delta} - \delta_{\delta\beta_1}\delta_{\gamma\beta_2} \delta_{\gamma \beta_2} + \delta_{\gamma\beta_2}a_{\beta_1}^{\dagger}a_\delta + a_\delta a_{\beta_1}^{\dagger}a_{\beta_2}^{\dagger} a_\gamma \right) \ket{0}
+\end{align}
+% 
+The only terms that survive are the terms with only kronecker deltas, because all the other terms have an annihilation operator to the left, which yields zero with vacuum state, (\ref{ex:annihilationvacuum}).
+
+\begin{equation}
+\bra{0} a_{\alpha_1} a_{\alpha_2} a_{\alpha}^\dagger a_{\beta}^\dagger a_{\delta} a_{\gamma} a_{\beta_1}^\dagger a_{\beta_2}^\dagger \ket{0} = \left(\delta_{\gamma\beta_1}\delta_{\delta\beta_2} - \delta_{\delta\beta_1}\delta_{\gamma\beta_2}\right)\bra{0} a_{\alpha_2} a_{\alpha_1} a^{\dagger}_{\alpha} a^{\dagger}_{\beta} \ket{0}
+\label{eq:vacuumexpectation}
+\end{equation}
+%
+Similariy we can rewrite 
+
+\begin{equation}
+\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \delta_{\alpha \alpha_1}\delta_{\beta \alpha_2} - \delta_{\beta \alpha_1}\delta_{\alpha \alpha_2}
+ \label{eq:vacuumexpectation2}
+\end{equation}
+%
+This gives us the following expectation value
+
+\begin{align}
+\bra{\alpha_1\alpha_2}\hat{V}\ket{\beta_1\beta_2} &= \frac{1}{2} \left[ \bra{\alpha_1\alpha_2}v\ket{\beta_1\beta_2} - \bra{\alpha_1\alpha_2}v\ket{\beta_2\beta_1} - \bra{\alpha_2\alpha_1}v\ket{\beta_1\beta_2} + \bra{\alpha_2\alpha_1}v\ket{\beta_2\beta_1} \right]\\
+ &= \bra{\alpha_1\alpha_2}v\ket{\beta_1\beta_2} - \bra{\alpha_1\alpha_2}v\ket{\beta_2\beta_1}\\
+ &= \bra{\alpha_1\alpha_2}v\ket{\beta_1\beta_2}_{\text{AS}} 
+ \label{res:twobodyexpectation}
+\end{align}
+%
+As we see, this can be very tedious and inefficient as we have to write out contributions that gives us zero. But we can use Wick's theorem to more easily find those terms that give us contribution. This will be our next topic. The second-quantized form of electronic Hamiltonian from (\ref{def:electronic hamiltonian},\ref{def:electronic hamiltonian parts}) is then %badness underfull 
+
+\begin{equation}
+\hat{H} = \sum_{ij} \bra{i}\hat{h}\ket{j}a_i^{\dagger} a_j+ \frac{1}{4} \sum_{ijkl} \bra{ij}|\hat{v}|\ket{kl} a_i^{\dagger} a_j^{\dagger} a_l a_k
+ \label{def:secondquantized hamiltonian}
+\end{equation}
+%
+And its vacuum expectation value:
+\begin{equation}
+\bra{0}\hat{H}\ket{0} = \sum_{i} \bra{i}h\ket{i} + \frac{1}{4} \sum_{ij} \bra{ij}|v|\ket{ij}
+ \label{eq:second-qunatized vacuum expectation value}
+\end{equation}
+
+
+\subsection{Wick's Theorem}
+Originally Gian-Carlo Wick established this method (1950) in order to evalute the $S$-matrix in quantum field theory (see for \cite{wick} and \cite{chang} for details). He introduced two concepts: \emph{normal ordering} and \emph{contractions}. Normal ordering is just a way to write products of annihilation and creation operators in a systematic manner. 
+
+The operators $\hat{A},\hat{B},\hat{C},...$ represents both creation and annihilation operators. Then the \emph{normal ordering} of the operators $\{\hat{A}\hat{B}\hat{C}...\}$ are defined as the rearrangement such that all of the annihilation operators are to the left of the creation operators, multiplied with a phase factor which is $-1$ for each permutation of the nearest neighboor operators.
+
+\begin{equation}
+\left \{ \hat{A}\hat{B}...\hat{U}\hat{V} \right \} \equiv (-1)^{p} u^{\dagger}v^{\dagger}w^{\dagger}...cba 
+ \label{def:normalorder}
+\end{equation}
+%
+The superscript $p$ denotes the number of permutations needed to bring the original operator product into the normal ordered form. 
+\\   %How to get Example \newline without badness???
+Example:
+\begin{align}
+\{a^{\dagger}b\} &= a^{\dagger}b, \qquad \{ab^{\dagger}\} = -b^{\dagger}a, \nonumber \\
+\{ab\} &= ab = -ba, \\
+\{a^{\dagger}bc^{\dagger}d\} & = a^{\dagger} c^{\dagger} db = c^{\dagger}a^{\dagger} bd = -a^{\dagger} c^{\dagger}bd =  -c^{\dagger} a^{\dagger}db \nonumber
+  \label{ex:normalorder}
+\end{align}
+Note that the normal ordered form of operators is not unique since creation and annihilation operators can permute among themselves. Also note that one of the important properties of normal ordered operators is that its vacuum expectation value is zero. 
+\begin{equation}
+\bra{0}\ql\{\hh{A}\hh{B}...\qr\}\ket{0} = 0
+ \label{show:vacuumexpectnormalorder}
+\end{equation}
+%
+Because of 
+\begin{equation}
+a_\alpha\ket{0} = 0
+\label{eq:becauseannihilation} 
+\end{equation}
+\begin{equation}
+\bra{0}a^\dagger_\alpha = 0
+\label{eq:becausecreation} 
+\end{equation}
+%
+A contraction between two operators is defined as
+\begin{equation}
+\contraction{}{\hh{A} }{}{\hh{B}}
+\hh{A}\hh{B} \equiv \hh{A} \hh{B} - \ql \{ \hh{A} \hh{B} \qr \}
+ \label{def:contraction}
+\end{equation}
+%
+And we have only four possible contractions
+\begin{align}
+\contraction{}{\hat{a}}{{}_{\alpha}^{\dagger}}{a}
+a_{\alpha}^{\dagger}a_{\beta}^{\dagger} &= a_{\alpha}^{\dagger}a_{\beta}^{\dagger} - a_{\alpha}^{\dagger}a_{\beta}^{\dagger} = 0 \\
+\contraction{}{a}{{}_{\alpha}}{a}
+a_{\alpha}a_{\beta} &= a_{\alpha}a_{\beta} = 0 \\
+\contraction{}{\hat{a}}{{}_{\alpha}^{\dagger}}{a}
+a_{\alpha}^{\dagger}a_{\beta} &= a_{\alpha}^{\dagger}a_{\beta} - a_{\alpha}^{\dagger}a_{\beta} = 0 \\
+\contraction{}{\hat{a}}{{}_{\alpha}^{\dagger}}{a}
+a_{\alpha}a_{\beta}^{\dagger} &= a_{\alpha}a_{\beta}^{\dagger} - ( - a_{\beta}^{\dagger}a_{\beta}^{\dagger} ) = \delta_{\alpha\beta} \qquad \text{from (\ref{eq:creationannihilationanticommute})}
+ \label{eq:contractionpossibilities}
+\end{align}
+%
+We can have contractions between operators inside a normal ordered product,
+\begin{equation}
+\contraction{\ql \{ \qr. \hh{A}\hh{B}\hh{C},.}{\hh{P}}{}{\hh{Q}} 
+\contraction{\ql \{ \qr. \hh{A}\hh{B}\hh{C}...\hh{P}\hh{Q},.}{\hh{X}}{}{\hh{Y}} 
+\contraction{\ql \{ \hh{A}\hh{B}\hh{C}...\hh{P}\hh{Q}...\hh{X}\hh{Y}...\qr \} = (-1)^{p} }{\hh{P}}{}{\hh{Q}} 
+\contraction{\ql \{ \hh{A}\hh{B}\hh{C}...\hh{P}\hh{Q}...\hh{X}\hh{Y}...\qr \} = (-1)^{p} \hh{P}\hh{Q}}{\hh{X}}{}{\hh{Y}} 
+\ql \{ \hh{A}\hh{B}\hh{C}...\hh{P}\hh{Q}...\hh{X}\hh{Y}...\qr \} = (-1)^{p} \hh{P}\hh{Q} \hh{X}\hh{Y} \ql \{ \hh{A}\hh{B}\hh{C}...\qr \}
+ \label{def:contrationinsidenormalorder}
+\end{equation}
+%
+Wick's theorem states that we can express any product of creation and annihilation operators as sum of normal ordered products with all possible ways of contractions, i.e.
+
+\begin{align}
+\hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}\hh{X}\hh{Y}\hh{Z} &= \ql\{ \hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}\hh{X}\hh{Y}\hh{Z} \qr \}  \nonumber\\
+\contraction{ + \sum_{(1)} \ql\{ \qr.}{\hh{A}}{}{..}
+& + \sum_{(1)} \ql\{ \hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}\hh{X}\hh{Y}\hh{Z} \qr \} \nonumber\\
+\contraction{ + \sum_{(1)} \ql\{ \qr.}{\hh{A}}{,.}{\hh{C}}  %A little cheating whith ,.
+\contraction[2ex]{ + \sum_{(1)} \ql\{ \qr.\hh{A}}{\hh{B}}{,.}{\hh{D}}  %A little cheating whith ,.
+& + \sum_{(2)} \ql\{ \hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}\hh{X}\hh{Y}\hh{Z} \qr \} \nonumber\\
+&+...\nonumber\\
+\contraction{ + \sum_{(N/2)} \ql\{ \qr.}{\hh{A}}{,.}{\hh{C}}  %A little cheating whith ,.
+\contraction[2ex]{ + \sum_{(N/2)} \ql\{ \qr.\hh{A}}{\hh{B}}{,.}{\hh{D}}  %A little cheating whith ,.
+\contraction{ + \sum_{(N/2)} \ql\{ \qr.\hh{A}\hh{B}\hh{C}\hh{D}...}{\hh{V}}{.,}{\hh{Y}}
+\contraction[2ex]{ + \sum_{(N/2)} \ql\{ \qr.\hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}}{\hh{X}}{,.}{\hh{Z}}
+& + \sum_{(N/2)} \ql \{ \hh{A}\hh{B}\hh{C}\hh{D}...\hh{V}\hh{X}\hh{Y}\hh{Z} \qr \} 
+\label{def:wicksteorem}
+\end{align}
+
+$\sum_{(m)}$ means sum over all terms with $m$ representing the number of contractions. $N$ is the total number of creation and annihilation operators. If there are different numbers of creation and annihilation operators, the vacuum expectation value would be zero, because of Eq. (\ref{eq:becauseannihilation}) and Eq. (\ref{eq:becausecreation}). If $N$ is odd, one of the operators would not be contracted and we would get zero as well. In order to get contribution one must contract all of the operators. For details of the proof see \cite{peskin} or \cite{bartlett}. 
+
+The generalized Wick's theorem follows directly from Wick's theorem and states that the normal ordered product of operators strings $\{...\}$ are the same as the sum of the normal ordered product of the total group with all possible ways of contractions, i.e. 
+
+\begin{align}
+\ql\{\hh{A}\hh{B}\hh{C}\hh{D}..\qr \} \ql \{\hh{V}\hh{X}\hh{Y}\hh{Z}..\qr \} & = \ql \{ \hh{A}\hh{B}\hh{C}\hh{D}..\hh{V}\hh{X}\hh{Y}\hh{Z}\qr\} \nonumber \\
+\contraction{+\sum_{(1)} \ql \{ \qr .}{\hh{A}}{\hh{B}\hh{C}\hh{D},}{\hh{V}} 
+& +\sum_{(1)} \ql \{ \hh{A}\hh{B}\hh{C}\hh{D}..\hh{V}\hh{X}\hh{Y}\hh{Z}\qr\} \nonumber \\
+\contraction{+\sum_{(2)} \ql \{ \qr .}{\hh{A}}{\hh{B}\hh{C}\hh{D},}{\hh{V}} 
+\contraction[2ex]{+\sum_{(2)} \ql \{ \qr . \hh{A}}{\hh{B}}{\hh{C}\hh{D},\hh{V}}{\hh{X}} 
+& +\sum_{(2)} \ql \{ \hh{A}\hh{B}\hh{C}\hh{D}..\hh{V}\hh{X}\hh{Y}\hh{Z}\qr\} \nonumber \\
+& + ... \nonumber \\
+\contraction{+\sum_{(N/2)} \ql \{ \qr .}{\hh{A}}{\hh{B}\hh{C}\hh{D}.}{V}
+\contraction[2ex]{+\sum_{(N/2)} \ql \{ \qr .\hh{A}}{\hh{B}}{\hh{C}\hh{D}..\hh{V}}{\hh{X}}
+\contraction[3ex]{+\sum_{(N/2)} \ql \{ \qr .\hh{A}\hh{B}}{\hh{C}}{\hh{D}..\hh{V}\hh{X}}{Y}
+\contraction[4ex]{+\sum_{(N/2)} \ql \{ \qr .\hh{A}\hh{B}\hh{C} }{\hh{D}}{..\hh{V}\hh{X}\hh{Y}}{Z}
+& +\sum_{(N/2)} \ql \{ \hh{A}\hh{B}\hh{C}\hh{D}..\hh{V}\hh{X}\hh{Y}\hh{Z}\qr\} \nonumber \\
+ \label{def:generalizednormalorder}
+\end{align}
+%
+Note that the only contribution to the vacuum expectation value comes from the full contractions, only the last sum will give contribution. There are no \emph{internal}  contractions, i.e. contraction between pairs of operators inside each operator string $\{..\}$. 
+
+As an example, we can now use Wick's theorem to find the vacuum expectation value of the following products:
+
+\begin{align}
+\contraction{\bra{0} a_{i}a_{j}^{\dagger} \ket{0} .;;  \ql \{ \qr.}{a}{{}_{i}}{a}
+\bra{0} a_{i}a_{j}^{\dagger} \ket{0} &=   \ql \{ a_{i}a_{j}^{\dagger} \qr \} =\delta_{ij}  \label{eq:vacuumexpectation2redo one-body} \\
+%
+\contraction{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql \{ \qr.}{a}{{}_{\alpha_2}a_{\alpha_1} }{a}
+%
+\contraction[2ex]{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql \{ a_{\alpha_2} \qr.}{a}{{}_{\alpha_1}a_{\alpha}^{\dagger}}{a}
+%
+\contraction{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} + \ql \{ \qr. a_{\alpha_2}}{a}{{}_{\alpha.}}{a}
+%
+\contraction[2ex]{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql 
+\{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} + \ql \{ \qr. }{a}{{}_{\alpha_2}a_{\alpha_1}a^{\dagger}_{\alpha}}{a}
+%
+\contraction{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} + \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} 
++ ,,.}{a}{{}_{\alpha_1}}{a}
+%
+\contraction{\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0} = \ql \{ a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} + \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} 
++ \ql \{ \qr. a_{\alpha_2}a_{\alpha.}.}{a}{{}^{\dagger}_{\alpha}}{a}
+%
+\bra{0} a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \ket{0}&= \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} + \ql \{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger} \qr \} 
++ \ql \{\underbrace{a_{\alpha_2}a_{\alpha_1}a_{\alpha}^{\dagger}a_{\beta}^{\dagger}}_{=0} \qr \}  \nonumber \\
+%
+& = \delta_{\alpha \alpha_1}\delta_{\beta \alpha_2} - \delta_{\beta \alpha_1}\delta_{\alpha \alpha_2}  \label{eq:vacuumexpectation2redo}
+\end{align}
+
+
+\subsection{Particle-Hole Formalism}
+\label{sec:particle-hole formalism}
+One of the advantages with second quantization is that we can easily introduce a reference SD: $\ket{c}$ instead of using the physical vacuum state $\ket{0}$. This reduces the dimensionality of the problem and the new reference state would be defined by a boldfaced zero
+
+\begin{equation}
+\ket{\bf 0} \equiv \ket{\Phi_0} = \ket{ijk...n} 
+ \label{def:referencestate}
+\end{equation}
+%
+The new reference state $\ket{\bf 0}$ is also referred to as the \emph{Fermi vacuum}, this is now our Fermi level which is the level of our last occupied quantum state, usually the highest occupied orbital.
+\\
+In this representation we have hole states in addition to particle states. We will define what the hole-states are after the following example. Assume that we have three states that are successively filled with $n-1$,$n$ and $n+1$ single-particle states $\alpha_i$
+
+\begin{align}
+\ket{\Phi_0} &\equiv \ket{\alpha_1\alpha_2...\alpha_{n}} &\qquad \text{(reference state)} \label{def:reference state} \\
+\ket{\Phi_{\alpha_1}} &\equiv \ket{\alpha_2\alpha_3...\alpha_{n}} = a_{\alpha_1} \ket{\Phi_0} &\qquad \text{(creation of a hole)} \label{def:creation of a hole} \\
+\ket{\Phi^{\alpha}} &\equiv \ket{\alpha\alpha_1\alpha_2...\alpha_{n}} = a_{\alpha}^{\dagger} \ket{\Phi_0} &\qquad \text{(creation of a particle)}
+ \label{def:creation of a particle}
+\end{align}
+%
+And assume that the energies of the single-particle orbitals is such that (see Figure (\ref{fig:particleholerepresentation}))
+\begin{equation} \epsilon_{\alpha_{n+1}}>\epsilon_{\alpha_n}>\epsilon_{\alpha_{n-1}}>...\epsilon_{\alpha_{2}}>\epsilon_{\alpha_{1}}
+ \label{def:singleparticleenergies} 
+\end{equation}
+%
+Let us then define our Fermi level to be $\alpha_n$, a \emph{hole} is then a state that is below or equal to the Fermi level $\alpha_i \leq \alpha_n$. And a particle is a state above $\alpha_i > \alpha_n$. 
+
+When we change our reference state from the physical vacuum state $\ket{0}$ to a particle-hole vaccum $\ket{\bf 0}$, we have to introduce new operators as well. 
+
+\begin{equation}
+a_{\alpha} \ket{\bf 0} \neq 0 
+ \label{show:neednewoperators}
+\end{equation}
+%
+since $\alpha \in \ket{\bf 0}$, while for the physical vacuum we have $a_\alpha \ket{0} = 0$ for all $\alpha$. The new operators need to have the relation $b_\alpha\ket{\bf 0} = 0$.
+
+The new operators are called \emph{quasi-} annihilation and creation operators, viz
+
+\begin{equation}
+b_{\alpha}^{\dagger} = \left\{ \begin{array}{rl}
+ a_\alpha^{\dagger}, & \alpha > \alpha_F\\
+ a_\alpha, & \alpha \leq \alpha_F
+       \end{array} \right.
+ \label{def:quasi-creation}
+\end{equation} 
+
+\begin{equation}
+b_{\alpha} = \left\{ \begin{array}{rl}
+ a_\alpha, & \alpha > \alpha_F \\
+ a_\alpha^{\dagger}, & \alpha \leq \alpha_F
+       \end{array} \right.
+ \label{def:quasi-annihilation}
+\end{equation}
+%
+Where $\alpha_F$ is the Fermi level representing the last occupied single-particle orbit of the reference state $\ket{c}$. 
+%
+And we have the following anticommutation relations
+\begin{align}
+\ql \{ b_{\alpha}, b_{\beta} \qr \} &= 0  \label{def:quasioperator1}\\
+\ql \{ b_{\alpha}^{\dagger}, b_{\beta}^{\dagger} \qr \} &= 0  \label{def:quasioperator2}\\
+\ql \{ b_{\alpha}^{\dagger}, b_{\beta}  \qr \} &= \delta_{\alpha \beta}  \label{def:quasioperator3}
+\end{align}
+%
+The reference state is normalized
+
+\begin{equation}
+ \braket{c}{c} = 1
+\end{equation}
+%
+A quasi particle state is defined by a state which has one or more particles/holes  added to the reference state $\ket{c}$.
+%
+\begin{equation}
+\ket{abcd...ijkl...pqrs...} \equiv b_a^{\dagger}b_b^{\dagger}b_c^{\dagger}b_d^{\dagger}...b_i^{\dagger}b_j^{\dagger}b_k^{\dagger}b_l^{\dagger}...b_p^{\dagger}b_q^{\dagger}b_r^{\dagger}b_s^{\dagger}\ket{c}
+ \label{def:manybody-quasiparticle}
+\end{equation}
+%
+The convention is that indices $i,j,k,l...$ indicate states which are occupied by holes. Indices $a,b,c,d...$ indicate the states which are occupied by particles. And $p,q,r,s...$ indicate any state. We are going to simplify the notation further
+
+\begin{align}
+ b_i^{\dagger} &= a_i           = i         \,\,\,\,\,\qquad \text{(creation of a hole = removing a state below $\alpha_F$)} \nonumber \\
+ b_i           &= a_i^{\dagger} = i^\dagger \,\,\qquad \text{(annihilation of a hole = creating a state below $\alpha_F$)} \nonumber \\
+ b_a^{\dagger} &= a_a^{\dagger} = a^\dagger \qquad \text{(creation of a particle = adding a state above $\alpha_F$) } \nonumber \\
+ b_a           &= a_a           = a         \,\,\qquad \text{(annihilation of a particle = removing a state above $\alpha_F$)}
+\label{def:simplyfied notation of quasi-operators}
+\end{align}
+%
+with the following contractions
+\begin{align}
+\contraction{}{p}{{}^{\dagger}}{q}
+\contraction{p^{\dagger}q^{\dagger} = }{p}{}{q}
+p^{\dagger}q^{\dagger} &= pq = 0  \label{eq:contraction 1} \\
+\contraction{}{i}{{}^{\dagger}}{j}
+i^{\dagger}j &= \delta_{ij} \label{eq:contraction 2} \\
+\contraction{}{i}{}{j}
+ij^{\dagger} &= 0 \label{eq:contraction 3} \\
+\contraction{}{\hat{a}}{}{b}
+ab^{\dagger} &= \delta_{ab} \label{eq:contraction 4}\\
+\contraction{}{\hat{a}}{{}^{\dagger}}{b}
+a^{\dagger}b &= 0 \label{eq:contraction 5}
+\end{align}
+
+%\begin{equation}
+% \text{\scalebox{0.5}{\input{occupation_orbitals2.pdftex_t}}}
+%\end{equation}
+
+\begin{figure}
+\centering
+     \scalebox{0.7}{\input{occupation_orbitals2.pdftex_t}}
+  \caption{The dashed line represents our Fermi level}
+  \label{fig:particleholerepresentation}
+\end{figure}
+
+\section{The Normal-Ordered Hamiltonian}
+We want to rewrite the second-quantized form of the electronic Hamiltonian (\ref{def:secondquantized hamiltonian}) 
+
+\begin{equation}
+\hat{H} = \sum_{pq} \bra{p}h\ket{q}p^{\dagger}q + \frac{1}{4}\sum_{pqrs} \bra{pq}|v|\ket{rs}p^{\dagger}q^{\dagger}sr 
+ \label{def:normal-ordered hamiltonian}
+\end{equation}
+%
+using Wick's theorem, 
+
+\begin{align}
+\contraction{p^{\dagger}q.;; \ql \{ p^{\dagger}q \qr \} + \ql \{ \qr.}{p}{{}^{\dagger}}{q}
+ p^{\dagger}q &= \ql \{ p^{\dagger}q \qr \} +  \underbrace{\ql \{ p^{\dagger}q \qr \}}_{ p=i,q=j}  = \ql \{ p^{\dagger}q \qr \}  + \delta_{ij}  \label{eq:normalordere one-particle} \\
+%
+\contraction{p^{\dagger}q^{\dagger}sr = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} ;; \ql \{ \qr.}{p}{{}^\dagger q^\dagger}{s}
+%
+\contraction{p^{\dagger}q^{\dagger}sr = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} ;; \ql \{ \qr .}{p}{{}^\dagger q^\dagger s}{r}
+%
+\contraction{p^{\dagger}q^{\dagger}sr = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} .. \ql \{ p^{\dagger} \qr .}{q}{{}^\dagger}{s}
+%
+\contraction{p^{\dagger}q^{\dagger}sr = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} .. \ql \{ p^{\dagger} \qr .}{q}{{}^\dagger}{s}
+%
+\contraction{p^{\dagger}q^{\dagger}sr = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \}.. \ql \{ p^{\dagger} \qr .}{q}{{}^\dagger s}{r}
+%%%%
+p^{\dagger}q^{\dagger}sr &= \ql \{ p^{\dagger}q^{\dagger}sr \qr \} + \ql \{ p^{\dagger}q^{\dagger}sr \qr \}  + \ql \{ p^{\dagger}q^{\dagger}sr \qr \}  + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} +  \ql \{ p^{\dagger}q^{\dagger}sr \qr \}  \nonumber \\
+%%%%
+\contraction{... \ql \{ \qr.}{p}{{}^{\dagger} \da{q}}{s}
+\contraction[2ex]{... \ql \{ p^\dagger \qr. }{q}{{}^\dagger s}{r}
+%
+\contraction[2ex]{... \ql \{ p^{\dagger}q^{\dagger}sr \qr \}  + \ql \{ \qr.}{p}{{}_{\dagger} \da{q}	s}{r}
+\contraction{... \ql \{ p^{\dagger}q^{\dagger} sr \qr \} +  \ql \{ p^\dagger \qr. }{q}{.}{S}
+%
+&+ \ql \{ p^{\dagger}q^{\dagger}sr \qr \}  + \ql \{ p^{\dagger}q^{\dagger}sr \qr \} \nonumber  \\
+%%%%
+\contraction{ = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - ,,}{p}{\da{}}{s}
+\contraction{ = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - ,,,,,p^\dagger s \ql \{ q^\dagger r \qr \} + }{p}{\da{}}{r}
+\contraction{ = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - ,,,,,,,...p^\dagger s \ql \{ q^\dagger r \qr \} + p^\dagger r \ql \{ q^\dagger s \qr \} + }{q}{\da{}}{s}
+\contraction{ = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - ,,,,,,,,,,,,p^\dagger s \ql \{ q^\dagger r \qr \} + p^\dagger r \ql \{ q^\dagger s \qr \} + q^\dagger s \ql \{ p^\dagger r \qr \} - }{p}{\da{}}{s}
+%%%
+& = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - \underbrace{p^\dagger s}_{p=i,s=j} \ql \{ q^\dagger r \qr \} + \underbrace{p^\dagger r}_{p=i, r=j} \ql \{ q^\dagger s \qr \} + \underbrace{q^\dagger s}_{q=i,s=j} \ql \{ p^\dagger r \qr \} - \underbrace{q^\dagger r}_{q=i,r=j} \ql \{ p^\dagger s \qr \} \nonumber \\
+%%%
+\contraction{- }{p}{\da{}}{s}
+\contraction{.... \da{p}s}{q}{\da{}}{r}
+%
+\contraction{- \da{p}s\da{q}r + }{p}{\da{}}{r}
+\contraction{- \da{p}s\da{q}r + \da{p}r}{q}{\da{}}{s}
+& - \da{p}s\da{q}r + \da{p}r\da{q}s \qquad \text{only contribution when $p=i,s=j,q=k,r=l$} \nonumber  \\
+%%%
+& = \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - \delta_{ij}\ql \{ q^\dagger r \qr \} + \delta_{ij}\ql \{ q^\dagger s \qr \} + \delta_{ij} \ql \{ p^\dagger r \qr \} - \delta_{ij}\ql \{ p^\dagger s \qr \} \nonumber \\
+& = \delta_{ij}\delta_{kl} + \delta_{ij}\delta_{kl}
+\end{align}
+%
+Here we have done contractions relative to a reference state $\ket{\bf 0}$ and followed the relations Eq. (\ref{eq:contraction 1}-\ref{eq:contraction 5}). Then the normal-ordered one-body Hamiltonian is
+
+\begin{equation}
+\hat{H}_1 = \sum_{pq} \bra{p}h\ket{q} \ql \{ p^{\dagger}q \qr \}  + \sum_{i}\bra{i}h\ket{i}
+ \label{def:normal-ordered hamiltonian part 1}
+\end{equation}
+%
+And the two-body 
+\begin{align}
+\hat{H}_2 &= \frac{1}{4} \sum_{pqrs} \bra{pq}|v|\ket{rs}  \ql \{ p^{\dagger}q^{\dagger}sr \qr \} - \frac{1}{4} \sum_{qri} \bra{iq}|v|\ket{ri}  \ql \{ p^{\dagger} r \qr \}  + \frac{1}{4}  \sum_{qsi} \bra{iq}|v|\ket{is} \ql \{ q^{\dagger}s \qr \} \nonumber \\
+%
+& + \frac{1}{4} \sum_{pri} \bra{pi}|v|\ket{ri} \ql \{ p^{\dagger} r \qr \} - \frac{1}{4} \sum_{psi} \bra{pi}|v|\ket{is}\ql \{ p^{\dagger} s \qr \} + \frac{1}{4}\sum_{ij}\ql [ \bra{ij}|v|\ket{ij} - \bra{ij}|v|\ket{ji}\qr ] 
+ \label{def:normal-ordered hamiltonain part 2}
+\end{align}
+%
+The second term is equal to the fourth term. And the third terms is equal to the fifth term.  
+
+\begin{align}
+ \hat{H} &= \sum_{pq} \bra{p}h\ket{q} \ql \{ p^{\dagger}q \qr \} + \sum_{i}\bra{i}h\ket{i} + \frac{1}{4} \sum_{pqrs} \bra{pq}|v|\ket{rs} \ql \{ p^{\dagger}q^{\dagger}sr \qr \}   \nonumber \\ 
+&+ \frac{1}{2} \sum_{pri} \bra{ip}|v|\ket{ri}\ql \{ p^{\dagger} r \qr  \} - \frac{1}{2} \sum_{psi} \bra{pi}|v|\ket{is}\ql \{ p^{\dagger} s \qr \} + \frac{1}{2} \sum_{ij} \bra{ij}|v|\ket{ij}
+\label{def:second-ordered Hamiltonian1}
+\end{align}
+%
+We have changed summation variables $s,r\rightarrow q$
+
+\begin{align}
+ \hat{H} &= \sum_{pq} \bra{p}h\ket{q} \ql \{ p^{\dagger}q \qr \} + \sum_{i}\bra{i}h\ket{i} + \frac{1}{4} \sum_{pqrs} \bra{pq}|v|\ket{rs} \ql \{ p^{\dagger}q^{\dagger}sr \qr \}   \nonumber \\ 
+& + \sum_{pq} \ql (  \bra{p}h\ket{q} + \sum_{i}\bra{ip}|v|\ket{qi}  \qr ) \ql \{ p^{\dagger} q \qr \} + \frac{1}{2} \sum_{ij} \bra{ij}|v|\ket{ij}
+ \label{def:second-ordered Hamiltonian2}
+\end{align}
+%
+And define the following
+\begin{align}
+f_q^p         &\equiv  \bra{p}h\ket{q} + \sum_{i}\bra{ip}|v|\ket{qi}  \label{def:f_p^q} \\
+\hh{F}_N      &\equiv  \sum_{pq} f_q^p  \ql \{ p^{\dagger} q \qr \}    \label{def:F_N}     \\
+\hh{V}_N      &\equiv  \frac{1}{4} \sum_{pqrs} \bra{pq}|v|\ket{rs} \ql \{ p^{\dagger}q^{\dagger}sr \qr \}\label{def:V_N}  \\
+\hh{H}_N      &\equiv  \hh{F}_N + \hh{V}_N \label{def:H_N} 
+\end{align}
+%
+From Eq. (\ref{def:second-ordered Hamiltonian2}) we see that only the last term survives and expectation value would be
+\begin{equation}
+\bra{\bf 0}\hh{H}\ket{\bf 0} = \sum_i \bra{i}h\ket{i} + \frac{1}{2} \sum_{ij} \bra{ij}|v|\ket{ij} 
+ \label{eq:second-qunatized reference expectation value}
+\end{equation}
+%
+Finally the Hamiltonian reads
+\begin{equation}
+\hh{H} = \hh{H}_N + \bra{\bf 0}\hh{H}\ket{\bf 0}
+ \label{eq:final normal ordered hamiltonian}
+\end{equation}
+%
+And the normal-ordered electronic Hamiltonian 
+\begin{equation}
+\hh{H}_N = \hh{H} - \bra{\bf 0}\hh{H}\ket{\bf 0}
+ \label{eq:normal-ordered hamiltonian}
+\end{equation}
+%
+This is nothing but a shift by a constant for the expectation value. The usefulness of this will be clearer when we introduce the Coupled Cluster Theory.
+
+

@@ -1,0 +1,943 @@
+\chapter{Many-body treatment: the Hartree-Fock method}
+\label{HF}
+
+
+A many-body system with interactions is generally very difficult to solve exactly, except for extremely simple cases~\cite{taut1993,taut1994}. It is the same when it comes to quantum dots that can simply be seen as a many-electron problem.
+
+In the first section of this chapter we will detail the derivation of exact solutions for the two-electrons quantum dot for some particular parameters. Then some numerical approximations techniques are used in order to get information about the properties of the system as close as possible from their real values.
+In this thesis we focus on the ground state energy of quantum dots (i.e.\ the energy of the system at rest without external time-dependent excitations). In order to calculate it, several many-body techniques can be used of different accuracy and efficiency which are presented here.
+
+We will detail the Hartree-Fock method which is a major part of this thesis and compare its results to other \textit{Ab initio} methods such as perturbation theory, variational Monte-Carlo or large scale diagonalisation. 
+
+\section{\textit{Ab initio} many-body techniques}
+\textcolor{red}{[Introduce the Hartree-Fock method as one possible ab initio technique]}
+
+\textcolor{red}{Ab-initio methods: HF, VMC, CI, PDE (pros and cons).\\ What other properties that the ground state energy can I expect to get from the methods? since HF is a mean-field approximation, we can't for example determine the charge localization of the system.}
+
+The term \textit{``ab initio''} indicates that the calculation is from first principles and that no empirical data is used.
+
+The simplest type of \textit{ab initio} electronic structure calculation is the Hartree-Fock (HF) scheme, in which the instantaneous Coulombic electron-electron repulsion is not specifically taken into account. Only its average effect (mean field) is included in the calculation. This is a variational procedure; therefore, the obtained approximate energies, expressed in terms of the system's wave function, are always equal to or greater than the exact energy, and tend to a limiting value called the Hartree-Fock limit as the size of the basis is increased~\cite{Cramer2004}.
+
+Many types of calculations begin with a Hartree-Fock calculation and subsequently correct for electron-electron repulsion, referred to also as electronic correlation. Configuration Interaction (CI) and Coupled cluster theory (CC) may be some examples of these post-Hartree-Fock methods.
+
+Figure~\ref{electronicCorrelation} presents a diagram illustrating electron correlation energy in terms of various levels of theory. As shown on the figure, HF may present the worse approximation to the exact energy of a many-body system, but its simplicity is on all fours with its computational simplicity (i.e.\~speed) compared to other methods.
+\begin{figure}
+\label{electronicCorrelation}
+ \centering
+\includegraphics[width=0.5\textwidth]{references/Electron_correlation}	
+ \caption{Electron correlation energy in terms of various levels of theory of solutions for the Schr\"{o}dinger equation.
+(K. Langner, 2005)}
+\end{figure}
+
+In some cases, particularly for bond breaking processes, the Hartree-Fock method is inadequate and this single-determinant reference function is not a good basis for post-Hartree-Fock methods. It is then necessary to start with a wave function that includes more than one determinant.
+
+A method that avoids making the variational overestimation of HF in the first place is Quantum Monte Carlo (QMC), in its variational, diffusion, and Green's function forms. These methods work with an explicitly correlated wave function and evaluate integrals numerically using a Monte Carlo integration. Such calculations can be very time-consuming, but they are probably the most accurate methods known today.
+
+\textit{Ab initio} electronic structure methods have the advantage of being able to converge to the exact solution, when all approximations are sufficiently small in magnitude. In particular, configuration interaction, where all possible configurations are included (called "Full CI") tends to the exact non-relativistic solution of the Schr\"odinger equation, and therefore to the best possible solution in principle.
+
+However Full CI is often impossible for anything but the smallest systems.
+\textcolor{red}{The convergence, is usually not monotonic, and sometimes the smallest calculation gives the best result for some properties.}
+
+The downside of ab initio methods is their computational cost. They often take enormous amounts of computer time, memory, and disk space. \textcolor{red}{The HF method scales nominally as $N^4$ (N being the number of basis functions), i.e.\~a calculation twice as big takes 16 times as long to complete. However in practice it can scale closer to $N^3$ as the program can identify zero and extremely small integrals and neglect them. Correlated calculations scale even less favorably - MP2 as $N^5$; MP4 as $N^6$ and coupled cluster as $N^7$.} Density functional theory (DFT) methods scale in a similar manner to Hartree-Fock but with a larger proportionality term. Thus DFT calculations are always more expensive than an equivalent Hartree-Fock calculation~\cite{wiki:abinitio} 
+
+\textcolor{red}{[FIND BETTER SOURCE THAN WIKIPEDIA TO PROVIDE RESULTS ON THE COMPUTATIONAL COMPLEXITY]. Look at Simen's derivation for computing the error of FCI and looking at the biggest system that can be studied wrt the limit in memory of a supercomputer.}
+
+Many ~\cite{Bartlett1981}
+
+
+\section{Time-independent Hartree-Fock Theory}
+The Hartree-Fock method is a minimization method based on a mathematical technique known as the Lagrange multipliers~\ref{sec:lagMultipliers}, where the functional to minimize is the energy of the system. The energy, which is an expectation value of the Hamiltonian, can be written explicitly as an integral. 
+
+
+\subsection{Variational Calculus and Lagrange Multipliers}
+\label{variationalCalculus}
+
+As we have seen in the previous part, in most cases we must resort to computers to determine the solutions of the Schr\"odinger equation. It is of course possible to integrate the equation using discretisation methods, but in most realistic electronic structure calculations we would need huge numbers of grid points, leading to high computer time and memory requirements. The variational method on the other hand enables us to solve the Schr\"odinger equation much more efficiently in many cases~\cite{Thijssen2007}.
+
+Regarding the use of Lagrange multipliers in mathematical optimization (~\ref{sec:lagMultipliers}), the calculus of variations provides a strategy for finding the stationnary points of a function subject to some constraints. Maxima and minima can be found this way when the function is differentiable.
+
+More specifically the calculation of variations involves problems where the quantity to be minimized or maximized (the functional) is an integral.
+
+In the general case we have an integral of the type
+\[ E[\Phi]= \int_a^b f(\Phi(x),\frac{\partial \Phi}{\partial x},x)dx,\]
+where $E$ is the quantity which is sought minimized or maximized.
+
+The problem is that although $f$ is a function of the variables $\Phi$, $\partial \Phi/\partial x$ and $x$, the exact dependence of
+$\Phi$ on $x$ is not known.  This means that even though the integral has fixed limits $a$ and $b$, the path of integration is
+not known. In our case the unknown quantities are the single-particle wave functions and we have to select an integration path which makes
+the functional $E[\Phi]$ stationary, ie we look for minima, or maxima or saddle points. In physics we search normally for minima.
+
+Our task is therefore to find the minimum of $E[\Phi]$ so that its variation $\delta E$ is zero  subject to specific
+constraints. In our case the constraints appear as the integral which expresses the orthogonality of the  single-particle wave functions.
+The constraints can be treated via the technique of the Lagrange multipliers.
+
+In the following, we will be more specific with the form of the functional which now reads
+\begin{equation}
+\label{eq:functional}
+ E[\Phi]= \frac{\langle \Phi |H | \Phi \rangle}{\langle \Phi | \Phi \rangle}= \frac{ \int \Phi^* H  \Phi d \tau}{\int  \Phi^*  \Phi d \tau},
+\end{equation} 
+where the integration is extended over the full range of all the coordinates of the system.
+
+We denote by $E_n$ the eigenvalues of the Hamiltonian and by $\Psi_n$ the corresponding orthonormal eigenfunctions, and assume that $\hat{H}$ has at least one discrete eigenvalue. 
+It is clear that if the function $\Phi$ is identical to one of the exact eigenfunctions $\Psi_n$ of $\hat{H}$; then $E[\Phi]$ will be identical to the corresponding exact eigenvalue $E_n$.
+
+In the following, we will show that:
+\begin{enumerate}
+ \item any function $\Phi$ for which the functional $E[\Phi]$ is stationary is an eigenfunction of the discrete spectrum of $\hat{H}$.
+\item using the method of the Lagrange multipliers and varying the functional $\langle \Phi |H | \Phi \rangle$ subject to the normalisation condition $\langle \Phi | \Phi \rangle=1$, the Lagrange multiplier itself has the significance of an energy eigenvalue.
+\item the functional $E[\Phi]$ gives an upper bound for the ground state energy, also known as the \textit{variational principle}.
+\item it is possible to solve the Schr\"odinger equation using the variational method.
+\end{enumerate}
+
+\paragraph{Any function $\Phi$ for which the functional $E[\Phi]$ is stationary is an eigenfunction of $\hat{H}$}
+If $\Phi$ and an exact eigenfunction $\Psi_n$ differ by an arbitrary infinitesimal variation $\delta \Phi$,
+
+\begin{equation*}
+ \Phi = \Psi_n + \delta \Phi,
+\end{equation*} 
+then the corresponding first-order variation of $E[\Phi]$ vanishes:
+\begin{equation}
+\label{eq:varEq}
+ \delta E=0,
+\end{equation} 
+and the eigenfunctions of $\hat{H}$ are solutions of the variational equation~\ref{eq:varEq}.
+
+To prove this statement, we re-write the functional as
+\begin{equation*}
+ E[\Phi] \int  \Phi^*  \Phi d \tau = \int \Phi^* H  \Phi d \tau,
+\end{equation*}
+When we vary it it gives:
+\begin{equation*}
+ \delta E \int  \Phi^*  \Phi d \tau +  E \int  \delta \Phi^*  \Phi d \tau  + E \int  \Phi^* \delta \Phi d \tau = \int \delta \Phi^* H  \Phi d \tau + \int \Phi^* H  \delta \Phi d \tau.
+\end{equation*}
+
+Since $\Phi|  \Phi $ is assumed to be finite and non-vanishing, we see that the variational equation~\ref{eq:varEq} is equivalent to
+\begin{equation}
+\label{eq:eqVar2}
+ \int  \delta \Phi^* (H-E) \Phi d \tau  + \int  \Phi^* (H-E) \delta \Phi d \tau = 0.
+\end{equation}
+
+Although the variations $\delta \Phi$ and $\delta \Phi^*$ are not independent, they may in fact be treated as such, so that the individual terms in~\ref{eq:eqVar2} can be set equal to zero. To see how this comes about, we replace the arbitrary variation $\delta \Phi$ by $i \delta \Phi$ in~\ref{eq:eqVar2} so that we obtain
+\begin{equation}
+\label{eq:eqVar2complex}
+ -i \int  \delta \Phi^* (H-E) \Phi d \tau  + i \int  \Phi^* (H-E) \delta \Phi d \tau = 0.
+\end{equation}
+By combining~\ref{eq:eqVar2} with~\ref{eq:eqVar2complex} we then obtain the two equations
+\begin{equation}
+\label{eq:eqVarHemitian}
+  \left\{
+      \begin{aligned}
+	\delta \Phi^* (H-E) \Phi d \tau = 0 \\
+\Phi^* (H-E) \delta  \Phi d \tau = 0, \\
+      \end{aligned}
+    \right.
+\end{equation}
+which is the desired result. Using the fact that $\hat{H}$ is Hermitian, we see that the two equation~\ref{eq:eqVarHemitian} are equivalent to the Sch\"odinger equation $(H-E[\Phi]) \Phi = 0$.
+
+Thus any function $\Phi=\Psi_n$ for which the functional~\ref{eq:functional} is stationary is an eigenvalue of $\hat{H}$ corresponding to the eigenvalue $E_n=E[\Psi_n]$. It is worth stressing that if $\Phi$ and $\Psi_n$ differ by $\delta \Phi$, the variational equation~\ref{eq:varEq} implies that the leading term of the difference $E[\Phi]-E_n$ is quadratic in $\delta \Phi$. As a result, errors in the approximate energy are of second order in $\delta \Phi$ when the energy is calculated from the functional~\ref{eq:functional}.
+
+\paragraph{The Lagrange multiplier has the significance of an energy eigenvalue}
+\label{sec:LagEig}
+We also remark that the functional~\ref{eq:functional} is independent of the normalisation and of the phase of $\Phi$. In particular, it is often convenient to impose the condition $\langle \Phi | \Phi \rangle=1$. The above results may then be retrieved by varying the functional $\langle \Phi |H| \Phi \rangle=1$ subject to the condition $\langle \Phi | \Phi \rangle=1$, namely
+\begin{align*}
+ \delta \int  \Phi^* H\Phi d \tau = 0, \quad \int  \Phi^* \Phi d \tau = 1.
+\end{align*}
+
+The constraint $\langle \Phi | \Phi \rangle=1$ may be taken care of by introducing a Lagrange multiplier (as described in appendix~\ref{sec:lagMultipliers}) which we denote by $\varSigma$.
+
+We define the Lagrangian $\Lambda$ as
+\begin{align*}
+  \Lambda(\Phi,\varSigma) = \int  \Phi^* H\Phi d \tau - \varSigma \left( \int  \Phi^* \Phi d \tau -1 \right),
+\end{align*}
+ so that the variational equation reads
+\begin{align}
+\label{diffLagrangian}
+ \delta \Lambda(\Phi,\varSigma) &= 0 \\
+ \delta \left[ \int  \Phi^* H\Phi d \tau - \varSigma \int  \Phi^* \Phi d \tau  \right] &= 0, 
+\end{align}
+or
+\begin{align*}
+\int   \delta  \Phi^* (H-\varSigma) \Phi d \tau + \int  \Phi^*  (H-\varSigma) \delta \Phi d \tau= 0, 
+\end{align*}
+
+This equation is identical to~\ref{eq:eqVar2}, and we see that the Lagrange multiplier $\varSigma=E$ has the significance of an energy eigenvalue.
+
+\paragraph{The variational principle}
+\label{sec:varPrinciple}
+
+An important additional property of the functional~\ref{eq:functional} is that it provides an upper bound to the exact ground state $E_0$. To prove this result, we expand the arbitrary, normalisable function $\Phi$ in the complete set of orthonormal eigenfunctions $\Psi_n$ of $\hat{H}$. This reads
+\begin{equation}
+\label{eq:expPhi}
+\Phi = \sum_n a_n \Psi_n.
+\end{equation}
+Substituing the expansion~\ref{eq:expPhi} into the functional~\ref{eq:functional}, we find that
+\begin{equation}
+\label{eq:resExp}
+E[\Phi] = \frac{\sum_n  | a_n  |^2 E_n}{ \sum_n \mid a_n \mid ^2 },
+\end{equation}
+where we have used the fact that $H \Psi_n=E_n \Psi_n$ and  $\langle \Phi |\Phi \rangle=\sum_n |a_n|^2$. If we now subtract $E_0$, the lowest energy eigenvalue, from both sides of the functional~\ref{eq:resExp} we have
+\begin{equation}
+\label{eq:resExp2}
+E[\Phi] -E_0= \frac{\sum_n |a_n|^2 (E_n-E_0)}{\sum_n |a_n|^2}.
+\end{equation}
+
+Since $E_n \geq E_0$, the right-hand side of~\ref{eq:resExp2} is non-negative, so that
+\begin{equation}
+\label{eq:varPrincipe}
+E_0 \leq E[\Phi],
+\end{equation}
+and the functional $E[\Phi]$ gives an upper-bound, or in order words a \textit{minimum principle} for the ground state energy~\cite{Bransden2003}.
+
+\paragraph{Solving the Schr\"odinger equation using the variational method}
+\label{sec:solvingSEwithVM}
+In the variational method, the possible solutions (i.e.\~the stationary states of the energy functional) are restricted to a subspace of the Hilbert space, and in this subspace we seek the ``best possible'' solution. An important example is linear variational calculus, in which the subspace is spanned by a set of basis vectors $\chi_i$ for $i=1,\dots,P$ where $P$ is the size of the basis set. We take these to be orthonormal at first, that is,
+\begin{equation*}
+\langle \chi_i | \chi_j \rangle = \delta_{ij}.
+\end{equation*}
+
+For an arbitrary state $|\Psi \rangle = \sum_i C_i | \chi_j \rangle$, the energy functional is given by
+\begin{equation*}
+E=\frac{\langle \Psi |H | \Psi \rangle}{\langle \Psi| \Psi \rangle}=\frac{\sum_{i,j=1}^R C_i^* C_j H_{ij} }{ \sum_{i,j=1}^R C_i^* C_j \delta_{ij}},
+\end{equation*}
+where $H_{ij}=\langle \chi_i | H | \chi_j \rangle$ is assumed to be known.
+
+The stationary states follow from the condition that the derivative of this functional with respect to the $C_i$ vanishes, which leads to
+\begin{equation}
+\label{eq:linearVM}
+\sum_{j=1}^R (H_{ij}- E \delta_{ij}) C_j = 0, \qquad for \quad i=1,\dots, R.
+\end{equation}
+
+Equation~\ref{eq:linearVM} is then an eigenvalue problem which can be written in matrix notation as
+\begin{equation}
+\label{eq:linearVMmatrix}
+\bf{H} \bf{C} = E \bf{C}.
+\end{equation}
+This is the Schr\"odinger equation, formulated for a finite, orthonormal basis.
+
+The lowest eigenvalue of eq.~\ref{eq:linearVMmatrix} is always higher than or equal to the ground state energy, as we proved that the ground state is the minimal value assumed by the energy-functional in the full Hilbert space.
+If we restrict ourselves to a part of this space, then the minimum value of the energy functional must always be higher than or equal to the ground state of the full Hilbert space.
+Including more basis functions into our basis set will increase the size of the subspace and consequently the minimum of the energy functional will decrease (or stay the same).
+The behaviour of the spectrum found by solving~\ref{eq:linearVMmatrix} when increasing size of the basis set $R$ is depicted in figure~\ref{fig:behaviourVM}.
+
+
+\begin{figure}[htp]
+ \centering
+%\includegraphics[width=0.7\textwidth]{IMAGES/behaviourLinearVariationalMethod.eps}
+ \includegraphics[width=0.7\textwidth]{IMAGES/behaviourLinearVariationalMethod}
+ % behaviourLinearVariationalMethod.eps: 0x0 pixel, 300dpi, 0.00x0.00 cm, bb=0 0 570 145
+ \caption{The behaviour of the ground state energy of eq.~\ref{eq:linearVM} when increasing basis set size $R$ in linear variational calculus. The upper index is the number of states in the basis set.}
+ \label{fig:behaviourVM}
+\end{figure}
+
+
+The variational approach discussed here provides a powerful method for obtaining approximate solutions of the wave function. However this might not be sufficient when dealing with a system made of many interacting particles, where more approximations have to be done about the wave function of the system in order to lead again to a simple eigenvalue problem.
+
+\subsection{The many-body system with interacting particles}
+\label{SlaterDet}
+
+The Schrodinger equation for a system of $N$ electron reads:
+\begin{equation}
+  \hat{H}(\mathbf{r_1},\mathbf{r_2},\dots, \mathbf{r_N}) \Psi_\eta (\mathbf{r_1},\mathbf{r_2},\dots, \mathbf{r_N})=E_\eta \Psi_\eta (\mathbf{r_1},\mathbf{r_2},\dots, \mathbf{r_N}),
+\end{equation}
+where the vector $\mathbf{r}_i$ represents the coordinates (spatial and spin) of a particle $i$, $\eta$ stands for all the quantum numbers needed to classify a given $N$-particle state and $\Psi_\eta$ is the corresponding eigenfunction.
+
+The Hamiltonian can be written under the form
+\[
+ \hat{H}= \hat{T}+ \hat{V},
+\]
+where $\hat{T}$ represents the kinetic energy of the system
+ \begin{equation}
+\nonumber
+ \hat{T}=\sum_{i=1}^{N}\frac{\mathbf{p_i^2}}{2m_i}=\sum_{i=1}^{N}\left( -\frac{\hbar^2}{2m_i}\nabla_i^2 \right)=\sum_{i=1}^{N} t(\mathbf{r_i}),
+ \end{equation}
+and $\hat{V}$ represents the potential energy (e.g.\ the harmonic oscillator potential in our case),
+ \begin{equation}
+\label{eq:potentialHamiltonian}
+ \hat{V}= \underbrace{\sum_{i=1}^{N} u(\mathbf{r_i})}_{\begin{smallmatrix}  \text{one-particle} \\  \text{interaction} \end{smallmatrix}}
+ +\underbrace{\sum_{i<j}^{N}v(\mathbf{r_i},\mathbf{r_j}).}_{\begin{smallmatrix}  \text{two-particles} \\  \text{interaction} \end{smallmatrix}}
+\end{equation}
+
+Hereafter we use atomic units, viz. $\hbar$=$c$=$e$=$1$ with $e$ the elementary charge and $c$ the speed of light. This means that momenta and masses have dimension energy. In the last equation we have singled out an external one-body potential term $u$ which is meant to represent an effective one-body field in which our particles move (i.e.\ the harmonic oscillator potential in our first approximation for the confining potential of the QD model) .
+
+We have therefore assumed that a picture consisting of individual electrons is a viable starting point for wave function approximations. We can rewrite the Hamiltonian for $N$ electrons as
+ \begin{equation}
+\label{eq:HamiltonianExpand}
+\hat{H}=\hat{H}_0+\hat{H}_1=\sum_{i=1}^{N}\hat{h}_i+ \sum_{i<j}^{N}v(\mathbf{r_i},\mathbf{r_j}),
+ \end{equation}
+where we have defined $r_{ij}=\parallel \vec{r_i}-\vec{r_j} \parallel$ and $\hat{h}_i=t(\mathbf{r_i})+u(\mathbf{r_i})$.
+
+The first term of the eq.(\ref{eq:HamiltonianExpand}), $\hat{H}_0$, is the sum of the $N$ one-body Hamiltonians $\hat{h}_i$. Each individual Hamiltonian $\hat{h}_i$ contains the kinetic energy operator of an electron and its potential energy due to the confining potential. The potential energy term due to the harmonic oscillator potential defines the one-body field $u_i=u(\mathbf{r_i})$ of eq.(~\ref{eq:potentialHamiltonian}). We have moved this term into the $\hat{H}_0$ part of the Hamiltonian, instead of keeping it in $\hat{V}$ as in eq.(~\ref{eq:potentialHamiltonian}). The reason is that we will hereafter treat $\hat{H}_0$ as our non-interacting Hamiltonian. For a many-body wavefunction $\Psi_\eta$ defined by an appropriate single-particle basis, we can solve exactly the non-interacting eigenvalue problem
+\begin{equation}
+\nonumber
+\hat{H}_0 \Psi_\eta= E_\eta \Psi_\eta,
+\end{equation}
+with $E_\eta$ being the non-interacting energy. This energy is defined by the sum over single-particle energies. In our model of the quantum dot, the single-particle energies are the harmonic oscillator single-particle energies in 2D or 3D respectively.
+
+The second term of the eq.(\ref{eq:HamiltonianExpand}), $\hat{H}_1$, is the sum of the $N(N-1)/2$ two-body interactions between each pair of electrons. Note that the double sum carries a restriction $i<j$.
+
+
+Irrespective of these approximations, there is a wealth of experimental evidence that these interactions have to obey specific symmetries. The total Hamiltonian should be translationally invariant. If angular momentum is conserved, the Hamiltonian is invariant under rotations. Furthermore, it is invariant under the permutation (interchange) of two particles. Since we deal with fermions, the total wave function is antisymmetric.
+
+Let $\hat{P}$ be an operator which interchanges two particles. Due to the symmetries we have assigned to our Hamiltonian, this operator commutes with the total Hamiltonian,
+\begin{equation}
+  \nonumber
+[\hat{H},\hat{P}]=0,
+\end{equation}
+meaning that $\Psi_\eta (\mathbf{r_1},\mathbf{r_2},\dots, \mathbf{r_N})$ is an eigenfunction of $\hat{P}$ as well, that is
+\begin{equation}
+  \nonumber
+  \hat{P}_{ij} \Psi_\eta (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_i},\dots,\mathbf{r_j},\dots,\mathbf{r_N})= \beta \Psi_\eta (\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_j},\dots,\mathbf{r_i},\dots,\mathbf{r_N}),
+\end{equation}
+where $\beta$ is the eigenvalue of $\hat{P}$. We have introduce the suffix $ij$ in order to indicate that we permute particles $i$ and $j$. The Pauli principle tell us that the total wave function for a system of fermions has to be antisymmetric, resulting in the eigenvalue $\beta$=$-1$. %%%[reference:Morten book??? chap.2~cite{mortenBook}].
+
+We approximate our many-body wave function with the product of single-particle wave functions. Since we assume that our Hamiltonian is time-independent, these single-particle wave functions are normally the eigenfunctions of a selected one-body Hamiltonian $\hat{h}_i$ acting on particle $i$.
+
+In Hartree-Fock we approximate the exact eigenfunction\footnote[1]{We reserve $\Psi$ as labelling for our exact wave function (eigen function, since there is no time-dependence). The Slater determinant is only an approximation of the exact solution.} $\Psi_\lambda$ by a trial wave function $\Phi$ built as a Slater determinant
+
+\begin{equation}
+\label{eq:HartreeFockDet}
+\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N},\alpha,\beta,\dots,\sigma)= \frac{1}{\sqrt{N!}}\left|
+ \begin{array}{cccc}
+  \psi_{\alpha}(\mathbf{r}_1)&\psi_{\beta}(\mathbf{r}_2)&\dots&\psi_{\sigma}(\mathbf{r}_N) \\ [4pt]
+  \psi_{\alpha}(\mathbf{r}_1)&\psi_{\beta}(\mathbf{r}_2)&\dots&\psi_{\sigma}(\mathbf{r}_N) \\[4pt]
+  \vdots              & \vdots            &\ddots&\vdots\\[4pt]
+  \psi_{\alpha}(\mathbf{r}_1)&\psi_{\beta}(\mathbf{r}_2)&\dots&\psi_{\sigma}(\mathbf{r}_N)
+ \end{array}
+ \right|,
+\end{equation}
+where the variables $\mathbf{r_i}$ include the coordinates of spin and space of particle $i$, and $\alpha,\beta,\dots,\sigma$ encompass all possible quantum numbers needed to specify a particular system.
+ 
+The single-particle function $\psi_\alpha(\mathbf{r_i})$ are eigenfunctions of the onebody Hamiltonian $\hat{h}_i$, that is
+\begin{equation}
+  \nonumber
+\hat{h}_i = h(\mathbf{r_i})= t(\mathbf{r_i})+u(\mathbf{r_i}),
+\end{equation}
+with eigenvalues
+\begin{equation}
+  \nonumber
+\hat{h}_i \psi_\alpha( \mathbf{r_i}) =  \left[ t(\mathbf{r_i}) + u(\mathbf{r_i}) \right] \psi_\alpha(\mathbf{r_i})= \epsilon_\alpha  \psi_\alpha (\mathbf{r_i}).
+\end{equation}
+
+For modelling a quantum dot we will equate $\hat{h}_i$ with the single-particle Hamiltonian of the harmonic oscillator. Then the energies $\epsilon_\alpha$ are the so-called non-interacting single-particle energies, or unperturbed energies. The total energy is in this case the sum over all single-particle energies, if no two-body or more complicated many-body interactions are present.
+
+We note again that the wave-function is antisymmetric with respect to an interchange of any two particles, as required by the Pauli principle. For an $N$-body Slater determinant we have thus (omitting the quantum numbers $\alpha$, $\dots$,$\sigma$)
+\begin{equation}
+  \nonumber
+\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_i},\dots, \mathbf{r_j},\dots,\mathbf{r_N})=-\Phi(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_j},\dots, \mathbf{r_i},\dots,\mathbf{r_N}).
+\end{equation}
+
+
+\subsection{The approximated energy of the system}
+We note $E_0$ the ground state energy. According to the variational principle (given in eq.~\ref{eq:varPrincipe}) we have
+\begin{equation}
+  \nonumber
+E_0 \leq E[\Phi_T] = \int \Phi_T^{*} \hat{H} \Phi_T d\tau
+\end{equation}
+where we have used the shorthand $d\tau=d\mathbf{r_1},d\mathbf{r_2},\dots,d\mathbf{r_N}$, and where $\Phi_T$ is a trial function which we assume to be normalized
+\[
+\int \Phi_T^* \Phi_T d\tau=1.
+\]
+
+In the Hartree-Fock method, correlations between electrons are not taken into account and the trial function is just the Slater determinant of eq.~(\ref{eq:HartreeFockDet}) which can be rewritten as
+\begin{equation}
+\Phi_T(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}, \alpha, \beta, \dots, \sigma)=\frac{1}{\sqrt{N!}}\sum_p (-)^p P \Psi_\alpha(\mathbf{r_1})\Psi_\beta(\mathbf{r_2}) \dots \Psi_\sigma(\mathbf{r_N})=\sqrt{N!} \mathcal{A} \Phi_H
+\end{equation}
+
+where we have introduced the antisymmetrization operator $\mathcal{A}$ defined by the summation over all possible permutations of 2 nucleons. It is defined as
+\begin{equation}
+\label{eq:antisymOperator}
+\mathcal{A}=\frac{1}{N!} \sum_P (-)^p \hat{P},
+\end{equation}
+with $p$ standing for the number of permutations. We have introduced here the so-called Hartree function, defined by the simple product of all possible single-particle functions
+\begin{equation}
+\Phi_H(\mathbf{r_1},\mathbf{r_2},\dots,\mathbf{r_N}, \alpha, \beta, \dots, \sigma)=\Psi_\alpha(\mathbf{r_1})\Psi_\beta(\mathbf{r_2}) \dots \Psi_\sigma(\mathbf{r_N}).
+\end{equation}
+
+Both $\hat{H}_0$ and $\hat{H}_1$ are invariant under all possible permutations of any two electrons and hence commute with $\mathcal{A}$
+\begin{equation}
+\label{eq:HAcommutate}
+[\hat{H}_0,\hat{\mathcal{A}}]=[\hat{H}_1,\hat{\mathcal{A}}]=0.
+\end{equation}
+
+Furthermore, $\mathcal{A}$ satisfies
+\begin{equation}
+\label{eq:antisymmSquare}
+\mathcal{A}^2=\mathcal{A}
+\end{equation}
+
+since every permutation of the Slater determinant reproduces it.
+
+The expectation value of $\hat{H}_0$
+\begin{align}
+\nonumber
+\langle \Phi_T | \hat{H}_0 | \Phi_T  \rangle= \int \Phi_T^*\hat{H}_0 \Phi_T d\tau &= N! \int \mathcal{A} \Phi_H^*\hat{H}_0 \mathcal{A} \Phi_H d\tau \\
+\nonumber
+&= N!  \int \Phi_H^*\hat{H}_0 \mathcal{A}^2 \Phi_H d\tau \\
+\nonumber
+&= N!  \int \Phi_H^*\hat{H}_0 \mathcal{A} \Phi_H d\tau
+\end{align}
+where we have used eq.~(\ref{eq:HAcommutate}) and (~\ref{eq:antisymmSquare}). The next step is to replace the antisymmetrization operator by its definition in eq.(\ref{eq:antisymOperator}) and to replace $\hat{H}_0$ with the sum of one-body operators as in eq.(\ref{eq:HamiltonianExpand})
+\begin{equation}
+\nonumber
+\int \Phi_T^* \hat{H}_0 \Phi_T d\tau = \sum_{i=1}^N \sum_P (-)^p  \int \Phi_H^*\hat{h}_i \hat{P} \Phi_H d\tau.
+\end{equation}
+
+The integral vanishes if two or more electrons are permuted in only one of the Hartree functions $\Phi_H$ because the individual single-particle wave functions are assumed orthogonal ($\langle \Psi_\alpha | \Psi_\beta \rangle = \delta_{\alpha \beta}$).
+
+We obtain then
+\begin{equation}
+\nonumber
+\int \Phi_T^* \hat{H}_0 \Phi_T d\tau = \sum_{i=1}^N  \int \Phi_H^*\hat{h}_i \Phi_H d\tau.
+\end{equation}
+
+The orthogonality of the single-particle functions allows us to further simplify the integral, and we arrive at the following expression for the expectation values of the sum of one-body Hamiltonians (i.e.\~the expectation value of the non-interacting single particle energies)
+\begin{equation}
+\label{eq:nonInteracH}
+\int \Phi_T^* \hat{H}_0 \Phi_T d\tau = \sum_{\mu=1}^N  \int \Psi_\mu^*(\mathbf{r}) \hat{h} \Psi_\mu(\mathbf{r}) d\mathbf{r}
+= \sum_{\mu=1}^N \langle \mu |h| \mu \rangle
+\end{equation}
+
+Regarding the interaction part, the expectation value of the two-body Hamiltonian is obtained in a similar manner. We have
+\begin{equation}
+\nonumber
+\langle \Phi_T | \hat{H}_1 | \Phi_T  \rangle= \int \Phi_T^*\hat{H}_1 \Phi_T d\tau = N! \int \mathcal{A} \Phi_H^*\hat{H}_1 \mathcal{A} \Phi_H d\tau,
+\end{equation}
+
+which reduces to
+\begin{equation}
+\nonumber
+\int \Phi_T^*\hat{H}_1 \Phi_T d\tau = \sum_{i<j=2}^N \sum_P (-)^p  \int \Phi_H^* V(r_{ij}) \hat{P} \Phi_H d\tau,
+\end{equation}
+by following the same arguments as for the one-body Hamiltonian. Because of the dependence on the inter-electron distance $r_{ij}$, permutations of any two electrons no longer vanish.
+\begin{align}
+\nonumber
+\int \Phi_T^*\hat{H}_1 \Phi_T d\tau &=  \sum_{i<j=2}^N \int \Phi_H^* V(r_{ij}) \Phi_H d\tau - \int \Phi_H^* V(r_{ij}) P_{ij} \Phi_H d\tau \\
+\nonumber
+&=  \sum_{i<j=2}^N \int \Phi_H^* V(r_{ij}) (1-P_{ij}) \Phi_H d\tau,
+\end{align}
+
+where $P_{ij}$ is the permutation operator that interchanges electron $i$ and electron $j$. Again we use the assumption that the single-particle wave functions are orthogonal (as eigenvectors of an hermitian operator, the Hamiltonian), and we get
+
+\begin{eqnarray}
+\label{eq:expectationH1}
+% PROBLEM OVERFULL BOX ICI AUSSI
+\int \Phi^*\hat{H}_1 \Phi d\tau &=& \frac{1}{2} \sum_{\mu=1}^N \sum_{\nu=1}^N \left[ \int \Psi_\mu^*(\mathbf{r_i}) \Psi_\nu^*(\mathbf{r_j}) V(r_{ij}) \Psi_\mu(\mathbf{r_i}) \Psi_\nu(\mathbf{r_j}) d\mathbf{r_i} d\mathbf{r_j} \right]\\
+& & -  \frac{1}{2} \sum_{\mu=1}^N \sum_{\nu=1}^N \left[ \int \Psi_\mu^*(\mathbf{r_i}) \Psi_\nu^*(\mathbf{r_j}) V(r_{ij}) \Psi_\mu(\mathbf{r_j}) \Psi_\nu(\mathbf{r_i}) d\mathbf{r_i} d\mathbf{r_j} \right].
+\end{eqnarray}
+
+The first term is the so-called direct term. It is frequently also called the Hartree term, while the second is due to the Pauli exclusion principle and is called the exchange term or just the Fock term. The factor $1/2$ is introduced because we now run over all pairs twice.
+
+The last equation allows us to introduce some additional definitions. The single-particle wave functions $\Psi_\mu(\mathbf{r})$, defined by the quantum number $\mu$ and $\mathbf{r}$ (recall that $\mathbf{r}$ also includes spin degree) are defined as
+\[
+\Psi_\alpha(\mathbf{r})=\langle\mathbf{r} | \alpha \rangle
+\]
+
+We introduce the following shorthands for the above two integrals
+\[
+\langle \mu \nu |V| \mu \nu \rangle = \int \Psi_\mu^*(\mathbf{r_i}) \Psi_\nu^*(\mathbf{r_j}) V(r_{ij}) \Psi_\mu(\mathbf{r_i}) \Psi_\nu(\mathbf{r_j}) d\mathbf{r_i} d\mathbf{r_j}
+\]
+
+and
+\[
+\langle \mu \nu |V| \nu \mu \rangle = \int \Psi_\mu^*(\mathbf{r_i}) \Psi_\nu^*(\mathbf{r_j}) V(r_{ij}) \Psi_\nu(\mathbf{r_i}) \Psi_\mu(\mathbf{r_j}) d\mathbf{r_i} d\mathbf{r_j}
+\]
+
+Since the interaction is invariant under the interchange of two particles it means for example that we have
+\[
+\langle \mu \nu |V| \mu \nu \rangle = \langle \nu \mu |V| \nu \mu \rangle,
+\]
+
+or in the more general case
+\[
+\langle \mu \nu |V| \sigma \tau \rangle = \langle \nu \mu |V| \tau \sigma \rangle.
+\]
+
+The direct and exchange matrix elements can be brought together if we define the antisymmetrized matrix element
+\[
+\langle \mu \nu |V| \mu \nu \rangle_{AS} = \langle \mu \nu |V| \mu \nu \rangle - \langle \mu \nu |V| \nu \mu \rangle,
+\]
+
+or for a general matrix element
+\[
+\langle \mu \nu |V| \sigma \tau \rangle_{AS} = \langle \mu \nu |V| \sigma \tau \rangle - \langle \mu \nu |V| \tau \sigma \rangle.
+\]
+
+It has the symmetry property
+\[
+\langle \mu \nu |V| \sigma \tau \rangle_{AS} = - \langle \mu \nu |V| \tau \sigma \rangle_{AS}=\langle \nu \mu |V| \sigma \tau \rangle_{AS}.
+\]
+The antisymmetric matrix element is also hermitian, implying
+\[
+\langle \mu \nu |V| \sigma \tau \rangle_{AS} =  \langle \sigma \tau |V| \mu \nu \rangle_{AS}.
+\]
+
+With these notations we can rewrite eq.(\ref{eq:expectationH1}) as
+\begin{equation}
+\label{eq:expectationH1braket}
+\langle \Phi_T | \hat{H}_1 | \Phi_T  \rangle= \int \Phi_T^*\hat{H}_1 \Phi_T d\tau = \frac{1}{2}  \sum_{\mu=1}^N \sum_{\nu=1}^N \langle \mu \nu |V| \mu \nu \rangle_{AS}.
+\end{equation}
+
+Combining eqs.(\ref{eq:nonInteracH}) and (\ref{eq:expectationH1braket}) we obtain the energy functional
+\begin{equation}
+\label{eq:EnergyFunctional}
+E[\Phi_T]=\sum_{\mu=1}^N \langle \mu |h| \mu \rangle + \frac{1}{2}  \sum_{\mu=1}^N \sum_{\nu=1}^N \langle \mu \nu |V| \mu \nu \rangle_{AS}.
+\end{equation}
+which we will use as our starting point for the Hartree-Fock calculations.
+
+
+
+
+\subsection{The restricted Hartree-Fock equations and their self-consistent solutions}
+\label{HFdetails}
+
+Based on the variational method discussed in section~\ref{variationalCalculus}, the Hartree-Fock technique aims at minimizing the energy functional given in eq.~\ref{eq:EnergyFunctional}. Nevertheless obtaining an eigenvalue problem to solve is not straight forward when dealing with many interacting particles (as shown in~\ref{sec:solvingSEwithVM}) until we do a second approximation on the interacting potential.
+
+The Coulomb repulsion induces a two-body interaction. As we show in the following, this leads to a system of coupled single-particle equations. A way to decouple those equations is to define an \textit{effective potential}, which is an average of the Coulomb repulsion over all the electrons of the system. That is why the Hartree-Fock method is categorized as a \textit{mean-field approximation}.
+
+One technique for solving this problem starts by expanding each single-particle eigenvector $\Psi_i$ in terms of any convenient complete set of single-particle states $|\alpha \rangle$:
+\begin{equation}
+\label{eq:expansionSinglePart}
+\Psi_i= |i \rangle = \sum_{\alpha} c_i^\alpha |\alpha \rangle.
+\end{equation}
+
+In our case, the complete set of single-particle states $| \alpha \rangle$ corresponds to the harmonic oscillator states. While the expansion~(\ref{eq:expansionSinglePart}) in general involves an infinite number of terms, we always truncate it in approximation procedures, so that we shall assume here that~(\ref{eq:expansionSinglePart}) is a finite sum~\cite{Moshinsky}.
+\begin{equation}
+\label{eq:FiniteExpansionSinglePart}
+\Psi_i= |i \rangle = \sum_{\alpha} c_i^\alpha |\alpha \rangle.
+\end{equation}
+
+
+Introducing the expansion~(\ref{eq:FiniteExpansionSinglePart}) in the expectation value of $\hat{H}$ (eq.~\ref{eq:EnergyFunctional}), we can write
+\begin{align}
+\label{eq:EnergyFunctionalExpanded}
+E[\Phi] &=  \langle \Phi |\hat{H}_0| \Phi \rangle +  \langle \Phi |\hat{H}_1| \Phi \rangle\\
+&= \sum_{i=1}^N \langle i |h| i \rangle + \frac{1}{2}  \sum_{i=1}^N \sum_{j=1}^N \langle ij |V| ij \rangle_{AS} \\
+&= \sum_{i=1}^N \sum_{\alpha \gamma} C_i^{\alpha *} C_i^{\gamma} \langle \alpha |h| \gamma \rangle + \frac{1}{2}   \sum_{i,j=1}^N \sum_{\alpha \beta \gamma \delta} C_i^{\alpha *} C_j^{\beta *} C_i^{\gamma} C_j^{\delta}  \langle \alpha \beta |V| \gamma \delta \rangle_{AS}.
+\end{align}
+
+The objective is of course to minimize the energy functional in eq.~\ref{eq:EnergyFunctionalExpanded} with respect to some constraints that ensure the orthonormality of the single-particle eigenvectors. For that purpose we introduce the $\epsilon_i$ as Lagrange multipliers to ensure the constraints of orthonormality, meaning for any particle $i$ and $j$
+\begin{align}
+\nonumber
+\langle i | j \rangle &= \delta_{ij}  \\
+\sum_{\alpha \beta} C_i^{\alpha *} C_j^\beta \underbrace{\langle \alpha | \beta \rangle}_{\delta_{ \alpha \beta } } &= \delta_{ij} \\
+\sum_{\alpha} C_i^{\alpha *} C_j^\alpha &= \delta_{ij}
+\end{align}
+
+Then a variatonal analysis implies minimizing the Lagrangian $\Lambda$
+\begin{eqnarray}
+\label{eq:AuxiliaryFunction}
+%OVERFULL BOX ICI !!!!!!!!!!!!!111
+\Lambda &=& \Lambda(C_1^{\alpha},C_2^{\alpha},\dots,C_N^{\alpha},\epsilon_1,\epsilon_2,\dots,\epsilon_N), \\
+&=& E[\Phi] - \sum_{i=1}^N \epsilon_i \left( \sum_\alpha C_i^{\alpha *} C_i^{\alpha} \right),
+%&=& \sum_{i=1}^N \sum_{\alpha \gamma} C_i^{\alpha *} C_i^{\alpha} \langle \alpha |h| \alpha \rangle + \frac{1}{2}   \sum_{i,j=1}^N \sum_{\alpha \beta \gamma \delta} C_i^{\alpha *} C_j^{\beta *} C_i^{\gamma} C_j^{\delta}  \langle \alpha \beta |V| \gamma \delta \rangle_{AS} \\
+%& &- \sum_{i=1}^N \epsilon_i \left( \sum_\alpha C_i^{\alpha *} C_i^{\alpha} \right)
+\end{eqnarray}
+
+with respect to the coefficient $C_i^{\alpha *}$ (or $C_i^\alpha$).
+
+The variational equation as defined in~\ref{diffLagrangian} leads to take the derivative of~(\ref{eq:AuxiliaryFunction}) with respect to $C_i^{\alpha *}$ and to set it to zero
+\begin{align*}
+\frac{d}{dC_i^{\alpha *}} \left[ \Lambda(C_1^{\alpha},C_2^{\alpha},\dots,C_N^{\alpha},\epsilon_1,\epsilon_2,\dots,\epsilon_N) \right] &= 0 \quad \forall \; i \in \mathbb{N}^*\\
+\frac{d}{dC_i^{\alpha *}} \left[  E[\Phi] - \sum_{i=1}^N \epsilon_i \sum_\alpha C_i^{\alpha *} C_i^{\alpha} \right] &= 0  \quad \forall \; i \in \mathbb{N}^*.
+\end{align*}
+Remembering that  $C_i^\alpha$ and  $C_i^{\alpha *}$ can be treated as independent, we arrive at the Hartree-Fock equations (one equation for each particle $i$ in its state $|\alpha \rangle$)
+
+\begin{equation}
+\label{eq:HFeqExpanded}
+\sum_\gamma \langle \alpha | h| \gamma \rangle \; C_i^\gamma +   \sum_{j=1}^N \sum_{\beta  \gamma  \delta} C_j^{\beta *} \langle \alpha \beta | V | \gamma  \delta \rangle_{AS}  \; C_i^\gamma \; C_j^\delta= \epsilon_i \ C_i^\alpha \quad \forall \; i \in \mathbb{N}^*
+\end{equation}
+
+The Hartree-Fock equations in~(\ref{eq:HFeqExpanded}) may be rewritten as
+\begin{align}
+\label{eq:FockMatrix}
+\nonumber
+\sum_\gamma \langle \alpha | h| \gamma \rangle \; C_i^\gamma +   \sum_\gamma \left[ \sum_{j=1}^N \sum_{\beta \delta} C_j^{\beta *} \langle \alpha \beta | V | \gamma  \delta \rangle_{AS}  \; C_j^\delta \right] C_i^\gamma &= \epsilon_i \ C_i^\alpha \quad \forall \; i \in \mathbb{N}^* \\
+\sum_\gamma \mathcal{O}_{\alpha \gamma} \; C_i^\gamma &= \epsilon_i \ C_i^\alpha \quad \forall \; i \in \mathbb{N}^*
+\end{align}
+
+which shows that eq.(\ref{eq:HFeqExpanded}) is a system of non-linear equations in the  $C_i^\alpha$, $C_i^{\alpha *}$, since $\mathcal{O}_{\alpha \gamma}$ depends itself on the unknowns, which may be solved by an iterative procedure.
+
+The iterative (self-consistant) procedure may be derived as follows. We define an \textit{effective Coulomb interaction potential} $U$ as
+\begin{align}
+\label{eq:effCoulombInterac}
+\langle \alpha |U| \gamma \rangle \equiv    \sum_{j=1}^N \sum_{\beta \delta} C_j^{\beta *} \langle \alpha \beta | V | \gamma  \delta \rangle_{AS}  \; C_j^\delta
+\end{align}
+
+and calculate these matrix elements with initial values for $C_i^\alpha$, say  $\delta_i^\alpha$. When we substitute the result in eq.(\ref{eq:HFeqExpanded}), we get a system of linear equations in the $C_i^\alpha$; this we can now solve in the standard way. If we started with a set of $K$ states $| \alpha \rangle$, the vectors $C_i^\alpha$ are $K$-dimensional and orthogonal, and so obey
+\[
+\sum_{\alpha} C_i^{\alpha *} C_j^\alpha = \delta_{ij}.
+\]
+
+There are thus $K$ independent vector solutions of the linearised version of eq.(\ref{eq:HFeqExpanded}),
+\begin{equation}
+\nonumber
+\sum_\gamma \left[ \langle \alpha | h| \gamma \rangle +  \langle \alpha | U| \gamma \rangle \right] C_i^\gamma = \epsilon_i \ C_i^\alpha.
+\end{equation}
+
+Among those solutions we select those for the $n$ lowest eigenvalues $\epsilon_i$ and substitute them back into~(\ref{eq:effCoulombInterac}); this provides the starting point for the next iteration. The process is continued until self-consistency is reached, or in other words until the $C_i^\alpha$ converge within a certain approximation~\cite{Moshinsky}.
+
+
+The Hartree-Fock equations in~(\ref{eq:HFeqExpanded}) may again be rewritten as
+\begin{align}
+\nonumber
+\sum_\gamma \langle \alpha | h| \gamma \rangle \; C_i^\gamma +   \sum_\gamma \left[ \sum_{j=1}^N \sum_{\beta \delta} C_j^{\beta *} \langle \alpha \beta | V | \gamma  \delta \rangle_{AS}  \; C_j^\gamma \; C_j^\delta \right] C_i^\gamma &= \epsilon_i \ C_i^\alpha \quad \forall \; i \in \mathbb{N}^* \\
+\sum_\gamma \left[ t_{\alpha \gamma} +   \sum_{j=1}^N \sum_{\gamma,\delta=1} V_{\alpha \beta \gamma \delta} \; C_j^{\beta *}  \; C_j^\delta \right] \; C_i^\gamma &= \epsilon_i \ C_i^\alpha \quad \forall \; i \in \mathbb{N}^*
+\end{align}
+
+where the two-body interaction matrix element $V_{\alpha \beta \gamma \delta}$ can be computed in advance
+
+\begin{equation}
+\label{twoBodyElement}
+ V_{\alpha \beta \gamma \delta}(ij) =   \langle \alpha \beta | V(ij) | \gamma  \delta \rangle_{AS}
+\end{equation}
+as well as the one-body part $t_{\alpha \gamma}(i)$
+\begin{equation}
+\nonumber
+\sum_\gamma t_{\alpha \gamma}(i) = \sum_\gamma \langle \alpha |h(i)| \gamma \rangle = \epsilon^{HO}_\alpha
+\end{equation}
+where $\epsilon^{HO}_\alpha$ are the energy eigenvalues of the one-body harmonic oscillator in state $|\alpha \rangle$ (then solution of the eigenproblem: $h_{HO} | \alpha \rangle =  \epsilon^{HO}_\alpha | \alpha \rangle$).
+
+
+\section{Many-body perturbation corrections}
+\label{sec:MBPT}
+%%%\subsection{$2^{nd}$ and $3^{rd}$ order time-independent degenerate perturbation theory corrections}
+When we start developing the expression of an excited state of the unperturbed Hamiltonian as given from the perturbation theory, it becomes complicated to write the combinations of Slater determinants in terms of permutations of occupied and unoccupied single particle orbitals.
+In this section we refer to the literature~\cite{heinonen1991,Raimes1972} for a introduction to the occupation number formalism, also known as second quantization.
+
+In this section we describe the Rayleigh-Schro\"odinger perturbatio ntheory, which is the elementary time-independent perturbation theory described in most text-books~\cite{Raimes1972}.
+
+Let us take the Hamiltonian to be
+\begin{equation}
+\nonumber
+\hat{H}=\hat{H}_0+\hat{H}',
+\end{equation}
+but now we shall treat $\hat{H}'$ as any perturbation, such as the Coulomb interaction. We suppose that $\Phi_n$ is an eigenfunction of $\hat{H}_0$ corresponding to the eigenvalu $E_n$, that is,
+\begin{equation}
+\nonumber
+\hat{H}_0 \Phi_n = E_n \Phi_n,
+\end{equation}
+and wish to consider the effect of the perturbation on a particular state $\Phi_0,$ where
+\begin{equation}
+\nonumber
+\hat{H}_0 \Phi_0 = E_0 \Phi_0.
+\end{equation}
+We denote by $\Psi_0$ the state into which $\Phi_0$ changes under the action of the perturbation, so that $\Psi_0$ is an eigenfunction of $\hat{H}$, corresponding to the eigenvalue $E$, say
+\begin{equation}
+\nonumber
+\hat{H} \Psi_0 = E \Psi_0.
+\end{equation}
+Therefore $\Phi_0$ and $\Psi_0$ denote the ground states of the unperturbed and perturbed systems respectively.
+We thus have
+\begin{equation}
+\hat{H}' \Psi_0 = (\hat{H}-\hat{H}_0) \Psi_0 = (E-\hat{H}_0) \Psi_0,
+\end{equation}
+so that 
+\begin{equation}
+\label{eq:160}
+\langle \Phi_0 |\hat{H}'| \Psi_0 \rangle= E \langle \Phi_0| \Psi_0 \rangle - \langle \Phi_0 | \hat{H}_0| \Psi_0 \rangle.
+\end{equation}
+Now, since $\hat{H}_0$ is Hermitian, $ \langle \Phi_0 | \hat{H}_0| \Psi_0 \rangle =  E_0 \langle \Phi_0 |\Psi_0 \rangle$, and substitution in (\label{eq:160})  gives:
+\begin{equation}
+\label{eq:162}
+\nonumber
+E-E_0 = \frac{\langle \Phi_0 |\hat{H}'| \Psi_0 \rangle}{\langle \Phi_0 |\Psi_0 \rangle}.
+\end{equation}
+
+This expression is, of course, exact and independent of any particular perturbation method. However, it cannot be used immediately, because the right-hand ide contains the perturbed wave function, which is unknown.
+
+We now define a so-called \textit{projection operator} $\mathbf{R}$ for the state $\Phi_0$ by the equation
+\begin{equation}
+\label{eq:163}
+\mathbf{R} \Psi = \Psi - \Phi_0 \langle \Phi_0 | Psi\rangle,
+\end{equation}
+where  $\Psi$ is any function of the same variables as $\Phi_0$. This operator removes the $\Phi_0$ component of the function $\Psi$. Thus, if
+\begin{equation}
+\nonumber
+\Psi = \sum_{n=0}^{\infty} B_n \Phi_n
+\end{equation}
+is the expansion of $\Psi$ in terms of the functions $\Phi_n$, assumed orthonormal, we find
+\begin{align}
+\label{eq:165}
+\mathbf{R} \Psi &= \Psi - \Phi_0 sum_{n=0}^{\infty} B_n \langle \Phi_0 | \Phi_n \rangle \\ \nonumber
+ &= \Psi -B_0 \Phi_0.
+\end{align}
+In particular,
+\begin{equation}
+\label{eq:166}
+\mathbf{R} \Phi_0 = 0.
+\end{equation}
+If we subsitute $\mathbf{R} \Psi$ for $\Psi$ in eq.(\ref{eq:163}), we obtain
+\begin{align}
+\nonumber
+\mathbf{R}^2 \Psi &= \mathbf{R}\Psi - \Phi_0  \langle \Phi_0 | \mathbf{R} \Phi \rangle \\
+  &= \mathbf{R} \Psi - \Phi_0 \left( \langle \Phi_0 | \Psi \rangle - \langle \Phi_0 | \Phi_0 \rangle \langle \Phi_0 |\Psi \rangle \right) \\ \nonumber
+&= \mathbf{R} \Psi. \nonumber
+\end{align}
+This also follows immediately from eq.(\ref{eq:165}) and (\ref{eq:166}).
+
+We shall in future write
+\begin{equation}
+\nonumber
+\langle \Phi_0 | \Psi_0 \rangle = C,
+\end{equation}
+a constant depending upon the normalization of $\Psi_0$. Eq.(\ref{eq:163}) gives
+\begin{align}
+\nonumber
+\mathbf{R} (E- \hat{H}_0) \Phi_0 &= (E_0 - \hat{H}_0) \Psi_0 - \Phi_0  \langle \Phi_0 | E_0 - \hat{H}_0|\Psi_0 \rangle \\
+&= (E_0 - \hat{H}_0) \Psi_0 - C E_0 \Phi_0 + \Phi_0 \langle \Phi_0 | \hat{H}_0|\Psi_0 \rangle \\ \nonumber
+&= (E_0 - \hat{H}_0) \Psi_0. \nonumber
+\end{align}
+In other words, $\mathbf{R}$ commutes with $E_0-\hat{H}_0$.
+
+Now,
+\begin{equation}
+\nonumber
+(E_0 - \hat{H}_0) \Psi_0 = (E_0-\hat{H}+\hat{H}') \Psi_0 = (E_0-E+\hat{H}') \Psi_0,
+\end{equation}
+so that 
+\begin{equation}
+\nonumber
+(E_0 - \hat{H}_0) \mathbf{R} \Psi_0 = \mathbf{R}(E_0-\hat{H}_0) \Psi_0 = \mathbf{R} (E_0-E+\hat{H}') \Psi_0,
+\end{equation}
+and therefore, it is possible to write~\cite{Raimes1972}
+\begin{equation}
+\nonumber
+\mathbf{R} \Psi_0= \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \Psi_0 = \Psi_0 - \Phi_0  \langle \Phi_0 | \Psi_0 \rangle,
+\end{equation}
+again using eq.(\ref{eq:163}). The perturbed wave function $\Psi_0$ thus satisfies the equation
+\begin{equation}
+\nonumber
+\Psi_0= C \Phi_0 + \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \Psi_0,
+\end{equation}
+which may be iterated to give
+
+\begin{align}
+\nonumber
+\Psi_0 &= C \Phi_0 + \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \left(  C \Phi_0 + \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \Psi_0 \right) \\
+ &= C \Phi_0 + \frac{C \mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \Phi_0 + \left(  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \Psi_0 \right)^2  (C \Phi_0 + \dots)\\ \nonumber
+ =& C \sum_{n=0}^{\infty} \left(  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \right)^n \Phi_0.
+\end{align}
+
+The perturbed energy can be obtained by substituting this expression in eq.(\ref{eq:162}), thus:
+\begin{equation}
+\label{eq:176}
+E-E_0 = \sum_{n=0}^{\infty} \big\langle   \Phi_0  | \hat{H}' \left(  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}') \right)^n   |   \Phi_0 \big\rangle.
+\end{equation}
+It will be observed that the right-hand side of this equation also contains $E$, but this is eliminated when the terms are expanded.
+We shall write
+\begin{equation}
+\nonumber
+\Delta E = E -E_0 = \Delta E^{(1)} + \Delta E^{(2)} +\Delta E^{(3)} + \dots
+\end{equation}
+where $\Delta E^{(m)}$, the $m^{th}$-order energy correction, contains the $m^{th}$-order power of the perturbation $\hat{H}'$. The first-order correction is the term of (\ref{eq:176}) with $n=0$, that is
+\begin{equation}
+\nonumber
+\Delta E^{(1)} = \langle   \Phi_0  | \hat{H}' | \Phi_0 \rangle.
+\end{equation}
+The second-order correction is
+\begin{equation}
+\label{eq:179}
+\Delta E^{(2)} = \langle   \Phi_0  | \hat{H}'  \frac{\mathbf{R}}{E_0 - \hat{H}_0} (E_0 - E +\hat{H}')   |   \Phi_0 \rangle.
+\end{equation}
+From eq.(\ref{eq:166}) 
+\begin{equation}
+\nonumber
+\mathbf{R} (E_0 - E +\hat{H}') \Phi_0 = \mathbf{R} \hat{H}' \Phi_0,
+\end{equation}
+so that (\ref{eq:179}) can equally well be written
+\begin{equation}
+\label{eq:181}
+\Delta E^{(2)} = \langle   \Phi_0  | \hat{H}'  \frac{\mathbf{R}}{E_0 - \hat{H}_0} \hat{H}'   |   \Phi_0 \rangle.
+\end{equation}
+We may expand $\hat{H}' \Phi_0$ in terms of the $\Phi_n$, thus:
+\begin{equation}
+\nonumber
+ \hat{H}'  \Phi_0 = \sum_{n=0}^{\infty} B_n \Phi_n.
+\end{equation}
+
+The coefficient $B_n$ are obtained by multiplying both sides of this equation by $\Phi_m^*$ and integrating over the configuraiton space of the system. This gives
+\begin{equation}
+\nonumber
+\langle  \Phi_m |\hat{H}'| \Phi_0 \rangle = \sum_{n=0}^{\infty} B_n \langle \Phi_m | \Phi_n \rangle = B_m,
+\end{equation}
+and
+\begin{equation}
+\label{eq:184}
+\hat{H}' \Phi_0  = \sum_{n=0}^{\infty} \langle \Phi_n |\hat{H}'| \Phi_0 \rangle \Phi_n,
+\end{equation}
+so that 
+\begin{equation}
+\nonumber
+\mathbf{R} \hat{H}' \Phi_0  = \sum_{n=0}^{\infty} \langle \Phi_n |\hat{H}'| \Phi_0 \rangle \Phi_n,
+\end{equation}
+which simply removes the $\Phi_0$ term from eq.(\ref{eq:184}). It then follows from eq.(\ref{eq:181}) that 
+\begin{align}
+\nonumber
+\Delta E^{(2)} &= \langle   \Phi_0  | \hat{H}'  \frac{1}{E_0 - \hat{H}_0}  \sum_{n=0}^{\infty} \langle \Phi_n |\hat{H}'| \Phi_0 \rangle |   \Phi_n \rangle. \\
+&= \sum_{n=0}^{\infty} \frac{\langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0 \rangle}{E_0 - E_n}, \nonumber
+\end{align}
+or, on the assmption that $\hat{H}'$ is Hermitian,
+\begin{equation}
+\label{eq:2ndOrderMBPT}
+\Delta E^{(2)} = \sum_{n=0}^{\infty} \frac{ \abs{ \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }^2}{E_0 - E_n}.
+\end{equation}
+This depends only upon $\hat{H}'$ and the unperturbed energy levels and wave functions.
+
+The higher-order energy corrections may be found in the same way. For example the third-order energy correction reads
+
+\begin{align}
+\label{eq:3rdOrderMBPT}
+\Delta E^{(3)} &= \sum_{n=0}^{\infty} \sum_{n=0}^{\infty}  \frac{  \langle \Phi_0 |\hat{H}'| \Phi_m  \rangle  \langle \Phi_m |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_m)(E_0 - E_n)} \\ \nonumber
+&  - \langle \Phi_0 |\hat{H}'| \Phi_0  \rangle \sum_{n=0}^{\infty} \frac{ \langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_n)^2}.
+\end{align}
+
+When re-writing the many-body energy corrections in particle and hole state formalism, we may benefit from using the Goldstone diagrams. Figure~\ref{FeynmanDiagrams} shows all antisymmetrized Goldstone diagrams through third order in perturbation theory (we omit the first-order diagram). All closed circles stand for a summation over hole states.
+\begin{figure}
+\label{FeynmanDiagrams}
+ \centering
+\includegraphics[width=0.7\textwidth]{IMAGES/ManyBodyPerturbationCorrectionDiagrams2}	
+ \caption{Antisymmetrized Goldstone diagrams through third order in perturbation theory. The dashed lines represents the interaction. Particle and hole states are represented by upward and downward arrows, respectively. The first-order diagram is omitted. All closed circles stand for a summation over hole states.(Image courtesy of M. Hjorth-Jensen)}
+\end{figure}
+
+In the occupation number representation, $\hat{H}'$ can be expressed in terms of anihilation ($c_i=k$) and creation operators ($c_k^{\dagger}$) as
+\begin{equation}
+\nonumber
+\hat{H}'= \frac{1}{2} \sum_{ijkl} \langle ij | v | kl \rangle c_i^{\dagger} c_j^{\dagger}  c_l c_k
+\end{equation}
+where 
+\begin{equation}
+\nonumber
+\langle ij | v | kl \rangle = \int \int \phi_i^*(\mathbf{x_1}) \phi_j^*(\mathbf{x_2}) v(\mathbf{x_1},\mathbf{x_2}) \phi_k^*(\mathbf{x_1}) \phi_l^*(\mathbf{x_2}) d\mathbf{x_1} d\mathbf{x_2}
+\end{equation}
+and the sum is over all values of $i$, $j$, $k$ and $l$.
+
+This notation lead us to the following expression  for the many-body energy corrections
+\begin{align}
+\label{MBPTcorrections1}
+\Delta E^{(1)} &= \langle   \Phi_0  | \hat{H}' | \Phi_0 \rangle. \\ \nonumber
+	&= \frac{1}{2}  \sum_{h_1 h_2} (\langle h_1 h_2 |v| h_1 h_2\rangle - \langle h_1 h_2 | | h_2 h_1\rangle ) \\  \nonumber
+	&= \frac{1}{2} \sum_{h_1 h_2} \langle h_1 h_2 |v| h_1 h_2\rangle_{as} \nonumber
+\end{align}
+where $h_1$ and $h_2$ are hole states.
+
+\begin{align}
+\label{MBPTcorrections2}
+\Delta E^{(2)} &= \sum_{n=0}^{\infty} \frac{\langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0 \rangle}{E_0 - E_n}, \\ \nonumber
+&= \frac{1}{4} \sum_{h_1 h_2 p_1 p_2} \frac{\abs{\langle h_1 h_2 |v|p_1 p_2 \rangle}_{as}^2}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}}
+\end{align}
+where $p_1$ and $p_2$ are particle states, and $\epsilon_{h_1}, \epsilon_{h_2},\epsilon_{p_1}$ and $\epsilon_{p_2}$ are the single particle energies of the basis set.
+
+\begin{align}
+\nonumber
+\Delta E^{(3)} &= \sum_{n=0}^{\infty} \sum_{n=0}^{\infty}  \frac{  \langle \Phi_0 |\hat{H}'| \Phi_m  \rangle  \langle \Phi_m |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_m)(E_0 - E_n)} \\ \nonumber
+&  - \langle \Phi_0 |\hat{H}'| \Phi_0  \rangle \sum_{n=0}^{\infty} \frac{ \langle \Phi_0 |\hat{H}'| \Phi_n  \rangle \langle \Phi_n |\hat{H}'| \Phi_0  \rangle }{(E_0 - E_n)^2}\\
+&= \Delta E^{(3)}_{4p-2h} + \Delta E^{(3)}_{2p-4h} + \Delta E^{(3)}_{3p-3h}
+\end{align}
+where $\Delta E^{(3)}_{4p-2h}$ is the contribution to the third-order energy correction due to the 4-particle/2-hole excitations, $\Delta E^{(3)}_{2p-4h}$ is the contribution to the third-order energy correction due to the 2-particle/4-hole excitations  and  $\Delta E^{(3)}_{3p-3h}$ is the contribution to the third-order energy correction due to the 3-particle/3-hole excitations.
+
+The contributions can be written as
+\begin{align}
+\label{MBPTcorrections3}
+\Delta E^{(3)}_{4p-2h} &= \frac{1}{8} \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}}  \sum_{p_3 p_4} \frac{\langle p_1 p_2 |v|p_3 p_4 \rangle_{as} \langle p_3 p_4 |v|h_1 h_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_3}-\epsilon_{p_4}}    \right) \\
+\Delta E^{(3)}_{2p-4h} &= \frac{1}{8} \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}}  \sum_{h_3 h_4} \frac{\langle h_1 h_2 |v|h_3 h_4 \rangle_{as} \langle h_3 h_4 |v|h_1 h_2 \rangle_{as}}{\epsilon_{h_3}+\epsilon_{h_4}-\epsilon_{p_1}-\epsilon_{p_2}}    \right) \\ 
+\Delta E^{(3)}_{3p-3h} &= \frac{1}{8} \sum_{h_1 h_2 p_1 p_2}  \left(  \frac{\langle h_1 h_2 |v|p_1 p_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_2}-\epsilon_{p_1}-\epsilon_{p_2}} \left( \sum_{h_3}\sum_{p_3} \frac{\langle h_1 h_3 |v|p_1 p_3 \rangle_{as} \langle p_3 h_2 |v|h_3 h_2 \rangle_{as}}{\epsilon_{h_1}+\epsilon_{h_3}-\epsilon_{p_1}-\epsilon_{p_3}}  \right)  \right)
+\end{align}
+where the $p_i$ denote the  particle states, $h_i$ the hole states, and $\epsilon_{i}$ the single particle energies of the corresponfing state.
+
+
+\section{Variational Monte-Carlo method}
+Variational Monte Carlo (VMC) is based on Quantum Monte Carlo method where the wave function is written as a function of the distance between each pair of quantum particles to explicitly include correlation between the electrons. This increases the accuracy, however the many-body integral becomes unseparable, so Monte Carlo is the only way to evaluate it efficiently.
+
+The basic Monte Carlo strategy consists in analysing hundreds to millions of possible configurations (here: positions of the electrons) instead of few discrete scenarios. The results provide the probabilities of the different outcomes to occur. The points can be sampled with an homogeneous random distribution, or preference can be given to points located in areas where the distribution is large to obtain more accurate results and avoid wasting time in regions of low interest. This is called importance sampling. A flowchart of a typical variatonal Monte Carlo method is given in figure~\ref{fig:diagramHF}.
+
+First an initial point $R$ is chosen and $\psi(R)$ is computed. Then at each step a new position $R'$ is generated by adding a random vector to $R$ (this random vector having a ``drift'' component towards the region of large distribution in the case of importance sampling). The Metropolis algorithm is used to check whether the move is accepted by calculating the ratio $w = P(R) / P(R')$. If $w \geq s$, where s is a random number between 0 and 1, the new position is accepted, otherwise the electron stays in the same place. At the end of Monte Carlo sampling the mean energy and the standard deviation are calculated.
+
+In VMC the variational method is used to approximate the ground state of the system. It consists in choosing a ``trial wavefunction'' depending on one or more parameters, and finding the values of these parameters for which the expectation value of the energy is the lowest possible.
+The difficulty in the VMC method is the construction of a trial wave function: it is essential to have an optimized wave function as close as possible to the exact wave function, ie it must satisfy as many known properties of the exact wave function as possible: for example it should be well defined at the origin and the derivative should be well defined too; the ``cusps'' of the wave function (discontinuities in the first derivative of the wave function when two charged particles come close together) can be used as constraints that the trial wave function has to respect. It is also important that the value, gradient and laplacian of the trial wave function can be efficiently computed.
+Different strategies are used to adjust the trial wave function: optimization of energy, variance, or a combination of both.
+
+\paragraph{Advantages of VMC}
+This method is relatively simple to understand and then to program. Once the trial wave function is built no further approximation is needed.
+With VMC you can tell how important a given correlation is by systematically adding terms to the trial wave function.
+In addition, you end up with an explicit form of the trial wave function which helps understanding the system.
+
+\paragraph{Disadvantages of VMC}
+In order to get reliable results the trial wave function has to be optimized. However, there is nothing internal to the method that tells us when we should stop to introduce additional corrections.
+The optimization of the trial wave function is very time consuming, and usually it is stopped when the expected result is obtained. This brings an element of human bias, which inevitably introduces systematic errors. Therefore the VMC method may become less reliable as the physics of system gets more complex.
+\begin{figure}
+\centering
+\scalebox{1}{\input{IMAGES/diagramVMC2.tex}}
+\caption{\label{fig:diagramHF}Flowchart of our implementation of the Hartree-Fock algorithm.\newline
+(Image courtesy of I. Vallejo Henao)}
+\end{figure}
+
+
+\section{Full Configuration Interaction method}
+
+The Hamiltonian of a N-electron system can usually be writen under the form
+\begin{equation}
+ \hat{H} = \hat{H}_0 + \hat{H}'
+\end{equation} 
+where $\hat{H}_0$ is the single-particle part of the Hamiltonian and $\hat{H}'$ the two-particle part.
+Let $ \left\{ |\phi_i \rangle \right\}^{N_B}_{i=1}$ be an arbitrary complete orthonormal basis of the given truncated Hilbert space with dimension $N_B$. Then the eigenvalue equation of the Hamiltonian $\hat{H}$ can be written in the matrix representation as
+\begin{equation}
+\label{eq:matrixH}
+ \mathbf{Hc} = E \mathbf{c}
+\end{equation} 
+where $\mathbf{H}$ is a matrix with the matrix elements $H_{nm} = \langle \Phi_n |\hat{H} | \Phi_m \rangle$, $\mathbf{c}$ is a vector with elements $(c_n)^{N_B}_{n=1}$, and $E$ is the energy of the system. By solving this matrix eigenvalue equation the exact solution of the Hamiltonian equation can ideally be calculated and the eigenstate $|\psi \rangle$ is the linear combination of the basis states $|\phi_i \rangle$:
+\begin{equation}
+ |\psi \rangle = \sum_{i=1}^{N_B} c_i |\phi_i \rangle
+\end{equation}
+
+In real computations only a finite number of basis functions can be included. This is the most basic idea of the full configuration interaction (FCI) (\textit{Exact or Large Scale Diagonalization}) method.
+
+In the FCI method the basis states $|\phi_i \rangle$ are chosen to be N-electron eigenstates of the single-particle Hamiltonian $\hat{H}_0$. The basis states are Slater determinants
+\begin{equation}
+ |\phi_i \rangle = Slater(\left\{ |\varphi_j \rangle, j \in \mathcal{S} \right\} )
+\end{equation}
+where the $N$ different single-particle wave functions $|\varphi_j \rangle$ are eigenstates of $\hat{T}$, and $\mathcal{S}$ is a set of $N$ indices chosen among totally $M$ possible states. The total number of basis states $|\phi_i \rangle$ is thus the number of possible combinations $N_B = \left( ^M _N \right)$. A basis function $|\phi_{\alpha} \rangle$ can be written in the occupation number representation as
+\begin{equation}
+ |\phi_{\alpha} \rangle = |n_{\alpha 1},n_{\alpha 2}, ..., n_{\alpha M} \rangle
+\end{equation}
+where $n_{\alpha j}$ is the number of particles in the state $j$. Pauli exclusion principle sets the restriction $n_{\alpha j} \in \left\{ 0,1 \right\}$ for fermions. $N$ states have to be occupied and the rest unoccupied.
+
+To solve the eigenvalue equation~\ref{eq:matrixH} the matrix elements $H_{nm}$ must be calculated first. In second quantization the single-particle operator can be written as~\cite{Raimes1972}
+\begin{equation}
+ \hat{H}_0 = \sum_{i,j} h_{ij} c^{\dagger}_i c_j
+\end{equation}
+where
+\begin{equation}
+ h_{ij} = \langle i |\hat{h} | j \rangle = \int d \mathbf{r} \varphi^*_i (\mathbf{r}) t(\mathbf{r}) \varphi_j (\mathbf{r})
+\end{equation}
+The states $| i \rangle = \varphi_i (\mathbf{r})$ are single-particle basis functions and $\hat{t} = t(\mathbf{r})$ is the single-particle operator. The creation operator $c^{\dagger}_i$ increases the number of particles in state $i$ by 1 and the annihilation operator decreases the same by 1.
+
+The two-particle part of the Hamiltonian can be written in the same way as the single-particle part:
+\begin{equation}
+ \hat{H}' = \frac{1}{2} \sum_{i,j,k,l} \langle ij |\hat{u} | kl \rangle c^{\dagger}_i c^{\dagger}_j c_k c_l
+\end{equation}
+where
+\begin{equation}
+ \langle ij |\hat{u} | kl \rangle = u_{ijkl} = \delta_{\sigma_i,\sigma_k} \delta_{\sigma_j,\sigma_l} \int d \mathbf{r} \int d \mathbf{r'} \varphi^*_i (\mathbf{r}) \varphi^*_j (\mathbf{r'}) u(\mathbf{r},\mathbf{r'}) \varphi_k (\mathbf{r}) \varphi_l (\mathbf{r'})
+\end{equation}
+The states $| i \rangle$ are single-particle basis functions and $u(\mathbf{r},\mathbf{r'})$ is the two-particle operator in the coordinate representation.
+
+As the single-particle basis functions $| i \rangle$ in this case are eigenstates of $\hat{t}$, the single-particle parts of the matrix elements are
+\begin{equation}
+ H_{0\alpha \beta} = \langle \Phi_{\alpha} |\hat{H}_0| \Phi_{\beta} \rangle = \delta_{\alpha \beta} \sum_i n_{\alpha i} \epsilon_i
+\end{equation}
+where $\epsilon_i$ are single-particle energy eigenvalues.
+
+The two-particle parts of the matrix elements
+\begin{equation}
+ \hat{H}_{\alpha \beta}' = \langle \Phi_{\alpha} |\hat{H}' | \Phi_{\beta} \rangle 
+\end{equation}
+can be derived using the properties of creation and annihilation operators. These elements are different sums of $u_{ijkl}$ terms multiplied by $n_{\alpha i}$ terms.
+More details can be found in~\cite{bardsenThesis}.
+
+The total number of basis functions $N_B$ can be reduced by using the symmetries of the Hamiltonian, for example fixing the z-component of the total spin and/or angular momentum. Finally the Hamiltonian matrix is diagonalized.
+
+The most serious disadvantage of the FCI method is that the basis size grows exponentially with the number of electrons $N$, so the computational cost also scales exponentially as a function of the electron number.
+
+In addition the convergence as a function of the number of single-electron states $M$ may also be slow.
+
+Therefore the FCI method is normally used only for systems with up to 6-10 electrons, depending on the basis size needed in the calculations.

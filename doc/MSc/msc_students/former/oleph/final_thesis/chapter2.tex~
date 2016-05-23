@@ -1,0 +1,600 @@
+\newcommand{\h}{\hat{H}}
+\newcommand{\he}{\hat{H}_{\textrm{eff}}}
+\renewcommand{\H}{\hat{\mathscr{H}}}
+\renewcommand{\v}{\hat{V}}
+\newcommand{\vv}{\hat{\tilde{V}}}
+\renewcommand{\t}{\hat{T}}
+\newcommand{\ve}{\hat{V}_{\textrm{eff}}}
+\renewcommand{\u}{\hat{U}}
+\newcommand{\p}{\hat{P}}
+\newcommand{\q}{\hat{Q}}
+\newcommand{\qq}{\hat{\tilde{Q}}}
+\newcommand{\g}{\hat{G}}
+\renewcommand{\gg}{\hat{\tilde{G}}}
+\newcommand{\e}{\hat{e}}
+\renewcommand{\o}{\hat{\Omega}}
+\newcommand{\x}{\hat{X}}
+\renewcommand{\u}{\hat{U}}
+\newcommand{\w}{\hat{w}}
+\renewcommand{\a}{\hat{A}}
+\renewcommand{\b}{\hat{B}}
+\chapter{Renormalizing the Hamiltonian}
+
+The calculations done in this thesis are based on the framework of the nuclear
+shell model, with neutrons and protons as degrees of freedom. The effective
+interactions are based on a renormalized nucleon-nucleon (NN) interaction
+including the Coulomb force.
+
+The renormalization of the Hamiltonian is done in a harmonic oscillator basis.
+This basis is also used for the Hartree-Fock calculations.
+
+\section{Renormalizing the Hamiltonian}
+
+We want to solve the non-relativistic Shcr\"{o}dinger equation for the nuclei
+$^{14}$C, $^{16}$C, $^{15}$B and $^{15}$C,
+\begin{align}
+	\h\ket{\Psi(1\dots A)} = E\ket{\Psi(1\dots A)}.
+	\label{Eq:SE}
+\end{align}
+
+Equation \ref{Eq:SE} is a many-particle equation that must be solved
+approximately. Here we will approximate it by using two-particle interactions.
+This is because the three-particle and higher interactions are more difficult
+to calculate, and give smaller contributions to the total interaction. Also,
+the program does not support three-particle and higher particle interactions.
+Note that three-particle interactions can have a significant impact on the
+binding energy, providing up to $10\%$ of the total energy, and sometimes
+influencing the energy spectra.
+
+The two-body Hamiltonian is given by
+\begin{align}
+	\h = \t + \v = \sum_{i=1}^A\hat t_i + \sum_{i<j}\v_{ij},
+	\label{eq:Ham}
+\end{align}
+where $\hat t_i$ is the kinetic energy of nucleon $i$ and $\v_{ij}$ is
+the nucleon nucleon (NN) interaction between particle $i$ and $j$. In nuclear
+physics the NN interaction V is not well known, and there exists many methods
+to derive it.
+
+This Hamiltonian is often rewritten using an auxiliary potential $\u$,
+\begin{align}
+	\h = (\t+\u) + (\v-\u) = \h_0+\h_1,
+\end{align}
+where we want to choose $\u$ so that $\h_1$ is small. 
+
+Our two-body Hamiltonian consists of A nucleons interacting with each other in
+our infinite Hilbert space, and is too large for practical calculations. We
+will use $^4$He as a closed core to reduce this space. This means that the 4
+first nucleons of our nuclei cannot be excited to higher-lying states. $^4$He
+fills the $0s$ shell, and is very stable. Excitations from the $0s$ shell is
+therefore highly unlikely, and using it as a closed core will be a good
+approximation. The closed core will be our new reference vacuum.
+
+The nucleus $^4$He is
+\begin{align}
+	\ket{c} = \prod_{i=1}^4a_i^\dagger\ket0.
+	\label{eq:core}
+\end{align}
+
+We will also map our Hamiltonian down on a reduced Hilbert space, our so-called
+model space.
+
+The wave function $\ket{\Psi_\lambda}$ in the full Hilbert space is
+\begin{align}
+	\ket{\Psi_\lambda} = \sum_{\lambda=1}^\infty b_\lambda\ket{\phi_\lambda}.
+\end{align}
+
+We divide the Hilbert space into a model space and an excluded state with the
+projection operators $\p$ and $\q$, that map the full Hilbert space to
+respectively the model space and the excluded space,
+\begin{align}
+	\p = \sum_{i=1}^d\ket{\phi_i}\bra{\phi_i},
+\end{align}
+\begin{align}
+	\q = \sum_{i=d+1}^\infty\ket{\phi_i}\bra{\phi_i},
+	\label{eq:Q}
+\end{align}
+$d$ is here the dimensionality of the model space.
+
+The projection operators $\p$ and $\q$ are hermitian, and fulfill the
+relations $\p\q=0$, $\p^2=\p$, $\q^2=\q$ and $\p+\q=1$.
+
+In our calculations we will work with three different model spaces. These model spaces are listed
+below.
+\begin{itemize}
+
+\item I now define the shorthand notation $0p\frac32-1s\frac12$. This notation
+comprises the following single particle orbitals, $0p\frac32$, $0p\frac12$,
+$0d\frac52$ and $1s\frac12$ for neutrons and protons. The notation
+$0p\frac32-1s\frac12$ will hereafter be used for this model space.
+
+\item I now define the shorthand notation $0p\frac32-0d\frac52$. This notation
+comprises the following single particle orbitals, $0p\frac32$, $0p\frac12$,
+$0d\frac52$, $1s\frac12$ and $0d\frac32$ for neutrons and protons. The notation
+$0p\frac32-0d\frac52$ will hereafter be used for this model space.
+
+\item I now define the shorthand notation $0p\frac32-0f\frac72$. This notation
+comprises the following single particle orbitals, $0p\frac32$, $0p\frac12$,
+$0d\frac52$ $1s\frac12$, $0d\frac32$ and $0f\frac72$ for neutrons and protons.
+The notation $0p\frac32-0f\frac72$ will hereafter be used for this model space.
+
+\end{itemize}
+
+Using the $\p$ and $\q$ projection operators one can derive a new two-body
+interaction that is effective only in the model space. This $\ve$ is also known
+as the $\qq$-box,
+
+\begin{align}
+	\ve(\omega) = \qq(\omega) &= \p(\h_1 + \h_1\frac{\q}{\omega-\h_0-\q\h_1\q}\q\h_1)\p\\
+	&= \p(\h_1 + \h_1\frac{\q}{\omega-\h_0}\h_1 + \h_1\frac{\q}{\omega-\h_0}\h_1\frac{\q}{\omega-\h_0}\h_1 + \dots)\p,
+	\label{eq:Qbox}
+\end{align}
+where $\omega$ is a general energy variable, the so-called starting energy. See
+\citep{kuo} for more details. This equation is also known as the
+Rayleigh-Schr\"{o}dinger perturbative expansion.
+
+For simplicity we will write $\h_1$ as $\v$ in our equations.
+
+The $\qq$-box can thus be expanded in a diagrammatic expansion of the NN
+interaction, as shown in figure \ref{fig:goldstone}. Note that in this case the
+model space is defined by the hole states. Figure \ref{fig:goldstone} i) shows
+a closed, first order Goldstone diagram, while diagram ii) shows a closed,
+second order Goldstone diagram and diagram iii) shows a closed, third order
+Goldstone diagram.
+
+Diagram i) can be expressed as
+\begin{align}
+	(i)=\frac{(-)^{n_h+n_l}}{2^{n_{ep}}}\sum_{k_i,k_j\leq k_F}
+	\bra{k_ik_j}\vv\ket{k_ik_j}_{AS},
+\end{align}
+where $n_h$ denotes the number of hole lines, $n_l$ the number of closed
+fermion loops and $n_{ep}$ is the number of equivalent pairs. The subscript
+$AS$ denotes the antisymmetrized and normalized matrix element
+\begin{align}
+	\bra{k_ik_j}\vv\ket{k_ik_j}_{AS}=\bra{k_ik_j}\v\ket{k_ik_j}-
+	\bra{k_jk_i}\v\ket{k_ik_j}=\vv_{ijij}.
+\end{align}
+\begin{figure}
+	\setlength{\unitlength}{1mm}
+	\begin{align}
+	\put(-70,10){\epsfxsize=12cm \epsfbox{goldstone.eps}}
+	\end{align}
+	\caption{Closed Goldstone diagrams. Diagrams (i), (ii) and (iii) are,
+	respectively, the first, second and third order contributions to
+	the interaction $\v$.}
+	\label{fig:goldstone}
+\end{figure}
+Diagram (i) then becomes
+\begin{align}
+	(i)=\frac{(-)^{2+2}}{2^1}\sum_{ij\leq k_F}\vv_{ijij}.
+\end{align}
+Diagrams (ii) and (iii) gives
+\begin{align}
+	(ii)=\frac{(-)^{2+2}}{2^2}\sum_{ij\leq k_F}\sum_{mn>k_F}
+	\frac{\vv_{ijmn}\tilde{V}_{mnij}}
+	{\varepsilon_i+\varepsilon_j-\varepsilon_m-\varepsilon_n},
+\end{align}
+and
+\begin{align}
+	(iii)=\frac{(-)^{2+2}}{2^3}\sum_{ij\leq k_F}\sum_{mn>k_F}
+	\sum_{pq>k_F}
+	\frac{\vv_{ijmn}\vv_{mnpq}\vv_{pqij}}
+	{(\varepsilon_i+\varepsilon_j-\varepsilon_m-\varepsilon_n)
+	(\varepsilon_i+\varepsilon_j-\varepsilon_p-\varepsilon_q)}.
+	\label{eq:goldDia3}
+\end{align}
+
+\begin{figure}
+	\setlength{\unitlength}{1mm}
+	\begin{align}
+	\put(-40,10){\epsfxsize=9cm \epsfbox{nn-potential.eps}}
+	\end{align}
+	\caption{Schematic model for the NN potential.}
+	\label{fig:potential}
+\end{figure}
+
+Figure \ref{fig:potential} shows that the interaction $\v$ is large for small
+values of the interparticle distance ${\bf r}$. We see readily from this and
+equation (\ref{eq:goldDia3}) that the Goldstone linked-diagram theory is
+unsuited for perturbation theory as the terms will only get larger when ${\bf
+r}$ is small.
+
+We need to use another method to solve the Schr\"{o}dinger equation. Two such
+methods that the program uses for finding the effective interaction are the
+$G$-matrix and the Vlowk method.
+
+\section{$G$-matrix method}
+
+%Se side 130 for referanser for linjen under.
+The $G$-matrix method was originally developed by Brueckner\citep{brueck}, and
+was further developed by Goldstone\citep{gold} and Bethe, Brandow and
+Petschek\citep{bbp}. It involves the summation of all the Goldstone
+linked-diagrams. See for example \citep{g261}. It can be written as
+
+\begin{align}
+	\gg_{ijij} =& \frac{1}{2}\vv_{ijij} + \frac{1}{2}\sum_{mn>k_F}
+	\frac{\vv_{ijmn}}
+	{\varepsilon_i+\varepsilon_j-\varepsilon_m-\varepsilon_n}\notag
+	\\&\times \left(\frac{1}{2}\vv_{mnij}+\frac{1}{2}\sum_{mn>k_F}
+	\sum_{pq>k_F}\frac{\vv_{mnpq}}
+	{\varepsilon_i+\varepsilon_j-\varepsilon_p-\varepsilon_q}\right)\notag
+	\\&\times\left(\frac{1}{2}\vv_{pqij}+\dots\right).
+\end{align}
+This is a recursive equation, and can thus be written as
+\begin{align}
+	\vv_{ijij} = \frac{1}{2}\vv_{ijij} + \frac{1}{2}\sum_{mn>k_F}
+	\vv_{ijmn}\frac{1}
+	{\varepsilon_i+\varepsilon_j-\varepsilon_m-\varepsilon_n}\gg_{mnij}.
+	\label{eq:G_rec}
+\end{align}
+Although the interaction diverges for small values of $\bf r$ and although we
+have an infinite sum, we know that the energy of the system is still finite.
+This means that the sum in equation \ref{eq:G_rec} is convergent and can
+therefore be calculated accurately.
+
+The single particle (sp) energies $\varepsilon$ are given by the unperturbed
+(non-interacting) Hamiltonian $\h_0$
+\begin{align}
+	\h_0\ket{\psi_m\psi_n}=(\varepsilon_m+\varepsilon_n)\ket{\psi_m\psi_n}.
+\end{align}
+
+We can now, using the projection operator $\q$ defined in equation \ref{eq:Q},
+rewrite the $G$-matrix into a more general form
+\begin{align}
+	\g(\omega) = \v+\v\frac{\q}{\omega -\h_0}\g(\omega),
+	\label{eq:G}
+\end{align}
+where $\omega$ is a general energy variable, that is, the unperturbed sp
+energies for a general two-particle state.
+
+Equation \ref{eq:G} assumes that $\h_0$ commutes with $\q$. If this is not the
+case, then the $G$-matrix assumes the form
+
+\begin{align}
+	\g(\omega) = \v+\v\q\frac{1}{\omega -\q\h_0\q}\q\g(\omega ).
+	\label{eq:G2}
+\end{align}
+
+We will in our coming calculations assume that $\h_0$ commutes with $\q$. This
+is safe to do because we can always choose $\u$ so that $\h_0$ will commute
+with $\q$.
+
+Equation \ref{eq:G} is still problematic though, as we have the infinitely
+large excluded space in it. To solve this we introduce a free scattering
+interaction matrix ($\g_F$, which is easy to calculate), in order to get rid of
+the excluded space dependency. In order to do this we need to define two
+matrices $\g$ and $\g_F$, where $\g$ is the effective two-body interaction for
+bound states, and $\g_F$ is the free $G$-matrix, that is, the free scattering
+two-body interaction. I will, for simplicity, from now on write $\g(\omega)$ as
+$\g$.
+
+Before I define the $G_F$-matrix, I will show how we can express one $G$-matrix by another $G$-matrix.
+
+We define two $G$-matrices,
+\begin{align}
+	\g_1 &= \v_1 + \v_1\frac{\q_1}{\e_1}\g_1,\\
+	\g_2 &= \v_2 + \v_2\frac{\q_2}{\e_2}\g_2,
+\end{align}
+where
+\begin{align}
+	\e_i &= \omega_i - \q_i\h_0\q_i,& i &= 1,2. \notag
+\end{align}
+We define the wave operators
+\begin{align}
+	\o_i &= 1 + \frac{\q_i}{\e_i}\g_i,& i &= 1,2
+\end{align}
+This leads to the following relation
+\begin{align}
+	\g_i &= \v_i\o_i,& i &= 1,2.
+	\label{eq:GO}
+\end{align}
+We can now write $\g_1$ as
+\begin{align}
+	\g_1 = &\g_1 - \g_2^{\dagger}\left(\o_1-1-\frac{\q_1}{\e_1}\g_1\right)
+	+ \left(\o_2^{\dagger}-1-\g_2^{\dagger}\frac{\q_2}{\e_2}\right)\g_1,
+\end{align}
+and using equation \ref{eq:GO} we get
+\begin{align}
+	\g_1 = \g_2^{\dagger} + \g_2^{\dagger}
+	\left(\frac{\q_1}{\e_1}-\frac{\q_2}{\e_2}\right)\g_1
+	+ \o_2^{\dagger}(\v_1-\v_2)\o_1.
+	\label{eq:G12}
+\end{align}
+
+When $\v_1 = \v_2$ equation \ref{eq:G12} reduces to
+\begin{align}
+	\g_1 = \g_2^{\dagger} + \g_2^{\dagger}
+	\left(\frac{\q_1}{\e_1}-\frac{\q_2}{\e_2}\right)\g_1.
+	\label{eq:G12V}
+\end{align}
+
+Now we can go back to the free $G$-matrix. The equations here are taken from
+the article by \citet{G-matrix}. The $G_F$-matrix is basis-independent, and is defined as
+\begin{align}
+	\g_F = \v + \v\frac{1}{\tilde\omega-T}\g_F,
+	\label{eq:GF}
+\end{align}
+where $\v$ is the usual two-body interaction, $T$ is the kinetic term and
+$\omega$ is the unperturbed energy.
+
+Since $\g$ and $\g_F$ have the same NN interaction, we can use equation
+\ref{eq:G12V} to define $\g$,
+\begin{align}
+	\g = \g_F^{\dagger} + \g_F^{\dagger}
+	\left(\frac{\q}{\e}-\frac{1}{\e_F}\right)\g,
+	\label{eq:GGF}
+\end{align}
+where we have used the fact that $\q_F = 1$.
+
+Using the matrix relation
+\begin{align}
+	\q\frac{1}{\q\e\q}\q = \frac1\e-\frac1\e\p\frac{1}{\p\frac1\e\p}\p\frac1\e,
+\end{align}
+we can rewrite equation \ref{eq:G2} as
+\begin{align}
+	\g = \g_F+\Delta\g,
+	\label{eq:G-matrix}
+\end{align}
+where $\Delta\g$ is a correction term, defined fully in the model space $P$,
+that gives us the bound energies. It is given as
+\begin{align}
+	\Delta\g = -\g_F\frac1\e\p\frac{1}{\p\left(\frac1\e+\frac1\e\g_f\frac1\e\right)\p}\p\frac1\e\g_F.
+\end{align}
+The $\Delta\g$ matrix is expressed in terms of the free interaction matrix
+$G_F$, and is not dependent on the high-lying states in the excluded space $Q$.
+The $G_F$ matrix can be calculated numerically exactly for the full
+two-particle Hilbert space, and this makes the $\Delta\g$ matrix easy to
+calculate.
+
+Note that the $G_F$ matrix is still a recursive equation that needs to be
+solved.
+%The $G_F$ matrix is still a recursive equation that needs to be solved. We
+%will in the next chapter show how this is solved with the
+%Rayleigh-Schr\"{o}dinger equation.
+
+%In the $G$-matrix for finite nuclei method, the two $G$-matrices mentioned
+%above are defined as following.
+%\begin{align}
+%	\g=\gg + \gg \left(\frac{q_l}{\omega-\h_0}\right)\g\\
+%	\label{eq:Gfinite}
+%	\gg=\v+\v\frac{\q_h}{\omega -\t}\gg
+%\end{align}
+%and
+%\begin{align}
+%	\q = \q_l + \q_h
+%\end{align}
+%where $\q_l$ stands for the lower-lying states in $\q$, and $\q_h$ stands for
+%the higher-lying states in $\q$. Equation \ref{eq:Gfinite} is easily seen to be
+%true by using equation \ref{eq:G12} and that $\v_1 = \v_2 = \v$ in equation
+%\ref{eq:Gfinite}.
+%
+%I will not go into how to define $\q_l$ and $\q_h$ or the further calculations
+%needed to calculate $\gg$. I will instead refer to the works of \citet{g261}. I
+%will only say that $\q_l$ is commonly? chosen as the part of the $Q$-space
+%where the interaction has negative potential.
+%
+%The $G$-matrix works in a single particle basis !Stemmer dette?!.
+%
+%!Dette avsnittet boer skrives om! Since $\g$ is a function of the unperturbed
+%energy !Usikker paa dette!, we need to describe it by perturbation theory.
+%Furthermore, the $G$-matrix only calculates the short range part of the
+%interaction. Unlike the Goldstone linked-diagram theory, we can describe it by
+%perturbation theory since the G-matrix contains all the diagrams in the
+%Goldstone linked-diagram theory.
+%
+%One of the more common selected values for $\chi$ is $\chi$ = P*$\chi$*Q,
+% as this choice gives eigenvalues that belong to the P-space.
+
+\section{Vlowk method}
+
+The Vlowk method renormalizes the Hamiltonian in the momentum space. First we
+use a similarity transformation of the full Hilbert space to the momentum
+space. This transformation is numerically exact. In the momentum space basis
+we introduce a cutoff, were we exclude the states with high momenta. This
+cutoff is necessary because we do not have a one to one correspondence when
+going from the full momentum space. The low-momentum space will then be part
+of our model space $P$, while the high momentum space will be part of our
+excluded state $Q$. The NN interaction is strongly dependent upon this cutoff,
+so care must be taken when choosing where to set the cutoff. Due to the choice
+of cutoff, this introduces a stronger dependency on many-body forces than the
+$G$-matrix. We need at least three-body forces computed with the same cutoff.
+
+We have chosen a cutoff of $2.2$ fm$^{-1}$ in our calculations.
+
+We start by using the Lee and Suzuki similarity transformation of the full two-particle Hamiltonian,
+\begin{align}
+	\H = \x^{-1}\h\x.
+\end{align}
+
+We divide the Hilbert space into the $P$ and $Q$ spaces. For the Vlowk method
+these $P$ and $Q$ spaces are not the same as the models space given in figures
+\ref{modellrom1}-\ref{modellrom4}. They are defined by the cutoff in momentum
+space mentioned above.
+\begin{equation}
+	\H =
+	\left(
+	\begin{array}{cc}
+		\p\H\p & \p\H\q \\
+		\q\H\p & \q\H\q \\
+	\end{array}
+	\right)
+	\label{eq:matr1}
+\end{equation}
+
+The Lee and Suzuki iterative method involves choosing $\x$ as
+\begin{align}
+	\x = e^{\w},
+\end{align}
+where $\w$, not to be confused with $\omega$ used in the previous section, is
+defined to have the relation
+\begin{align}
+	\w = \q\w\p.
+\end{align}
+Using this definition of $\w$, $\x$ has the properties $\x = 1+\w$ and
+$\x^{-1} = 1-\w$.
+
+When we require $\H$ (\ref{eq:matr1}) to be block diagonal and set in for $\x$,
+we get
+\begin{align}
+	\q\H\p = \q\h\p-\w\h\p+\q\h\w-\w\h\w = 0.
+	\label{eq:QHP}
+\end{align}
+We then need to solve this non-linear equation for $\w$.
+
+When $\w$ is found, the Hamiltonian projected down on the model space $\p\H\p$
+becomes
+\begin{align}
+	\he = \p\h\p+\p\h\w = \p\h\p+\p\v\w.
+	\label{eq:Heff}
+\end{align}
+
+We now do another similarity transformation $\u$ on $\he$ \citep{VlowkU}.
+\begin{align}
+	\u = (1+\w-\w^\dagger)(1+\w\w^\dagger+\w^\dagger\w)^{-\frac12}
+	\label{eq:U}
+\end{align}
+We want the transformed Hamiltonian to be diagonal so that we can easily separate the interaction term from the kinetic term.
+\begin{align}
+	\vv = \u^{-1}(\h_0+\v)\u-\h_0
+	\label{eq:V1}
+\end{align}
+
+Using equations \ref{eq:Heff}, \ref{eq:U} and \ref{eq:V1} the effective
+interaction in the model space becomes
+\begin{align}
+	\ve = (\p+\w^\dagger\w)^{\frac12}(\p\h\p+\p\v\w)(\p+\w^\dagger\w)^{-\frac12}-\p\h_0\p.
+\end{align}
+To solve this equation we need to calculate the matrix
+$(\p+\w^\dagger\w)^{\frac12}$, where $\w$ is found through equation
+\ref{eq:QHP}.
+
+I will now very shortly mention how to transform to the momentum space. For
+further details, see \citep{G-matrix}.
+
+We start by solving the Schr\"{o}dinger equation in relative momentum space
+\begin{align}
+	\int dk'k'^2\bra kT+V\ket{k'}\braket{k'}{\psi_\alpha} = E_\alpha\braket{k}{\psi_\alpha},
+\end{align}
+where we have used the completeness relation.
+
+We discretize the Schr\"{o}dinger equation to get a matrix equation,
+\begin{align}
+	\sum_\gamma\varpi_\gamma k_\gamma^2\bra{k_\delta}T+V\ket{k_\gamma}\braket{k_\gamma}{\psi_\alpha} = E_\alpha\braket{k_\delta}{\psi_\alpha},
+\end{align}
+where $k_\gamma$ are the integration points and $\varpi_\gamma$ are the
+corresponding quadrature weights.
+
+To get a hermitian matrix we introduce $\ket{\bar k_\delta} =
+k_\delta\sqrt{\varpi_\delta}\ket{k_\delta}$. After some calculation one gets
+the effective interaction in the original basis $\ket{k_\delta}$,
+\begin{align}
+	\bra{k_\delta}\ve\ket{k_\gamma} = \frac{\bra{\bar k_\delta}\ve\ket{\bar k_\gamma}}{\sqrt{\omega_\delta\omega_\gamma}k_\delta k_\gamma}.
+\end{align}
+
+Thereafter, we transform this interaction to a harmonic oscillator basis in the
+laboratory frame. This interaction is used in our calculations.
+
+%Many of the formulas used for the $G$-matrix method also hold for the Vlowk
+%method, and vice versa. But the calculations are done in different basis's
+
+\section{Hartree-Fock}
+
+The program has a Hartree-Fock (HF) option. If this option is chosen, then it
+will renormalize the wavefunction with the Hartree-Fock method and use the new
+HF wavefunction in the perturbation theory. !Usikker paa siste setningen her.!
+
+The purpose of the Hartree-Fock method is to replace the interaction $V$ with
+an auxiliary potential $U$ where we replace the interaction one particle feels
+from all the other A-1 particles by one potential for the A-1 particles.
+
+We can ease our calculations by introducing an auxiliary potential $U$ and
+rewriting the Hamiltonian
+\begin{align}
+	H = T + U + V - U = H_0 + H_1,
+\end{align}
+where we want to choose a $U$ so that $H_1$ is small.
+
+The Hartree-Fock method is about finding one such $U$. The $U$ chosen in the
+Hartree-Fock method is the average interaction between one nucleon and all the
+other nucleons. The energy eigenvalue equation can then be rewritten as a
+one-particle equation,
+\begin{align}
+	[T(x) + U_1^{HF}(x)]\phi_i(x) + \int dx'U_2^{HF}(x,x')\phi_i(x') =
+	\varepsilon_i^{HF}\phi_i(x),
+	\label{eq:HF}
+\end{align}
+where
+\begin{align}
+U_1^{HF}(x) = \sum_{j=1}^n\int dx'\phi_j^*(x')V_{ij}(x,x')\phi_j(x'),\\
+U_2^{HF}(x,x') = -\sum_{j=1}^n\phi_j^*(x')V_{ij}(x,x')\phi_j(x),
+\end{align}
+and $\varepsilon_i^{HF}$ is the Hartree-Fock energy eigenvalue for particle
+$i$.
+
+To calculate equation \ref{eq:HF} we need to know $\phi_i(x)$. In the
+Hartree-Fock method we choose an initial trial wavefunction $\phi_i(x)$ and
+initial position $x$ of the nucleons. We then find the energy eigenvalues and
+eigenstates. The next step is to compare the old wavefunction $\phi_i(x)$ with
+the new one. If they're not sufficiently equal, then we repeat the calculations
+of equation $\ref{eq:HF}$ with the new $\phi_i(x)$. Then we compare that and so
+on until $\phi_i(x)_{old} \approx \phi_i(x)_{new}$.
+
+For a more detailed discussion of the Hartree-Fock method, see \citet{HF}.
+
+After these calculations, we employ many-body perturbation theory to third
+order. This involves Goldstone diagram, such as the ones shown in figures
+\ref{fig:ld} and \ref{fig:td}
+
+\fig{goldstoneLD.eps}{Two diagrams that are unlinked.}{fig:ld}
+\fig{goldstoneTD.eps}{Two topologically equivalent diagrams.}{fig:td}
+
+In the next chapter we will discuss the method we use to diagonalize the
+Hamiltonian.
+
+%From the $G$-matrix we get the unperturbed energy. The long-range part of the
+%interaction can be calculated with perturbation theory. !Usikker paa om dette er
+%riktig! We can find the unperturbed energy ground state by doing the following.
+%\begin{align}
+%	\Delta E_0 = E_0 - W_0 =
+%	\frac{\bra{\phi_0}V\ket{\psi_0}}{\bra{\phi_0}{\ket{\psi_0}}}
+%\end{align}
+%
+%Before going any further we need to introduce the time evolution operator
+%$U(t,t')$ that takes us from time $t'$ to $t$.
+%\begin{align}
+%	U(t,t')\ket{\psi(t')} = \ket{\psi(t)}\\
+%	U(t,t') = e^{-\frac{i}{\hbar}H(t-t')}
+%\end{align}
+%
+%If we presume we have un adiabatic process, then we have the following useful
+%expression.
+%\begin{align}
+%U(0,-\infty)\ket{\phi_0} \propto \ket{\psi_{\alpha}}
+%\end{align}
+%We can use this relation as a start to find a time-dependent perturbation
+%expansion of $\Dela E$ This is done more conveniently in the interaction
+%picture.
+
+%It is shown in ?? that $\Delta E_0$ becomes
+%\begin{align}
+%	\Delta E_0 =
+%	\lim_{\varepsilon\rightarrow0}\lim_{t'\rightarrow-\infty(1-i\varepsilon)}
+%	\bra{\phi_0(t)}V(t)U^I(t,t')\ket{\phi_0(t')}_L
+%\end{align}
+%where $U^I(t,t')$ is the time evolution operator in the interaction picture,
+%and the subscript $L$ stands for linked diagrams only, which means that we only
+%include the terms that, when contracted, gives us linked diagrams.
+%
+%The above equation can be rewritten as
+%\begin{align}
+%	\Delta E_0 =
+%	\sum_{\mu=0}^{\infty}\frac{1}{\mu!}\left(\frac{-i}{\hbar}\right)^{\mu}
+%	\int_{t'}^tdt_{\alpha1}\int_{t'}^tdt_{\alpha2}\dots\int_{t'}^tdt_{\alpha\mu}
+%	[V(t)V(t_{\alpha1})\dots V(t_{\alpha\mu})]_L
+%\end{align}
+%
+%The above equation can be expressed by a series of diagrams. The program uses
+%Hugenholtz diagrams to express the above equation. The diagrams for the 1. 2.
+%and 3. order of perturbation are shown in figures ?? respectively. The 1. order
+%diagram includes all the possible one interaction terms. The 2. order diagram
+%includes all the possible two interaction terms. And so on.

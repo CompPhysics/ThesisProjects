@@ -1,0 +1,51 @@
+% \setlength{\parindent}{0pt}   % Set no indentation in the beginning of each paragraph.
+% \setlength{\parskip}{2ex}     % Separate lines each paragraph.
+\chapter{Conclusions and perspectives}\label{conclusions}
+
+In this thesis we have shown how to use low level programming languages like Python to prototype big codes in scientific computing. The extension of C++ with scripting capabilities via an interface with Python has also been discussed. Implementing the prototype in C++ requires double so many lines than the version in Python and is, in general, a bit more complicated.\\
+\\
+Later we have implemented a software in plain C++ (about 8000 lines of code) capable of computing the ground state energies of several closed shell quantum mechanical systems by using the variational Monte Carlo method.  Applications include the helium and beryllium atoms and quantum dots with two and six electrons. Analytical expressions for code validation have been derived.\\
+\\
+Moreover, a new method to efficiently compute the analytical derivative of the energy with respect to the variational parameters has been suggested. 
+
+
+\section{Comparing Python with C++: a first impression}
+
+Python is a good programming language for prototyping and to structure big codes. In some applications it is flexible enough to be combined with other languages, but it needs some improvements. Furthermore, Python has an automatic garbage collection, which is a big productivity gain. Therefore, letting Python create the objects of C++ is convenient, because it will take care of the pointers being created and destroyed. In this way, most of the errors associated with memory management can be avoided. Moreover, it has a cleaner syntax than C++ and the number of lines neccesary to solve the same problem is significantly lower.\\
+\\
+C++ is harder to learn than Python. It can take about one year to get to an acceptable level in C++ and only some weeks to start writting productive codes in Python. Altough it is markedly slower than C++, its interpreted execution and dynamic typing are productive gains, especially in the design phase for making prototypes of big libraries, but also during the test stage. It is also relatively easy and convenient to generate scripts for running big simulations almost automatically.\\
+\\
+Calling C++ from Python is relatively easy when it can be done automatically by tools like SWIG. However, it will involve some manual job if the data to be transferred are arrays or if it is C++ that calls Python. Because Python is a "typeless" language, i.e., it does not declare explicitely variables as integers, floating number, etc, it should be indicated what datatype is transferred. Accomplishing it with the C-API is far from a straighforward job for an unexperienced programmers, and good tutorials are missing. Frequently it is an error prone work. In general, one should encapsulate this information in classes like \citecode{convert.cpp} from reference \cite{HPL2008} used in this thesis.\\
+\\
+A rule of thumb before attempting to combine programming techniques is that one should always profile and herefrom identify the parts to be moved to other languages. In reference to the QVMC algorithm used in this thesis, it is convenient to let the evaluation of the wave function and the Hamiltonian be done in C++. Calling Python functions from C++ is known to be very slow and should be avoided. In fact, the gain obtained in combining Python and C++ in this particular problem does not seem to give a big gain, but we should remark that it was very useful in the prototyping stage. In any case one should find a balance between computational cost, flexibility of the implementation and facility to be used by the end user. 
+
+
+\section{Parametric optimization of trial wave functions}
+
+Graphical methods for the estimation of variational parameters and energies are practical just for very small systems where the computational cost is not high. Nevertheless, they are good starting points to validate a code and give some insight in the kind of data output expected. On the other hand, the success of the quasi-Newton method in finding a minimum depends greatly on the start values given to the variational parameters and on the kind of wave function being considered.\\
+\\
+\noindent
+The Quasi-Newton method gives acceptable results for wave functions of atomic systems such as helium and berylium, but fails to find an optimum for quantum dot wave functions. The higher correlation in atoms is reflected in the pronounced curvature of the $energy-\beta$ graphs of these systems and improves the accuracy of the method in finding a minima. Good starting values for $\alpha$ are near the nuclear charge\footnote{For quantum dots, the optimal value of $\alpha$ was always located near $\alpha=1.0$ when $\omega = 1.0$. }. The tuning of $\beta$ is a bit more difficult, and should be done with several runs. 
+\\
+\\
+Because the method is designed to handle quadratic functions, it converges poorly to a global minima in regions with poor curvature, as happens in the quantum dot case. Its big weakness its high sensibility to stochastic noise, requiring a relatively high number of Monte Carlo cycles to get stable interactons.\\
+
+\section{Energy computations}
+
+For the systems studied in this thesis, the QVMC simulator developed gives good results for the expectation value of the energy when optimal parameters are provided. Doing extrapolation to $dt$ zero is computationally expensive, especially for big systems. By observing the evolution of the percent of accepted moves with time step using just a few Monte Carlo cycles, one could efficiently locate the region with quasi linear $energy-dt$ behaviour, before starting the production phase, at a lower computational cost. For the algorithm described in this thesis, the percent of accepted steps should be, at least, 96 \%.\\
+\\
+An experiment done with the beryllium atom, one sees that increasing the number of Monte Carlo cycles has a limited effect on the redution of the error in the computations of the energy after a number of cycles.\\
+
+\section{Further work}
+
+In connection with mixing Python with C++, work is still needed in the Single Wrapper Interface Generator (SWIG) to improve the compatibility of the two languages. Efforts should also be done to make Python faster.\\
+\\
+Alternative algorithms to reduce the evaluation of mathematical functions should be tried. Reference \cite{PaulKent} suggests a convenient expression for the kinetic energy. Moreover, other versions of the quasi-Newton method adapted to handle  stochastic noise should be examined. One possibility is the  so-called \emph{Stochastic Gradient Approximation}\cite{Harju1997}.\\
+\\
+The way the current algorithm fixes the time step for atoms, introduces some bias. Core electrons should be sampled with shorter $dt$ than the others lying in the valence shells because the region to sample is smaller. Giving the same $dt$ to both gives more acceptance to the core electrons. On the other hand, increasing the step size to sample the valence region better, sacrifices an optimal sampling of the core electrons.\\
+\\
+Implementing the single particle wave functions, the single-particle potential, the inter-particle potential and the Jastrow function as functors (classes behaving as functions) combined with templates would make a more robust code. Adding a load balance checker to the \citecode{Parallelizer} class would improve the use of computational resources when working in parallel. \\
+\\
+For more clarity in the code, one should separate the statistical data analysis in an \citecode{Observable} with a member pointer to \citecode{Energy} class. It would help to automatize the blocking analysis, since it is a part taking long time when done by hand. Extensions to load wave functions from Hartree-Fock simulations could be convenient, as well as improvements to try open shell problems, and some extra functionality to deal with optimization of variance and variance/energy.
+
+\clearemptydoublepage
