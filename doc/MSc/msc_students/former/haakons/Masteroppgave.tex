@@ -1,0 +1,183 @@
+\documentclass[twoside,english]{uiofysmaster}
+\usepackage{physics}
+\usepackage[nottoc]{tocbibind}
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+%\usepackage{lmodern}
+\usepackage{listingsutf8}
+\usepackage{simplewick}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{float}
+\usepackage{grffile}
+\usepackage{tabularx}
+\usepackage[page]{appendix}
+
+
+\makeatletter
+\@ifundefined{showcaptionsetup}{}{%
+ \PassOptionsToPackage{caption=false}{subfig}}
+\usepackage{subfig}
+\makeatother
+
+
+\interfootnotelinepenalty=10000 % make footnotes stay in one page
+\numberwithin{equation}{section} % give equations numbering for the section
+\setlength{\parindent}{0em} % paragraph indentation
+\setlength{\parskip}{1em} % paragraph spacing
+
+\setlength\tabcolsep{1em} % table column spacing
+\renewcommand{\arraystretch}{1.2} % table row spacing
+
+% #################### Tikz settings ####################
+\usetikzlibrary{shapes,arrows,chains,positioning}
+% =================================================
+% Set up a few colours
+\colorlet{lcfree}{ForestGreen}
+\colorlet{lcnorm}{MidnightBlue}
+\colorlet{lccong}{Maroon}
+% -------------------------------------------------
+% Set up a new layer for the debugging marks, and make sure it is on
+% top
+\pgfdeclarelayer{marx}
+\pgfsetlayers{main,marx}
+% ########################################################
+% ########################################################
+
+% #################### Listings style ####################
+\definecolor{dark-gray}{gray}{0.3}
+\lstdefinestyle{liststyle}{
+	%backgroundcolor=\color{backcolour},   
+	commentstyle=\color{ForestGreen},
+	keywordstyle=\color{blue},
+	stringstyle=\color{cyan},
+	basicstyle=\ttfamily\footnotesize,
+	%breakatwhitespace=false,         
+	%breaklines=true,                 
+	%captionpos=b,                    
+	%keepspaces=true,                 
+	numbers=left,                    
+	numbersep=12pt,    
+	numberstyle=\footnotesize\color{dark-gray},              
+	%showspaces=false,                
+	%showstringspaces=false,
+	%showtabs=false,                  
+	tabsize=2,
+	basewidth = {0.5em, 0.5em},
+	columns = fullflexible,
+	numberblanklines=false,
+	escapeinside=||
+}
+\lstset{style=liststyle, aboveskip=10pt, belowskip=5pt}
+
+\let\origthelstnumber\thelstnumber
+\makeatletter
+
+\newcommand*\Suppressnumber{%
+  \lst@AddToHook{OnNewLine}{%
+    \let\thelstnumber\relax%
+     \advance\c@lstnumber-\@ne\relax%
+    }%
+}
+
+\newcommand*\Reactivatenumber[1]{%
+  \setcounter{lstnumber}{\numexpr#1-1\relax}
+  \lst@AddToHook{OnNewLine}{%
+   \let\thelstnumber\origthelstnumber%
+   \refstepcounter{lstnumber}
+  }%
+}
+
+\makeatother
+% ########################################################
+% ########################################################
+
+\newcommand{\todo}[1]
+{
+	\Large
+	\textsf{\textbf{\textcolor{Red}{TODO: #1}}}
+	\normalsize	
+}
+\newcommand{\braVket}[3]
+{
+	\left\langle #1 \right | #2 \left | #3 \right\rangle
+}
+
+\begin{document}
+	\author{H\aa kon Sebastian Bakke M\o rk}
+	\title{\uppercase{Quantum Monte Carlo studies of Many-Electron systems}}
+	\date{June 2016}
+
+	\maketitle
+
+	\begin{abstract}
+	This is an abstract text.
+	\end{abstract}
+
+	\begin{dedication}
+	  To someone
+	  \\\vspace{12pt}
+	  Dedications here.
+	\end{dedication}
+
+	\begin{acknowledgements}
+	  Acknowledgements here.
+	\end{acknowledgements}
+
+	\tableofcontents{}
+	%\clearpage
+	%\listoffigures
+
+	%\listoftables
+
+
+
+
+	\input{content/Introduction}
+
+	\part{Theory}
+		\chapter{Scientific Computing}
+			\input{content/Theory/theory_Scientific_Computing}
+		\chapter{Hartree-Fock}
+			\input{content/Theory/theory_HartreeFock}
+			\input{content/Theory/theory_OtherPostHF.tex}
+		\chapter{Quantum Monte Carlo}
+			\input{content/Theory/theory_MonteCarlo.tex}
+			\input{content/Theory/theory_Metropolis.tex}
+			\input{content/Theory/theory_ImportanceSampling.tex}
+			\input{content/Theory/theory_SlaterDeterminant.tex}
+			\input{content/Theory/theory_Optimization.tex}
+			\input{content/Theory/theory_Blocking.tex}
+			\input{content/Theory/theory_EnergyMinimization.tex}
+		\chapter{Modelled systems}
+			\input{content/Theory/theory_QuantumDots.tex}
+			\input{content/Theory/theory_Atoms.tex}
+			\input{content/Theory/theory_GTO.tex}
+%		\chapter{Second Quantization}
+%			\input{content/Theory/theory_SecondQuantization}
+		\chapter{Implementation}
+			\input{content/Implementation/implementation_Structure}
+			\input{content/Implementation/implementation_Code}
+
+	\part{Results}
+		\chapter{Results}
+			\input{content/Results/results_intro}
+			%\input{content/Results/results_Atoms}
+			\input{content/Results/results_Atoms2}
+			\input{content/Results/results_QD_intro}
+			\input{content/Results/results_QD_tests}
+			\input{content/Results/results_QD_results}
+		\chapter{Conclusion}
+		\input{content/Conclusion/Conclusion}
+	
+	\begin{appendices}
+		\input{content/Appendix/appendixA}
+		\input{content/Appendix/appendix_HO}
+	\end{appendices}
+
+	\bibliography{bibliography}
+	\bibliographystyle{apalike}
+
+\end{document}

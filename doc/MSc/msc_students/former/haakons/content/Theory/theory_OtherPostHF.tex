@@ -1,0 +1,119 @@
+\section{Post Hartree-Fock methods}
+	%\todo{Post-HF metoder (CI (FCI), MBPT, CC, .. ) + ref.}
+
+	The main issue with the Hartree-Fock method is that it uses an
+        average potential for interaction between electrons. Therefore
+        the energies calculated using this method are not particularly
+        accurate. Because of interaction between electrons, their
+        motion is correlated. The exact wave function therefore has to
+        depend on the coordinates of all electrons simultaneously. The
+        Hartree-Fock method neglects these additional correlations and assumes that
+        the electrons move independently. However, to improve the
+        accuracy, correlations have to be taken into account. Several
+        methods based on the Hartree-Fock method have been devised,
+        with better management of the electron-electron interaction by
+        attempting to add correlation. In this section an overview of
+        these methods will be given.
+
+	\subsection{Configuration interaction}
+		
+		The configuration interaction method \cite{shavitt09} \\ \cite{maurice99} expands upon the Hartree-Fock method by using a linear combination of excited states. An $N$-electron wave function ground state is then
+		\begin{equation}
+			\ket{\Psi_0} = C_{0}\ket{\Phi_{0}} + \sum_{i,a} C_{i}^{a} \ket{\Phi_{i}^{a}} + \sum_{i<j,a<b} C_{ij}^{ab} \ket{\Phi_{ij}^{ab}} + \dots \quad \mbox{(up to $N$ excitations)},
+		\end{equation}
+		where $\Phi_{i}^{a}$ is a configuration that has a single excitation, $\Phi_{ij}^{ab}$ is a configuration with a double excitation, and so on. This way all possible excitations can be represented. We can rewrite it to a more compact form 
+		\begin{equation}
+			\ket{\Psi_0} = \sum_{PH}C_{H}^{P}\Phi_{H}^{P},
+		\end{equation}
+		where $H$ is $0,\,1,\,\dots,\,N$ hole states, and $P$ is $0,\,1,\,\dots,\,N$ particle states. We have the normalization requirement
+		\begin{equation}
+			\bra{\Psi_0}\ket{\Phi_0} = \sum_{PH}\left | C_{H}^{P}\right |^{2}=1,
+		\end{equation}
+		and the energy can then be written as
+		\begin{equation} \label{eq:CI_energy}
+			E = \braVket{\Psi_0}{\hat{H}}{\Phi_0} = \sum_{PP'HH'}{C^{*}}_{H}^{P} \braVket{\Phi_{H}^{P}}{\hat{H}}{\Phi_{H'}^{P'}} C_{H'}^{P'}.
+		\end{equation}
+		The energy in Eq. \eqref{eq:CI_energy} is solved by setting up a Hamiltonian matrix and diagonalizing. 
+
+		By including all possible configurations this method is called Full Configuration Interaction (FCI). However the size of the matrix to be diagonalized grows exponentially, and quickly becomes impossible for us to solve. The CI expansion therefore needs to be truncated, and is often truncated after the double-excitation level \cite{shavitt09}. The truncated CI expansion gives a less accurate solution than the Full CI expansion, but has the benefit of being solvable for larger systems.
+
+	\subsection{Many-body perturbation theory}
+		As the name implies, many-body perturbation theory treats parts of the Hamilotian (normaly the two-body interaction) as a  perturbation in order to  account for the correlation in electron-electron interaction. The wave function can be rewritten to
+		\begin{equation}
+			\ket{\Psi_0}=\left[ \ket{\Phi_0}\bra{\Phi_0}+\sum_{m=1}^{\infty}\ket{\Phi_m}\bra{Phi_m} \right]\ket{\Psi_0}.
+		\end{equation}
+		We can rewrite this with with the projections operators
+		\[
+			\hat{P} = \ket{\Phi_0}\bra{\Phi_0}\qquad \mbox{and} \qquad \hat{Q} = \sum_{m=1}^{\infty}\ket{\Phi_m}\bra{Phi_m},
+		\]
+		giving us
+		\begin{equation}
+			\ket{\Psi_0}=\left[ \hat{P}+\hat{Q}\right]\ket{\Psi_0}.
+		\end{equation}
+		Using commutator relations, adding a factor $\omega$, and inserting into the Schrödinger equation, it can be shown that one ends up with \cite{shavitt09}
+		\begin{eqnarray}
+			\ket{\Psi_0} & = & \ket{\Phi_0} + \frac{\hat{Q}}{\omega-\hat{H}_0}\left( \omega - E + \hat{H}_I \right)\ket{\Psi_0}\\
+			& = & \sum_{n=0}^{\infty}\left[ \frac{\hat{Q}}{\omega-\hat{H}_0}\left( \omega - E + \hat{H}_I \right) \right]^{n}\ket{\Psi_0}
+		\end{eqnarray}
+		for the wave function, and 
+		\begin{eqnarray}
+			\Delta E & = &\braVket{\Phi_0}{\hat{H}_I}{\Psi_0} \\
+			 & = & \sum_{n=0}^{\infty} \braVket{\Psi_0}{\hat{H}_I\left[ \frac{\hat{Q}}{\omega-\hat{H}_0}\left( \omega - E + \hat{H}_I \right) \right]^{n}}{\Phi_0},
+		\end{eqnarray}
+		which is a perturbative expansion of the exact energy in terms of the interaction $\hat{H}_I$ and the unperturbed wave function $\ket{\Psi_0}$.
+
+		We can choose different values of $\omega$ in order to obtain different types of perturbation theory expansions. If we choose $\omega=E$ we get the Brillouin-Wigner perturbation theory \cite{brillouin32} \cite{wigner35}. Using the this we need to solve the energy iteratively, which is doable, but impractical. 
+
+		A better choice is then to set 
+		\[
+			\omega = E_0 = \braVket{\Phi_0}{\hat{H}_0}{\Phi_0},
+		\]
+		which yields
+		\begin{equation}
+			\Delta E  = \sum_{n=0}^{\infty} \braVket{\Psi_0}{\hat{H}_I\left[ \frac{\hat{Q}}{E_0-\hat{H}_0}\left( \hat{H}_I - \Delta E \right) \right]^{n}}{\Phi_0}.
+		\end{equation}
+		This is called the Rayleigh-Schrödinger perturbation theory, presented by Schrödinger in a paper in 1926 \cite{schrodinger26}.
+
+		The Rayleigh-Schrödinger perturbation theory is a good method for simpler problems, but for higher orders (where $n$ is large) it becomes increasingly impractical.
+
+
+	\subsection{Coupled cluster}
+		The final post Hartree-Fock method we will look at is the Coupled cluster (CC) method. Initially developed by Fritz Coester and Hermann Kümmel for nuclear physics \cite{coester1960}, and modified by Jiři Čížek \cite{cizek1966} \cite{cizek1969}, later with Paldus \cite{cizek1971}, to be used for electronic structure theory, it has become one of the most popular methods for calculating correlations in quantum chemistry.
+
+		The coupled cluster method is similar to the configuration interaction method, but CC uses an exponential ansatz for the wave function
+		\begin{equation} \label{eq:CC_Psi}
+			\ket{\Psi} = e^{\hat{T}}\ket{\Phi_0}=\left( \sum_{n=1}^{N} \frac{1}{n!} \hat{T}^{n} \right)\ket{\Phi_0},
+		\end{equation}
+		where $n$ is the number of particle-hole-excitations ($n$p-$n$h), and $\hat{T}$ is the cluster operator,
+		\begin{equation} \label{eq:CC_T_operator}
+			\hat{T} = \hat{T}_1 + \hat{T}_2 + \dots + \hat{T}_N.
+		\end{equation}
+		Here $\hat{T}_1$ is the one-body cluster operator, $\hat{T}_2$ is the two-body cluster operator, and so on. These $n$-body cluster operators are given by		
+		\begin{equation}
+			\hat{T}_n = \frac{1}{\left(n!\right )^{2}}  \sum_{a_1, \dots, a_n, i_1, \dots, i_n} t_{i_1\dots i_n}^{a_1 \dots a_n} a_{a_1}^{\dagger}\dots a_{a_n}^{\dagger} a_{i_n} \dots a_{i_1},
+		\end{equation}
+		where $a^{\dagger}$ and $a$ is the creation operator and the annihilation operator from second quatization, respectively, and $t^{a_1 \dots a_n }_{i_1 \dots i_n}$ is the coefficient which is to be determined. 
+
+		If we insert $\Psi_{CC}$ into the Schrödinger equation we get
+		\begin{equation}
+			\hat{H}\Psi_{CC} = E_{CC}\Psi_{CC},
+		\end{equation}
+		from which, by using the reference function $\bra{\Phi_0}$, and the intermediate normalization $\bra{\Phi_0}\ket{\Psi_{CC}} = 1$, we can obtain the energy,
+		\begin{equation}
+			E_{CC} = \braVket{\Phi_0}{\hat{H}}{\Psi_{CC}}.
+		\end{equation}
+		By using Eqs. \eqref{eq:CC_Psi} and \eqref{eq:CC_T_operator} the energy becomes
+		\begin{equation}
+			E_{CC} = \braVket{\Phi_0}{\hat{H}(1+\hat{T}_1+\dots+\hat{T}_N)}{\Phi_{0}}.
+		\end{equation}
+
+		It is convenient to find the contribution from the CC method, by subtracting $E_0$ (the Hartree-Fock energy) from both sides of the Schrödinger equation, giving
+		\begin{equation}
+			\hat{H_N}\Psi_{CC} = \Delta E_{CC}\Psi_{CC},
+		\end{equation}
+		where $\hat{H_N} = \hat{H} - E_0$. The energy is now given as
+		\begin{equation}
+			\Delta E_{CC} = \braVket{\Phi_0}{\hat{H}_Ne^{\hat{T}}}{\Phi_{0}}.
+		\end{equation}
+
+		We have now looked at several different methods for solving the many-body quantum mechanical problem: the simple Hartree-Fock method, and post Hartree-Fock methods which have different approaches to including electron-electron correlation. In the next chapter we will look at another approach, which is used by the solver developed for this thesis, the variational Monte Carlo method.

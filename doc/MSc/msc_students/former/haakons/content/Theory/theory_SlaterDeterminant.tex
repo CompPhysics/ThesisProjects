@@ -1,0 +1,86 @@
+
+\section{Calculating the Slater determinant}
+	\label{sec:slaterdeterminant}
+
+		%Can be expanded from p. 173
+		
+		To describe the wave function of multiple fermions in the VMC method we use a Slater
+		determinant, as described in Eq. \eqref{eq:HF_slater_determinant}. Writing out the Slater determinant for a four-fermionic system while including spin, we have
+		\begin{align}
+			\Phi(\mathbf{r}_{1},\mathbf{r}_{2},\mathbf{r}_{3},\mathbf{r}_{4},\alpha,\beta,\gamma,\delta)=\frac{1}{\sqrt{4!}}\left|\begin{array}{cccc}
+			\psi_{100\uparrow}(\mathbf{r}_{1}) & \psi_{100\uparrow}(\mathbf{r}_{2}) & \psi_{100\uparrow}(\mathbf{r}_{3}) & \psi_{100\uparrow}(\mathbf{r}_{4})\\
+			\psi_{100\downarrow}(\mathbf{r}_{1}) & \psi_{100\downarrow}(\mathbf{r}_{2}) & \psi_{100\downarrow}(\mathbf{r}_{3}) & \psi_{100\downarrow}(\mathbf{r}_{4})\\
+			\psi_{200\uparrow}(\mathbf{r}_{1}) & \psi_{200\uparrow}(\mathbf{r}_{2}) & \psi_{200\uparrow}(\mathbf{r}_{3}) & \psi_{200\uparrow}(\mathbf{r}_{4})\\
+			\psi_{200\downarrow}(\mathbf{r}_{1}) & \psi_{200\downarrow}(\mathbf{r}_{2}) & \psi_{200\downarrow}(\mathbf{r}_{3}) & \psi_{200\downarrow}(\mathbf{r}_{4})
+			\end{array}\right|.
+		\end{align}
+		Note, however, that the electron-electron interaction is spin-independent. This means that we don't need to consider degrees of freedom arising from different spins when calculating the interaction, effectively halving the number of dimensions in our calculations compared to if the interaction had been dependent on spin. 
+		%Because the spatial wave functions for spin up and spin down states are equal, this Slater determinant equals zero. 
+		%\todo{Wrong. Comment on spins}
+
+		We can rewrite the Slater determinant as a product of two Slater
+		determinants, one for spin up and one for spin down. This gives us 
+		\begin{eqnarray*}
+			\Phi(\mathbf{r}_{1},\mathbf{r}_{2},,\mathbf{r}_{3},\mathbf{r}_{4},\alpha,\beta,\gamma,\delta) & = & \det\uparrow(1,2)\det\downarrow(3,4)-\det\uparrow(1,3)\det\downarrow(2,4)\\
+	 		&  & -\det\uparrow(1,4)\det\downarrow(3,2)+\det\uparrow(2,3)\det\downarrow(1,4)\\
+	 		&  & -\det\uparrow(2,4)\det\downarrow(1,3)+\det\uparrow(3,4)\det\downarrow(1,2).
+		\end{eqnarray*}
+		Here we have defined the Slater determinant for spin up as
+		\begin{align}
+			\det\uparrow(1,2)=\frac{1}{\sqrt{2}}\left|\begin{array}{cc}
+			\psi_{100\uparrow}(\mathbf{r}_{1}) & \psi_{100\uparrow}(\mathbf{r}_{2})\\
+			\psi_{200\uparrow}(\mathbf{r}_{1}) & \psi_{200\uparrow}(\mathbf{r}_{2})
+			\end{array}\right|,
+		\end{align}
+		and the Slater determinant for spin down as
+		\begin{align}
+			\det\downarrow(3,4)=\frac{1}{\sqrt{2}}\left|\begin{array}{cc}
+			\psi_{100\downarrow}(\mathbf{r}_{3}) & \psi_{100\downarrow}(\mathbf{r}_{4})\\
+			\psi_{200\downarrow}(\mathbf{r}_{3}) & \psi_{200\downarrow}(\mathbf{r}_{4})
+			\end{array}\right|.
+		\end{align}
+		%And the total determinant is of course still zero.
+
+		Further, it can be shown that for the variational energy we can approximate
+		the Slater determinant as \cite{moskowitz1981}
+		\begin{align}
+			\Phi(\mathbf{r}_{1},\mathbf{r}_{2},\dots\mathbf{r}_{N})\propto\det\uparrow\det\downarrow.
+		\end{align}
+		We now have the Slater determinant as a product of two determinants,
+		one containing the electrons with only spin up, and one containing
+		the electrons of spin down. This approach has certain limits as the
+		ansatz isn't antisymmetric under the exchange of electrons with opposite
+		spins, but it gives the same expectation value for the energy as the
+		full Slater determinant as long as the Hamiltonian is spin independent.
+		We thus avoid summing over spin variables.
+
+		Now we have the Slater determinant written as a product of a determinant
+		for spin up and a determinant for spin down. The next step is to invert
+		the matrices using LU decomposition. We can thus rewrite a matrix
+		$\hat{A}$ as a product of two matrices, $\hat{B}$ and $\hat{C}$
+		\[
+		\left(\begin{array}{cccc}
+		a_{11} & a_{12} & a_{13} & a_{14}\\
+		a_{21} & a_{22} & a_{23} & a_{24}\\
+		a_{31} & a_{32} & a_{33} & a_{34}\\
+		a_{41} & a_{42} & a_{43} & a_{44}
+		\end{array}\right)=\left(\begin{array}{cccc}
+		1 & 0 & 0 & 0\\
+		b_{21} & 1 & 0 & 0\\
+		b_{31} & b_{32} & 1 & 0\\
+		b_{41} & b_{42} & b_{43} & 1
+		\end{array}\right)\left(\begin{array}{cccc}
+		c_{11} & c_{12} & c_{13} & c_{14}\\
+		0 & c_{22} & c_{23} & c_{24}\\
+		0 & 0 & c_{33} & c_{34}\\
+		0 & 0 & 0 & c_{44}
+		\end{array}\right).
+		\]
+		LU factorization exists for $\hat{A}$ if the determinant is nonzero.
+		If $\hat{A}$ also is non-singular, then the LU factorization is unique
+		and the determinant is given by
+		\begin{align}
+			\vert\hat{A}\vert=c_{11}c_{22}\dots c_{nn}.
+		\end{align}
+		Using this we can calculate the spin up determinant, the spin down
+		determinant, and by putting them together, the Slater determinant.
