@@ -1,0 +1,654 @@
+# #ifdef LATEX2DOCONCE
+This is the result of the doconce latex2doconce program.
+The translation from LaTeX is just a helper. The text must
+be carefully examined! (Be prepared that some text might also
+be lost in the translation - in seldom cases.)
+
+
+## search for CHECK to see if auto editing was correct
+
+# #endif
+\documentclass[aps,prc,twocolumn,showpacs,floatfix,nofootinbib,preprintnumbers,superscriptaddress,amsmath,amssymb]{revtex4-1}
+
+!bt
+\begin{equation}}
+
+!et}
+
+
+
+\pagestyle{plain}
+
+======= Master Thesis project for Sean Bruce Sangolt Miller: Quantum-mechanical studies of infinite matter, with an emphasis on nuclear matter and neutron star matter and neutrino spectra =======
+
+
+======= Introduction =======
+
+Bulk nucleonic matter is interesting for several reasons. The equation of state (EoS) of
+neutron matter determines properties of supernova
+explosions cite{burrows2013}, and of neutron
+stars cite{weber1999,hh2000,lattimer2007,sammarruca2010,lattimer2012,hebeler2012f},
+and it links the latter to neutron radii in atomic
+nuclei cite{brown2000,horowitz2001,gandolfi2012} and the symmetry
+energy cite{tsang2012,steiner2012}. Similarly, the compressibility of
+nuclear matter is probed in giant dipole
+excitations cite{shlomo1993}, and the symmetry energy of nuclear
+matter is related to the difference between proton and neutron radii
+in atomic nuclei cite{abrahamyan2012,reinhard2013,erler2013}. The
+saturation point of nuclear matter determines bulk properties of
+atomic nuclei, and is therefore an important constraint for nuclear
+energy-density functionals and mass models (see,
+e.g., Refs. cite{kortelainen2010,lunney2003}).
+
+The determination and our understanding of the EoS for nuclear matter
+is intimately linked with our capability to solve the nuclear
+many-body problem. Here, correlations beyond the mean field play an
+important role.  Theoretical studies of nuclear matter and the
+pertinent EoS span back to the very early days of nuclear many-body
+physics. Early computations are nicely described in the 1967 review by
+Day cite{day1967}. These early calculations were performed using
+Brueckner-Bethe-Goldstone theory cite{brueckner1954,brueckner1955},
+see Refs.cite{hh2000,baldo2012,baldo2012a,baardsen2014} for recent reviews and
+developments.  In these calculations, mainly particle-particle
+correlations were summed to infinite order.  Other correlations were
+often included in a perturbative way. Coupled-cluster calculations of
+nuclear matter were performed already during the late 1970s and early
+1980s cite{kummel1978,day1981}. In recent years, there has been a
+considerable algorithmic development of first-principle methods for
+solving the nuclear many-body problem. A systematic inclusion of other
+correlations in a non-perturbative way are nowadays accounted for in
+Monte Carlo methods
+cite{carlson2003,gandolfi2009,gezerlis2010,lovato2012,gezerlis2013},
+self-consistent Green's function approaches
+cite{dickhoff2004,soma2008, soma2012, baldo2012a,carbone2013} and
+nuclear density functional theory cite{lunney2003,erler2013}.
+
+
+======= Many-body approaches to infinite matter =======
+For an infinite homogeneous system  like nuclear matter or the electron gas, 
+the one-particle wave functions are given by plane wave functions
+normalized to a volume $\Omega$ for a quadratic box with length
+$L$[^footnote1][^footnote1]: The limit $L\rightarrow \infty$ is to be taken after we
+  have computed various expectation values. In our case we will
+  however always deal with a fixed number of particles and finite size
+  effects become important.
+
+!bt
+\begin{equation*}
+\psi_{_k_m_s}(_r_)= \frac{1}{\sqrt{\Omega}}\exp{(i_kr_)}\xi_{m_s}
+\end{equation*}
+!et
+where $_k_$ is the wave number and $\xi_{m_s}$ is a spin function
+for either spin up or down
+
+!bt
+\begin{equation*} 
+\xi_{m_{s}=+1/2}=\left(\begin{array}{c} 1
+  \\ 0 \end{array}\right) \hspace{0.5cm}
+\xi_{m_{s}=-1/2}=\left(\begin{array}{c} 0 \\ 1 \end{array}\right).\end{equation*}
+!et
+
+The single-particle energies for the three-dimensional electron gas
+are
+
+!bt
+\begin{equation*}    
+\varepsilon_{n_{x}, n_{y}, n_{z}} = \frac{\hbar^{2}}{2m}\left( \frac{2\pi }{L}\right)^{2}(n_{x}^{2}+n_{y}^{2}+n_{z}^{2}),
+\end{equation*}
+!et
+resulting in the magic numbers $2$, $14$, $38$, $54$, etc.  
+
+In general terms, our Hamiltonian contains at most a two-body
+interactions. In second quantization, we can write our Hamiltonian as
+
+!bt
+\begin{equation}
+\hat{H}= \sum_{pq}\langle p | \hat{h}_0 | q \rangle a_p^{\dagger} a_q + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle a_p^{\dagger} a_q^{\dagger} a_s a_r,
+label{eq:ourHamiltonian}
+\end{equation}
+!et 
+where the operator $\hat{h}_0$ denotes the single-particle
+Hamiltonian, and the elements $\langle pq|v|rs\rangle$ are the
+anti-symmetrized Coulomb interaction matrix elements.  Normal-ordering
+with respect to a reference state $|\Phi_0\rangle$ yields
+
+!bt
+\begin{equation}
+\hat{H}=E_0 + \sum_{pq}f_{pq}\lbrace a_p^{\dagger} a_q\rbrace + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle \lbrace a_p^{\dagger} a_q^{\dagger} a_s a_r \rbrace,
+label{eq:normalorder}
+\end{equation}
+!et
+where $E_0=\langle\Phi_0| \hat{H}| \Phi_0\rangle$ is the reference energy
+and we have introduced the so-called  Fock matrix element defined as
+
+!bt
+\begin{equation}
+f_{pq} = \langle p|\hat{h}_0| q \rangle + \sum\limits_{i} \langle pi |v| qi\rangle.
+label{eq:fockelement}
+\end{equation}
+!et
+The curly brackets in Eq. (ref{eq:normalorder}) indicate that the
+creation and annihilation operators are normal ordered.
+
+The unperturbed part
+of the Hamiltonian is defined as the sum over all the single-particle
+operators $\hat{h}_0$, resulting in
+
+!bt
+\begin{equation*}
+\hat{H}_{0}=\sum_i\langle i|\hat{h}_0|i \rangle= {\displaystyle\sum_{_k__{i}m_{s_i}}}
+\frac{\hbar^{2}k_i^{2}}{2m}a_{_k__{i}m_{s_i}}^{\dagger}
+a_{_k__{i}m_{s_i}}.
+\end{equation*}
+!et
+We will throughout suppress, unless explicitely needed, all references
+to the explicit quantum numbers $_k__{i}m_{s_i}$. The summation
+index $i$ runs over all single-hole states up to the Fermi level.
+
+The general anti-symmetrized two-body interaction matrix element
+
+!bt
+\begin{equation*}
+\langle pq |v| r s \rangle = \langle
+\mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle,
+\end{equation*}
+!et
+is given by the following expression
+
+!bt
+\begin{align}
+    & \langle
+    \mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle
+    \nonumber \\ =&
+    \frac{e^{2}}{\Omega}\delta_{\mathbf{k}_{p}+\mathbf{k}_{q},
+      \mathbf{k}_{r}+\mathbf{k}_{s}}\left\{
+    \delta_{m_{s_{p}}m_{s_{r}}}\delta_{m_{s_{q}}m_{s_{s}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{r}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{r}-\mathbf{k}_{p})^{2}} \right. \nonumber
+    \\ & \left. -
+    \delta_{m_{s_{p}}m_{s_{s}}}\delta_{m_{s_{q}}m_{s_{r}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{s}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{s}-\mathbf{k}_{p})^{2}} \right\},
+    \nonumber
+  \end{align}
+!et
+for the three-dimensional electron gas.  The energy per electron computed with
+the reference Slater determinant can then be written as 
+(using hereafter only atomic units, meaning that $\hbar = m = e = 1$)
+
+!bt
+\begin{equation*}
+E_0/N=\frac{1}{2}\left[\frac{2.21}{r_s^2}-\frac{0.916}{r_s}\right],
+\end{equation*}
+!et
+for the three-dimensional electron gas.  This will serve (with the
+addition of a Yukawa term) as the first benchmark in setting up a
+program for doing Coupled-cluster theories. 
+The electron gas provides a very useful benchmark at the Hartree-Fock level since it provides
+an analytical solution for the Hartree-Fock energy single-particle energy and the total  energy per particle. 
+This work will be based partly on the 
+Master thesis projects of Audun Skau Hansen and Wilhelm Holmen.  
+In addition to the above studies of the electron gas, it
+is important to study properly the boundary conditions as well. Here
+we will study so-called periodic boundary conditions following the
+work of Refs. cite{gros1992,gros1996,lin2001}. See also the recent
+work of Hagen *et al.* and Baardsen, see Refs. cite{hagen2014,baardsen2014}. 
+One aim 
+of this thesis is to implement so-called twisted boundary conditions,
+first for the simple electron gas at the Hartree-Fock level. 
+The next
+step is to perform a coupled-cluster calculations at the
+coupled-cluster with doubles excitations, the so-called CCD approach,
+see cite{shavittbartlett2009}, for the electron gas.  The next step
+is to include triples correlations and perform full doubles and
+triples calculations (CCDT) for neutron matter using a simplified model for the nuclear force, the so-called Minnesota potential. 
+This allows for a benchmark of codes to infinite nuclear matter. The next step is to include realistic models for the nuclear forces and 
+study the EoS for pure neutron matter, asymmetric
+nuclear matter (for different proton fractions) and symmetric nuclear
+matter. With this one can study $\beta$-stable neutron star matter and
+extract important information about the symmetry energy in infinite
+matter and the composition of a neutron star. 
+The resulting effective interactions at the two-body level can in turn, if time allows, be included in the study of neutrino emissivities in dense matter. The processes of most interest are the so-called 
+modified  URCA prosesses
+
+!bt
+\begin{equation}
+    n+n\rightarrow p+n +e +\overline{\nu}_e,
+    \hspace{0.5cm} p+n+e \rightarrow
+    n+n+\nu_e .
+    label{eq:ind_neutr}
+\end{equation}
+!et
+These reactions correspond to the processes for 
+$\beta$-decay and electron capture with a bystanding neutron.
+The calculation of neutrino spectra has important consequences for our basic understanding on how neutron stars cool, the synthesis of the elements and neutrino oscillations in dense matter. 
+
+
+The results will be published in scientific journals, if possible.
+
+======= Progress plan and milestones =======
+
+The aims and progress plan of this thesis are as follows
+
+  * Spring 2016 and partly fall 2016:  The first step is to set up a program that uses cartesian coordinates in order to compute the Hartree-Fock  energy of the electron gas with a Coulomb interaction with and without a screening term (Yukawa like potential).
+
+  * Fall 2016:  The next step is to include a proper treatment of periodic boundary conditions using the twisted boudary condition approach described in Refs. cite{gros1992,gros1996,lin2001}.
+
+  * Fall 2016: Thereafter, correlations at the electron gas level   will be studied using coupled-cluster theory at the doubles level,   see cite{shavittbartlett2009}, as well as employing the simpler Minnesota model for the nuclear force and studies of pure neutron matter.
+
+  * Spring 2017: With a CCD code, the next step is to include triples correlations, leading to a CCDT code that can include moder nuclear forces.
+
+  * Spring 2017: The final step is to perform systematic studies of  $\beta$-stable nuclear matter and possibly estimate the production rates of neutrinos in dense matter by studying the modified URCA processes.
+
+  * Spring 2017: The last part deals with a proper write-up of the thesis.
+
+
+ 
+The thesis is expected to be handed in May/June 2017.
+
+
+
+\begin{thebibliography}{83}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname bibnamefont\endcsname\relax
+  \def\bibnamefont#1{#1}\fi
+\expandafter\ifx\csname bibfnamefont\endcsname\relax
+  \def\bibfnamefont#1{#1}\fi
+\expandafter\ifx\csname citenamefont\endcsname\relax
+  \def\citenamefont#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{`#1`}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\providecommand{\bibinfo}[2]{#2}
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{\citenamefont{Burrows}(2013)}]{burrows2013}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Burrows}},
+  \bibinfo{journal}{Rev. Mod. Phys.} _\bibinfo{volume_{85}},
+  \bibinfo{pages}{245} (\bibinfo{year}{2013}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/RevModPhys.85.245}.
+
+\bibitem[{\citenamefont{Weber}(1999)}]{weber1999}
+\bibinfo{author}{\bibfnamefont{F.} \bibnamefont{Weber}},
+  *\bibinfo{title*{Pulsars as Astrophysical Laboratories for Nuclear and
+  Particle Physics}} (\bibinfo{publisher}{Institute of Physics Publishing,
+  London}, \bibinfo{year}{1999}).
+
+\bibitem[{\citenamefont{Heiselberg and Hjorth-Jensen}(2000)}]{hh2000}
+\bibinfo{author}{\bibfnamefont{H.} \bibnamefont{Heiselberg}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Hjorth-Jensen}},
+  \bibinfo{journal}{Phys. Rep.} _\bibinfo{volume_{328}},
+  \bibinfo{pages}{237} (\bibinfo{year}{2000}).
+
+\bibitem[{\citenamefont{Lattimer and Prakash}(2007)}]{lattimer2007}
+\bibinfo{author}{\bibfnamefont{J. M.} \bibnamefont{Lattimer}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Prakash}},
+  \bibinfo{journal}{Phys. Rep.} _\bibinfo{volume_{442}},
+  \bibinfo{pages}{109} (\bibinfo{year}{2007}).
+
+\bibitem[{\citenamefont{Sammarruca}(2010)}]{sammarruca2010}
+\bibinfo{author}{\bibfnamefont{F.} \bibnamefont{Sammarruca}},
+  \bibinfo{journal}{International Journal of Modern Physics E}
+  _\bibinfo{volume_{19}}, \bibinfo{pages}{1259} (\bibinfo{year}{2010}),
+  \urlprefix\url{http://www.worldscientific.com/doi/abs/10.1142/S0218301310015874}.
+
+\bibitem[{\citenamefont{Lattimer}(2012)}]{lattimer2012}
+\bibinfo{author}{\bibfnamefont{J. M.} \bibnamefont{Lattimer}},
+  \bibinfo{journal}{Ann. Rev. Nucl. Part. Science}
+  _\bibinfo{volume_{62}}, \bibinfo{pages}{485} (\bibinfo{year}{2012}).
+
+\bibitem[{\citenamefont{Hebeler et al.}(2013)\citenamefont{Hebeler, Lattimer,
+  Pethick, and Schwenk}}]{hebeler2012f}
+\bibinfo{author}{\bibfnamefont{K.} \bibnamefont{Hebeler}},
+  \bibinfo{author}{\bibfnamefont{J. M.} \bibnamefont{Lattimer}},
+  \bibinfo{author}{\bibfnamefont{C. J.} \bibnamefont{Pethick}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Schwenk}},
+  \bibinfo{journal}{Astrophys. J.} _\bibinfo{volume_{773}},
+  \bibinfo{pages}{11} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Alex Brown}(2000)}]{brown2000}
+\bibinfo{author}{\bibfnamefont{B.} \bibnamefont{Alex Brown}},
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{85}},
+  \bibinfo{pages}{5296} (\bibinfo{year}{2000}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.85.5296}.
+
+\bibitem[{\citenamefont{Horowitz and Piekarewicz}(2001)}]{horowitz2001}
+\bibinfo{author}{\bibfnamefont{C. J.} \bibnamefont{Horowitz}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Piekarewicz}},
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{86}},
+  \bibinfo{pages}{5647} (\bibinfo{year}{2001}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.86.5647}.
+
+\bibitem[{\citenamefont{Gandolfi et al.}(2012)\citenamefont{Gandolfi, Carlson,
+  and Reddy}}]{gandolfi2012}
+\bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Gandolfi}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Carlson}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Reddy}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{85}},
+  \bibinfo{pages}{032801} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.85.032801}.
+
+\bibitem[{\citenamefont{Tsang et al.}(2012)\citenamefont{Tsang, Stone, Camera,
+  Danielewicz, Gandolfi, Hebeler, Horowitz, Lee, Lynch, Kohley
+  et al.}}]{tsang2012}
+\bibinfo{author}{\bibfnamefont{M. B.} \bibnamefont{Tsang}},
+  \bibinfo{author}{\bibfnamefont{J. R.} \bibnamefont{Stone}},
+  \bibinfo{author}{\bibfnamefont{F.} \bibnamefont{Camera}},
+  \bibinfo{author}{\bibfnamefont{P.} \bibnamefont{Danielewicz}},
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Gandolfi}},
+  \bibinfo{author}{\bibfnamefont{K.} \bibnamefont{Hebeler}},
+  \bibinfo{author}{\bibfnamefont{C. J.} \bibnamefont{Horowitz}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Lee}},
+  \bibinfo{author}{\bibfnamefont{W. G.} \bibnamefont{Lynch}},
+  \bibinfo{author}{\bibfnamefont{Z.} \bibnamefont{Kohley}},
+  \bibnamefont{et al.}, \bibinfo{journal}{Phys. Rev. C}
+  _\bibinfo{volume_{86}}, \bibinfo{pages}{015803}
+  (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.86.015803}.
+
+\bibitem[{\citenamefont{Steiner and Gandolfi}(2012)}]{steiner2012}
+\bibinfo{author}{\bibfnamefont{A. W.} \bibnamefont{Steiner}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Gandolfi}},
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{108}},
+  \bibinfo{pages}{081102} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.108.081102}.
+
+\bibitem[{\citenamefont{Shlomo and Youngblood}(1993)}]{shlomo1993}
+\bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Shlomo}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{D. H.} \bibnamefont{Youngblood}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{47}},
+  \bibinfo{pages}{529} (\bibinfo{year}{1993}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.47.529}.
+
+\bibitem[{\citenamefont{Abrahamyan et al.}(2012)\citenamefont{Abrahamyan,
+  Ahmed, Albataineh, Aniol, Armstrong, Armstrong, Averett, Babineau, Barbieri,
+  Bellini et al.}}]{abrahamyan2012}
+\bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Abrahamyan}},
+  \bibinfo{author}{\bibfnamefont{Z.} \bibnamefont{Ahmed}},
+  \bibinfo{author}{\bibfnamefont{H.} \bibnamefont{Albataineh}},
+  \bibinfo{author}{\bibfnamefont{K.} \bibnamefont{Aniol}},
+  \bibinfo{author}{\bibfnamefont{D. S.} \bibnamefont{Armstrong}},
+  \bibinfo{author}{\bibfnamefont{W.} \bibnamefont{Armstrong}},
+  \bibinfo{author}{\bibfnamefont{T.} \bibnamefont{Averett}},
+  \bibinfo{author}{\bibfnamefont{B.} \bibnamefont{Babineau}},
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Barbieri}},
+  \bibinfo{author}{\bibfnamefont{V.} \bibnamefont{Bellini}},
+  \bibnamefont{et al.} (\bibinfo{collaboration}{PREX Collaboration}),
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{108}},
+  \bibinfo{pages}{112502} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.108.112502}.
+
+\bibitem[{\citenamefont{Reinhard et al.}(2013)\citenamefont{Reinhard,
+  Piekarewicz, Nazarewicz, Agrawal, Paar, and Roca-Maza}}]{reinhard2013}
+\bibinfo{author}{\bibfnamefont{P.-G.} \bibnamefont{Reinhard}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Piekarewicz}},
+  \bibinfo{author}{\bibfnamefont{W.} \bibnamefont{Nazarewicz}},
+  \bibinfo{author}{\bibfnamefont{B. K.} \bibnamefont{Agrawal}},
+  \bibinfo{author}{\bibfnamefont{N.} \bibnamefont{Paar}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{X.} \bibnamefont{Roca-Maza}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{88}},
+  \bibinfo{pages}{034325} (\bibinfo{year}{2013}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.88.034325}.
+
+\bibitem[{\citenamefont{Erler et al.}(2013)\citenamefont{Erler, Horowitz,
+  Nazarewicz, Rafalski, and Reinhard}}]{erler2013}
+\bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Erler}},
+  \bibinfo{author}{\bibfnamefont{C. J.} \bibnamefont{Horowitz}},
+  \bibinfo{author}{\bibfnamefont{W.} \bibnamefont{Nazarewicz}},
+  \bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Rafalski}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{P.-G.} \bibnamefont{Reinhard}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{87}},
+  \bibinfo{pages}{044320} (\bibinfo{year}{2013}).
+
+\bibitem[{\citenamefont{Kortelainen et al.}(2010)\citenamefont{Kortelainen,
+  Lesinski, Mor\'e, Nazarewicz, Sarich, Schunck, Stoitsov, and
+  Wild}}]{kortelainen2010}
+\bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Kortelainen}},
+  \bibinfo{author}{\bibfnamefont{T.} \bibnamefont{Lesinski}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Mor\'e}},
+  \bibinfo{author}{\bibfnamefont{W.} \bibnamefont{Nazarewicz}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Sarich}},
+  \bibinfo{author}{\bibfnamefont{N.} \bibnamefont{Schunck}},
+  \bibinfo{author}{\bibfnamefont{M. V.} \bibnamefont{Stoitsov}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Wild}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{82}},
+  \bibinfo{pages}{024313} (\bibinfo{year}{2010}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.82.024313}.
+
+\bibitem[{\citenamefont{Lunney et al.}(2003)\citenamefont{Lunney, Pearson, and
+  Thibault}}]{lunney2003}
+\bibinfo{author}{\bibfnamefont{D.} \bibnamefont{Lunney}},
+  \bibinfo{author}{\bibfnamefont{J. M.} \bibnamefont{Pearson}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{C.} \bibnamefont{Thibault}},
+  \bibinfo{journal}{Rev. Mod. Phys.} _\bibinfo{volume_{75}},
+  \bibinfo{pages}{1021} (\bibinfo{year}{2003}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/RevModPhys.75.1021}.
+
+\bibitem[{\citenamefont{Day}(1967)}]{day1967}
+\bibinfo{author}{\bibfnamefont{B. D.} \bibnamefont{Day}},
+  \bibinfo{journal}{Rev. Mod. Phys.} _\bibinfo{volume_{39}},
+  \bibinfo{pages}{719} (\bibinfo{year}{1967}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/RevModPhys.39.719}.
+
+\bibitem[{\citenamefont{Brueckner et al.}(1954)\citenamefont{Brueckner,
+  Levinson, and Mahmoud}}]{brueckner1954}
+\bibinfo{author}{\bibfnamefont{K. A.} \bibnamefont{Brueckner}},
+  \bibinfo{author}{\bibfnamefont{C. A.} \bibnamefont{Levinson}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{H. M.}
+  \bibnamefont{Mahmoud}}, \bibinfo{journal}{Phys. Rev.}
+  _\bibinfo{volume_{95}}, \bibinfo{pages}{217} (\bibinfo{year}{1954}).
+
+\bibitem[{\citenamefont{Brueckner}(1955)}]{brueckner1955}
+\bibinfo{author}{\bibfnamefont{K. A.} \bibnamefont{Brueckner}},
+  \bibinfo{journal}{Phys. Rev.} _\bibinfo{volume_{100}},
+  \bibinfo{pages}{36} (\bibinfo{year}{1955}).
+
+\bibitem[{\citenamefont{Baldo and Burgio}(2012)}]{baldo2012}
+\bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Baldo}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{G. F.} \bibnamefont{Burgio}},
+  \bibinfo{journal}{Reports on Progress in Physics}
+  _\bibinfo{volume_{75}}, \bibinfo{pages}{026301}
+  (\bibinfo{year}{2012}).
+
+\bibitem[{\citenamefont{Baldo et al.}(2012)\citenamefont{Baldo, Polls, Rios,
+  Schulze, and Vida\ na}}]{baldo2012a}
+\bibinfo{author}{\bibfnamefont{M.} \bibnamefont{Baldo}},
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Polls}},
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Rios}},
+  \bibinfo{author}{\bibfnamefont{H.-J.} \bibnamefont{Schulze}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{I.} \bibnamefont{Vida\ na}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{86}},
+  \bibinfo{pages}{064001} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.86.064001}.
+
+\bibitem[{\citenamefont{K{\"u}mmel et al.}(1978)\citenamefont{K{\"u}mmel,
+  L{\"u}hrmann, and Zabolitzky}}]{kummel1978}
+\bibinfo{author}{\bibfnamefont{H.} \bibnamefont{K{\"u}mmel}},
+  \bibinfo{author}{\bibfnamefont{K. H.} \bibnamefont{L{\"u}hrmann}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{J. G.}
+  \bibnamefont{Zabolitzky}}, \bibinfo{journal}{Phys. Rep.}
+  _\bibinfo{volume_{36}}, \bibinfo{pages}{1} (\bibinfo{year}{1978}).
+
+\bibitem[{\citenamefont{Day and Zabolitzky}(1981)}]{day1981}
+\bibinfo{author}{\bibfnamefont{B. D.} \bibnamefont{Day}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{G.} \bibnamefont{Zabolitzky}},
+  \bibinfo{journal}{Nucl. Phys. A} _\bibinfo{volume_{366}},
+  \bibinfo{pages}{221} (\bibinfo{year}{1981}).
+
+\bibitem[{\citenamefont{Carlson et al.}(2003)\citenamefont{Carlson, Morales,
+  Pandharipande, and Ravenhall}}]{carlson2003}
+\bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Carlson}},
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Morales}},
+  \bibinfo{author}{\bibfnamefont{V. R.} \bibnamefont{Pandharipande}},
+  \bibnamefont{and} \bibinfo{author}{\bibfnamefont{D. G.}
+  \bibnamefont{Ravenhall}}, \bibinfo{journal}{Phys. Rev. C}
+  _\bibinfo{volume_{68}}, \bibinfo{pages}{025802}
+  (\bibinfo{year}{2003}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.68.025802}.
+
+\bibitem[{\citenamefont{Gandolfi et al.}(2009)\citenamefont{Gandolfi,
+  Illarionov, Schmidt, Pederiva, and Fantoni}}]{gandolfi2009}
+\bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Gandolfi}},
+  \bibinfo{author}{\bibfnamefont{A. Y.} \bibnamefont{Illarionov}},
+  \bibinfo{author}{\bibfnamefont{K. E.} \bibnamefont{Schmidt}},
+  \bibinfo{author}{\bibfnamefont{F.} \bibnamefont{Pederiva}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Fantoni}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{79}},
+  \bibinfo{pages}{054005} (\bibinfo{year}{2009}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.79.054005}.
+
+\bibitem[{\citenamefont{Gezerlis and Carlson}(2010)}]{gezerlis2010}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Gezerlis}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{J.} \bibnamefont{Carlson}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{81}},
+  \bibinfo{pages}{025803} (\bibinfo{year}{2010}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.81.025803}.
+
+\bibitem[{\citenamefont{Lovato et al.}(2012)\citenamefont{Lovato, Benhar,
+  Fantoni, and Schmidt}}]{lovato2012}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Lovato}},
+  \bibinfo{author}{\bibfnamefont{O.} \bibnamefont{Benhar}},
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Fantoni}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{K. E.} \bibnamefont{Schmidt}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{85}},
+  \bibinfo{pages}{024003} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.85.024003}.
+
+\bibitem[{\citenamefont{Gezerlis et al.}(2013)\citenamefont{Gezerlis, Tews,
+  Epelbaum, Gandolfi, Hebeler, Nogga, and Schwenk}}]{gezerlis2013}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Gezerlis}},
+  \bibinfo{author}{\bibfnamefont{I.} \bibnamefont{Tews}},
+  \bibinfo{author}{\bibfnamefont{E.} \bibnamefont{Epelbaum}},
+  \bibinfo{author}{\bibfnamefont{S.} \bibnamefont{Gandolfi}},
+  \bibinfo{author}{\bibfnamefont{K.} \bibnamefont{Hebeler}},
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Nogga}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Schwenk}},
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{111}},
+  \bibinfo{pages}{032501} (\bibinfo{year}{2013}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.111.032501}.
+
+\bibitem[{\citenamefont{Dickhoff and Barbieri}(2004)}]{dickhoff2004}
+\bibinfo{author}{\bibfnamefont{W.} \bibnamefont{Dickhoff}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{C.} \bibnamefont{Barbieri}},
+  \bibinfo{journal}{Progress in Particle and Nuclear Physics}
+  _\bibinfo{volume_{52}}, \bibinfo{pages}{377 } (\bibinfo{year}{2004}),
+  \urlprefix\url{http://www.sciencedirect.com/science/article/pii/S0146641004000535}.
+
+\bibitem[{\citenamefont{Som\`a and Bo\ifmmode \dot{z}\else
+  \.{z}\fi{}ek}(2008)}]{soma2008}
+\bibinfo{author}{\bibfnamefont{V.} \bibnamefont{Som\`a}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{P.} \bibnamefont{Bo\ifmmode \dot{z}\else
+  \.{z}\fi{}ek}}, \bibinfo{journal}{Phys. Rev. C}
+  _\bibinfo{volume_{78}}, \bibinfo{pages}{054003}
+  (\bibinfo{year}{2008}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevC.78.054003}.
+
+\bibitem[{\citenamefont{Rios and Som\`a}(2012)}]{soma2012}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Rios}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{V.} \bibnamefont{Som\`a}},
+  \bibinfo{journal}{Phys. Rev. Lett.} _\bibinfo{volume_{108}},
+  \bibinfo{pages}{012501} (\bibinfo{year}{2012}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevLett.108.012501}.
+
+\bibitem[{\citenamefont{Carbone et al.}(2013)\citenamefont{Carbone, Polls, and
+  Rios}}]{carbone2013}
+\bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Carbone}},
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Polls}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{A.} \bibnamefont{Rios}},
+  \bibinfo{journal}{Phys. Rev. C} _\bibinfo{volume_{88}},
+  \bibinfo{pages}{044302} (\bibinfo{year}{2013}).
+
+
+
+\bibitem[{\citenamefont{Gros}(1992)}]{gros1992}
+\bibinfo{author}{\bibfnamefont{C.} \bibnamefont{Gros}},
+  \bibinfo{journal}{Zeitschrift f{\"u}r Physik B Condensed Matter}
+  _\bibinfo{volume_{86}}, \bibinfo{pages}{359} (\bibinfo{year}{1992}),
+  ISSN \bibinfo{issn}{0722-3277},
+  \urlprefix\url{http://dx.doi.org/10.1007/BF01323728}.
+
+\bibitem[{\citenamefont{Gros}(1996)}]{gros1996}
+\bibinfo{author}{\bibfnamefont{C.} \bibnamefont{Gros}}, \bibinfo{journal}{Phys.
+  Rev. B} _\bibinfo{volume_{53}}, \bibinfo{pages}{6865}
+  (\bibinfo{year}{1996}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevB.53.6865}.
+
+\bibitem[{\citenamefont{Lin et al.}(2001)\citenamefont{Lin, Zong, and
+  Ceperley}}]{lin2001}
+\bibinfo{author}{\bibfnamefont{C.} \bibnamefont{Lin}},
+  \bibinfo{author}{\bibfnamefont{F. H.} \bibnamefont{Zong}}, \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{D. M.} \bibnamefont{Ceperley}},
+  \bibinfo{journal}{Phys. Rev. E} _\bibinfo{volume_{64}},
+  \bibinfo{pages}{016702} (\bibinfo{year}{2001}),
+  \urlprefix\url{http://link.aps.org/doi/10.1103/PhysRevE.64.016702}.
+
+\bibitem{hagen2014} G. Hagen *et al*, Phys. Rev. C _89_, 01431a9 (2014).
+
+\bibitem{baardsen2014} G. Baardsen, PhD thesis, University of Oslo (2014) 
+\url{https://www.duo.uio.no/handle/10852/41025}. 
+
+\bibitem[{\citenamefont{Shavitt and Bartlett}(2009)}]{shavittbartlett2009}
+\bibinfo{author}{\bibfnamefont{I.} \bibnamefont{Shavitt}} \bibnamefont{and}
+  \bibinfo{author}{\bibfnamefont{R. J.} \bibnamefont{Bartlett}},
+  *\bibinfo{title*{Many-body Methods in Chemistry and Physics}}
+  (\bibinfo{publisher}{Cambridge University Press}, \bibinfo{year}{2009}).
+\bibitem{st83} S.L.\ Shapiro and S.A.\ Teukolsky,
+               Black Holes, White Dwarfs and Neutron Stars,
+               (Wiley, New York, 1983), Kap 2-4, 5, 8-11, appendiks F
+
+\bibitem{pplp92} M.\ Prakash, M.\ Prakash, J.M.\ Lattimer and C.J.\
+Pethick, Astrophys.\ J.\  390 (1992) L77.
+
+\bibitem{pethick92} C.J.\ Pethick, Rev.\ Mod.\ Phys.\ 64 (1992) 1133.
+
+\bibitem{prakash94} M.\ Prakash, Phys.\ Rep.\ 242 (1994) 191.
+
+
+\bibitem{iwamoto82} N.\ Iwamoto,\ Ann.\ Phys.\  141 (1982) 1.
+
+\bibitem{cs64} H.-Y.\ Chiu and E.E.\ Salpeter, Phys.\ Rev.\ Lett.\
+12 (1964) 413.
+\bibitem{it72} I.\ Itoh and T.\ Tsuneto, Prog.\ Theor.\ Phys.\ 48 (1972) 149.
+
+\bibitem{fm79} B.L.\ Friman and O.V.\ Maxwell, 
+               Astrophys.\ J.\ 232 (1979) 541.
+
+
+\bibitem{glendenning91} N.K.\ Glendenning, Compact Stars, (Springer, Berlin, 1997).
+\bibitem{pbpelk97} M.\ Prakash, I.\ Bombaci, M.\ Prakash, P.J.\ Ellis, J.M.\ 
+Lattimer and R.\
+Knorren, Phys.\ Rep.\ 280 (1997) 1. 
+\bibitem{tsuruta98} S.\ Tsuruta, Phys.\ Rep.\ 292 (1998) 1.
+
+\bibitem{pal97} L.B.\ Leinson and A.\ P\'erez, JHEP 9 (1998) 20;
+S.\ Chakrabarty, D.\ Bandyopadahay and S.\ Pal, Phys.\ Rev.\ Lett.\
+78 (1997) 2898; ibid.\ 79 (1997) 2176.
+\bibitem{HH99} H.\ Heiselberg and M.\ Hjorth-Jensen, 
+                      Phys. Rep. 328 (2000) 237.
+\bibitem{page94} D.\ Page, Astrophys.\ J.\ 428 (1994) 250.
+\bibitem{schaab97} Ch.\ Schaab, D.\ Voskresensky, A.D.\ Sedrakian,
+                   F.\ Weber and M.K.\ Weigel, Astron.\ Astrophys.\
+                   321 (1997) 591; Ch.\ Schaab, 
+                   F.\ Weber, M.K.\ Weigel and N.K.\ Glendenning, 
+                   Nucl.\ Phys.\ A 605 (1996) 531.
+\bibitem{schaab98} Ch.\ Schaab, F.\ Weber and M.K.\ Weigel, 
+                   Astron.\ Astrophys.\ 335 (1998) 596.
+\bibitem{malfliet} H.F.\ Boersma and R. Malfliet, Phys. Rev. C 49 (1994) 633.
+
+\bibitem{armen1} Armen Sedrakian and Alex Dieperink, 
+Phys. Lett. B463 (1999) 145.
+\bibitem{armen2}   Armen Sedrakian, preprint nucl-th/0601086, 
+http://arxiv.org/abs/nucl-th/0601086.
+\end{thebibliography}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
