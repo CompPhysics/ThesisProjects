@@ -1,0 +1,235 @@
+%\todo{forklar systemene 2d + 3d (ink. til implementasjon)}
+
+Perhaps one of the most common and fundamental methods of
+approximating wave functions and electronic structure, and solving the
+many-body Hamiltonian, is the Hartree-Fock method.
+
+The Hartree-Fock method is based on a procedure introduced by
+D. R. Hartree in 1928 \cite{hartree28}, which he called the
+self-consistent field method, later known as the Hartree method. With
+this method Hartree wanted to solve the many-body time-independent
+Schrödinger equation from first principles. 
+It was incomplete in many respects, such as neglecting
+antisymmetry of the wave function. This is taken care of by
+incorporating a Slater determinant in the calculations, giving us the
+Hartree-Fock method, proposed in 1930 by Fock \cite{fock1930}, and
+independently Slater the same year \cite{slater1930}.
+
+\section{The Hartree-Fock method} \label{sec:HF_method}
+
+	The Hartree-Fock method simplifies the problem by making a
+	series of approximations. This makes the problem reasonably
+	easy to solve iteratively, but can give great deviations from
+	experimental results. It is however a great foundation for the
+	so-called post Hartree-Fock methods, which more accurately
+	describe the many-body problem by including electron
+	correlation in normally approximative ways.
+
+	The idea behind the Hartree-Fock method is to think of each
+	electron as a single particle wave function, without
+	correlation from other electrons. This gives us a separable
+	Hamiltonian, and the total wave function of system, called the
+	Hartree function, becomes the product of the wave functions of
+	each electron, \[ \Phi_{H}\left(x_{1},\, x_{2},\,\dots,\,
+	x_{N},\,\alpha,\,\beta,\,\dots,\,\sigma\right)=\psi_{\alpha}\left(x_{1}\right)\psi_{\beta}\left(x_{2}\right)\dots\psi_{\sigma}\left(x_{N}\right).  \]
+
+	However, the Hartree product does not, unfortunately, satisfy the antisymmetry principle. A better approximation to the wave function is by using a Slater determinant,
+	\begin{equation} \label{eq:HF_slater_determinant}
+	\Phi\left(x_{1},\, x_{2},\,\dots,\, x_{N},\,\alpha,\,\beta,\,\dots,\,\sigma\right)=\frac{1}{\sqrt{N}}\left|\begin{array}{cccc}
+	\psi_{\alpha}\left(x_{1}\right) & \psi_{\alpha}\left(x_{2}\right) & \dots & \psi_{\alpha}\left(x_{N}\right)\\
+	\psi_{\beta}\left(x_{1}\right) & \psi_{\beta}\left(x_{2}\right) &  & \vdots\\
+	\vdots & \vdots & \ddots\\
+	\psi_{\sigma}\left(x_{1}\right) & \psi_{\sigma}\left(x_{2}\right) &  & \psi_{\sigma}\left(x_{N}\right)
+	\end{array}\right|,
+	\end{equation}
+	named after Slater, who introduced the determinant to handle antisymmetry \cite{slater1929}.
+
+	We assume that that we can approximate the interacting part of the Hamiltonian by a two-body interaction. This gives us a total Hamiltonian as a sum of a one-body part and a two-body part,
+	\[
+	\hat{H}=\hat{H}_{0}+\hat{H}_{I}=\sum_{i=1}^{N}\hat{h}_{0}\left(x_{i}\right)+\sum_{i<j}^{N}\hat{v}\left(r_{ij}\right),
+	\]
+	with 
+	\[
+	\hat{H}_{0}=\sum_{i=1}^{N}\hat{h}_{0}\left(x_{i}\right).
+	\]
+
+	The single-particle functions $\psi_{\alpha}(x_i)$ are eigenfunctions of the one-body Hamiltonian, $h_i$. The one-body Hamiltonian is 
+	\[
+	\hat{h}_{0}\left(x_{i}\right)=\hat{t}\left(x_{i}\right)+\hat{u}_{ext}\left(x_{i}\right),
+	\]
+	with eigenvalues
+	\[
+	\hat{h}_{0}\left(x_{i}\right)\psi_{\alpha}\left(x_{i}\right)=\left(\hat{t}\left(x_{i}\right)+\hat{u}_{ext}\left(x_{i}\right)\right)\psi_{\alpha}\left(x_{i}\right)=\epsilon_{\alpha}\psi_{\alpha}\left(x_{i}\right).
+	\]
+
+	The resulting energies $\epsilon_{\alpha}$ are non-interacting single-particle energies. In this case, if there are no many-body interactions, the total energy is the sum over all single-particle energies. 
+
+	We can rewrite the Slater determinant as 
+	\begin{eqnarray*}
+		\Phi\left(x_{1},\, x_{2},\,\dots,\, x_{N},\,\alpha,\,\beta,\,\dots,\,\sigma\right)=\frac{1}{\sqrt{N!}}\sum_{P}\left(-\right)^{P}\hat{P}\psi_{\alpha}\left(x_{1}\right)\psi_{\beta}\left(x_{2}\right)\\
+		\dots\psi_{\sigma}\left(x_{N}\right)=\sqrt{N!}\hat{A}\Phi_{H},
+	\end{eqnarray*}
+	where $\hat{A}$ is an introduced anti-symmetrization operator, defined as
+	\[
+	\hat{A}=\frac{1}{N!}\sum_{p}\left(-\right)^{p}\hat{P},
+	\]
+	where $p$ denotes number of permutations.
+
+	The one-particle and two-particle Hamiltonians are both invariant under all possible permutations of any two particles, thus they commute with $\hat{A}$
+	\begin{equation} \label{eq:HFcomAntiSym}
+		\left[H_{0},\,\hat{A}\right]=\left[H_{I},\,\hat{A}\right]=0.
+	\end{equation}
+	Furthermore, because every permutation of the Slater determinant reproduces it, $\hat{A}$ satisfies
+	\begin{equation} \label{eq:HFAntiSymSq}
+		\hat{A}^{2}=\hat{A}.
+	\end{equation}
+
+	We have the expectation value of $\hat{H}_0$,
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\mathbf{\tau}=N!\int\Phi_{H}^{*}\hat{A}\hat{H}_{0}\hat{A}\Phi_{H}d\mathbf{\tau},
+	\]
+	which, by using Eqs. (\ref{eq:HFcomAntiSym}) and (\ref{eq:HFAntiSymSq}), we can write as
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\mathbf{\tau}=N!\int\Phi_{H}^{*}\hat{H}_{0}\hat{A}\Phi_{H}d\mathbf{\tau}.
+	\]
+	Now we replace $\hat{H}_0$ with the sum of one-body operators, and the anti-symmetrization operator with its definition 
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\mathbf{\tau}=\sum_{i=1}^{N}\sum_{p}(-)^{p}\int\Phi_{H}^{*}\hat{h}_{0}\hat{P}\Phi_{H}d\mathbf{\tau}.
+	\]
+	Because of the orthogonality of the single-particle wave functions, the sum over $p$ vanishes as two or more particles are permuted in one of the Hartree-functions $\Phi_{H}$, and we get
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\mathbf{\tau}=\sum_{i=1}^{N}\int\Phi_{H}^{*}\hat{h}_{0}\Phi_{H}d\mathbf{\tau}.
+	\]
+	Furthermore, the orthogonality lets us simplify further and get
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\mathbf{\tau}=\sum_{\mu=1}^{N}\int\psi_{\mu}^{*}(x)\hat{h}_{0}\psi_{\mu}(x)dxd\mathbf{r}.
+	\]
+	This expression can be rewritten with braket notation, giving us
+	\[
+	\int\Phi^{*}\hat{H}_{0}\Phi d\tau=\sum_{\mu=1}^{N}\langle\mu|\hat{h}_{0}|\mu\rangle.
+	\]
+
+	Similarly we can obtain the expectation value of the two-body part of the Hamiltonian. Here we have
+	\[
+	\int\Phi^{*}\hat{H}_{I}\Phi d\mathbf{\tau}=N!\int\Phi_{H}^{*}\hat{A}\hat{H}_{I}\hat{A}\Phi_{H}d\mathbf{\tau},
+	\]
+	which in the same way as the one-body Hamiltonian reduces to
+	\[
+	\int\Phi^{*}\hat{H}_{I}\Phi d\mathbf{\tau}=\sum_{i\le j=1}^{N}\sum_{p}(-)^{p}\int\Phi_{H}^{*}\hat{v}(r_{ij})\hat{P}\Phi_{H}d\mathbf{\tau}.
+	\]
+	The expectation value depends on the inter-particle distance, $r_{ij}$, and therefore permutations of any two particles will not vanish. While still assuming that the single-particle wave functions are orthogonal, we get
+	\[
+	\int\Phi^{*}\hat{H}_{I}\Phi d\mathbf{\tau}=\sum_{i<j=1}^{N}\int\Phi_{H}^{*}\hat{v}(r_{ij})(1-P_{ij})\Phi_{H}d\mathbf{\tau},
+	\]
+	where $P_{ij}$ is a permutation operator that interchanges particle $i$ and particle $j$.
+
+	We then get 
+	\begin{multline*}
+		\int\Phi^{*}\hat{H}_{I}\Phi d\tau=\frac{1}{2}\sum_{\mu=1}^{N}\sum_{\nu=1}^{N}\left[\int\psi_{\mu}^{*}\left(x_{i}\right)\psi_{\nu}^{*}\left(x_{j}\right)\hat{v}\left(r_{ij}\right)\psi_{\mu}\left(x_{i}\right)\psi_{\nu}\left(x_{j}\right)dx_{i}dx_{j}\right. \\ 
+		\left.-\int\psi_{\mu}^{*}\left(x_{i}\right)\psi_{\nu}^{*}\left(x_{j}\right)\hat{v}\left(r_{ij}\right)\psi_{\nu}\left(x_{i}\right)\psi_{\mu}\left(x_{j}\right)dx_{i}dx_{j}\right].
+	\end{multline*}
+
+	The two integrals on the right hand side are called direct or Hartree term, and exchange or Fock term. As we now run over all pairs twice, we have introduced a factor $1/2$. We have also used the shorthand $d\tau = dx_1 dx_2 \dots dx_N$.
+
+	The full functional becomes 
+	\begin{multline*}
+		E\left[\Phi\right]=\sum_{\mu=1}^{N}\psi_{\mu}^{*}\left(x_{i}\right)\hat{h}_{0}\psi_{\mu}\left(x_{i}\right)dx_{i}\\
+		+\frac{1}{2}\sum_{\mu=1}^{N}\sum_{\nu=1}^{N}\left[\int\psi_{\mu}^{*}\left(x_{i}\right)\psi_{\nu}^{*}\left(x_{j}\right)\hat{v}\left(r_{ij}\right)\psi_{\mu}\left(x_{i}\right)\psi_{\nu}\left(x_{j}\right)dx_{i}dx_{j}\right.\\
+		\left.-\int\psi_{\mu}^{*}\left(x_{i}\right)\psi_{\nu}^{*}\left(x_{j}\right)\hat{v}\left(r_{ij}\right)\psi_{\nu}\left(x_{i}\right)\psi_{\mu}\left(x_{j}\right)dx_{i}dx_{j}\right].
+	\end{multline*}
+
+	Written with the more manageable braket notation, the expression becomes
+	\begin{equation} \label{HFenergy_braket}
+	E\left[\Phi\right]=\sum_{\mu}^{N}\left\langle \mu\right|\hat{h}_{0}\left|\mu\right\rangle +\frac{1}{2}\sum_{\mu\nu}^{N}\left[\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle -\left\langle \nu\mu\right|\hat{v}\left|\mu\nu\right\rangle \right].
+	\end{equation}
+
+	The interaction is invariant under the interchange of two particles, and we have
+	\[
+	\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle =\left\langle \nu\mu\right|\hat{v}\left|\nu\mu\right\rangle .
+	\]
+
+	We can write the direct and exchange matrix elements in a more compact way, by defining the anti-symmetrized matrix element,
+	\[
+	\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle _{AS}=\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle -\left\langle \mu\nu\right|\hat{v}\left|\nu\mu\right\rangle ,
+	\]
+	which has the symmetry property
+	\[
+	\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle _{AS}=-\left\langle \nu\mu\right|\hat{v}\left|\mu\nu\right\rangle _{AS}=-\left\langle \mu\nu\right|\hat{v}\left|\nu\mu\right\rangle _{AS}.
+	\]
+	It is also hermitian, that is
+	\[
+	\left\langle \mu\nu\right|\hat{v}\left|\sigma\tau\right\rangle _{AS}=\left\langle \sigma\tau\right|\hat{v}\left|\mu\nu\right\rangle _{AS}.
+	\]
+
+	We can now rewrite the Hartree-Fock functional as
+	\[
+	\int\Phi^{*}\hat{H}_{I}\Phi d\tau=\frac{1}{2}\sum_{\mu=1}^{N}\sum_{\nu=1}^{N}\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle _{AS},
+	\]
+	and adding the contribution from the one-body operator, we get the energy functional
+	\begin{equation} \label{HFenergy_AS}
+	E\left[\Phi\right]=\sum_{\mu=1}^{N}\left\langle \mu\right|\hat{h}_{0}\left|\mu\right\rangle +\frac{1}{2}\sum_{\mu=1}^{N}\sum_{\nu=1}^{N}\left\langle \mu\nu\right|\hat{v}\left|\mu\nu\right\rangle _{AS}.
+	\end{equation}
+
+	%\todo{skriv nyttig test for SD-delen av koden}
+
+	The Hartree-Fock energy in Eq. \eqref{HFenergy_AS} is a decent approximation to the true ground state energy, although leaves a lot to be desired in terms of accuracy. However it may be used to test the variational Monte Carlo program and how the Slater determinant is handled in it. For a small number of particles the energy given by Eq. \eqref{HFenergy_AS} can be calculated by pen and paper. Furthermore, by neglecting the so-called Jastrow-factor in the calculation of the wave function in the variational Monte Carlo simulation, the VMC solver should calculate energies which are close to the energies calculated by Eq. \eqref{HFenergy_AS}. This can be used to benchmark the variational Monte Carlo solver.
+
+\section{Hartree-Fock for Quantum Dots}
+	In this thesis a main focus is on quantum dots in harmonic oscillators. For Hartree-Fock for such a system we can make some simplifications to the one-body and two-body integrals. 
+
+	The one-body operator is diagonal for states $i$ and $j$, each with quantum numbers $n$, $m_{l}$ and $m_{s}$. The expectation value of the one-body operator is thus
+	\[
+	\langle i|\hat{h}_{0}|j\rangle=e_{i}\delta_{i,j}=e_{n_{i}m_{l_{i}}}=\hbar\omega(2n_{i}+|m_{l_{i}}|+1).
+	\]
+
+	The quantum numbers $n_{i}$ and $m_{l_{i}}$ represent the number of nodes of the wave function, and the projection of the orbital momentum, respectively, while $m_{s_{i}}$ represents spin. The one-body expectation value is however independent of spin.
+
+	Using Laguerre polynomials, with $\alpha = \sqrt{m\omega / \hbar}$ we get the single-particle wave functions 
+	\[
+	\psi_{nm_{l}}(r,\theta)=\alpha\exp(\imath m\theta)\sqrt{\frac{n!}{\pi(n+|m|)!}}(\alpha r)^{|m|}L_{n}^{|m|}(\alpha^{2}r^{2}))\exp(-\alpha^{2}r^{2}/2).
+	\]
+	The $L_{n}^{|m|}$ here are the Laguerre polynomials. For the system we are studying we will only need $L_{n}^{|m|} (x) = 1$ and $L_{1}^{0}(x)=-x+1$. Using these functions we can compute the integral that defines the two-body matrix elements that comes from repulsive Coulomb interaction
+	\begin{eqnarray*}
+	\langle\alpha\beta|V|\gamma\delta\rangle=\int r_{1}dr_{1}d\theta_{1}\int r_{2}dr_{2}d\theta_{2}\psi_{n_{\alpha}m_{l_{\alpha}}}^{*}(r_{1},\theta_{1})\psi_{n_{\beta}m_{l_{\beta}}}^{*}(r_{2},\theta_{2})\\
+	\frac{1}{|{\bf r}_{1}-{\bf r}_{2}|}\psi_{n_{\gamma}m_{l_{\gamma}}}(r_{1},\theta_{1})\psi_{n_{\delta}m_{l_{\delta}}}(r_{2},\theta_{2}).
+	\end{eqnarray*}
+	This is also independent of spin, and doing our Hartree-Fock calculations we have to consider spin degrees of freedom as well. 
+
+	To calculate the Coulomb matrix elements, we use the expression from article in Ref. \cite{AnisimovasQD}. For simplicity we write the angular momentum projection quantum number $m_{l}$ as $m$. The expression for the Coulomb integral can thus be written as
+	\begin{eqnarray*}
+		V_{1234} & = & \delta_{m_1+m_2,m_3+m_4} \; \sqrt{ \left[ \prod_{i=1}^4 \frac{n_i !}{(n_i+|m_i|!)} \right] } \\
+		& & \times \sum_{j_1=0,\dots,j_4=0}^{n_1,\dots,n_4} \Bigg[ \frac{(-1)^{j_1+j_2+j_3+j_4}} {j_1!j_2!j_3!j_4!} \left[ \prod_{k=1}^4 
+		\begin{pmatrix} 
+			n_k+|m_k|\\n_k-j_k
+		\end{pmatrix}  
+		\right] \frac{1}{2^{\frac{G+1}{2}}} \\
+		& & \times  \sum_{l_1=0,\dots,l_4=0}^{\gamma_1=0,\dots,\gamma_4=0} \left( \delta_{l_1,l_2}  \delta_{l_3,l_4}  (-1)^{\gamma_2+\gamma_3-l_2-l_3} \left[ \prod_{t=1}^4 \begin{pmatrix} \gamma_t \\
+		l_t\end{pmatrix} \right] \right. \\
+		& & \qquad \qquad \qquad \qquad \qquad \left. \times \Gamma \left(1+\frac{\Lambda}{2} \right) \; \Gamma \left(\frac{G - \Lambda +1}{2}\right)    \right)  \Bigg],
+	\end{eqnarray*}
+	where we have defined
+	\begin{eqnarray*}
+		\gamma_{1} & = & j_{1}+j_{4}+\frac{|m_{1}|+m_{1}}{2}+\frac{|m_{4}|-m_{4}}{2}\\
+		\gamma_{2} & = & j_{2}+j_{3}+\frac{|m_{2}|+m_{2}}{2}+\frac{|m_{3}|-m_{3}}{2}\\
+		\gamma_{3} & = & j_{3}+j_{2}+\frac{|m_{3}|+m_{3}}{2}+\frac{|m_{2}|-m_{2}}{2}\\
+		\gamma_{4} & = & j_{4}+j_{1}+\frac{|m_{4}|+m_{4}}{2}+\frac{|m_{1}|-m_{1}}{2}\\
+		G & = & \gamma_{1}+\gamma_{2}+\gamma_{3}+\gamma_{4}\\
+		\Lambda & = & l_{1}+l_{2}+l_{3}+l_{4}.
+	\end{eqnarray*}
+
+	We now expand the single-particle functions and vary the coefficients. This means that the new single-particle wave function is written as a linear expansion in terms of a fixed basis $\phi$
+	\[
+	\psi_{p}=\sum_{\lambda}C_{p\lambda}\phi_{\lambda}.
+	\]
+
+	We minimize with respect to $C_{p\alpha}^{*}$ and define
+	\[
+	h_{\alpha}^{HF}=\langle\alpha|h|\gamma\rangle+\sum_{p}\sum_{\beta\delta}C_{p\beta}^{*}C_{p\delta}\langle\alpha\beta|V|\gamma\delta\rangle_{AS}.
+	\]
+
+	The Hartree-Fock equations can now be written as 
+	\[
+	\sum_{\gamma}h_{\alpha\gamma}^{HF}C_{p\gamma}=\epsilon_{p}^{\mathrm{HF}}C_{p\alpha}.
+	\]
+
+	This way the energy can be minimized in an iterative way using the coefficients. However the accuracy in the Hartree-Fock method is far from perfect as it neglects correlation between electrons. The Hartree-Fock method includes however the Pauli principle via the exchange term. In the next section we will look at some methods based on the  Hartree-Fock method which try to deal with this.

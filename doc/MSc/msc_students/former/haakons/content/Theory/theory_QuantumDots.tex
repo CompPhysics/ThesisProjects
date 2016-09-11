@@ -1,0 +1,54 @@
+We will in this thesis look at two kinds of systems: quantum dots and
+atomic systems. The atom- and quantum dot-systems we look at all have
+closed form solutions in the non-interacting case. Furthermore the
+quantum dots we look at all consist of a so-called magic number of
+electrons, meaning that all the nuclear shells are filled.
+
+\section{Quantum dots}
+	Quantum dots, a term coined by M. Reed in 1988 \cite{Reed88}, are semiconductors made up of electrons that are tightly confined in all three spatial dimensions by a potential well. This well can be tuned by making the well broader or narrower, and thus changing the material properties of the quantum dot, which acts like a semiconductor. This gives quantum dots a great range of applications, for example in solar cells \cite{QDsolarCells}, LEDs \cite{QD_LED}, lasers \cite{QDlaser}, and medical imaging \cite{QDImaging}. It is also possible that quantum dots can be used as so-called qbits in quantum computing \cite{qbitRef}. The applications of quantum dots are however not the focus of this thesis.
+
+	By studying electrons confined in a potential well in this manner, we may gain insight into important physics regarding many-body theory. Therefore, the motivation to study the quantum dot system purely  academically is to explore how the system behaves resulting from how tightly the electrons are confined, and the number of electrons.
+
+	As a model for a quantum dot we use electrons trapped in a harmonic potential. The potential has a frequency $\omega$. Without any electron-electron interaction this potential can be solved analytically, which will become convenient as a verification of the VMC solver. 
+
+
+	\subsection{Harmonic Oscillators} 
+		%\todo{or ``The single particle basis''?}
+
+		The harmonic oscillator potential is a natural choice to describe the quantum dots, because they are essentially electrons without a nucleus. This oscillator potential has the form
+		\[
+		\mathbf{\hat{v}}_{ext}\left(\mathbf{r}\right)=\frac{1}{2}\omega^{2}r^{2},
+		\]
+		where $\omega$ is the frequency of the oscillator.
+		The single particle Hamiltonian for the harmonic oscillator is
+		\[
+		\mathbf{\hat{h}}_{0}\left(\mathbf{r}\right)=-\frac{1}{2}\nabla^{2}+\frac{1}{2}\omega^{2}r^{2},
+		\]
+		with corresponding eigenfunction in two and three dimensions
+		\begin{eqnarray*}
+		\phi_{n_{x},n_{y}}\left(\mathbf{r}\right) & = & H_{n_{x}}\left(\sqrt{\omega}x\right)H_{n_{y}}\left(\sqrt{\omega}y\right)e^{-\frac{1}{2}\omega r^{2}}\\
+		\phi_{n_{x},n_{y},n_{z}}\left(\mathbf{r}\right) & = & H_{n_{x}}\left(\sqrt{\omega}x\right)H_{n_{y}}\left(\sqrt{\omega}y\right)H_{n_{z}}\left(\sqrt{\omega}z\right)e^{-\frac{1}{2}\omega r^{2}}.
+		\end{eqnarray*}
+		Here $H_{n}(x)$ is the $n$-level Hermite polynomial. Different combinations of $n_{x}$ and $n_{y}$ for two dimensions, and $n_{x}$, $n_{y}$ and $n_{z}$ for three dimensions, with the same total $n$ gives the shell structure of a quantum dot.
+
+		We introduce a variational parameter $\alpha$ with $\omega \rightarrow \alpha \omega$, and define $k \equiv \sqrt{\alpha \omega}$. Now the eigenfunctions used as single-particle orbitals are 
+		\begin{eqnarray*}
+		\phi_{n_{x},n_{y}}\left(\mathbf{r}\right) & = & H_{n_{x}}\left(kx\right)H_{n_{y}}\left(ky\right)e^{-\frac{1}{2}k^{2}r^{2}}\\
+		\phi_{n_{x},n_{y},n_{z}}\left(\mathbf{r}\right) & = & H_{n_{x}}\left(kx\right)H_{n_{y}}\left(ky\right)H_{n_{z}}\left(kz\right)e^{-\frac{1}{2}k^{2}r^{2}}.
+		\end{eqnarray*}
+		A set of quantum numbers are mapped to an integer $i$, representing different single-particle wave functions. For a complete list of orbital functions used, see appendices \ref{sec:HOO_2D} and \ref{sec:HOO_3D}
+
+	\subsection{Quantum dots in two and three dimensions}
+
+		The model we use for the quantum dot is $N$ electrons, interacting with each other, confined in a harmonic oscillator potential with frequency $\omega$. The Hamiltonian of the quantum dot is then
+		\begin{eqnarray*}
+			\hat{\mathbf{H}}_{QD}(\mathbf{r}) & = & \sum_{i=1}^{N}\hat{\mathbf{h}}_{0}\left(\mathbf{r}_{i}\right)+\sum_{i<j}\frac{1}{r_{ij}}\\
+			 & = & \sum_{i=1}^{N}\left[-\frac{1}{2}\nabla_{i}^{2}+\frac{1}{2}\omega^{2}r_{i}^{2}\right]+\sum_{i<j}\frac{1}{r_{ij}}.
+		\end{eqnarray*}
+		Here $r_{ij}$ is the distance between electron $i$ and electron $j$, that is $r_{ij}=\left | \mathbf{r}_i - \mathbf{r}_j \right |$. 
+
+		If we disregard the electron-electron interaction and thus exclude the Coulomb term, we can decouple the Hamiltonian into single-particle terms. For the quantum dot the total ground state energy becomes \cite{griffiths05}
+		\begin{equation} \label{eq:spGroundStateEnergy}
+			E_{0}=\omega\sum_{i=1}^{N}\left(n_{i}+\frac{d}{2}\right),
+		\end{equation}
+		where $d$ represents the number of dimensions. For two dimensions we have $n_i=n_x+n_y\geq 0$, and for three dimensions we have $n_i=n_x+n_y+n_z\geq 0$.

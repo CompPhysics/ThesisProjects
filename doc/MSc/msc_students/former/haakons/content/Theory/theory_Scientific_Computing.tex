@@ -1,0 +1,225 @@
+A great deal of problems cannot be solved using analytical
+methods. And except for very simple problems, it is impossible to
+find an analytical solution. For this reason scientific computing is a
+rapidly growing field, and is now applied in a wide range of
+fields. These include not only natural sciences and mathematics, but
+also medicine, sociology, and economics to name a few. In physics, the
+dawn of computational solution-methods gave rise to the field of
+computational physics, and is today used in every major field from
+astrophysics to quantum physics.
+
+In essence scientific computing is taking a real world phenomena,
+which often are chaotic and noisy, and making a model that is abstract
+and perhaps simplified. The model is then used in an automated
+simulation to solve the problem at hand. This means that the model has
+to be implemented in a computer program and executed on a computer.
+
+%\todo{Knytt til det som er viktig for oppgaven (Obj. or. gjør fleksibel; nyttig for bruk som her.)}
+
+\section{Types of programming languages}
+	A computer program contains a set of instructions to be
+        executed by the computer. These are usually in the form of an
+        algorithm, that is a series of instructions designed to solve
+        a given problem, or perform a specific task.
+
+	As with human languages there exists many different computer
+        languages, such as Python, C++ or Java. However the machine is
+        almost never able to perform the instructions written as they
+        are\footnote{One exception is if the program is written in
+          machine code, which can be executed (almost) directly by the
+          processor. But writing a program in machine code is tiresome
+          and error-prone, and is thus rarely done except in extreme
+          cases.}.  To carry out the written instructions the program
+        has to be compiled or interpreted, depending on the
+        language. Using a compiler, the program is compiled in advance
+        of execution and creates an executable program which can be
+        run on the central processing unit (CPU). If the program is
+        written in a scripted language, however, the code is fed to an
+        interpreter at execution time, which processes the written
+        instructions and carries them out on the CPU.
+
+	It is well known that the native language of the computer is
+        binary. In other words it is made up of ones and zeros called
+        bits, corresponding to high and low voltage readings in the
+        CPU. Everything from numbers to words to colors and so on is
+        represented in the computer as a sequence of bits. Thus the
+        purpose of the programming language is to convey instructions
+        from the programmer to be carried out by the machine.
+
+	There are two kinds of programming languages: High-level and low-level languages. The terms are inherently relative, as there are more than two grades of abstraction of programming languages. A language like C, today regarded as a low-level language, would some decades ago be referred to as a high-level language, when compared to assembly language which was referred to as a low-level language. However assembly language can be regarded as a higher-level language than machine code, which again is slightly higher than the microcode used internally in the processor.
+
+	\subsubsection{High-level languages}
+		High-level languages have a high level abstraction
+                from the machine language, may use more natural
+                language, and often automate details such as memory
+                management. They focus on usability rather than
+                efficiency, and are therefore preferable when the task
+                is less taxing on the processor, making efficiency
+                less important. High-level languages are often used
+                with a single task in mind, such as handling input and
+                output from other tools, analyzing data, or simple
+                computations. In short, specific codes like these are
+                often referred to as scripts, and consequently
+                high-level languages used for tasks like these are
+                called scripting languages
+                \cite{langtangen2006python}.
+
+		Programs written in high-level languages tend to execute slower than their low-level counterpart. Because of this, for computationally intensive tasks it is favorable to use a low-level language for it's improved efficiency. High level languages also give the programmer reduced control over memory-handling due to the languages' more simplistic style. Some examples of popular high-level languages are Python, Perl, Ruby, PHP, and Visual Basic.
+
+		As an example, let us consider the sum
+		\begin{equation} \label{eq:simple_sum}
+			\sum_{i=1}^{100} i=5050.
+		\end{equation}
+		Using Python, here is the code for calculating the sum, and showing the result on the command line
+\begin{lstlisting}[language=Python, firstnumber=1, framesep=0pt]
+print sum(range(101))
+\end{lstlisting}
+		We see that the command is simple and straightforward, and done in a single line. The {\tt range}-function creates a list of numbers in arithmetic progression. Called with a single argument, like here, it starts in $0$ and counts up to $n-1$, where $n$ is the argument. 
+
+		For an introduction to Python in scientific programming, see Ref. \cite{langtangen2011primer}.
+
+	\subsubsection{Low-level languages}
+		Low-level languages have a low level of abstraction from the technicalities of a computer, and can be described as being closer to the hardware. Languages regarded as low-level include C, C++, Fortran, Basic, machine code or assembly language. The low abstraction gives the programmer more control over for example how to handle memory.
+
+		There are several caveats with writing a program using
+                a low-level language, however. The programmer has to
+                remember numerous technical details to make a working
+                program, such as declarations, pointers, compiling and
+                linking, making the task of writing the code more
+                complex. Nonetheless this increased complexity does
+                give the programmer more control over the technical
+                details of how the program works, which makes it
+                possible to write flexible and optimized programs. The
+                reward for writing a program in such a complex
+                language, compared to high-level languages, is ending
+                up with a highly efficient program.
+
+		Following the same example as for high-level languages, performing the calculation of the sum in Eq. \eqref{eq:simple_sum} by using C++ we have
+\begin{lstlisting}[language=C++, firstnumber=1, framesep=0pt]
+#include <iostream>
+int main() {
+  int sum = 0;
+  for (int i = 1; i <= 100; i++) {
+    sum += i;
+  }
+  std::cout << sum << std::endl;
+  return 0;
+}
+\end{lstlisting}
+		Comparing this to the Python case we see that using
+                C++ is more complicated; we need to define the type of
+                all variables, and there is no built-in function to
+                carry out the sum. We also see that everything is
+                done from the {\tt main}-function, the designated
+                starting-point in the C++ language. With these
+                examples it is now clear that low-level languages like
+                C++, although more complicated, give more control in
+                addition to carry out the calculations faster.
+
+		The calculations carried out when solving a quantum
+                mechanical system by using variational Monte Carlo,
+                which is the main focus in this thesis, are quite
+                heavy. It is therefore unfeasible to do the
+                calculations in a high-level language. Furthermore a
+                low-level language provides more control and makes it
+                possible to make the program flexible. Therefore the
+                language C++ is chosen as the language used in the
+                variational Monte Carlo calculations, as it is a
+                low-level language and has excellent support for
+                object orientation. The high-level language Python is
+                also used, although only for analyzing the resulting
+                data. Therefore the focus will be on these languages
+                in the following, with emphasis on the C++ language as
+                it is used for the variational Monte Carlo machinery.
+
+	%\todo{Python/C++ examples?}
+
+\section{Object-oriented programming}
+	Although some of the terminology and ideas of object-oriented programming appeared earlier, the programming concept of objects was introduced in the 1960s with Simula 67, developed by Ole-Johan Dahl and Kristen Nygård of the Norwegian Computing Center \cite{holmevik94}. Object-oriented programming has since become the dominant technique of modern programming and is today supported by most if not all of the most popular programming languages.
+
+	Objects in programming are similar to everyday objects. They both have two characteristics: a state and a behaviour. A lamp has commonly two states, on and off, and two behaviours, turn on and turn off. Meanwhile a bikecycle has more states, like current speed, current gear, current pedal cadence, and so on, and more behaviour, like change gear, change pedal cadence, and apply breaks. One of the big strengths of object-oriented programming is that it is intuitive in that it translates well to real-world objects.
+
+	A class consists of fields, defining data of the current state of the class, and methods, operating on the internal state of the class, that is working with fields of the class. Calling a class creates an instance, or an executable copy of the class, also called an object. This way there can be multiple copies of objects of a given class in memory at any time. There can also be classes within classes, giving us a hierarchy of classes.
+
+	By writing the variational Monte Carlo solver by using object-orientation, the program can be made very flexible. Specifically, the solver expects to be connected to a system, such as an atom, or quantum dot, in form of an object. It is therefore easy to expand the variational Monte Carlo machinery to solve additional systems simply by creating a separate class for a new system. Because of the importance of object-orientation in the implementation of the solver, a brief introduction to concepts regarding object-orientation will be given in the following.
+
+	\subsubsection{Members}
+		It is now clear that a class consists of variables and functions, called members of the class. Every instance of the class has its own set of members, but also a member which points to itself. In Python this is called the {\tt self} member, and in C++ it is a pointer called {\tt this}. This way all the members of the class has access to the class they are part of, and the class can make changes to itself at any time. 
+	\subsubsection{Constructors}
+		By creating an instance of a class, the constructor function of the class is called. The constructors job is to initializes the class with its data members, and it may take some arguments. In C++ the constructur matches the name of the class itself, while in Python the constructor is called {\tt \_\_init\_\_()}. 
+
+		As an example, here is how to create an instance of a class {\tt rectangleClass} in C++, simply by calling the constructor
+\begin{lstlisting}[language=C++, firstnumber=1, framesep=0pt]
+rectangleClass* rectangleObject = new rectangleClass(height, width);
+\end{lstlisting}
+	
+	\subsubsection{Destructors}
+		When the program is done with an object, the object has to be deallocated from the memory. The function of the class handling this is called the destructor. As we have talked about, handling the memory is automatic in Python, thus the memory is automatically deallocated by the so-called garbage collector. In C++ however it is important to make sure that the memory reserved by the object is deallocated. Deallocation of memory allocated by the object is handled by a special function in the class declared as the name of the class preceded by a tilde, thus the destructor for the class in the previous example would be {\tt {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}}rectangleClass()}.
+
+	\subsubsection{Levels of Accessibility}
+		A class may disallow calling code from outside the class itself. This is called encapsulation. Encapsulation is useful because it prevents external code from being involved in the internal functions of the class. In some languages, like Python, there is limited access to methods of encapsulation. In C++ there are three levels of accessibility. With the {\tt Private} keyword access to the data is restricted to only inside the class, while the {\tt Public} keyword allows access to the data from outside the class. There is also an intermediate level, {\tt Protected}, which restricts access to  inside the class and also subclasses of the class.
+
+	\subsubsection{Inheritance}
+		Another useful feature of classes is inheritance. This allows classes to have a hierarchy, inheriting properties from its parent classes. For example, a class {\tt Student} may inherit from a class {\tt Person}. The {\tt Student} class may have variables such as {\tt Institute}, {\tt Subjects} and {\tt Advisor}, while it may inherit variables {\tt First\_name}, {\tt Last\_name} and {\tt Gender} from the class {\tt Person}. Methods and variables defined by a superclass can also be overwritten by the child class.
+
+	\subsubsection{Typecasting and pointers}
+		A variable can be stored in the computer's memory as different types, such as integers, floating point numbers and strings. In Python this classification is handled automatically, and there is no need to cast a variable as a specific type. In low-level languages such as C++ however we have more control over the memory, and the type of the variable has to be specified. 
+
+		In the memory objects and variables are stored at memory addresses. In C++ and other low-level languages we can interface with this memory address directly, through pointers. So instead of modifying the value itself, we can modify the value which is stored in memory.
+
+		Modifying values in memory directly is very useful because memory addresses are shared through the program. Changes done through a pointer is therefore effective everywhere where the object pointed to is used. Passing a variable as an argument to a function would normally make the function create its own copy of the variable, which is destroyed when exiting the function. However passing a pointer to the function would let the function modify the original variable.
+
+	\subsubsection{Virtual members and polymorphism}
+		In a hierarchy of classes the subclass can redefine a member function of the superclass, if the function is defined as a virtual function in the superclass. As an example, consider this  superclass for polygons, and its subclass for rectangles:
+		
+\begin{lstlisting}[language=C++, firstnumber=1, framesep=0pt]
+class Polygon{
+	protected:
+		int width, height;
+	public:
+		void set_values(int a, int b) 
+			{width=a; height=b;}
+		virtual int area() 
+			{return 0;}
+};
+
+class Rectangle: public Polygon {
+	public:
+		int area()
+			{return width * height;}
+};
+\end{lstlisting}
+		Because a subclass is type-compatible with a pointer to its superclass, we may typecast the subclass {\tt Rectangle} as
+\begin{lstlisting}[language=C++, firstnumber=1, framesep=0pt]
+Polygon* rectangleObject = new Rectangle();
+\end{lstlisting}
+		Now we may call the function {\tt rectangleObject::set\_values()}\footnote{The double colon, {\tt ::}, is the scope resolution operator, and here it simply means ``member function {\tt set\_values()} of class {\tt rectangleObject}''.}, 
+		which is defined in the superclass, to set the width and height of the rectangle. We can also call the function {\tt rectangleObject::area()} to get the area of the rectangle. Note that this function is redefined by the {\tt Rectangle} subclass, and thus the function in the {\tt Polygon} superclass is overwritten.
+
+		When classes are organized in a hierarchy and are related by inheritance, in the fashion exemplified above, they are said to be polymorphic. As the name suggests, a polymorphic function may have many different shapes, first defined as a function in the superclass, but redefined through functions in the subclasses.
+
+		Polymorphic classes are used in the variational Monte Carlo solver in this thesis to implement the quantum mechanical systems. A class {\tt Trialfunction} defines all the functions needed from the system by the solver, but they have to be overwritten by a subclass of the {\tt Trialfunction}-class. It is in this subclass the system, be it an atom or a quantum dot, is defined. For a more thorough overview of the solver classes, see section \ref{sec:Structure}.
+
+\section{Implementation of MPI}
+		
+		As calculations become increasingly complex and heavy, running computations on a single processor becomes impractical. Because of physical limitations and the difficulty of continuously making processors faster, a different strategy has been developed, that is using multiple processing cores in a single processor. Therefore personal computers today, and even some phones, contain multiple processing cores. 
+
+		Taking advantage of all available processors on the machine a calculation is carried out is very useful and an easy way to cut computation times to a fraction of how long it would take with a single processor. Because of the heavy calculations in scientific programming it is usual to run computing jobs on a shared cluster computer, often containing thousands or even millions of processing cores. To take advantage of this it is necessary to implement a message passing interface, or MPI, to make use of multiple processors. 
+
+		One of the advantages of using MPI is its good performance and control over message passing between processors. There exists other ways to take advantage of multiple processors, but MPI is one of the most common methods, and is thus available at most computing clusters.
+
+		A program written, compiled and run using MPI runs simultaneously on all processes. At the core of an MPI-implementation is the MPI communicator, a communication universe for a group of processes. The default MPI communicator is called {\tt MPI\_COMM\_WORLD} and is the collection of all processes. Within the communicator each process is identified by a unique rank, an integer identifier used to distinguish one process from another.
+
+		By using the MPI communicator each process can send and receive data between each other, using for example the functions {\tt MPI\_Send} and {\tt MPI\_Recv}. It is also possible to distribute data from one process to all others, or to gather data from all processes to a single process, by using for example {\tt MPI\_BCAST} and {\tt MPI\_GATHER}, respectively. 
+
+		Not all computational methods can be easily split up
+                and be distributed on multiple processors. However one
+                of the easier methods is the Monte Carlo method. As we
+                deal with statistical values we can easily split up
+                the problem. Each process will run its own set of
+                samples. The number of samples used by each process is
+                simply $n/p$, where $n$ is the total number of samples
+                we want to do, and $p$ is the number of processes. In
+                the end a master process gathers the results from all
+                processes and sums up the values, taking the average
+                over all processes.

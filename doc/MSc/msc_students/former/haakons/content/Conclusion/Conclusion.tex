@@ -1,0 +1,134 @@
+%Final conclusions and perspectives.
+
+%% what was the aim in the thesis, what has been done
+In this thesis the main aim has been to develop a variational Monte Carlo
+solver. Furthermore, emphasis has been put on making the solver as
+general as possible, thus making it possible to study a wide variety
+of systems. To achieve this the solver was written in C++ using
+object-oriented programming. To ease the handling of vectors and
+matrices being handled by the solver it utilizes the linear algebra
+library Armadillo \cite{sanderson2010armadillo}, which provides
+efficient methods for this.
+
+As presented in section \ref{sec:hydrogenic_wavefunctions}, modelling
+atoms is fairly simple and only a handfull of orbitals are used to
+create the trialfunctions. With quantum dots however, harmonic
+oscillator orbitals are used, and with the aim of using a great number
+of particles in the calculations, in both two and three dimensions, a
+way to automate the creation of the orbitals was needed. This was done
+using the python library SymPy, with which the orbitals could easily
+be created, their gradient and laplacian functions could be calculated
+automatically, and source files used by the variational Monte Carlo
+solver could seamlessly be generated.
+
+A way to handle the immense ammounts of data produced by the solver
+program was also needed. For this purpouse a script was created, which
+converted the datafiles with the size of noumerous gigabytes to
+something visualizable and with a more managable size.
+
+%% put what has been done in perspective with previous works
+Over the years many Master projects have had focus on solving quantum
+mechanical many-body systems, using different methods, like the
+Multi-Configuration time-dependent Hartree-Fock method \cite{skattum13}, post Hartree-Fock
+methods liek coupled cluster theory \cite{hirthCC}, full configuration interaction theory  \cite{olsenFCI}, and quantum Monte Carlo
+methods \cite{hogbergetDMC}. The focus in this thesis has thus not
+been something entirely new, but nonetheless gave interesting insight
+to quantum mechanical many-body systems. Creating a flexible solver
+allowed the study of many systems: atoms with a size up to neon,
+consisting of 10 particles, molecules with a size up to diberyllium,
+consisting of 12 particles, and quantum dots with even greater size,
+in both two and three dimensions.
+
+By successfully implementing and studying a wide variety of quantum
+mechanical systems the generality and flexibility of the VMC solver is
+demonstrated. This shows that the solver that has been developed has
+reached the goal which was set, by performing calculations on atoms,
+molecules, and quantum dots.
+
+%% comments on the main findings and interpretations
+The variational Monte Carlo method gives fairly accurate results, both
+for atoms and molecules, and also for quantum dots. With atoms it is
+demonstrated how the so-called Jastrow factor efficiently deals with
+the correlation factors, thus yielding energies comparable with those
+computed using more exact methods. In the case of helium the relative
+error is less than 0.5 percent compared to the optimized theoretical 
+reference energies. For neon the relative error is just under 1
+percent, and for the largest molecule used, the relative error is
+about 6.5 percent, which is fairly good. Due to limited resources the
+larger atoms and molecules had to be run with fewer Monte Carlo
+cycles, so it is probable that the results could have been
+better. There is however another limitation, which is the simple trial
+function used. But considering this with the reduced number of Monte
+Carlo cycles, the results are very good.
+
+For all of the atoms the radial distribution of the wavefunctions
+showed traces of the hydrogenic wavefunctions they were constructed
+from. As the binding energy of the atoms during the VMC computations
+are close to the experimental values, it is likely that the atomic
+structure of the real atoms resemble the atomic structures of the VMC
+simulations.
+
+Results for quantum dots are for a comparable number of particles even
+more accurate than for atoms and molecules. For the two particle case
+the relative error is less than 0.04 percent and less than 0.2 percent
+for two and three dimensions, respectively. For the quantum dots
+consisting of the largest number of electrons, 30, the relative error
+is also low, at about 1.5 percent. Unfortunately the number of quantum
+dot systems had to be limited due to insufficient time. Despite this
+the characteristics of the quantum dot system could still be
+demonstrated.
+
+In comparing the radial distribution of quantum dots in two and three
+dimensions which have the same number of closed shells the similarity
+is striking, as long as the frequency is high. For very low
+frequencies there is a break in symmetry, where the two dimensional
+case shows electrons that become strongly localized , while the three dimensional case does not exhibit the same degree of localization. 
+
+%% comments on the method (pros and cons, improvements)
+From the low error in the ground state energies it is clear that the
+results are very good considering the amount of resources that went
+into calculating them. Many of the calculations for a smaller number
+of particles could be run on a single computer in a handful of
+hours. For larger systems however a cluster computer is
+used. Considering that a relatively simple and very well tested method
+was used to obtain these results it is very easy to see why the VMC method is so
+popular for solving quite complicated problems like calculating the
+ground state energies of non-trivial quantum mechanical systems.
+
+From the results presented in this thesis it is clear that the VMC
+method computes fairly accurate results by utilizing the Jastrow
+factor in computing correlations. There is however a tradeoff in that
+the trial function used is a limiting factor on the accuracy. Choosing
+better trialfunctions would thus result in more accurate results,
+especially for larger molecules.
+
+%% comments on the efficiency of the method
+Because the variational Monte Carlo method uses a statistical approach
+to the quantum mechanical many-body problem it is not as efficient as
+for example the Hartree-Fock method or the Density functional theory
+method \cite{kohn1965self}. It does however take into account
+correlations, unlike the Hartree-Fock method. Other, more efficient
+methods exist, like the diffusion Monte Carlo method.
+
+\subsubsection{Perspectives for future work}
+%% perspectives for future work
+Looking ahead, to improve the Variational Monte Carlo program for
+atoms, more analytical functions for the Slater Determinant and for
+the derivatives of the GTO functions could be calculated. These parts
+are used a lot during the program and switching from numerical to
+analytical solution would speed things up. Further, as the Gaussian
+Type Orbitals gave slightly dissapointing energies, we could implement
+another, larger basis set than the 3-21G basis, such as the 6-311G
+basis. This would give the GTO functions a shape that more closely
+resembles Slater Type Orbitals and therefore give more accurate
+energies.
+
+%\todo{more future work}
+The solver could also be made more efficient, and given more time,
+systems of greater size could be studied. A possibility is to study a
+higher scale, that is studying molecules. The break in symmetry of
+quantum dots in two and three dimensions could also be studied in
+greater detail. Our code is also flexible enough to accomodate double-well 
+quantum dots, of great interest for computing computing. The implementation of a
+diffusion Monte Carlo solver is also something which can be added to the code, providing
+thereby almost exact ground state energies. 

@@ -1,0 +1,371 @@
+\documentclass[10pt]{revtex4}
+\usepackage{graphicx,amsmath,amssymb,bm}
+
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+\title{Thesis title: Thesis title: Time-evolution of  systems of quantum dots}
+\author{H\aa kon Emil Kristiansen}
+\maketitle
+\section*{Aims}
+The aim of this thesis is to study the time evolution of a system of quantum dots (electrons confined in
+two dimensional traps) using the multi-configuration time-dependent Hartree-Fock method, as discussed in Refs.~\cite{mcthf,sigve2013}. The first step is to study a system of two electrons in two or three dimensions whose motion is confined  to an oscillator potential. This system has, for two electrons only in two or three dimensions, 
+analytical solutions for the energy and the state functions. The time-evolution of such a system can thus be given in terms of analytical expressions. The first step consists in studying numerically such systems using the so-called Magnus expansion for the time-development. The numerical results will be compared with analytical expressions. The next step is to add time-dependent external potentials and study how the system evolves with time under the influence of externally applied time-dependent fields. 
+
+
+The final step, based on a code developed by a fellow Master of Science student (Sigve B\o e Skattum) is to 
+study the structure of quantum dots using large-scale diagonalization techniques including  time-dependence via an external time-dependent field will be included.  The developed formalism and algorithms will be applied to systems of two and more electrons confined to one or two oscillator potentials. 
+
+\subsection*{General introduction to possible physical systems}
+
+
+
+
+What follows here is a general introduction to systems of confined electrons in two or three dimensions.
+However, although the thesis will focus on such systems, the codes will be written so 
+that other systems of trapped 
+fermions or eventually bosons can be handled. Examples could be neutrons in a harmonic oscillator trap, see for example Ref.~\cite{bogner2011}, or ions in various traps \cite{yoram2008}.  
+
+Strongly confined electrons
+offer a wide variety of complex and subtle phenomena which pose severe 
+challenges to existing many-body methods.
+Quantum dots in particular, that is, electrons confined in semiconducting heterostructures,
+exhibit, due to their small size, discrete quantum levels. 
+The ground states of, for example, circular dots
+show similar shell structures and magic numbers 
+as seen for atoms and nuclei. These structures are particularly evident in
+measurements of the change in electrochemical potential due to the addition of
+one extra electron, 
+$\Delta_N=\mu(N+1)-\mu(N)$. Here $N$ is the number of electrons in the quantum dot, and
+$\mu(N)=E(N)-E(N-1)$ is the electrochemical potential of the system.
+Theoretical predictions of $\Delta_N$ and the excitation energy spectrum require
+accurate calculations of ground-state and of excited-state energies.
+Small confined systems, such as quantum dots (QD), have become very popular for experimental 
+study. Beyond their possible relevance for nanotechnology, they are highly tunable 
+in experiments and introduce level quantization and quantum interference in a controlled way. In a finite system, 
+there cannot, of course, be a true phase transition, but a cross-over between weakly and strongly correlated regimes is 
+still expected. There are several other fundamental differences between quantum dots and bulk systems: (a)\,Broken translational 
+symmetry in a QD reduces the ability of the electrons to delocalize. As a result, a Wigner-type cross-over 
+is expected for a smaller value of $r_s$\footnote{This is the so-called gas parameter $r_s=(c_d/a_B)(1/n)^d$, where $n$ is the electron density, $d$ is the spatial dimension, $a_B$ the effective Bohr radius and  $c_d$ a dimension dependent constant.}. (b)\,Mesoscopic fluctuations, inherent in any confined system, 
+lead to a rich interplay with the correlation effects. These two added features make strong correlation physics particularly 
+interesting in a QD. As clean 2D bulk samples with large $r_s$ are regularly fabricated these days in semiconductor 
+heterostructures, it seems to be just a matter of time before these systems are patterned into a QD, 
+thus providing an excellent probe of correlation effects.
+
+
+
+The above-mentioned quantum mechanical levels can, in turn, be tuned by means
+of, for example, the application of various external fields.  
+The spins of the electrons in quantum dots
+provide a natural basis for representing so-called qubits \cite{divincenzo1996}. The capability to manipulate
+and study such states is evidenced by several recent experiments \cite{exp1,exp2}.
+Coupled quantum dots are particularly interesting since so-called  
+two-qubit quantum gates can be realized by manipulating the 
+exchange coupling which originates from the repulsive Coulomb interaction 
+and the underlying Pauli principle.  For such states, the exchange coupling splits singlet and triplet states, 
+and depending on the shape of the confining potential and the applied magnetic field, one can allow
+for electrical or magnetic control of the exchange coupling. In particular, several recent experiments and 
+theoretical investigations have analyzed the role of effective spin-orbit interactions 
+in quantum dots \cite{exp5,exp6,pederiva2010,spinorbit} and their influence on the exchange coupling.
+
+A proper theoretical understanding of the exchange coupling, correlation energies, 
+ground state energies of quantum dots, the role of spin-orbit interactions
+and other properties of quantum dots as well, requires the development of appropriate and reliable  
+theoretical  few- and many-body methods. 
+Furthermore, for quantum dots with more than two electrons and/or specific values of the 
+external fields, this implies the development of few- and many-body methods where   
+uncertainty
+quantifications are provided.  
+For most methods, this means providing an estimate of the error due 
+to the truncation made in the single-particle basis and the truncation made in 
+limiting the number of possible excitations.
+For systems with more than three or four electrons,  {\em ab initio} methods that have 
+been employed in studies of quantum dots are
+ variational and diffusion Monte Carlo \cite{harju2005,pederiva2001, pederiva2003}, path integral approaches \cite{pi1999}, 
+large-scale diagonalization (full configuration 
+interaction) \cite{Eto97,Maksym90,simen2008,modena2000}, and to a very limited extent 
+coupled-cluster theory \cite{shavittbartlett2009,bartlett2007,bartlett2003,indians,us2011}. 
+Exact diagonalization studies are accurate for a very small number
+of electrons, but the number of basis functions needed to obtain a given
+accuracy and the computational cost grow very rapidly with electron number.
+In practice they have been used for up to eight electrons\cite{Eto97,Maksym90,modena2000}, but the accuracy is
+very limited for all except $N\le 3$ .  
+Monte Carlo methods have been applied up to $N=24$ electrons 
+\cite{pederiva2001,pederiva2003}. Diffusion Monte Carlo, with statistical and systematic errors, provide, in principle,
+exact benchmark solutions to various properties of quantum dots. However, 
+the computations start becoming rather time-consuming for larger systems.   
+Hartree\cite{Kum90}, restricted Hartree-Fock, spin- and/or space-unrestricted
+Hartree-Fock\cite{Fuj96,Mul96,Yan99} and
+local spin-density, and current density functional methods\cite{Kos97,Hir99,finns1,finns2}
+give results that are satisfactory for a qualitative understanding of some
+systematic properties. However, comparisons with exact results show
+discrepancies in the energies that are substantial
+on the scale of energy differences. 
+
+
+\subsection*{Specific tasks}
+The specific task here is to develop a multi-configuration time-dependent Hartree-Fock (MCTHF) code, in order to be able to study the time evolution of an interacting quantum mechanical system, in particular for electrons confined to move in two or three dimensions. In this case, the system
+we will start with is that of electrons confined in two-dimensional regions, so-called quantum dots.
+If properly object-oriented, the codes could also be used to study atoms or electrons confined to
+three dimensions. The algorithmic details behind the MCTHF method are exposed in Refs.~\cite{mcthf,sigve2013}.
+The final aim is to extend the formalism and algorithms developed in Ref.~\cite{sigve2013} to systems with two or more electrons trapped in more than one oscillator well. Such systems have been used as prototype systems for testing quantum algorithms and building quantum circuits.
+This method has never before been applied to systems of strongly confined electrons and opens up several interesting avenues for further research programs as well as eventual publications. 
+
+
+The first step however, as discussed in the introduction, is to solve
+Schr\"odinger's equation for one and two electrons in two (or three)
+dimensions using the so-called Magnus expansion. These steps will
+provide important benchmarks with analytical results as well as
+providing results for the final, and more general, MCTHF code.  What
+follows here can thus be considered as a warm-up problem and can serve
+as an important building block in understanding the basics of the
+time-dependent Schr\"odinger equation. It serves thus as a preparatory
+background (which can be included in the thesis work as well).  This
+part can easily be completed during the first year of a Master of
+Science project, in addition to a normal course load. The final year
+is meant to be devoted to the develpment of the MCTHF code.  The
+thesis is expected to be handed in June 1 2017.
+
+What follows is a description of the first steps.
+\subsection*{First part}
+We give first a general background to the problem. 
+
+Given a complete set of of orthonormal basis vectors $\left| \phi_k \right\rangle\,$, we expand the state vector $\left|\Psi \right\rangle$ in this basis, and truncate after the first $N$ basis vectors
+
+\begin{equation}
+	\left| \Psi \right\rangle = \sum^N_{k=1} c_k \left| \phi_k \right\rangle, \quad c_k = \left\langle \phi_k | \Psi \right\rangle.
+\end{equation}
+
+The above coefficients $c_k$ are those which where computed in project 2 of fys3150 last year (Harmonic oscillator in three dimensions).
+Conversely, any coefficient vector $\mathbf{c}$ defines a unique wave function on this truncated basis. In the case where the basis vectors are labelled by several quantum numbers, we will have to define some mapping of these onto the single index $k$.  The action of operators can now be viewed as matrix multiplication on the coefficient vector. That is, the action of an operator $A\,$ on the state vector corresponds to $\mathbf{A} \mathbf{c}\,$, where the matrix elements of $A$ in the basis of vectors $\left| \phi_k \right\rangle\,$ are given by
+
+\begin{equation}
+	\left(\mathbf{A}\right)_{jk} = \left\langle \phi_j  | A | \phi_k \right\rangle.
+\end{equation}
+
+In this basis the time-dependent Schr\"odinger equation may be written
+
+\begin{equation}
+	i \frac{\partial}{\partial t} \mathbf{c} \left(t\right)= \mathbf{H} \mathbf{c} \left(t\right).
+	\label{eq:OnceAgainSchroed}
+\end{equation}
+
+This is the general case of the semi-discrete Schr\"odinger equation. 
+If we use the eigenvectors $\left|\psi_k\right\rangle$ of the Hamiltonian as a basis, the problem becomes trivial when $H$ is time-independent. In this basis $H$ is diagonal, with the diagonal elements being the eigenvalues of $H$. Equation~(\ref{eq:OnceAgainSchroed}) decouples
+
+\begin{equation}
+	i \frac{\partial}{\partial t} \mathbf{c} \left(t\right)= \mathbf{D} \mathbf{c} \left(t\right), \qquad \mathbf{D} 
+	= \mathrm{diag} \left( E_1, E_2, \ldots, E_N \right),
+\end{equation}
+which is what was done in project 2 in fys3150.
+
+The time development is given simply as $c_k\left(t\right)=\exp \left[ -i(t-t_0)E_k \right] c_k \left( t_0 \right)$. We now look at the case where $H$ has a time-dependent perturbation $H_1\left(t\right)$
+
+\begin{equation}
+H\left(t\right) = H_0 + H_1 \left( t \right).
+\end{equation}
+
+Here, $H_0$ is the stationary part of the Hamiltonian of an, as of yet, unspecified number of particles.  Here we will consider $H_0$ to be the full Hamiltonian of the two-electron problem, including the two-particle Coulomb terms, as it was solved in project 2. 
+We will use the eigenvectors $ \left| \psi_k \right\rangle $ of $H_0$ 
+as a basis to approximate the total Hamiltonian $H$. 
+To find the eigenvectors of the many-body Hamiltonian, an approximation method that gives the ground state and the excited states up to some specified cut-off value must be used. The full diagonalization from project 2 is one possible approach. Using the $N$ vectors, obtained in project 2, 
+$\left| \psi_k  \right\rangle$ of the many-body basis, the matrix version of the Hamiltonian becomes
+
+\begin{equation}
+ \mathbf{H}=\mathbf{H}_0+\mathbf{H}_1\left(t\right),
+\end{equation}
+where
+\begin{equation}
+ \mathbf{H}_0 = \mathrm{diag} \left(E_1,E_2,\ldots,E_N \right), \qquad 
+ \left[ \mathbf{H}_1\left( t \right) \right] _{jk} = \left\langle \psi_j | H_1 | \psi_k \right\rangle.
+\end{equation}
+
+There is one potential difficulty however: To use the eigenfunctions
+$\left| \psi_k \right\rangle$ of the stationary part of the
+Hamiltonian, we have to be able to calculate the matrix elements
+$\left\langle \psi_j | H_1\left(t\right) | \psi_k \right\rangle$. In
+the case of the many-particle Hamiltonian this can be prohibitively
+expensive. In most cases, this certainly rules out calculating these
+matrix elements for each time step. In many cases, however, the
+time-dependent perturbation $H_1\left(t\right)$ can be written as a
+product of a function depending only on time, and a function of
+spatial coordinates.  The form of perturbation of interest in this
+project is that of a system which is influenced by an electric field.
+Here we will simply limit this perturbation to be time-dependent only
+for the two particles
+\begin{equation}
+H_1 \left(\vec{x},t\right) = E_{0} \sin \left(\omega t\right).
+\label{sdjfhkajlsdfhuithrt}
+\end{equation}
+To solve the time-dependent Schr\"odinger equation we will use a so-called multi-step method developed by Blanes and Moan
+\cite{blanesmoan2005}.
+
+We start with our solution to the time-independent Schr\"odinger equation from project 2, rewritten as
+\begin{equation}
+H_0 \psi _j \left({\bf r}_1,{\bf r}_2\right) = E_j \psi _j \left({\bf r}_1,{\bf r}_2\right).
+\end{equation} 
+We have limited ourselves to the spatial part of the wave function. Our problem in project 2 does also not have an angular dependence.
+Here, $H_0$ is the time-independent part of the Hamiltonian.
+
+The fourth-order time stepping scheme of Blanes and Moan is given for a time
+step $n+1$ as
+\begin{equation}
+\mathbf{\Psi}^{n+1} \approx\left[ \exp{-(\mathbf{M_2})}\exp{\mathbf{M_1}}\exp{\mathbf{M_2}}\right] \mathbf{\Psi}^n,
+\label{eq:finals}
+\end{equation}
+where $\mathbf{M_1}$ and $\mathbf{M_2}$ are defined below
+and consist of terms proportional 
+to integrals of the form $\int \mathbf{H}\left(s\right)ds$ and  $\int s\mathbf{H}\left(s\right)ds$. 
+The error goes like $O(\Delta t^5)$. The variable $n$ represents the number of time steps that have been performed.
+
+When applying a time-dependent perturbation, which in our case is given by Eq.~\ref{sdjfhkajlsdfhuithrt}, 
+the Hamiltonian matrix $\mathbf{H}$ is in the eigenvector basis given by
+\begin{equation}
+\mathbf{H} = \mathbf{H}_0 + \mathbf{H}_1 \left(t\right),
+\end{equation}
+where $\mathbf{H}_0$ is a diagonal matrix of the energy-eigenvalues, $\mathbf{H}_0 = \mathrm{diag} \left(E_1,E_2,\ldots,E_N \right)$, and $\mathbf{H}_1 \left(t\right)\,$ is given by, in our case, 
+\begin{equation}
+\left[\mathbf{H}_1 \left(t\right)\right]_{jk} = E \left( t\right) \int^{\infty}_{-\infty}\int^{\infty}_{-\infty} \psi^*_j \left({\bf r}_1,{\bf r}_2\right) \psi_k \left({\bf r}_1,{\bf r}_2\right) d{\bf r}_1 d{\bf r}_2.
+\end{equation}
+
+The two terms $M_1$ and $M_2$ are given as
+\begin{equation}
+	M_1 = -i \int ^{t_n+\Delta t}_{t_n} H \left( s \right) ds , 
+\end{equation}
+and 
+\begin{equation}
+	M_2 = \frac{i}{\Delta t} \int^{t_n+\Delta t}_{t_n} \left( s-\left(\frac{\Delta t}{2} -t_n \right)H \left( s \right) ds= \frac{i}{\Delta t} \left[ \int^{t_n+\Delta t}_{t_n} sH\left(s\right) ds \right] +\left(  \frac{\Delta t}{2}-t_n \right)M_1.
+\end{equation}
+
+Since our perturbation depends on time only, it is easy to calculate the above integrals. In case we need to compute a more involved expectation value (including for example a spatial dependence), 
+then the exponential functions would be matrices and one would need to 
+evaluate the exponential of a matrix. 
+\begin{enumerate}
+\item[a)]  Set up a program which solves Eq.~(\ref{eq:finals}) for the ground state and the first excited state from project 2. Allow for different values 
+of the strength in front of the Coulomb interaction from project 2.
+Test your program for the ground state of the non-interacting two-particle case with a frequency of the electric field given by the energy 
+difference between the ground state and the first excited state. Set
+$E_0=1$ and  choose a time interval with
+\begin{center}
+  \begin{tabular}{ l l}
+  	$t_{\mathrm{final}}=600$ & $\Delta t = 0.05$ \\
+  \end{tabular}    
+\end{center}
+A good test of your code is to test the one-particle case with 
+no time-dependent perturbation. In this case it is possible to find a simple
+closed form expression. Study the ground state and compare with your numerical
+results.
+\item[b)] It is often difficult to see the physics of a two-variable complex function (three, counting time). It is helpful to introduce the \emph{single-particle density} $\rho_i ({\bf r}_i,t)$ defined by integrating the two-particle density, $\left|\psi \left({\bf r}_1,{\bf r}_2,t\right)\right|\,$, over one of the particles, say particle one
+\begin{equation}
+\rho_1 \left( {\bf r}_1,t \right) = \int ^{\infty}_{-\infty} \left|\psi \left({\bf r}_1,{\bf r}_2,t\right)\right|^2 d{\bf r}_2.
+\end{equation}
+In our case we have no angular dependence of the wave function. 
+Furthermore, we will only focus on the  density of the relative motion. The center of mass
+motion is not of interest since the both the time-dependent part and the interacting part
+do not depend affect the center of mass motion.
+The density  of interest is therefore 
+\begin{equation}
+\rho\left( {\bf r},t \right) = \left|\psi \left({\bf r},t\right)\right|^2.
+\end{equation}
+Since there is no angular dependence (we have chosen $l=0$)
+the radius ${\bf r}$ reduces simply to $r$. The angular dependence has been integrated out. 
+
+Compute the above density for both the non-interacting
+and the interacting systems.
+Study the time-development of the density function for the ground state and
+the first excited state using the same strength parameters in front of the
+Coulomb interaction as in project 2. Use now the spacing between the ground state and the first excited state of the interacting system to define
+the frequency $\omega$. Comment your results.  
+
+
+\end{enumerate}
+There are several tests which have been to be done in addition to those listed above. 
+For example one needs to check
+that unitarity is observed and that the norm is conserved. However, these topics
+are beyond the aim of this project. Furthermore, a realistic perturbation has
+a spatial dependence as well. In this case one needs to develop a function
+which computes the exponential of a matrix. With these ingredients in place, this method can be extended to consider realistic quantum mechanical cases and could form the background for a possible scientific article.
+One very hot topic is to study the temporal evolution of electrons in so-called quantum dots. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\begin{thebibliography}{200}
+\bibitem{mcthf} M.~H.~Beck, A.~J\"ackle, G.~A.~Worth, H.-D.~Meyer, Phys.~Rep.~{\bf 324}, 1 (2000).
+\bibitem{sigve2013} Sigve B\o e Skattum, {\em TIME EVOLUTION IN QUANTUM DOTS : Using the Multiconfiguration Time-Dependent Hartree-Fock Method}, Master of Science thesis, University of Oslo, 2013, \url{https://www.duo.uio.no/handle/10852/37170}
+\bibitem{bogner2011} S. K. Bogner, R. J. Furnstahl, H. Hergert, M. Kortelainen, P. Maris, M. Stoitsov, and J. P. Vary, Phys.~Rev.~C {\bf 84}, 044306 (2011).
+\bibitem{yoram2008} Y. Alhassid, G. F. Bertsch, and L. Fang, Phys.~Rev.~Lett.~{\bf 100}, 230401 (2008).
+\bibitem{divincenzo1996} D.~Loss and D.~P.~DiVincenzo, Phys.~Rev.~A {\bf 57}, 120 (1998).
+\bibitem{exp1} R.~Hanson, L.~H.~Willems van Beveren, I.~T.~Vink, J.~M.~Elzerman, W.~J.~M. Naber, F.~H.~L.~Koppens, L.~P.~Kouwenhoven, and L.~M.~K.~Vandersypen, \prl {\bf 94}, 196802 (2005).
+\bibitem{exp2} H.-A.~Engel, V.~N.~Golovach, D.~Loss, L.~M.~K.~Vandersypen, J.~M.~Elzerman, R.~Hanson, and L.~P.~ Kouwenhoven, \prl {\bf 93}, 106804 (2004). 
+\bibitem{exp5} C.~Fasth, A.~Fuhrer, L.~Samuelson, V.~N.~Golovach, and D.~Loss, \prl {\bf 98}, 266801 (2007).
+\bibitem{exp6} S.~Roddaro {\em et al.}, \prl {\bf 101}, 18682 (2008).
+\bibitem{pederiva2010}A.~Ambrosetti, J.~M.~Escartin, E.~Lipparini, and F.~Pederiva, arXiv:1003.2433.
+\bibitem{spinorbit} F.~Baruffa, P.~Stano, and J.~Fabian, \prl {\bf 104}, 126401 (2010).
+\bibitem{harju2005} A.~Harju, J.~Low Temp.~Phys.~{\bf 140}, 181 (2005).
+\bibitem{bolton} F.~Bolton, Phys.~Rev.~B {\bf 54}, 4780 (1996).
+\bibitem{pederiva2001}F.~Pederiva, C.~J.~Umrigar, and E.~Lipparini, \prb {\bf 62}, 8120 (2000).
+\bibitem{pederiva2003}L.~Colletti, F.~Pederiva, and  E.~Lipparini,  Eur.~Phys.~J.~B {\bf 27}, 
+385 (2002).
+\bibitem{pi1999} M.~Harowitz, D.~Shin, and J.~Shumway, J.~Low.~Temp.~Phys.~{\bf 140}, 211 (2005).
+\bibitem{Eto97} M. Eto, Jpn. J. Appl. Phys. {\bf 36}, 3924 (1997).
+\bibitem{Maksym90} P.~A.~Maksym and T.~Chakraborty, Phys.~Rev.~Lett.~{\bf 65}, 108 (1990);
+D.~Pfannkuche, V.~Gudmundsson, and P.~A.~Maksym, Phys. Rev. B {\bf 47}, 2244 (1993);
+P.~Hawrylak and D.~Pfannkuche, Phys.~Rev.~Lett.~{\bf 70}, 485 (1993); J.J. Palacios,
+L.~Moreno, G.~Chiappe, E.~Louis, and C.~Tejedor, Phys.~Rev.~B {\bf 50}, 5760 (1994);
+T.~Ezaki, N.~Mori, and C.~Hamaguchi, Phys.~Rev.~B {\bf 56}, 6428 (1997).
+\bibitem{simen2008} S.~Kvaal, Phys.~Rev.~C {\bf 78}, 044330 (2008).
+\bibitem{simen2008b} S.~Kvaal, arXiv:0810.2644, unpublished.
+\bibitem{modena2000} M.~Rontani, C.~Cavazzoni, 
+D.~Belucci, and G.~Goldoni, J.~Chem.~Phys.~{\bf 124}, 124102 (2006).
+\bibitem{shavittbartlett2009} I.~Shavitt and R.\ J.\ Bartlett, {\em Many-body Methods in Chemistry and Physics},  
+(Cambridge University Press, Cambridge UK, 2009). 
+\bibitem{bartlett2007} R.\ J.\ Bartlett and M.\ Musia{\l}, \rmp {\bf 79}, 291 (2007).
+\bibitem{bartlett2003} T.~M.~Henderson, K.~Runge, and R.~J.~Bartlett, Chem.~Phys.~Lett.~{\bf 337}, 138 (2001); \prb {\bf 67}, 045320 (2003).
+\bibitem{indians} I.~Heidari, S.~Pal, B.~S.~Pujari, and D.~G.~Kanhere, J.~Chem.~Phys.~{\bf 127}, 
+114708 (2007).
+\bibitem{us2011} M. Pedersen Lohne, G. Hagen, M. Hjorth-Jensen, S. Kvaal, and F. Pederiva, Phys.~Rev.~B {\bf 84}, 115302 (2011).
+\bibitem{kvaal2009} S.~Kvaal, Phys.~Rev.~B {\bf 80}, 045321 (2009).
+\bibitem{Tar96} S. Tarucha, D.G. Austing, T. Honda, R.J. van der Hage, and L.P. Kouwenhoven,
+Phys. Rev. Lett. {\bf 77}, 3613 (1996); Jpn. J. Appl. Phys. {\bf 36}, 3917 (1997);
+S.~Sasaki, D.~G.~Austing, and S.~Tarucha, Physica B {\bf 256}, 157 (1998).
+\bibitem{Note_DMC}Diffusion Monte Carlo  
+calculations for $N=6$ and $N=12$, with $\omega=0.28$,
+have been published in Ref.~\onlinecite{pederiva2001}. All the other 
+results have been computed for this paper.
+\bibitem{Kum90} A.~Kumar, S.~E.~Laux, and F.~Stern, Phys.~Rev.~B {\bf 42}, 5166 (1990).
+\bibitem{Fuj96} M.~Fujito, A.~Natori, and H.~Yasunaga, Phys.~Rev.~B {\bf 53}, 9952 (1996).
+\bibitem{Mul96} H.~M.~Muller and S.~Koonin, Phys.~Rev.~B {\bf 54}, 14532 (1996).
+\bibitem{Yan99} C.~Yannouleas and U.~Landman, Phys. Rev. Lett. {\bf 82}, 5325 (1999).
+\bibitem{Kos97} M. Koskinen, M. Manninen, and S.M. Reimann, Phys. Rev. Lett. {\bf 79}, 1389 (1997).
+\bibitem{Hir99} K. Hirose and N. S. Wingreen, Phys. Rev. B {\bf 59}, 4604 (1999).
+\bibitem{finns1} P.~Gori-Giorgi, M.~Seidl, and G.~Vignale, \prl {\bf 103}, 166402 (2009).
+\bibitem{finns2} E.~R\"as\"anen, S.~Pittalis, J.~G.~Vilhena, M.~A.~L.~Marques, Int.~J.~Quantum Chem.~{\bf 110}, 2308 (2010). 
+\bibitem{blanesmoan2005} M.~Blanes and P.~C.~Moan, Phys.~Letters A {\bf 265}, 35 (2005).
+\end{thebibliography}
+
+
+
+\end{document}

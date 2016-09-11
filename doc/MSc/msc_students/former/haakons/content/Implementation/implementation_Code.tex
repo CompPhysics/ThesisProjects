@@ -1,0 +1,119 @@
+\section{Code}
+	
+	The VMC solver in this thesis is written in C++. This language is chosen mainly because it is more efficient than high-level languages like Python. It is also especially suitable because of its flexibility as an object-oriented language. To handle matrices efficiently the solver uses the Armadillo library \cite{sanderson2010armadillo}, which provides easy methods for creating and filling matrices and vectors, and doing linear algebra. 
+
+	The main program of the simulator handles running of different tests on the chosen system. To find the optimal values for $\alpha$ and $\beta$ it performs  several simulations over a range of $\alpha$- and $\beta$-values, and iteratively zooms in on the part of the range with the best fit. This way it gains accuracy with each iteration. This can continue until a given accuracy is met, or for a given number of iterations.
+
+	To run tests for different oscillator frequencies the program simply interates over given numbers of electrons and runs simulations with different $\omega$- and $\alpha$-values. 
+
+	\subsubsection{The {\tt VMCSolver}-class}
+		At the heart of the simulator is the {\tt VMCSolver} class. During initialization it also initializes the {\tt SlaterDeterminant} class, the {\tt Derivatives} class and the classes containing the harmonic orbitals for two and three dimensions. The main function of the {\tt VMCSolver} class is of course to run the Monte Carlo cycles, where it follows the workflow outlined in Fig. \ref{fig:schematic}.
+
+		The solver starts by setting initial trial positions, and calculating the Slater matrices. 
+\begin{lstlisting}[language=C++, firstnumber=134]
+	void VMCSolver::runMonteCarloIntegrationIS() {|\Suppressnumber|
+	... |\Reactivatenumber{162}|
+	//initial trial positions
+	for(int i = 0; i < nParticles; i++) {
+	  for(int j = 0; j < nDimensions; j++) {
+	      rOld(i,j) = GaussianDeviate(&idum)*sqrt(stepLength);
+	  }
+	}
+	//Set up the Slater Matrices after the move
+	determinant()->updateSlaterMatrices(rOld,this);
+	rNew = rOld;|\Suppressnumber|
+	...|\Reactivatenumber{172}|
+\end{lstlisting}
+		Then it goes into the Monte Carlo cycles loop.
+\begin{lstlisting}[language=C++, firstnumber=175]
+	for(int cycle = 0; cycle < nCycles; cycle++) {
+		//Store the current value of the wave function
+     	waveFunctionOld = trialFunction()->waveFunction(rOld, this);
+     	derivatives()->numericalGradient(QForceOld,rOld, this);|\Suppressnumber|
+		...|\Reactivatenumber{200}|
+\end{lstlisting}
+		For each iteration we find a new position for the particles, using function for the quantum force.
+\begin{lstlisting}[language=C++, firstnumber=200]
+for(int i = 0; i < nParticles; i++) {
+	for(int j = 0; j < nDimensions; j++) {
+	    rNew(i,j) = rOld(i,j) + GaussianDeviate(&idum)*sqrt(stepLength)+QForceOld(i,j)*stepLength*D;
+	}|\Suppressnumber|
+	...|\Reactivatenumber{205}|
+\end{lstlisting}
+		To run the Metropolis-Hastings algorithm we first have to compute the ratio of Greens functions
+\begin{lstlisting}[language=C++, firstnumber=224]
+GreensFunction = 0.0;
+for (int j=0; j < nDimensions; j++) {
+    GreensFunction += 0.5*(QForceOld(i,j)+QForceNew(i,j))*
+      (D*stepLength*0.5*(QForceOld(i,j)-QForceNew(i,j))-rNew(i,j)+rOld(i,j));
+}
+GreensFunction = exp(GreensFunction);
+
+// The Metropolis test is performed by moving one particle at the time
+MHRatio = GreensFunction*(waveFunctionNew*waveFunctionNew) / (waveFunctionOld*waveFunctionOld);
+if(ran2(&idum) <= MHRatio) {
+    acc_moves += 1;
+    for(int j = 0; j < nDimensions; j++) {
+        rOld(i,j) = rNew(i,j);
+        QForceOld(i,j) = QForceNew(i,j);
+        waveFunctionOld = waveFunctionNew;
+       	}
+      }
+
+      else {
+			for(int j = 0; j < nDimensions; j++) {
+				rNew(i,j) = rOld(i,j);
+				QForceNew(i,j) = QForceOld(i,j);
+				determinant()->updateSlaterMatrices(rOld,this);
+   		}
+   	}|\Suppressnumber|
+		...|\Reactivatenumber{252}|
+\end{lstlisting}
+
+	After performing the Metropolis test on all the particles, the Monte Carlo cycle is complete. After completing all cycles the energy, variance, and average distances are gathered and written to an outputfile. 
+
+
+	\subsubsection{The {\tt SlaterDeterminant}-class}
+		The class for the Slater determinant has several
+                functions. One of its main functions is to update the
+                Slater Matrices based on the positions of the
+                electrons. This is done by simply calling a function
+                of the {\tt Orbitals} class for each element of the
+                matrix. The other main function is of course to
+                calculate the Slater determinant itself, which it does
+                using LU decomposition. The class also contains
+                functions to calculate the gradient and the laplacian
+                of the Slater determinant. To achieve this we  call the
+                functions {\tt get\_gradient} and {\tt get\_laplacian}
+                from the {\tt Orbitals} class.
+
+		Calculating the determinant is simplified by splitting
+                the Slater determinant by using LU decomposition, as
+                found in Ref. \cite{press2007numerical}. This gives us
+                two matrices, in the code below named {\tt detUp} and
+                {\tt detDown}, from which we can easily find the
+                determinant of the Slater matrix.
+\begin{lstlisting}[language=C++, firstnumber=167]
+double SlaterDeterminantHO::calculateDeterminant(const mat &r,double alpha, VMCSolver *solver){|\Suppressnumber|
+	...|\Reactivatenumber{195}|
+	ludcmp(detUp, Nhalf, indx, &d1);
+	ludcmp(detDown, Nhalf, indx, &d2);
+
+	// compute SD as c00*c11*..*cnn
+	SD = 1;
+	for (i = 0; i < Nhalf; ++i)
+	{
+	  SD *= detUp(i, i)*detDown(i, i);
+	}
+	return d1*d2*SD;
+}
+\end{lstlisting}
+	
+	\subsubsection{The {\tt Derivatives}-class}
+
+	In VMC, sampling and updating our matrices efficiently involves calculating a number of derivatives. This is evident in the Quantum Monte Carlo section. To comply with the tidy structure we wish the program to have, the derivatives are grouped in the class {\tt Derivatives}. However, for effiency, some of the derivatives of the orbitals are already calculated, and resides in the {\tt Orbitals}-class. For these, the {\tt Derivatives}-class merely calculates the derivatives based on the precalculated derived functions.
+
+	\subsubsection{The {\tt Orbitals}-classes}
+		There are two classes for the harmonic orbitals, one for two dimesions, and one for three dimensions. The functions of the two classes are similar, the only difference is the extra dimension accommodated in the three dimensional version of the class. The functions of the class is exclusively called by the Slater determinant class. The main contents of the class, that is the harmonic oscillator-functions and their derivatives, are generated by a Python script using SymPy. 
+
+

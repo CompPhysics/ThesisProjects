@@ -1,0 +1,81 @@
+\chapter*{Introduction}
+
+%VMC methods pose a very attractive alternative to other more complex ways of finding the ground state energies of simple atoms and molecules, like configuration-interaction calculations. The price to be paid in exchange for this simplicity is the sensitivity to the trial wave functions that are used, a VMC algorithm is very sensitive to how these are constructed, so they are one of the most important aspects to be considered (in this work, given the simple nature of the atoms which we will be working with, it's not so important to worry about the quality of the trial wave functions because very simple and basic ones are more than enough to reproduce the actual results). It shouldn't be forgotten that it is a variational method, and this implies that finding the optimal set of variational parameters is going to be the most important part of the calculation itself because it would create a lot of problems if the search range for the parameters was illy defined and not close enough to the variational minimum, namely, the results would have a poor quality in this case. This means that the parameters need to be chosen very carefully, or a recursive search with decreasingly coarse spacing in the space of variational parameters is required if there is no deep knowledge about the system in question.
+
+%Instead of evaluating a very complex multidimensional integral to compute the expectation value of an operator, like the hamiltonian in this case, a VMC calculation exploits the fact that the majority of the configuration space where the wave function belongs can be regarded as much less important than other parts, the values of the wave function are too small there and can be mostly ignored during the integration of the algorithm. To capitalize this, the Metropolis algorithm is added to the VMC method, as well as importance sampling and Gaussian Type Orbitals.
+
+%\todo{motivasjon (QD i 2D og 3D + atomer -> fleksibel kode)}
+%\subsubsection{Introducing the problem and the flexible solver}
+Quantum mechanical systems are complex. As such creating a specific
+program for each specific system is not a viable method of studying a
+range of systems. We need to generalize. A generalized solver for
+quantum mechanical systems must be written without any constraints to
+specific properties any system may have. To achieve such a feat the
+program is best implemented by the use of object orientation, creating
+an easily expandable solver to which simple or complex systems may be
+added. In this thesis the aim is to write a generalized variational
+Monte Carlo solver which, by using object orientation, may handle a
+wide range of quantum mechanical systems, such as confined electrons
+in so-called quantum dots, atoms, and molecules.
+
+%\subsubsection{Further introduction to the solver, the trial function, the slater determinant}
+The variational Monte Carlo method poses an attractive way to solve
+quantum mechanichal systems, compared to other more complex methods,
+while also taking correlation factors into account, as opposed to the
+Hartree-Fock method. The attractiveness of the variational Monte Carlo
+method lies in the way it solves the multi-dimensional integrals
+arising in the many-body quantum mechanical problem, which, as the
+name implies, is by using the Monte Carlo method. In this thesis a
+single so-called Slater determinant is used as an ansatz for the trial
+wave function. This simplicity makes it easy to implement an efficient
+and flexible program. It is however a compromise, yielding less
+accurate results, but nevertheless good enough to study a variety of
+systems.
+
+%\subsubsection{Introducing the QD problem in 2 and 3 dimensions, and atoms. Tie to use of flexible code}
+The solver presented in this thesis was initially made to solve simple
+atomic systems, as a reference, and thereby expanding to molecules. To further
+demonstrate the flexibility of the program, quantum dots are studied
+in two and three dimensions. The reason for choosing quantum dots to
+be studied is their simple structure, yet multitude of practical uses.
+
+
+%\todo{hva jeg har gjort}
+%\subsubsection{Introduce implementation of the code}
+
+
+%\subsubsection{Short description of various tests done with QD and atoms}
+The aim in this thesis is to demonstrate the flexibility of the
+program by studying the system like atomic helium, beryllium and neon,
+the helium and beryllium molecules, benchmarking ground state energies
+against existing references, and studying their one-body densities. Furthermore
+quantum dots consisting of up to 56 electrons will be studied in a
+similar manner, and their frequency will be varied.  With a lower
+frequency the quantum dots will implicity have a higher correlation,
+and studying correlations are of great importance when using more
+elaborate methods than for example the simple Hartree-Fock method.
+
+Ground states of atoms and molecules are compared to experimental
+results, which should be close to the exact results, offering a good
+test of the accuracy of the variational Monte Carlo method and the
+solver created. Because of the popularity of quantum dots several
+master students have studied them, each with different methods. This
+provides a wide range of references to which ground state energies may
+be compared, which should give further insight to the accuracy of the
+solver.
+
+%\todo{oppgavens struktur}
+%\subsubsection{Chapter by chapter}
+The thesis is structured in two parts: a theory part, and a results part. A brief description of the chapters is given below.
+\begin{itemize}
+	\item In the first chapter a brief introduction to scientific computing is given. In it different types of programming languages will be described, and we will give an introduction to object-oriented programming. This is important because object-oriented programming is used to create a generalized solver. A summary of message passing interface, used to parallelize the computations, is also given.  
+	\item The second chapter aims to give an overview of a more basic solution method, the Hartree-Fock method. It also describes other methods derived from the Hartree-Fock method, so-called post Hartree-Fock methods. The Hartree-Fock method can be used as a convenient test for a more simplified variational Monte Carlo program, and some of the post Hartree-Fock methods are used in computations of references when ground state energies computed by the solver is benchmarked.
+	\item Next the variational Monte Carlo method is explained with details around ways of optimization, like the Metropolis algorithm and importance sampling. Details about how to calculate the Slater determinant efficiently and other measures to further optimize the solver are also given. Then the process of blocking to get an accurate estimate of the error is explained.
+	\item In the fourth chapter the modelled systems are described. How quantum dots are modelled in two and three dimensions is described, then a brief descrition of how each of the atomic systems are modelled is given. A way to replace the Slater type orbitals with gaussian type orbitals is also described.
+	\item In the final chapter of the first part we look at how the solver is structured, and how the variational Monte Carlo method is implemented using object-orientation.
+	\item With the theory in place we look at the results from calculations with the variational Monte Carlo solver created. The program is benchmarked to test the optimizations and also to see how well it scales with an increasing number of processors used. The systems are benchmarked against reference ground state energies, and one-body densities are calculated, which can give insight into the structure of the systems. 
+	\item Finally a conclusion is given with final remarks.
+\end{itemize}
+
+
+%`God does not play dice' Einstein said \todo{ref}, refuting the theory that quantum mechanical systems are governed by probability. However, as it turns out, we may, to solve them.

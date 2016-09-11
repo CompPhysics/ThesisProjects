@@ -1,0 +1,249 @@
+\section{Atoms and Molecules}
+	Atomic systems consist of a positively charged nucleus and a number of negatively charged electrons surrounding it. We know that the mass of the nucleus is many orders of magnitude larger than the mass of the electron. Therefore we can do the approximation that the position of the nucleus is independent on the electrons, and we keep the position of the nucleus fixed. This is called the Born-Oppenheimer Approximation \cite{born1927}.
+
+	%General atoms stuff that applies to all the different atoms
+	The dimensionless Hamiltonian for the case of electrons around a nucleus is given by 
+
+	\begin{align}
+		\hat{H} &= \sum_{i = 1}^N - \frac{\nabla^2_i}{2} - \frac{Z}{r_i} + \sum_{i < j}\frac{1}{r_{ij}}, \label{eq:hamiltonian}
+	\end{align}
+
+	where \(r_i\) is the distance from electron \(i\) to the nucleus, \(Z\) is the nucleus charge, and \(r_{ij} = |\vb{r}_i - \vb{r}_j|\).
+	The kinetic energy for electron \(i\) is represented by \( - \nabla^2_i/2 \), \(- Z/r_i\), the potential energy with respect to the nucleus, and \( 1/r_{ij} \), the repulsive energy between the electrons \(i\) and \( j\).
+
+	In the VMC calculation the local energy, \(E_L\) is a useful quantity and needs to be finite at all points to be normalizable. So by looking at the limits where the local energy diverges we can guess the form the wavefunctions should follow,
+
+	\begin{align}
+		E_L(r_i,r_{ij}) &= \frac{1}{\Psi_T} \hat{H} \Psi_T.
+	\end{align}
+
+	In the cases where \(r_i \rightarrow 0\) or \( r_{ij} \rightarrow 0\) we need to make sure that the local energy does not diverge
+
+
+		\begin{align}
+			\lim_{r_i\rightarrow 0} {E_L(r_i,r_{ij}) } &= \frac{1}{R_i(r_i)} \left( - \frac{1}{2}\pdv[2]{}{x_k} - \frac{Z}{r_i} \right) R_i(r_i) + G(r_i, r_{ij})
+			\\
+			\lim_{r_i\rightarrow 0} {E_L(r_i,r_{ij}) } &= \frac{1}{R_i(r_i)} \left( - \frac{1}{2}\pdv[2]{}{r_k} - \frac{1}{r_i}\pdv{}{r_i}	 -	 \frac{Z}{r_i} \right) R_i(r_i) + G(r_i, r_{ij})
+			\intertext{Given that a well behaved wavefunction \( \partial^2/(\partial r_{k}^2) \) is finite we obtain}
+			\lim_{r_i\rightarrow 0} {E_L(r_i,r_{ij}) } &= 
+			\frac{1}{R_i(r_i)} \left( - \frac{1}{r_i}\pdv{}{r_i}	 -	 \frac{Z}{r_i} \right) R_i(r_i).
+		\end{align}
+
+		This is finite given when the following differential equation is fulfilled
+		\begin{align}
+			\frac{1}{R_i(r_i)} \pdv{}{r_i} R_i(r_i)	=  -Z  \qquad{ \text{ with solution }}  \qquad R_i(r_i) = A e^{-Z}.
+		\end{align}
+
+		A similar calculation applies for \(r_{12} \rightarrow 0\) and a trialfunction of the form   \[\Psi_T(r_i,r_j,r_{ij}) = e^{ -\alpha \sum_{N}  r_i} \prod^N_{i < j}e^{\beta r_{ij}} = e^{ -\alpha \sum_{N}  r_i} \prod^N_{i < j}e^{\frac{a r_{ij}}{1 + \beta r_{ij}}} \] should fulfill the condition that the local energy is finite.
+	
+	\subsection{Hydrogenic wavefunctions} \label{sec:hydrogenic_wavefunctions}
+		A hydrogen atom is analytically solvable and we have exact wavefunctions corresponding to the electron being in the different shells. When we are building atoms containing more electrons, thus turning it into a many-body problem, we base our guess at the trialfunction on the solutions to the hydrogen atom. We need the wavefunctions for the five lowest states to calculate up to the neon atom, which consists of $10$ electrons. The hydrogenic wavefunctions along with their gradients and laplacians is contained in Tab. \ref{tab:hydrogenicWavefunctions}. The radial distribution of the first three hydrogen orbitals, which our trialfunctions is based on, is depicted in Fig. \ref{fig:orbitals_radial}.
+
+
+		\begin{table}
+			\begin{center}
+				\resizebox{\linewidth}{!}{%
+				\begin{tabular}{| c | c | c | c |}
+				\bottomrule
+				& \( \psi_i\)	& \( \nabla\psi_i \) & \( \nabla^2\psi_i \)
+				\\ \hline
+					\(\psi_{1S}\)
+					&
+					\( e^{- \alpha ri} \)
+					&
+					\( - \frac{\alpha}{r_{i}} \vb{r_i}e^{- \alpha r_{i}} \)
+					&
+					\(\frac{\alpha}{r_{i}} \left(\alpha r_{i} - 2\right) e^{- \alpha r_{i}} \)
+				\\	\hline
+					\(\psi_{2S}\)
+					&
+					\( \left(- \frac{\alpha r_{i}}{2} + 1\right) e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( \frac{\alpha }{4 r_{i}} \left(\alpha r_{i} - 4\right) \vb{r_i} e^{- \frac{\alpha r_{i}}{2}}\)
+					&
+					\( - \frac{\alpha }{8 r_{i}} \left(\alpha^{2} r_{i}^{2} - 10 \alpha r_{i} + 16\right) e^{- \frac{\alpha r_{i}}{2}} \)
+				\\	\hline
+					\(\psi_{2Px}\)
+					&
+					\( \alpha x_{i} e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( - \frac{\alpha x_i}{2 r_{i}} \left(\alpha \vb{r_i} - 2 r_{i}\vu{i}\right) e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( \frac{\alpha^{2} x_{i}}{4 r_{i}} \left(\alpha r_{i} - 8\right) e^{- \frac{\alpha r_{i}}{2}} \)
+				\\	\hline
+					\(\psi_{2Py}\)
+					&
+					\( \alpha x_{i} e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( - \frac{\alpha y_i}{2 r_{i}} \left(\alpha \vb{r_i} - 2 r_{i}\vu{i}\right) e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( \frac{\alpha^{2} x_{i}}{4 r_{i}} \left(\alpha r_{i} - 8\right) e^{- \frac{\alpha r_{i}}{2}} \)
+				\\	\hline
+					\(\psi_{2Pz}\)
+					&
+					\( \alpha x_{i} e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( - \frac{\alpha z_i}{2 r_{i}} \left(\alpha \vb{r_i} - 2 r_{i}\vu{i}\right) e^{- \frac{\alpha r_{i}}{2}} \)
+					&
+					\( \frac{\alpha^{2} x_{i}}{4 r_{i}} \left(\alpha r_{i} - 8\right) e^{- \frac{\alpha r_{i}}{2}} \)
+				\\ \toprule
+				\end{tabular}}
+				\caption{The different hydrogenic wavefunctions along with the gradients and laplacians. The derivatives is computed by a python script, using SciPy.}
+				\label{tab:hydrogenicWavefunctions}
+			\end{center}
+		\end{table}
+
+		\begin{figure}
+		\centering \includegraphics[width=0.8\linewidth]{Misc/gen_figs/theory/radial_dist}
+
+		\caption{The radial probability distribution of the first three orbitals of a hydrogen atom. The radial distribution functions is taken from \cite{Introduction_Quantum_Pauling}.}
+		\label{fig:orbitals_radial}
+		\end{figure}
+
+	\subsection{The helium atom}
+		Let us start with the simplest atom we can use in many-body calculations, the helium atom. The Hamiltonian for the helium atom is given by Eq. (\ref{eq:hamiltonian}) and a trialfunction that fulfills the cusp conditions discussed earlier is
+
+		\begin{align}
+			\Psi_{T2}(\vb{r}_1, \vb{r}_2, \vb{r}_{12}) &=  e^{ -\alpha(r_1 + r_2)} e^{\frac{ r_{12}}{2(1 + \beta r_{12})}}.
+		\end{align}
+
+		We have also done calculations for a simplified version of the trialfunction by removing the electron-electron interaction from the trialfunction, so we end up with the trialfunction
+
+		\begin{align}
+			\Psi_{T1}(\vb{r}_1, \vb{r}_2) &=  e^{ -\alpha(r_1 + r_2)}.
+		\end{align}
+
+		The local energies for these two trialfunctions have been calculated, and they are for \(\Psi_{T1} \) and \(\Psi_{T2}\),
+
+		\begin{eqnarray*}
+			E_{L1} & = & (\alpha - Z)\left( \frac{1}{r_2} + \frac{1}{r_2} \right) + \frac{1}{r_{12}} - \alpha ^2
+			\\
+			E_{L2} & = & E_{L1} + \frac{1}{2\left(1+\beta r_{12}\right)} \left[ \frac{\alpha(r_1 + r_2)}{r_{12}}\left( 1 - \frac{\vb{r_1}\vb{r_2}}{r_1 r_2} \right)\right.\\
+			  & & \hspace{110pt}\left.-  \frac{1}{2\left(1+\beta r_{12}\right)} - \frac{2}{r_{12}} +  \frac{2\beta}{\left(1+\beta r_{12}\right)} \right].
+		\end{eqnarray*}
+		See appendix \ref{sec:helium_noncorrelating} for a derivation of the local energies.
+
+
+	\subsection{Beryllium atom}
+
+		It is fairly simple to extend the machinery of variational
+		Monte Carlo to other systems than the Helium atom. To show this flexibility the beryllium atom will be studied. As beryllium has
+		four electrons compared to the two in helium, we need to construct a
+		Slater determinant from the hydrogenic wavefunctions. Sticking to hydrogen-like wave functions,
+		we can write the trial wave function for beryllium as
+		\begin{equation}
+			\psi_{T}({\bf r_{1}},{\bf r_{2}},{\bf r_{3}},{\bf r_{4}})=Det\left(\phi_{1}({\bf r_{1}}),\phi_{2}({\bf r_{2}}),\phi_{3}({\bf r_{3}}),\phi_{4}({\bf r_{4}})\right)\prod_{i<j}^{4}\exp{\left(\frac{a r_{ij}}{(1+\beta r_{ij})}\right)},
+			\label{eq:BerylliumTrialFunction}
+		\end{equation}
+		where $Det$ is a Slater determinant and the single-particle wave
+		functions are the hydrogen wave functions for the 1s and 2s orbitals.
+		With the variational ansatz these are for 1s
+		\begin{align}
+			\phi_{1s}({\bf r_{i}})=e^{-\alpha r_{i}},
+		\end{align}
+		and for 2s
+		\begin{align}
+			\phi_{2s}({\bf r_{i}})=\left(1-\alpha r_{i}/2\right)e^{-\alpha r_{i}/2}.
+		\end{align}
+		The Slater determinant is calculated using these ansatzes, and can for Beryllium be written out as
+
+		\begin{align}
+			|D| &\propto 
+			\left[ \psi_{1s}(\vb{r_1})\psi_{2s}(\vb{r_2}) -   \psi_{1s}(\vb{r_2})\psi_{2s}(\vb{r_1})  \right]
+			\left[ \psi_{1s}(\vb{r_3})\psi_{2s}(\vb{r_4}) -   \psi_{1s}(\vb{r_4})\psi_{2s}(\vb{r_3})  
+			\right].
+		\end{align}
+
+		Furthermore, for the Jastrow factor,
+		\begin{align}
+			\Psi_{C}=\prod_{i<j}g(r_{ij})=\exp{\sum_{i<j}\frac{ar_{ij}}{1+\beta r_{ij}}},
+		\end{align}
+		we need to take into account the spins of the electrons. We fix electrons
+		1 and 2 to have spin up, and electron 3 and 4 to have spin down. This
+		means that when the electrons have equal spins we get a factor
+		\begin{align}
+			a=\frac{1}{4},
+		\end{align}
+		and if they have opposite spins we get a factor
+		\begin{align}
+			a=\frac{1}{2}.
+		\end{align}
+
+	\subsection{Neon atom}
+
+		Wishing to extend the variational Monte Carlo machinery further neon is implemented. Neon has ten electrons, so it is a big jump from Helium and Beryllium. Now we need better methods to handle the Slater determinant, which are described in section \ref{sec:slaterdeterminant}. The trial wave function for Neon can be written as
+		\begin{equation}
+		   \psi_{T}({\bf r_1},{\bf r_2}, \dots,{\bf r_{10}}) =
+		   Det\left(\phi_{1}({\bf r_1}),\phi_{2}({\bf r_2}),
+		   \dots,\phi_{10}({\bf r_{10}})\right)
+		   \prod_{i<j}^{10}\exp{\left(\frac{r_{ij}}{2(1+\beta r_{ij})}\right)},
+		   \label{eq:NeonTrialFunction}
+		\end{equation}
+		Now we need to include the $2p$ wave function as well. It is given as
+		\begin{equation}
+			\phi_{2p}({\bf r_i}) = \alpha {\bf r_i}e^{-\alpha r_i/2},
+		\end{equation}
+		where $ {r_i} = \sqrt{r_{i_x}^2+r_{i_y}^2+r_{i_z}^2}$.
+
+
+
+	\subsection{Hydrogen molecule}
+		\label{sec:H2}
+		Because of its flexibility the VMC machinery can also
+                handle molecules, with some modifications to the
+                trialfunction considering that we now have two
+                nuclei. We need a slightly different Hamiltonian,
+                where we we need include a few more terms in the
+                potential energy of the system. If we let \(\vb{R}\)
+                be the vector between the nuclei we can write the
+                positions, \(\vb{r_{ipk}}\), of electron \(i\) in
+                relation to nucleus \(k\)
+
+		\begin{align}
+			\vb{r_{ip1}} = \vb{r_i} + \frac{\vb{R}}{2}
+			\\
+			\vb{r_{ip2}} = \vb{r_i} - \frac{\vb{R}}{2}.
+		\end{align}
+
+		Then we add all the terms for the potential energy with the kinetic energy and get the Hamiltonian
+
+		\begin{align}
+			\hat{H} &= \sum_{i = 1}^2 - \frac{\nabla^2_i}{2} - \frac{Z_1}{r_{ip1}} - \frac{Z_2}{r_{ip2}} + \sum_{i < j}\frac{1}{r_{ij}} + \frac{Z_1Z_2}{|\vb{R|}}. \label{eq:hamiltonianMolecule}
+		\end{align}
+
+		Here \(Z_1\) and \(Z_2\) are given by the charge of their respective nuclei. Assuming that the trial-function for the hydrogen molecule is similar to two hydrogen atoms we can base our guess of the trial-function on a linear combination of the two hydrogenic 1s wave functions around each nuclei. Disregarding factors, since they disappear in the VMC computation and assuming symmetry about the nuclei, we end up with
+
+		\begin{align}
+			\Psi_T(\vb{r_1}, \vb{r_2} , \vb{R} ) &= \psi(\vb{r_1} , \vb{R})\psi(\vb{r_2} , \vb{R}) \exp{ \frac{r_{12}}{2(1+\beta r_{12})} }, \label{eq:H2Trialfunction}
+			\intertext{where the hydrogenic wavefunctions is given by}
+			\psi(\vb{r_i},\vb{R}) &= \left[ \exp{-\alpha r_{ip1}} \pm \exp{-\alpha r_{ip2}} \right]. 
+		\end{align}
+
+		Here we should add together the 1s wave functions, as subtracting corresponds to the electrons having the same spin. In a Hydrogen molecule the electrons will have different spin if possible.
+
+	\subsection{Beryllium Molecule}
+		The Beryllium molecule consists of four electrons
+                shared between two nuclei with a charge of \(Z = 4\).
+                we will use the same method to calculate it as in the
+                Hydrogen molecule as it also shares the same
+                Hamiltonian. As in the description of the Beryllium
+                atom we will need to construct the trial-function out
+                of a Slater Determinant consisting of linear
+                combinations of the hydrogenic wave functions
+                \(\psi_{1s}\) and \(\psi_{2s}\), and a correlation
+                term, yielding
+
+
+		\begin{align}
+		\Psi_T(\vb{r_i}, \vb{R}) &= |D| \prod_{i<j}^{4}\exp{\left(\frac{a r_{ij}}{(1+\beta r_{ij})}\right)}, \\
+		\end{align}
+		where the Slater determinant is constructed by the following wave functions
+		\begin{align}
+		\psi_{1S1}(\vb{r_i}) &=  \left[ \exp{-\alpha r_{ip1}} + \exp{-\alpha r_{ip2}} \right] \\
+		\psi_{1S2}(\vb{r_i}) &=  \left[ \exp{-\alpha r_{ip1}} - \exp{-\alpha r_{ip2}} \right] \\
+		\psi_{2S1}(\vb{r_i}) &=	\left[\left(1-\alpha r_{i1p}/2\right)e^{-\alpha r_{i1p}/2} + \left(1-\alpha r_{i2p}/2\right)e^{-\alpha r_{i2p}/2}  \right] \\
+		\psi_{2S2}(\vb{r_i}) &=	\left[\left(1-\alpha r_{i1p}/2\right)e^{-\alpha r_{i1p}/2} - \left(1-\alpha r_{i2p}/2\right)e^{-\alpha r_{i2p}/2}  \right].
+		\end{align}
+
+		Here we need to use both subtraction and addition in the construction of the wave functions as each Beryllium will have two electrons in each shell so there will need to be two of the same spins in each of the shells.
+	

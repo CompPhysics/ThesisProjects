@@ -1,0 +1,84 @@
+\section{Importance sampling}
+		\label{sec:importance_sampling}
+		In many cases using the Monte Carlo method, we encounter the scenario that we want to compute the expected value of a function $f(\mathbf{X})$, but $f(x)$ yields very small values outside a region $A$, for which the probability to have $\mathbf{X}\in A$ is small. In such a scenario the set $A$ may have a small volume, or may be poorly covered by the distribution $\mathbf{X}$. Therefore a sample from a basic Monte Carlo method from the distribution $\mathbf{X}$ could fail to have even one point inside the region $A$. 
+
+		Clearly we need a better way to get Monte Carlo samples, that is by sampling the important region. To achieve this we sample from a weighted distribution, which prioritizes the important region. This is called importance sampling.  
+		
+		To implement importance sampling we replace the brute force Metropolis algorithm with a walk in coordinate space biased by the trial wave function, an approach based on the Fokker-Planck equation \cite{fokker1914} \cite{planck1917} and the Langevin equation \cite{langevin1908} for generating a trajectory in coordinate space. The Fokker-Planck equation, named after Adriaan Fokker and Max Planck, is often used as a model for more general Markov processes. 
+		%\todo{references}
+
+		\subsection{Importance sampling}
+
+			By using the Fokker-Planck equation and the Langevin equation we can derive and implement importance sampling in our Metropolis algorithm.
+
+			For one particle or walker, a diffusion process characterized by a
+			time-dependent probability density $P\left(x,t\right)$ in one dimension,
+			we have the Fokker-Planck equation
+			\begin{align}
+				\frac{\partial P}{\partial t}=D\frac{\partial}{\partial x}\left(\frac{\partial}{\partial x}-F\right)P\left(x,t\right),
+			\end{align}
+			where $F$ is a drift term and $D$ is the diffusion coefficient.
+
+			The new positions in coordinate space are found using the Langevin
+			equation with Euler's method. We go from the Langevin equation
+			\begin{align}
+				\frac{\partial x(t)}{\partial t}=DF(x(t))+\eta,
+			\end{align}
+			where $\eta$ is a random variable. This gives us a new position
+			\begin{align}
+				y=x+DF(x)\Delta t+\xi\sqrt{\Delta t}.
+			\end{align}
+			Here $\xi$ is a Gaussian random variable and $\Delta t$ is a chosen
+			time step. $D$ comes from the factor $1/2$ in the kinetic energy
+			operator, and is therefore equal to $1/2$ in atomic units.
+
+			The process of isotropic diffusion characterized by a time-dependent
+			probability density $P\left(\mathbf{x},t\right)$ will, as an approximation,
+			obey the Fokker-Planck equation
+			\begin{align}
+				\frac{\partial P}{\partial t}=\sum_{i}D\frac{\partial}{\partial\mathbf{x_{i}}}\left(\frac{\partial}{\partial\mathbf{x_{i}}}-\mathbf{F_{i}}\right)P(\mathbf{x},t),
+			\end{align}
+			where $\mathbf{F}_{i}$ is component number $i$ of the drift term
+			caused by an external potential, and $D$ is the diffusion coefficient.
+			We set the left hand side equal to zero and obtain the convergence
+			to a stationary probability density
+			\begin{align}
+				\frac{\partial^{2}P}{\partial{\mathbf{x_{i}}^{2}}}=P\frac{\partial}{\partial{\mathbf{x_{i}}}}\mathbf{F_{i}}+\mathbf{F_{i}}\frac{\partial}{\partial{\mathbf{x_{i}}}}P.
+			\end{align}
+
+
+			Inserting the drift vector, $\mathbf{F}=g(\mathbf{x})\frac{\partial P}{\partial\mathbf{x}}$,
+			we get
+			\begin{align}
+				\frac{\partial^{2}P}{\partial{\mathbf{x_{i}}^{2}}}=P\frac{\partial g}{\partial P}\left(\frac{\partial P}{\partial{\mathbf{x}_{i}}}\right)^{2}+Pg\frac{\partial^{2}P}{\partial{\mathbf{x}_{i}^{2}}}+g\left(\frac{\partial P}{\partial{\mathbf{x}_{i}}}\right)^{2}.
+			\end{align}
+			To meet the condition of stationary density the left hand side has
+			to be zero. This means that the terms containing first and second
+			order derivatives has to cancel each other, which is only possible
+			if $g=1/P$. This yields
+			\begin{align}
+				\mathbf{F}=2\frac{1}{\Psi_{T}}\nabla\Psi_{T},
+			\end{align}
+			known as the quantum force. This so-called force pushes the walker
+			towards regions of configuration space where the trial wave function
+			is large, thus increasing the efficiency of the simulation. This is
+			a great improvement on the Metropolis algorithm where the walker otherwise would have
+			the same probability to move in every direction.
+
+			From the Fokker-Planck equation we get a transition probability given
+			by Green's function
+			\begin{align}
+				G(y,x,\Delta t)=\frac{1}{(4\pi D\Delta t)^{3N/2}}\exp\left(-\frac{(y-x-D\Delta tF(x))^{2}}{4D\Delta t}\right).
+			\end{align}
+			This means that we now have the Metropolis algorithm
+			\begin{align}
+				A(y,x)=\mathrm{min}(1,q(y,x))),
+			\end{align}
+			where
+			\begin{align}
+				q(y,x)=\frac{|\Psi_{T}(y)|^{2}}{|\Psi_{T}(x)|^{2}},
+			\end{align}
+			is replaced by the Metropolis-Hastings algorithm,
+			\begin{align}
+				q(y,x)=\frac{G(x,y,\Delta t)|\Psi_{T}(y)|^{2}}{G(y,x,\Delta t)|\Psi_{T}(x)|^{2}}.
+			\end{align}

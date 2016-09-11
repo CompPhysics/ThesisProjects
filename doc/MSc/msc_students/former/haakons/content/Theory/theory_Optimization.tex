@@ -1,0 +1,316 @@
+\section{Optimization}
+	Because the computational cost of the Variational Monte Carlo method scales up quickly with increasing number of particles it is important to make the computations as optimized as possible, to reduce the time needed for the computations and therefore be able to produce more accurate results. 
+
+	There are three ways we improve the efficiency of the VMC method. The first two are  importance sampling and multithreaded computations, as has already been discussed. The third way is improving efficiency when computing ratios and local energy. This will reduce the computing cost of the Slater determinants and remove the need for slow numerical derivations.
+
+	In this section ways to improve efficiency when calculating the ratios and local energy will be presented.
+
+	%Since the raw computational cost of the VMC computation scales up very fast with the increase of particles considered we have implemented several different methods to achieve a faster speed allowing us to compute longer and with more precision. The optimization is done along three paths importance sampling, multithreaded computation and improvements to computing the ratios and local energy. Importance sampling improves the convergence speed of the algorithm, multithreaded computation allows several processors to compute at the same time and the algorithmic improvements to reduce computing saving time in computing the Slater determinants and removing the need for slow numerical derivations. \todo{should be rewritten}
+
+	%\todo{Trenger bedre flyt}
+
+	
+	\subsection{Metropolis-Hastings-Ratio}
+		In the Metropolis-Hasting algorithm a ratio of the new probability and the old probability is calculated to evaluate if a suggested move is accepted or rejected, given by
+
+		\begin{align}
+			\frac{P(\vb{r_{new}})}{P(\vb{r_{old})}} &\ge r .
+		\end{align} 
+
+		For our probability function it can be written as
+
+		\begin{align}
+			\frac{|D_\uparrow^{new}|}{|D_\uparrow^{old}|} \frac{|D_\downarrow^{new}|}{|D_\downarrow^{old}|} \frac{\Psi_C^{new}}{  \Psi_C^{old}} &\ge r.
+		\end{align} 
+
+	\subsection{Slater-Determinant-Ratio}
+		\label{sec:slater_ratio}
+		The Slater-Determinants ratios are slow to calculate by brute force, for example by LU-decomposition (see section \ref{sec:slaterdeterminant}), but recalculating it after each move can be done in a computationally easier way. 
+
+		To tackle the determinant ratios we need to introduce some notation. Let an element in the determinant matrix, \(|D|\), be described by
+
+		\begin{align}
+			D_{ij} = \phi_j(\vb{r}_i),
+		\end{align}
+
+		where \(\phi_j\) is the $j$'th single particle wavefunction and \( \vb{r}_i \) is the position of the $i$'th particle.
+
+		The inverse of the Slater matrix is given by its adjugate by
+		\[
+		\mathbf{D}^{-1}=\frac{1}{\left|\mathbf{D}\right|}\mbox{adj}\mathbf{D}.
+		\]
+		The adjugate of a matrix is the cofactor matrix C, $\mbox{adj}\mathbf{D}=\mathbf{C}^T$, and 
+		\begin{eqnarray*}
+			\mathbf{D}^{-1} & = & \frac{\mathbf{C}^{T}}{\left|\mathbf{D}\right|}\\
+			\mathbf{D}_{ji}^{-1} & = & \frac{\mathbf{C}_{ij}}{\left|\mathbf{D}\right|}.
+		\end{eqnarray*}
+		We can express the determinant as a cofactor expansion around row $i$, using Cramer's rule
+		\begin{align} \label{eq:inverseMatrix}
+		\left|\mathbf{D}\right|=\sum_{j}\mathbf{D}_{ij}\mathbf{C}_{ij}.
+		\end{align}
+		
+		This gives the ratio of the new and old Slater determinants the following
+
+		\begin{align}
+			R_{SD} &= \frac{|\vb{D}^{new}|}{|\vb{D}^{old}|} = \frac{\sum_{j=0}^N D_{ij}^{new} C_{ij}^{new} }{\sum_{j=0}^N D_{ij}^{old} C_{ij}^{old} }.
+		\end{align}
+
+		Since we are only moving one particle at a time and the cofactor term relies on the other rows it doesn't change, \(C^{new}_{ij} = C^{old}_{ij}\) in one movement. Combining this with Eq. \eqref{eq:inverseMatrix} we get
+
+		\begin{align}
+			R_{SD} &=  \frac{\sum_{j=0}^N D_{ij}^{new} (D_{ji}^{old})^{-1} |D^{old}| }{\sum_{j=0}^N D_{ij}^{old} (D_{ji}^{old})^{-1} |D^{old}| }.
+		\end{align}
+
+		Since \(\vb{D}\) is invertible, \(\vb{D}\vb{D}^{-1} = \vb{1}\), the ratio becomes
+
+		\begin{eqnarray*}
+			R_{SD} & = & \sum_{j = 0}^{N}D_{ij}^{new}(D_{ji}^{old})^{-1}\\
+			       & = &\sum_{j = 0}^{N} \phi_j(\vb{x}^{new}_i) D_{ji}^{-1}(\vb{x}^{old}).
+		\end{eqnarray*}
+
+	\subsection{Correlation-to-correlation ratio}
+
+		We have $N\left(N-1\right)/2$ relative distances $r_{ij}$. We can
+		write these in a matrix storage format, where they form a strictly
+		upper triangular matrix
+		\[
+		\mathbf{r}\equiv\left(\begin{array}{ccccc}
+		0 & r_{1,2} & r_{1,3} & \dots & r_{1,N}\\
+		\vdots & 0 & r_{2,3} & \dots & r_{2,N}\\
+		\vdots & \vdots & 0 & \ddots & \vdots\\
+		\vdots & \vdots & \vdots & \ddots & r_{N-1,N}\\
+		0 & 0 & 0 & \dots & 0
+		\end{array}\right).
+		\]
+		This upper triangular matrix form also applies to $g=g\left(r_{ij}\right)$.
+
+		The correlation-to-correlation ratio, or ratio between Jastrow factors,
+		is given by
+
+		%\todo{introduser $\Psi_C$ tidligere}
+		\begin{align}
+			R_{C}=\frac{\Psi_{C}^{new}}{\Psi_{C}^{cur}}=\prod_{i=1}^{k-1}\frac{g_{ik}^{new}}{g_{ik}^{cur}}\prod_{i=k+1}^{N}\frac{g_{ki}^{new}}{g_{ki}^{cur}},
+		\end{align}
+
+		or in the Padé-Jastrow form
+
+		\begin{align}
+			R_{C}=\frac{\Psi_{C}^{\mathrm{new}}}{\Psi_{C}^{\mathrm{cur}}}=\frac{\exp\left(U_{new}\right)}{\exp\left(U_{cur}\right)}=\exp\left(\Delta U\right),
+		\end{align}
+
+		where
+
+		\begin{align}
+			\Delta U =
+			\sum_{i=1}^{k-1}\big(f_{ik}^\mathrm{new}-f_{ik}^\mathrm{cur}\big)
+			+
+			\sum_{i=k+1}^{N}\big(f_{ki}^\mathrm{new}-f_{ki}^\mathrm{cur}\big).
+		\end{align}
+
+		This efficient calculation of the correlation-to-correlation ratio is part of the calculation of the energy of the system. In the VMC solver program developed it is situated in the {\tt Derivatives} class, see section \ref{sec:Structure} and Fig. \ref{fig:classes}.
+
+
+	\subsection{Efficient calculation of derivatives}
+		Calculating the derivatives involved in the VMC calculation numerically is slow in that they entail several calls to the wave functions in addition to introducing an extra numerical error. Here we will show how to divide up the derivatives and how to find analytical expressions for all the parts using the derivatives.
+
+		The trial-function can be factorized as
+		\begin{align}
+			\Psi_T(\vb{x}) &= \Psi_{D} \Psi_C= |D_\uparrow| |D_\downarrow| \Psi_C \label{eq:factorization},
+		\end{align}
+
+		where \(D_\uparrow\), \(D_\downarrow\) and \(\Psi_C\) is the spin up and down part of the Slater determinant and the Jastrow factor respectively.
+
+		\subsubsection{Gradient-Ratio}
+			For the quantum force, and in the final expression for the local energy, we need to calculate the gradient ratio of the trial-function which is given by
+
+			\begin{align}
+				\frac{\nabla \Psi_T}{ \Psi_T } &= \frac{\nabla( \Psi_D\Psi_C  )}{ \Psi_D\Psi_C } = \frac{ \nabla \Psi_D }{\Psi_D } + \frac{\nabla \Psi_C}{\Psi_C}
+				\\
+				&= \frac{\nabla |D_\uparrow|}{|D_\uparrow|} + \frac{ \nabla |D_\downarrow|}{|D_\downarrow|} + \frac{\nabla \Psi_C}{\Psi_C}.
+			\end{align}	
+
+		\subsubsection{Laplacian-Ratio}
+			From the Hamiltonians and the expression for the local energy the local kinetic energy of electron \(i\) is given by the following
+
+			\begin{align}
+				K_i &= - \frac{1}{2} \frac{\nabla^2_i \Psi}{\Psi}.
+			\end{align}
+
+			Using the factorization of the trial-function from Eq. \eqref{eq:factorization} we can calculate the ratio needed for the kinetic energy,
+			\begin{align}
+				\frac{1}{\Psi_T}\pdv[2]{\Psi_T}{x_k} &= \frac{1}{\Psi_D\Psi_C} \pdv[2]{(\Psi_D\Psi_C)}{x_k} = \frac{1}{\Psi_D\Psi_C} \pdv{}{x_k} \left( \pdv{\Psi_D}{x_k} \Psi_C +\Psi_D \pdv{\Psi_C}{x_k} \right)
+				\\
+				&= \frac{ 1 }{\Psi_D\Psi_C} \left( \pdv[2]{\Psi_D}{x_k} \Psi_C   + 2 \pdv{ \Psi_D }{x_k}\pdv{ \Psi_C }{x_k} + \Psi_D\pdv[2]{\Psi_C}{x_k} \right)
+				\\
+				&= \frac{1}{\Psi_D}\pdv[2]{\Psi_D}{x_k}  + 2 \frac{1}{\Psi_D} \pdv{ \Psi_D }{x_k} \cdot \frac{1}{\Psi_C}\pdv{ \Psi_C }{x_k} +  \frac{1}{\Psi_C}\pdv[2]{\Psi_C}{x_k}. \label{eq:laplacianIntermediate}
+			\end{align}
+
+			Since the Slater determinant part of the trial-function is separable into a spin up and spin down part, we can simplify it further
+
+			\begin{align}
+				\frac{1}{\Psi_D}\pdv[2]{\Psi_D}{x_k} &= \frac{1}{|D_\uparrow| |D_\downarrow|} \pdv[2]{ |D_\uparrow| |D_\downarrow| }{x_k}
+				= \frac{1}{|D_\uparrow|} \pdv[2]{|D_\uparrow|}{x_k} + \frac{1}{|D_\downarrow|} \pdv[2]{|D_\downarrow|}{x_k} \label{eq:lapplacianSlaterRatio}
+				\\
+				\frac{1}{\Psi_D} \pdv{ \Psi_D }{x_k}  &=  \frac{1}{|D_\uparrow| |D_\downarrow|} \pdv{ |D_\uparrow| |D_\downarrow| }{x_k}
+				= \frac{1}{|D_\uparrow|} \pdv{|D_\uparrow|}{x_k} + \frac{1}{|D_\downarrow|} \pdv{|D_\downarrow|}{x_k}. \label{eq:gradianSlaterRatio}
+			\end{align}
+
+			Inserting Eqs. \eqref{eq:gradianSlaterRatio} and \eqref{eq:lapplacianSlaterRatio} into Eq. \eqref{eq:laplacianIntermediate} we get
+
+			\begin{align}
+				\frac{\nabla^2 \Psi_T}{\Psi_T} &= \frac{\nabla^2 |D_\uparrow|}{|D_\uparrow|} + \frac{\nabla^2 |D_\downarrow|}{|D_\downarrow|} + 2 \left( \frac{\nabla |D_\uparrow|}{|D_\uparrow|} + \frac{\nabla |D_\downarrow|}{|D_\downarrow|} \right) \cdot \frac{\nabla\Psi_C}{\Psi_C} +  \frac{\nabla^2\Psi_C}{\Psi_C}.  \label{eq:kineticRatio}
+			\end{align}
+
+			%So to calculate the laplacian-ratio and the gradient-ratio we need to find expressions for the gradient Slater ratio, \( \frac{\nabla|D|}{|D|} \) , the Laplacian Slater ratio, \(\frac{\nabla^2  |D|}{|D|} \), the gradient Jastrow ratio, \( \frac{\nabla\Psi_C}{\Psi_C} \), and the Laplacian Jastrow ratio \( \frac{\nabla^2\Psi_C}{\Psi_C} \).
+			So to calculate the Laplacian-ratio and the gradient-ratio we need to find expressions for the gradient Slater ratio, \( \nabla|D|/|D| \) , the Laplacian Slater ratio, \(\nabla^2  |D|/|D| \), the gradient Jastrow ratio, \( \nabla\Psi_C/\Psi_C \), and the Laplacian Jastrow ratio \( \nabla^2\Psi_C/\Psi_C \).
+
+
+		\subsubsection{The gradient Slater ratio}
+
+			By the same argument as in section \ref{sec:slater_ratio} the gradient-Slater-ratio can be written as
+
+			\begin{align}
+				\frac{\nabla |D|}{|D|} &= \sum_{j = 0}^{N}\nabla (D_{ij})D_{ji}^{-1} = \sum_{j = 0}^{N} \nabla \phi_j(\vb{x}_i) D_{ji}^{-1}(\vb{x}).
+			\end{align}
+
+		\subsubsection{The Laplacian Slater ratio}
+
+			As in the previous section the Laplacian can be calculated by a similar method to the one used in section \ref{sec:slater_ratio}, and we end up with
+
+			\begin{align}
+				\frac{\nabla^2 |D|}{|D|} &= \sum_{j = 0}^{N}\nabla^2 (D_{ij})D_{ji}^{-1} = \sum_{j = 0}^{N} \nabla^2 \phi_j(\vb{x}_i) D_{ji}^{-1}(\vb{x}).
+			\end{align}
+
+		\subsubsection{The gradient Jastrow ratio}
+			We continue by finding a useful expression for the quantum force and kinetic energy, the ratio $\nabla\Psi_{C}/\Psi_{C}$. It has,
+			for all dimensions, the form
+
+			\begin{align}
+				\frac{\mathbf{\nabla}_{i}\Psi_{C}}{\Psi_{C}}=\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{i}},
+			\end{align}
+
+			where $i$ runs over all particles. Since the terms of the trial-function that are not differentiated
+			cancel with their corresponding terms in the denominator, so
+			only $N-1$ terms survive the first derivative. We thus get
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{1}{g_{ik}}\frac{\partial g_{ik}}{\partial x_{k}}+\sum_{i=k+1}^{N}\frac{1}{g_{ki}}\frac{\partial g_{ki}}{\partial x_{k}}.
+			\end{align}
+
+			For the exponential form we get almost the same, by just replacing
+			$g_{ij}$ with $\exp\left(f_{ij}\right)$, and we get
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{\partial g_{ik}}{\partial x_{k}}+\sum_{i=k+1}^{N}\frac{\partial g_{ki}}{\partial x_{k}}.
+			\end{align}
+
+			We now use the identity
+
+			\begin{align}
+				\frac{\partial}{\partial x_{i}}g_{ij}=-\frac{\partial}{\partial x_{j}}g_{ij}
+			\end{align}
+
+			and get expressions where the derivatives that act on the particle
+			are represented by the second index of $g$
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{1}{g_{ik}}\frac{\partial g_{ik}}{\partial x_{k}}-\sum_{i=k+1}^{N}\frac{1}{g_{ki}}\frac{\partial g_{ki}}{\partial x_{i}},
+			\end{align}
+
+			and for the exponential case
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{\partial g_{ik}}{\partial x_{k}}-\sum_{i=k+1}^{N}\frac{\partial g_{ki}}{\partial x_{i}}.
+			\end{align}
+
+
+			Since we have that the correlation function is depending on the relative
+			distance we use the chain rule
+
+			\begin{align}
+				\frac{\partial g_{ij}}{\partial x_{j}}=\frac{\partial g_{ij}}{\partial r_{ij}}\frac{\partial r_{ij}}{\partial x_{j}}=\frac{x_{j}-x_{i}}{r_{ij}}\frac{\partial g_{ij}}{\partial r_{ij}}.
+			\end{align}
+
+			After substitution we get
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{1}{g_{ik}}\frac{\mathbf{r_{ik}}}{r_{ik}}\frac{\partial g_{ik}}{\partial r_{ik}}-\sum_{i=k+1}^{N}\frac{1}{g_{ki}}\frac{\mathbf{r_{ki}}}{r_{ki}}\frac{\partial g_{ki}}{\partial r_{ki}}.
+			\end{align}
+
+			For the Padé-Jastrow form we set $\ensuremath{g_{ij}\equiv g(r_{ij})=e^{f(r_{ij})}=e^{f_{ij}}}$
+			and
+
+			\begin{align}
+				\frac{\partial g_{ij}}{\partial r_{ij}}=g_{ij}\frac{\partial f_{ij}}{\partial r_{ij}},
+			\end{align}
+
+			and arrive at
+
+			\begin{align}
+				\frac{1}{\Psi_{C}}\frac{\partial\Psi_{C}}{\partial x_{k}}=\sum_{i=1}^{k-1}\frac{\mathbf{r_{ik}}}{r_{ik}}\frac{\partial f_{ik}}{\partial r_{ik}}-\sum_{i=k+1}^{N}\frac{\mathbf{r_{ki}}}{r_{ki}}\frac{\partial f_{ki}}{\partial r_{ki}}, \label{eq:gradient_ratio_Jastrow}
+			\end{align}
+
+			where we have the relative vectorial distance
+
+			\begin{align}
+				\mathbf{r}_{ij}=|\mathbf{r}_{j}-\mathbf{r}_{i}|=(x_{j}-x_{i})\mathbf{e}_{1}+(y_{j}-y_{i})\mathbf{e}_{2}+(z_{j}-z_{i})\mathbf{e}_{3}.
+			\end{align}
+
+			With a linear Padé-Jastrow we set
+
+			%\todo{Forklar a og $\beta$ tidligere, i 2 og 3 dim}
+			\begin{align}
+				f_{ij}=\frac{ar_{ij}}{(1+\beta r_{ij})},
+			\end{align}
+
+			with the corresponding closed form expression
+
+			\begin{align}
+				\frac{\partial f_{ij}}{\partial r_{ij}}=\frac{a}{(1+\beta r_{ij})^{2}}.
+			\end{align}
+
+		\subsubsection{The Laplacian Jastrow ratio}
+			For the kinetic energy we also need the second derivative of the Jastrow
+			factor divided by the Jastrow factor. We start with this
+
+			\begin{align}
+				\left[\frac{\mathbf{\nabla}^{2}\Psi_{C}}{\Psi_{C}}\right]_{x}=\ 2\sum_{k=1}^{N}\sum_{i=1}^{k-1}\frac{\partial^{2}g_{ik}}{\partial x_{k}^{2}}\ +\ \sum_{k=1}^{N}\left(\sum_{i=1}^{k-1}\frac{\partial g_{ik}}{\partial x_{k}}-\sum_{i=k+1}^{N}\frac{\partial g_{ki}}{\partial x_{i}}\right)^{2}.
+			\end{align}
+
+			But we have another, simpler form for the function
+
+			\begin{align}
+				\Psi_{C}=\prod_{i<j}\exp f(r_{ij})=\exp\left\{ \sum_{i<j}\frac{ar_{ij}}{1+\beta r_{ij}}\right\},
+			\end{align}
+
+			and for particle $k$ we have
+
+			\begin{align}
+				\frac{\mathbf{\nabla}_{k}^{2}\Psi_{C}}{\Psi_{C}}=\sum_{ij\ne k}\frac{(\mathbf{r}_{k}-\mathbf{r}_{i})(\mathbf{r}_{k}-\mathbf{r}_{j})}{r_{ki}r_{kj}}f'(r_{ki})f'(r_{kj})+\sum_{j\ne k}\left(f''(r_{kj})+\frac{2}{r_{kj}}f'(r_{kj})\right).
+			\end{align}
+
+			We use
+
+			\begin{align}
+				f(r_{ij})=\frac{ar_{ij}}{1+\beta r_{ij}},
+			\end{align}
+
+			and with
+
+			\begin{align}
+				\begin{array}{ccc}
+				g'(r_{kj})=dg(r_{kj})/dr_{kj} & \quad\mbox{and}\quad & g''(r_{kj})=d^{2}g(r_{kj})/dr_{kj}^{2}\end{array},
+			\end{align}
+
+			we find that for particle $k$ we have
+
+			\begin{eqnarray*}
+				\frac{\mathbf{\nabla}_{k}^{2}\Psi_{C}}{\Psi_{C}}=\sum_{ij\ne k}\frac{(\mathbf{r}_{k}-\mathbf{r}_{i})(\mathbf{r}_{k}-\mathbf{r}_{j})}{r_{ki}r_{kj}}\frac{a}{(1+\beta r_{ki})^{2}}\frac{a}{(1+\beta r_{kj})^{2}} \\
+				+\sum_{j\ne k}\left(\frac{2a}{r_{kj}(1+\beta r_{kj})^{2}}-\frac{2a\beta}{(1+\beta r_{kj})^{3}}\right).
+			\end{eqnarray*}
+
+			And for the linear Padé-Jastrow we get the closed form result
+
+			\begin{align}
+				\frac{\partial^{2}f_{ij}}{\partial r_{ij}^{2}}=-\frac{2a_{ij}\beta_{ij}}{\left(1+\beta_{ij}r_{ij}\right)^{3}}.
+			\end{align}

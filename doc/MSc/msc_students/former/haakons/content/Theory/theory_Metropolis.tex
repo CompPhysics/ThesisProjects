@@ -1,0 +1,68 @@
+\section{The Metropolis algorithm}
+	The Metropolis-Hastings algorithm, often simply called the Metropolis algorithm, is named after Nicholas Metropolis, who invented it along with A. W. Rosenbluth, M. N. Rosenbluth, A. H. Teller, and E. Teller in 1953 \cite{Metropolis53}, and W. K. Hastings, who extended the method the a more general case \cite{hastings1970}. It is a method of sampling a normalized probability distribution by a stochastic process. 
+
+	The algorithm goes as follows:
+	\begin{enumerate}
+		%\itemsep-0.1em
+		\item At step $n$, choose a random state, with the probability $\mathcal{P}_{i}^{(n)}$.
+		\item Sample a possible new state $j$ with some probability $T_{i\rightarrow j}$.
+		\item With a probability $A_{i\rightarrow j}$ the move to $j$ is accepted, and $j$ is used as the new state. However, with a probability $1-A_{i\rightarrow j}$ the move is rejected, and the original state $i$ is used as a sample again.
+	\end{enumerate}
+
+	We want to make $\mathcal{P}_{i}^{(n\rightarrow\infty)}\rightarrow p_{i}$, meaning that starting from some distribution, the Metropolis method will converge to the correct distribution. Consequently we have to derive the properties we need from $T$ and $A$. To take the probabilities $p_{i}$ over to their corresponding continuum expressions, they are replaced with expressions such as $p(x_{i})dx_{i}$.
+
+	The equation of the probability $\mathcal{P}_{i}^{(n)}$, written in a dynamical way by including the transition probability, is thus written as
+	
+	\begin{equation} \label{eq:dyn_probability1}
+		{\mathcal P}^{(n)}_i = \sum_{j} \left [
+		{\mathcal P}^{(n-1)}_jT_{j\rightarrow i} A_{j\rightarrow i} 
+		+{\mathcal P}^{(n-1)}_iT_{i\rightarrow j}\left ( 1- A_{i\rightarrow j} \right)
+		\right ] .
+	\end{equation}
+	
+	Here, the probability of being in the state $i$ at a step $n$ is given by the probability of being in the state $j$ at the previous step, and accepting the transition to state $i$, plus the probability of being in the state $i$ and rejecting a transition to a state $j$. Furthermore, the probability of making any transition must be $1$, in other words $\sum_{j}T_{i\rightarrow j}=1$. This means that we can rewrite Eq. (\ref{eq:dyn_probability1}) to
+	
+	\begin{equation}\label{eq:dyn_probability2}
+		{\mathcal P}^{(n)}_i = {\mathcal P}^{(n-1)}_i +
+		 \sum_j \left [
+		{\mathcal P}^{(n-1)}_jT_{j\rightarrow i} A_{j\rightarrow i} 
+		-{\mathcal P}^{(n-1)}_iT_{i\rightarrow j}A_{i\rightarrow j}
+		\right ] .
+	\end{equation}
+
+	A requirement to Eq. (\ref{eq:dyn_probability2}) is that for large $n$ we have $\mathcal{P}_{i}^{(n\rightarrow \infty)}=p_{i}$, that is, that it gives the desired probability distribution. Taking the limit $n\rightarrow \infty$ on Eq. (\ref{eq:dyn_probability2}) gives the balance requirement
+	
+	\[
+		\sum_{j} \left [ p_j T_{j\rightarrow i}A_{j\rightarrow i} - p_i T_{i\rightarrow j}A_{i\rightarrow j} \right ]=0.
+	\]
+	
+	This is a very weak balance requirement, however. Typically, each term is independently set to zero and used to determine the acceptance probabilities, rather than simply the sum being set to zero. We can rearrange the equation, grouping the probabilities to move from one state to another on the left hand side, and the transition probabilities on the right hand side, resulting in
+	
+	\[
+		\frac{ A_{j\rightarrow i}}{A_{i\rightarrow j}}
+		= \frac{p_iT_{i\rightarrow j}}{ p_jT_{j\rightarrow i}}.
+	\]
+
+	The choice made in the Metropolis algorithm is maximizing the probabilities to move from one state to another, $A$, yielding
+	
+	\[
+		A_{j\rightarrow i} = \min \left ( 1,\, \frac{p_iT_{i\rightarrow j}}{ p_jT_{j\rightarrow i}} \right).
+	\]
+	
+	This means that we multiply $A_{j\rightarrow i}$ and $A_{i\rightarrow j}$ by the same constant, which is smaller than unity. By choosing acceptance probabilities in this manner we have assured that if the probability $\mathcal{P}_i ^{(n)}$ is equal to $p_i$, and is thus in equilibrium, it will remain equilibrated.
+
+	Subsequently we need to find the conditions for when the probability $\mathcal{P}_i ^{(n)}$ converges to equilibrium. We rewrite Eq. (\ref{eq:dyn_probability2}) as
+	
+	\[
+		\mathcal{P}_i ^{(n)}=\sum_j M_{ij}\mathcal{P}_{j}^{(n-1)},
+	\]
+	
+	where we have introduced the matrix $M$, defined as
+	
+	\[
+		M_{ij}=\delta_{ij}\left[1-\sum_k T_{i\rightarrow k}A_{i\rightarrow k} \right]+T_{j\rightarrow i}A_{j\rightarrow i}.
+	\]
+	
+	If we sum over $i$ we find that $\sum_i M_{ij}=1$. We also know that $\sum_k T_{i\rightarrow k}$ and $A_{i\rightarrow k}\leq 1$, which means that all elements of the matrix will satisfy $M_{ij}\geq 0$, thus showing that the matrix $M$ is a stochastic matrix.
+	
+	The Metropolis algorithm, simply put, gives us the method for computing the right eigenvector of matrix $M$ with the largest magnitude eigenvalue. It is created in such a way that the correct probability distribution is a right eigenvector with eigenvalue $1$. This means that in order for the Metropolis algorithm to converge to the desired result, the matrix $M$ must have one and only one eigenvalue with this magnitude, with all other eigenvalues smaller.
