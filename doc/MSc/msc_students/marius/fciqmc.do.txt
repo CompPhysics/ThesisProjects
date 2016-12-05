@@ -1,0 +1,185 @@
+TITLE: Master thesis project: Monte Carlo studies of systems of confined fermions
+AUTHOR: Marius Jonsson at Department of Physics, University of Oslo, Norway
+DATE: MSc thesis in Computational Physics
+
+======= Aims =======
+
+The aim of this thesis is to develop a Full Configuration Interaction Quantum Monte Carlo (FCIQMC)
+code that can be used to study properties of confined fermions and fermions in infinite systems. The latter can span from 
+the homogenous electron gas in two and three dimensions to infinite nuclear matter present in neutron stars. 
+The formalism to be developed follows the recent work of "Alavi and co-workers":"http://www.nature.com/nature/journal/v493/n7432/full/nature11770.html". The aim is to extend upon the thesis of "Karl Leikanger":"https://www.duo.uio.no/handle/10852/37172" in order to study strongly interacting systems like infinite nuclear matter.  If successful, the FCIQMC method has the potential to provide *almost-exact* solutions for ground state properties of strongly interacting many-particle systems. 
+
+===== General introduction to the  physical systems =====
+
+The homogeneous electron gas in two and three dimensions and 
+bulk nucleonic matter are interesting for several reasons. The equation of state (EoS) of
+neutron matter determines for example properties of supernova
+explosions and of neutron
+stars.
+The determination and our understanding of the EoS for nuclear matter
+is intimately linked with our capability to solve the nuclear
+many-body problem. Here, correlations beyond the mean field play an
+important role.  Theoretical studies of nuclear matter and the
+pertinent EoS span back to the very early days of nuclear many-body
+physics. Early computations are nicely described in the 1967 review by "Day":"https://journals.aps.org/rmp/issues/39/4". 
+In these calculations, mainly particle-particle
+correlations were summed to infinite order.  Other correlations were
+often included in a perturbative way. Coupled cluster calculations of
+nuclear matter were performed already during the late 1970s and early. In recent years, there has been a
+considerable algorithmic development of first-principle methods for
+solving the nuclear many-body problem. A systematic inclusion of other
+correlations in a non-perturbative way are nowadays accounted for in
+Monte Carlo methods,
+self-consistent Green's function approaches and 
+nuclear density functional theory. "The recent Lecture Notes in Physics on Computational Nuclear Physics covers many of the above many-body methods":"https://github.com/ManyBodyPhysics/LectureNotesPhysics/blob/master/doc/src/lnp.pdf" as well as presenting extensive repositories for numerical methods.
+The homogeneous electron gas has played a central role in solid state physics, not only as a viable model for understanding important aspects
+of condensed matter systems  but also as a benchmark system for various many-body methods.  
+Still, all of the above many-body methods rely on specific approximations (and thereby truncations) to the full set of many-body correlations.
+The FCIQMC method, as demonstrated by "Alavi and co-workers":"http://www.nature.com/nature/journal/v493/n7432/full/nature11770.html", has the potential to provide almost *exact* results for ground state properties of fermionic and bosonic systems. As such, when applied to both the homogeneous electron gas and infinite nuclear matter, the method has the potential to provide important benchmarks for other many-body methods. 
+
+===== Many-body approaches to infinite matter =====
+For an infinite homogeneous system  like nuclear matter or the electron gas, 
+the one-particle wave functions are given by plane wave functions
+normalized to a volume $\Omega$ for a quadratic box with length
+$L$. The limit $L\rightarrow \infty$ is to be taken after we
+  have computed various expectation values. In our case we will
+  however always deal with a fixed number of particles and finite size
+  effects become important. 
+!bt
+\[
+\psi_{\mathbf{k}m_s}(\mathbf{r})= \frac{1}{\sqrt{\Omega}}\exp{(i\mathbf{kr})}\xi_{m_s}
+\]
+!et
+where $\mathbf{k}$ is the wave number and $\xi_{m_s}$ is a spin function
+for either spin up or down
+!bt
+\[ 
+\xi_{m_{s}=+1/2}=\left(\begin{array}{c} 1
+  \\ 0 \end{array}\right) \hspace{0.5cm}
+\xi_{m_{s}=-1/2}=\left(\begin{array}{c} 0 \\ 1 \end{array}\right).\]
+!et
+The single-particle energies for the three-dimensional electron gas
+are
+!bt
+\[    
+\varepsilon_{n_{x}, n_{y}, n_{z}} = \frac{\hbar^{2}}{2m}\left( \frac{2\pi }{L}\right)^{2}(n_{x}^{2}+n_{y}^{2}+n_{z}^{2}),
+\]
+!et
+resulting in the magic numbers $2$, $14$, $38$, $54$, etc.  
+
+In general terms, our Hamiltonian contains at most a two-body
+interaction. In second quantization, we can write our Hamiltonian as
+!bt
+\begin{equation}
+\hat{H}= \sum_{pq}\langle p | \hat{h}_0 | q \rangle a_p^{\dagger} a_q + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle a_p^{\dagger} a_q^{\dagger} a_s a_r,
+label{eq:ourHamiltonian}
+\end{equation} 
+!et
+where the operator $\hat{h}_0$ denotes the single-particle
+Hamiltonian, and the elements $\langle pq|v|rs\rangle$ are the
+anti-symmetrized Coulomb interaction matrix elements.  Normal-ordering
+with respect to a reference state $|\Phi_0\rangle$ yields
+!bt
+\begin{equation}
+\hat{H}=E_0 + \sum_{pq}f_{pq}\lbrace a_p^{\dagger} a_q\rbrace + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle \lbrace a_p^{\dagger} a_q^{\dagger} a_s a_r \rbrace,
+label{eq:normalorder}
+\end{equation}
+!et
+where $E_0=\langle\Phi_0| \hat{H}| \Phi_0\rangle$ is the reference energy
+and we have introduced the so-called  Fock matrix element defined as
+!bt
+\begin{equation}
+f_{pq} = \langle p|\hat{h}_0| q \rangle + \sum\limits_{i} \langle pi |v| qi\rangle.
+label{eq:fockelement}
+\end{equation}
+!et
+The curly brackets in Eq.~(ref{eq:normalorder}) indicate that the
+creation and annihilation operators are normal ordered.
+
+The unperturbed part
+of the Hamiltonian is defined as the sum over all the single-particle
+operators $\hat{h}_0$, resulting in
+!bt
+\[
+\hat{H}_{0}=\sum_i\langle i|\hat{h}_0|i \rangle= {\displaystyle\sum_{\mathbf{k}_{i}m_{s_i}}}
+\frac{\hbar^{2}k_i^{2}}{2m}a_{\mathbf{k}_{i}m_{s_i}}^{\dagger}
+a_{\mathbf{k}_{i}m_{s_i}}.
+\]
+!et
+We will throughout suppress, unless explicitely needed, all references
+to the explicit quantum numbers $\mathbf{k}_{i}m_{s_i}$. The summation
+index $i$ runs over all single-hole states up to the Fermi level.
+
+The general anti-symmetrized two-body interaction matrix element 
+!bt
+\[
+\langle pq |v| r s \rangle = \langle
+\mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle,
+\]
+!et
+is given by the following expression
+!bt
+  \begin{align}
+    & \langle
+    \mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle
+    \nonumber \\ =&
+    \frac{e^{2}}{\Omega}\delta_{\mathbf{k}_{p}+\mathbf{k}_{q},
+      \mathbf{k}_{r}+\mathbf{k}_{s}}\left\{
+    \delta_{m_{s_{p}}m_{s_{r}}}\delta_{m_{s_{q}}m_{s_{s}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{r}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{r}-\mathbf{k}_{p})^{2}} \right. \nonumber
+    \\ & \left. -
+    \delta_{m_{s_{p}}m_{s_{s}}}\delta_{m_{s_{q}}m_{s_{r}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{s}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{s}-\mathbf{k}_{p})^{2}} \right\},
+    \nonumber
+  \end{align}
+!et
+for the three-dimensional electron gas.  The energy per electron computed with
+the reference Slater determinant can then be written as 
+(using hereafter only atomic units, meaning that $\hbar = m = e = 1$)
+!bt
+\[
+E_0/N=\frac{1}{2}\left[\frac{2.21}{r_s^2}-\frac{0.916}{r_s}\right],
+\]
+!et
+for the three-dimensional electron gas.  This will serve as the first benchmark in setting up a
+program for the FCIQMC method. 
+The electron gas provides a very useful benchmark at the Hartree-Fock level since it provides
+an analytical solution for the Hartree-Fock energy single-particle energy and the total  energy per particle. 
+
+Most of the details for setting up a single-particle basis and performing a Hartree-Fock calculation for infinite systems can be found in chapter 8 of "the recent Lecture Notes in Physics mentioned above":"https://github.com/ManyBodyPhysics/LectureNotesPhysics/blob/master/doc/src/lnp.pdf".
+
+
+
+===== Specific tasks =====
+
+The first task of this thesis is to develop a code which implements the abovementioned single-particle basis for a two-dimensional and three-dimensional infinite system using a cartesian basis. With this basis, the next task is to write a code which computes the Hartree-Fock energy. These results will be benchmarked against analytical results for the electron gas as well as existing numerical results for infinite nuclear matter. 
+The next and final task is to develop an FCIQMC code for infinite systems. The results will be benchmarked against other many-body methods and can easily lead to publications in international journals. 
+
+
+
+
+
+======= Progress plan and milestones =======
+
+The aims and progress plan of this thesis are as follows
+
+  * Fall 2017: Develop a program which sets up a cartesian single-particle basis for infinite systems and perform Hartree-Fock calculations for the infinite electron gas in two and three dimensions.
+  * Fall 2017:  Extend these calculations to infinite nuclear matter using the simpler Minnesota model for the nuclear forces.
+  * Fall 2017:  Start developing the FCIQMC method and perform the first calculations for simpler two-electron systems in two and three dimensions.
+  * Spring 2018: Develop and finalize a fully object-oriented and parallelized FCIQMC code which can be used to study confined and infinite systems of fermions. The codes can be extended bosonic systems as well.
+  * Spring 2018: The last part deals with a proper write-up of the thesis.
+
+
+ 
+The thesis is expected to be handed in May/June 2018.
+
+
+
+
+
+
+
+
+
+
+
