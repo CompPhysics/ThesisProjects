@@ -1,47 +1,35 @@
 \chapter{Coupled Cluster Theory}
-\begin{quote}
-\it
-"In theoretical physics, the analog of the word is the mathematical formula" (From ``Surely you're joking mr. Feynman``)
-\end{quote}
-\begin{quote}
-  R. P. Feynman
-\end{quote}
-
-
-
 In this chapter we will introduce the Coupled Cluster Theory \cite{crawford} and derive the Coupled Cluster Equations for Single and Double Exitations (CCSD). 
 
 \section{Introduction}
-The theoretical framework of Coupled Cluster Theory was developed in the late 1960s by Coester and K\"{u}mmel. They applied it to problems in nuclear and subnuclear physics. Later it was introduced into quantum chemistry in the 1960s by \v{C}\'i\v{z}ek \cite{cizek1,cizek2}. K\"{u}mmel said that he found it remarkable that a quantum chemist would open an issue of a nuclear physics journal \cite{kummel-ccsd}. Then Monkhorts \cite{monkhorst} developed the CC response theory for calculating the molecular properties. And with the revolution of microprocessors the computational power increased rapidly. People like Pople et al. \cite{pople-ccsd} and Bartlett et al. \cite{bartlett-ccsd} began to look into more realistic systems by developing the spin-orbital CCD programs. Since then people have tried to develop efficient CCSD energy codes, and inclusion of higher excitations in the wavefunction. And there is still ongoing work with developing methods for open shell calculations (Equation of Motion CCSD) \cite{krylov}.
+The theoretical framework of Coupled Cluster Theory was developed in the late 1960s by Coester and K\"{u}mmel. He applied it to problems in nuclear and subnuclear physics. Later it was introduced into quantum chemistry in the 1960s by \v{C}\'i\v{z}ek \cite{cizek1,cizek2}. K\"{u}mmel said that he found it remarkable that a quantum chemist would open an issue of a nuclear physics journal \cite{kummel-ccsd}. Then Monkhorts \cite{monkhorst} developed the CC response theory for calculating the molecular properties. And with the revolution of microprocessors the computational power increased rapidly. People like Pople et al. \cite{pople-ccsd} and Bartlett et al. \cite{bartlett-ccsd} began to look into more realistic systems by developing the spin-orbital CCD programs. Since then people have tried to develop efficient CCSD energy codes, and inclusion of higher excitations in the wavefunction. And there is still onging work with develping methods for open shell calculations (Equation of Motion CCSD) \cite{krylov}.
 
 
-Later Bishop developed and applied it to the CCM theory for use in condensed matter physics, electron gas at both high and low densities. (See link) 
+Later Bishop applied and developed the CCM theory for use in condensed matter physics, electron gas at both high and low densities. (See link) 
 
-The CCM is a numerical method for solving the many-body problem (see section \ref{sec:many-body problem}). It is a popular choice with respect to computability ($\sim 100$ nucleons) (cite). Other \emph{ab initio} many-body methods such as Green's Function Monte Carlo have great precision compared to experiment but have exponetial growth in computational need \cite{jensen-ccsd}.
-
-
+The CCM is a numerical method for solving the many-body problem (see section \ref{sec:many-body problem}). It is a popular choice with respect to computability ($\sim 100$ nucleons) (cite). Other \emph{ab intion} many-body methods such as Green's Function Monte Carlo have great precision compared to experiment but have expoential growth in computational need \cite{jensen-ccsd}.
 
 \section{The Coupled Cluster Formalism}
-In this section we will discuss the notation that is going to be used and derive the theory behind the CC equations.
+In this section we will discuss the notation that are going to be used and derive the theory behind the CC equations.
 
 \subsection{Reference state and operators}
-We will use the particle-hole formalism (see section \ref{sec:particle-hole formalism}). The reference state is defined as
+We will use the particle-hole formalism (see section \ref{sec:particle-hole formalism}). The reference state are defined as
 
 \begin{equation}
 \ket{\bf 0} \equiv \ket{\Phi_0}
  \label{def:ccsd reference state}
 \end{equation}
-%
-where $\ket{\Phi_0}$ is a SD with single-particle orbitals up to the Fermi-level
+
+Where $\ket{\Phi_0}$ is a SD with single-particle orbitals up to the Fermi-level,
 
 \begin{equation}
- \ket{\Phi_0} = a^{\dagger}_{\alpha_1}a^{\dagger}_{\alpha_2}...a^{\dagger}_{\alpha_F}\ket{0},
+ \ket{\Phi_0} = a^{\dagger}_{\alpha_1}a^{\dagger}_{\alpha_2}...a^{\dagger}_{\alpha_F}\ket{0}
 \label{def:old reference state}
 \end{equation}
-%
-where $\alpha_F$ denotes the quantum number that is on the Fermi-level. Annihilation and creation operators with subscripts $ijk...$ will denote hole states, and the subscripts $abc...$ will denote the particle states. Subscripts that are $pqr...$ are in either of these groups. For the creation and annihilation operators we will use the standard ones $a_\alpha$ and $a_\alpha^{\dagger}$ with respect to the physical vacuum $\ket{0}$. But we will keep the \emph{quasi}-annihilation $b_\alpha$ and creation operator $b_\alpha^{\dagger}$.   (\ref{def:quasi-creation},\ref{def:quasi-annihilation}) in mind when we use Wick's theorem.
 
-Products of annihilation and creation operators can be used to construct different states $\ket{\Phi^a}$ with respect to our reference state $\ket{\Phi_0}$ as shown in (\ref{def:creation of a hole},\ref{def:creation of a particle}). The subscripts will denote the hole states, and the superscripts will denote the particle states.  
+Where $\alpha_F$ denotes the quantum number that is on the Fermi-level. annihiliation and creation operators with subscripts $ijk...$ will denote hole states, and the subscripts $abc...$ will denote the particle states. Subscripts that are $pqr...$ are in either of these groups. For the creation and annihilation operators we will use the standard ones $a_\alpha$ and $a_\alpha^{\dagger}$ with respect to the physical vacuum $\ket{0}$. But we will keep the \emph{quasi}-annihilation $b_\alpha$ and creation operator $b_\alpha^{\dagger}$.   (\ref{def:quasi-creation},\ref{def:quasi-annihilation}) in mind when we use Wick's theorem.
+
+Products of annihiliation and creation operators can be used to construct different states $\ket{\Phi^a}$ with respect to our reference state $\ket{\Phi_0}$ as shown in (\ref{def:creation of a hole},\ref{def:creation of a particle}). The subscripts will denote the hole states, and the superscripts will denote the particle states.  
 
 %\begin{figure}
 % \label{def:}
@@ -54,36 +42,36 @@ A general state can be represented by
  \label{def:general reference state}
 \end{equation}
 %
-where total number of particles in a system are given by 
+Where total number of particles in a system are given by 
 %
 \begin{equation}
-N = N' + n_p - n_h.
+N = N' + n_p - n_h
  \label{eq:total number of particles}
 \end{equation}
 %
 $N'$ is the number of of particles in the reference state. And $n_p$ is the number of particles, $n_h$ is the number of holes.
-We define the single-orbital excitation operator (cluster operator) as 
+We define the single-orbital exitation operator (cluster operator) as 
 
 \begin{equation}
-t_i \equiv \sum_a t_i^a a_a^{\dagger} a_i ,
+t_i \equiv \sum_a t_i^a a_a^{\dagger} a_i 
  \label{def:single-orbital cluster operator}
 \end{equation}
 %
-and the two-orbital excitation operator  
+And the two-orbital exitation operator  
 \begin{equation}
-t_{ij} \equiv \frac{1}{2} \sum_a t_{ij}^{ab} a_a^{\dagger}a_b^{\dagger} a_j a_i .
+t_{ij} \equiv \frac{1}{2} \sum_a t_{ij}^{ab} a_a^{\dagger}a_b^{\dagger} a_j a_i 
  \label{def:two particle orbital cluster operator}
 \end{equation}
 %
-In general the $n$-orbital excitation operator is defined as 
+In genereal the $n$-orbital exitation operator is defined as 
 \begin{equation}
 t_{ijk...}^{abc...} \equiv \frac{1}{n!} \sum_{\underbrace{\mbox{\scriptsize $abc...$}}_n} t_{ijk...}^{abc...} a_a^{\dagger}a_b^{\dagger}a_c^{\dagger}...a_j a_i a_k...
- \label{def:n-ortbital excitation operator}
+ \label{def:n-ortbital exitation operator}
 \end{equation}
 %
 $t_{ij..}^{ab..}$ is the $n$-orbital excitation amplitude. The factor $\frac{1}{n!}$ is due to the fact that we have an unrestricted summation over the particle states, and there are $n!$ ways of permuting $n$-particles which give rise to the same final state. 
 %
-The total excitation amplitudes is the sum of all possible excitations
+The total excitation amplitdes is the sum of all possible excitations
 \begin{align}
 \hh{T}_1 &\equiv \sum_i \hat{t_i} \label{def:T_1} \\
 \hh{T}_2 &\equiv \frac{1}{2} \sum_{ij} t_{ij}^{ab} \label{def:T_2} \\
@@ -100,13 +88,13 @@ Our ansatz is that the exact wavefunction $\ket{\Psi}$ can be written as
  \label{def:exponential ansatz}
 \end{equation}
 %
-where $\hat{T}$ is the total excitation operator
+Where $\hat{T}$ is the total excitation operator
 \begin{equation}
 \hh{T} \equiv \sum_n^{\infty} \hh{T}_n 
  \label{def:total excitation operator}
 \end{equation}
 %
-and $\ket{\Phi_0}$ is the reference state. (The exponential ansatz manifest the extensitivity property??? see Bartlett). The motivation for this ansatz aswell???? 
+and $\ket{\Phi_0}$ is the refernce state. (The exponential ansatz manifest the extensitivity property??? see Bartlett). The motivation for this ansatz aswell???? 
 
 This would be the exact solution to our many-body Schr\"{o}dinger equation and Why??? Proof??? (ref). But we have to truncate this sum and these truncations give rise to errors in the CC calculation. The fewer term we truncate the closer we are to the exact solution. Different CC schemes are determined by the level of truncation,
 
@@ -125,27 +113,27 @@ We will focus on the CCSD scheme in this thesis.
 
 %Natural Truncation of the Exponential Ansatz......... page 22 Crawford
 
-The problem we want to solve is the many-body Sch\"{o}dinger equation defined in Eq. (\ref{def:manybodyschrodinger})
+The problem we want to solve is the manybody Sch\"{o}dinger equation defined in Eq. (\ref{def:manybodyschrodinger})
 \begin{equation}
 \hh{H} \ket{\Psi} = E \ket{\Psi}
  \label{def:CC schrodinger}
 \end{equation}
 %
-with our Exponential ansatz
+With our Exponential ansatz
 
 \begin{equation}
-\hh{H} e^{\hh{T}} \ket{\Phi_0} = E e^{\hh{T}}\ket{\Phi_0},
+\hh{H} e^{\hh{T}} \ket{\Phi_0} = E e^{\hh{T}}\ket{\Phi_0}
  \label{def:CC schrodinger ansatz}
 \end{equation}
 %
-we can left-multiply to get the energy eigenvalue
+We can left-multiply to get the energy eigenvalue
 
 \begin{equation}
-\bra{\Phi_0}\hh{H}e^{\hh{T}}\ket{\Phi_0} = E,
+\bra{\Phi_0}\hh{H}e^{\hh{T}}\ket{\Phi_0} = E
  \label{def:intermediate normalization}
 \end{equation}
 %
-where $\braket{\Phi_0}{\Phi_{CC}}=1$, because of $\braket{\Phi_0}{\Phi_0}=1$ and $\braket{\Phi_{ijk...}^{abc...}}{\Phi_0}=0$ . This can be taken further by multiplying with a general excited states 
+Where $\braket{\Phi_0}{\Phi_{CC}}=1$, because of $\braket{\Phi_0}{\Phi_0}=1$ and $\braket{\Phi_{ijk...}^{abc...}}{\Phi_0}=0$ . This can be taken further by multiplying with a general excited sates 
  
 \begin{equation}
 \bra{\Phi_{ijk...}^{abc..}}\hh{H}\ket{\Phi_0} = \bra{\Phi_{ijk...}^{abc..}}E e^{\hh{T}}\ket{\Phi_0}
@@ -173,7 +161,7 @@ e^{-\hh{T}} \hat{H} e^{\hh{T}} =  \hh{H} + \ql[\hh{H}, \hh{T}  \qr] + \frac{1}{2
  \label{def:BCH formula}
 \end{equation}
 %
-Instead of the Hamiltonian we are going to use the normal-ordered $\hh{H}_N$ to derive the CCSD equations, and truncate such that $\hh{T} = \hh{T}_1 + \hh{T}_2$. We define the similarity transformed normal-ordered  Hamiltonian, $\bb{H} \equiv e^{-\hh{T}} \hh{H}_N e^{\hh{T}}$. %Inserting for the normal-ordered Hamiltonian Eq. (\ref{eq:final normal ordered hamiltonian}) gives
+Instead of the Hamiltonian will are going to use the normal-ordered $\hh{H}_N$ to derive the CCSD equations, and truncate such that $\hh{T} = \hh{T}_1 + \hh{T}_2$. We define the similarity transformed normal-ordered  Hamiltonian, $\bb{H} \equiv e^{-\hh{T}} \hh{H}_N e^{\hh{T}}$. %Inserting for the normal-ordered Hamiltonian Eq. (\ref{eq:final normal ordered hamiltonian}) gives
 % \begin{align}
 % \bb{H} &=  e^{-\hh{T}}\ql[\hh{H}_N + \bra{\Phi_0} \hh{H} \ket{\Phi_0}\qr] e^{\hh{T}} \nonumber \\
 % &= e^{-\hh{T}}\hh{H}_Ne^{\hh{T}} +  \bra{\Phi_0} \hh{H} \ket{\Phi_0}
@@ -192,11 +180,11 @@ Inserting this into Eq. (\ref{eq:mathematical foresight 1})-(\ref{eq:mathematica
 We define the CCSD energy as 
 
 \begin{equation}
-E_{\text{CCSD}} = \bra{\Phi_0} \bb{H} \ket{\Phi_0} + E_0,
+E_{\text{CCSD}} = \bra{\Phi_0} \bb{H} \ket{\Phi_0} + E_0
  \label{def:CCSD energy} 
 \end{equation}
 %
-where $E_0 \equiv \bra{\Phi_0}\hh{H}\ket{\Phi_0}$ is the SCF energy (???). There are two ways to derive the set of energy equations (\ref{eq:inserting this into 1})-(\ref{eq:inserting this into 2}), the diagrammatic and the algebraic. We are going to do the latter first. 
+Where $E_0 \equiv \bra{\Phi_0}\hh{H}\ket{\Phi_0}$ is the SCF energy (???). There are two ways to derive the set of energy equations (\ref{eq:inserting this into 1})-(\ref{eq:inserting this into 2}), the diagramatic and the algebraic. We are going to do the latter first. 
 
 \subsection{The Algebraic Approach}
 Now we want to do a BCH-expansion on $\bb{H}$
@@ -206,21 +194,21 @@ Now we want to do a BCH-expansion on $\bb{H}$
  \label{eq: bb H BCH-expansion}
 \end{equation}
 %
-The expansion goes to infinity but terminates since $\hh{H}_N$ (Eq. \ref{def:second-ordered Hamiltonian2}) is a two-particle operator and therefore can at most de-excite a state that has been twofold excited. This is important because the orthonormality of the reference state $\ket{\Phi_0}$. Therefore we will never get contributions from $\hh{T}^3$ and higher, because $\bra{\Phi_0}\hh{H}_N T_1^3 \ket{\Phi_0} = 0$. This is due to the type of Hamilton operator and not electron numbers. Inserting for $\hh{T} = \hh{T}_1 + \hh{T}_2$
+The expansion goes to infinity but terminates since $\hh{H}_N$ (Eq. \ref{def:second-ordered Hamiltonian2}) is a two-particle operator and therefore can at most de-excite a state that have been twofold excited. This is important because the ortonormality of the reference state $\ket{\Phi_0}$. Therefore we will never get contributions from $\hh{T}^3$ and higher, because $\bra{\Phi_0}\hh{H}_N T_1^3 \ket{\Phi_0} = 0$. This is due to the type of Hamilton operator and not electron numbers. Inserting for $\hh{T} = \hh{T}_1 + \hh{T}_2$
 \begin{align}
 \bb{H} &= \hh{H}_N + \ql[\hh{H}_N, \hh{T}_1\qr] + \ql[\hh{H}_N, \hh{T}_2\qr] + \frac{1}{2} \ql[\ql[\hh{H}_N, \hh{T}_1\qr] , \hh{T}_1\qr] \nonumber \\ 
 &+  \frac{1}{2} \ql[\ql[\hh{H}_N, \hh{T}_2\qr] , \hh{T}_2\qr] + \frac{1}{2}\ql[\ql[\hh{H}_N, \hh{T}_1\qr] , \hh{T}_2\qr] + \frac{1}{2}\ql[\ql[\hh{H}_N, \hh{T}_2\qr] , \hh{T}_1\qr] 
  \label{eq:bar H similarity series}
 \end{align}
 %
-We know that the $\hh{T}_n$ operators commute with each other because of commutation relations Eq.  (\ref{def:quasioperator1})-(\ref{def:quasioperator3}). This gives us the following relation
+We know that the $\hh{T}_n$ operators commute with each other beacause of commutation relations Eq.  (\ref{def:quasioperator1})-(\ref{def:quasioperator3}). This gives us the following relation
 
 \begin{equation}
-\ql[ \ql [\hh{H}_N,\hh{T}_2 \qr],\hh{T}_1 \qr] = \ql[ \ql [\hh{H}_N,\hh{T}_1 \qr],\hh{T}_2 \qr],
+\ql[ \ql [\hh{H}_N,\hh{T}_2 \qr],\hh{T}_1 \qr] = \ql[ \ql [\hh{H}_N,\hh{T}_1 \qr],\hh{T}_2 \qr]
  \label{def:commutation relation}
 \end{equation}
 %
-and the following Hamiltonian
+And the following Hamiltonian
 \begin{align}
 \bb{H} &= \overbrace{\hh{H}_N}^{\textbf{1th term}} + \overbrace{\ql[\hh{H}_N, \hh{T}_1\qr]}^{\textbf{2nd term}}+ \overbrace{\ql[\hh{H}_N, \hh{T}_2\qr]}^{\textbf{3rd term}}+  \overbrace{\frac{1}{2} \ql[\ql[\hh{H}_N, \hh{T}_1\qr] , \hh{T}_1\qr]}^{\textbf{4th term}} \nonumber \\ 
 &+  \underbrace{\frac{1}{2}  \ql[\ql[\hh{H}_N, \hh{T}_2\qr] , \hh{T}_2\qr]}_{\textbf{5th term}} + \underbrace{\ql[\ql[\hh{H}_N, \hh{T}_1\qr] , \hh{T}_2\qr]}_{\textbf{6th term}} 
@@ -249,14 +237,14 @@ The first term gives us the contribution
  \label{def:V_N T_1}
 \end{align}
 %
-There are four operators in the first operator string and two in the second. Using the general Wick's theorem we see that we cannot obtain fully contracted terms and therefore this does not contribute to the CCSD energy. Contractions within the operator strings gives zero since they are already on a normal-ordered form. 
+There are four operators in the first operator string and two in the second. Using the general Wick's theorem we see that we cannot obtain fully contracted terms and thus does not contribute to the CCSD energy. Contractions within the operator strings gives zero since they are already on a normalordered form. 
 
 \begin{equation}
 \bra{\Phi_0}[ \hh{V}_N,\hh{T}_1 ]\ket{\Phi_0} = 0 \rightarrow E_{\text{CCSD}}^{(2)} 
  \label{eq:second term T_1 V_1 energy}
 \end{equation}
 %
-Let us find a second-quantized form of the first commutator 
+Let us find a secondquantized form of the first commutator 
 
 \begin{align}
 \hh{F}_N\hh{T}_1 &= \sum_{pq}\sum_{ia}f_q^p t_i^a \{a_p^{\dagger}a_q\}\{a_a^\dagger a_i\}  \label{def:F_N T_1}\\
@@ -292,7 +280,7 @@ Using the generalized form of Wick's theorem from Eq. (\ref{def:generalizednorma
 \{a_a^{\dagger} a_i\}\{a_p^{\dagger} a_q\} &= \{a_a^{\dagger} a_i a_p^{\dagger} a_q\} = \{a_p^{\dagger} a_q a_a^{\dagger} a_i\} \label{eq:T_1 F_1 contraction}
 \end{align}
 %
-The non-contracted terms cancel and the commutation relation reads
+The non-contracted terms cancels and the commutation relation of reads
 
 \begin{equation}
 \ql[\hh{F}_N,\hh{T}_1\qr] = \sum_{qia} f_q^i t_i^a \{a_q a_a^{\dagger} \} + \sum_{pia} f_a^p t_i^a \{a_p^{\dagger} a_i\} +  \sum_{ia} f_i^a t_a^i 
@@ -379,10 +367,10 @@ Using the generalized Wick's theorem
 The non-contracted term cancels, but we are only interested in the fully contracted terms
 \begin{align}
 [\hh{V}_N,\hh{T}_2] &= \frac{1}{16} \sum_{ijab} \ql[\vva{ij}{ab} - \vva{ij}{ba} - \vva{ji}{ab} + \vva{ji}{ba} \qr] t_{ij}^{ab} \nonumber \\
-&= \frac{1}{4} \sum_{ijab} \vva{ij}{ab} t_{ij}^{ab},
+&= \frac{1}{4} \sum_{ijab} \vva{ij}{ab} t_{ij}^{ab}
  \label{eq:commutation V_N T_2 final}
 \end{align}
-and the contribution to the energy
+An the contribution to the energy
 
 \begin{empheq}[box=\fbox]{equation}
 \bra{\Phi_0} [\hh{H}_N,\hh{T}_2] \ket{\Phi_0} =\frac{1}{4} \sum_{ijab} \vva{ij}{ab}t_{ij}^{ab} \rightarrow E_{\text{CCSD}}^{(3)} 
@@ -406,7 +394,7 @@ From Eqs. (\ref{def:T_2}) and (\ref{eq:second term F_N T_1 commuation}) we obtai
  \label{eq:T_1[F_N,T_1]}
 \end{equation}
 %
-The last two terms cancel each other in a commutation, and all possible contractions are zero. In Eq.  (\ref{eq:T_1[F_N,T_1]}) the particle creation operator $a_b^\dagger$ gives zero in contraction with a particle or hole operator from the left, because of Eq. (\ref{rel:3}). And a in Eq. (\ref{eq:[F_N,T_1]T_1}) the contractions between a particle and hole operator pairs always give zero. Therefore there is no contribution to the energy from this part of the fourth term.
+The last two terms cancels each other in a commutation, and all possible contractions is zero. In Eq.  (\ref{eq:T_1[F_N,T_1]}) the particle creation operator $a_b^\dagger$ gives zero in contraction with a particle or hole operator from the left, because of Eq. (\ref{rel:3}). And a in Eq. (\ref{eq:[F_N,T_1]T_1}) the contractions between a particle and hole operator pairs always gives zero. Therefore there is no contribution to the energy from this part of the fourth term.
 
 \begin{align}
 \ql[\hh{V}_N, \hh{T}_1\qr]\hh{T}_1  &=  \frac{1}{4}\sum_{pqrs}\sum_{ia}\sum_{jb} \bra{pq}|v|\ket{rs} t_i^at_j^b \{a_p^{\dagger}a_q^{\dagger}a_s a_r\}\{a_a^\dagger a_i\}\{a_b^\dagger a_j\} \\
@@ -484,7 +472,7 @@ The expectation value of $[\hh{F}_N,\hh{T}_2 ]$ is zero Eq. (\ref{eq:F_N T_2}), 
 &- \frac{1}{16} \sum_{pqrs}\sum_{abij}\sum_{cdkl}\vva{pq}{rs}t_{ij}^{ab}t_{kl}^{cd} \{a_a^\dagger a_b^\dagger a_j a_i\}\{a_p^\dagger a_q^\dagger a_s a_r\}\{a_c^\dagger a_d^\dagger a_l a_k\} 
 \end{align}
 %
-There are in total four hole-annihilation operators $a_s,a_r,a_k,a_l$ and only two-hole creation operators $a_p^\dagger,a_q^\dagger$, this term will therefore not be fully contracted. For the same reason $\hh{T}_2[\hh{V}_N,\hh{T}_2 ]$ will not contribute to the energy.
+There are in total four hole-annihilation operators $a_s,a_r,a_k,a_l$ and only two-hole creation operators $a_p^\dagger,a_q^\dagger$, this will not be fully contracted. For the same reason $\hh{T}_2[\hh{V}_N,\hh{T}_2 ]$ will not contribute to the energy.
 
 \begin{empheq}[box=\fbox]{equation}
 \bra{\Phi_0} \frac{1}{2} [[\hh{H}_N,\hh{T}_2 ],\hh{T}_2] \ket{\Phi_0} = 0  \rightarrow E_{\text{CCSD}}^{(5)}
@@ -508,11 +496,11 @@ E_{\text{CCSD}} - E_0 =  \sum_{ia}f_a^i t_i^a + \frac{1}{4} \sum_{ijab} \vva{ij}
  \label{eq:final energy}
 \end{empheq}
 %
-This equation is valid for CCSDT and other schemes. Since the higher terms $\hh{T}_3$ and $\hh{T}_4$ etc. cannot produce fully contracted terms with the two-body Hamiltonian, as we have seen. However the higher order excitation operators contribute through the amplitude equations Eqs. (\ref{eq:mathematical foresight 2})-(\ref{eq:mathematical foresight 3}).
+This equation is valid for CCSDT and other schemes. Since the higher terms $\hh{T}_3$ and $\hh{T}_4$ etc. cannot produce fully contracted terms with the two-body Hamiltonian as we have seen. However the higher order excitation operators contributes through the amplitude equations Eqs. (\ref{eq:mathematical foresight 2})-(\ref{eq:mathematical foresight 3}).
 
 \section{Introduction to Coupled Cluster Diagrams}
-Even though Wick's theorem have simplified the method of evaluating expectation values. However the algebraic approach to the amplitude equations would involve even longer operator strings and be very time consuming. Another method is the digrammatic approach popularized by Kucharski and Bartlett \cite{bartlett-kucharski}. We will use their approach to derive the energy equation Eq. (\ref{eq:final energy}) and the amplitude equations.
-   The particle-hole formalism is still in use, lines represent a particle or a hole with respect to the reference state $\ket{\Phi_0}$. Lines with downward arrows represent the hole states, and lines with the upward arrows represent the particle states (see Fig.  \ref{fig:particle-hole representation}).  
+Even though Wick's theorem have simplyfied the method of evaluating expectation values. However the algebraic approach to the amplitude equations would involve even longer operator strings and be very time consuming. Another method is the digramatic approach popularized by Kucharski and Bartlett \cite{bartlett-kucharski}. We will use their approach to derive the energy equation Eq. (\ref{eq:final energy}) and the amplitude equations.
+   The particle-hole formalism is still in use, lines represent a particle or a hole with respect to the reference state $\ket{\Phi_0}$. Lines with the downard arrows represent the hole states. And lines with the upward arrows represent the particle states (see Fig.  \ref{fig:particle-hole representation}).  
 
 \begin{figure}[h!]
 \centering
@@ -521,7 +509,7 @@ Even though Wick's theorem have simplified the method of evaluating expectation 
  \label{fig:particle-hole representation}
 \end{figure}
 %
-Notice that the convention is to write the rightmost particle/hole first, this has  no physical significance since we have a sum of all particles and holes. It is just a phase factor of (-1) difference, $\ket{\Phi_{ij}^{ab}} = -\ket{\Phi_{ji}^{ab}} = \ket{\Phi_{ji}^{ab}}$. Since we already have defined the directions of particles and holes, we want to be consistent with the algebraic ordering of the operators, and have a convention that the rightmost operators start always at the bottom of this page which is the reference state $\ket{\Phi_0}$. 
+Notice that the covention is to write the rightmost particle/hole first, this have no physical significance since we have a sum over all particles and holes. Its just a phase factor of (-1) difference, $\ket{\Phi_{ij}^{ab}} = -\ket{\Phi_{ji}^{ab}} = \ket{\Phi_{ji}^{ab}}$. Since we already have defined the directions of particles and holes, we want to be consistent with the algebraic ordering of the operators, and have a convecntion that the rightmost operators starts always at the bottom this page which is the reference state $\ket{\Phi_0}$. 
 
 The matrix elements of an interaction with a one-body operator $\bra{b}h\ket{a}$ is represented with a vertex (the black dot), $\bullet---\times$. Where the dashed line indicate our interaction potential.
 
@@ -544,14 +532,14 @@ The matrix elements of an interaction with a one-body operator $\bra{b}h\ket{a}$
 \label{fig:oneparticle-hp}
 }
 
-\caption[Optional caption for list of figures]{Diagrammatic representation of one-body operators. As we can see from Fig. \ref{fig:one particle operators} the quasi-creation operators lie above the interaction line while the quasi-annihilation operators lie below.}
+\caption[Optional caption for list of figures]{Diagramatic representation of one-body operators. As we can see from Fig. \ref{fig:one particle operators} the quasi-creation operators lie above the interaction line while the quasi-annihilation operators is below.}
 \label{fig:one particle operators}
 \end{figure}
 
 \subsection*{Diagram rules part 1}
 
 \begin{quote}
-{\bf Rule 1:} \em When expressing operators: Any unlabeled particle/hole-line is summed
+{\bf Rule 1:} \em When expressing operators: Any unlabeled particle/hole-line is summed over
 \end{quote}
 
 \begin{quote}
@@ -582,7 +570,7 @@ The matrix elements of an interaction with a one-body operator $\bra{b}h\ket{a}$
 \caption{Non-zero contractions}
 \end{figure}
 %
-\noindent Our one-body operator $\hat{F}_N$ Eq. (\ref{def:F_N}) is then a sum of all the different diagrams in Fig. \ref{fig:one particle operators} and of all the indices. 
+\noindent Our one-body operator $\hat{F}_N$ Eq. (\ref{def:F_N}) is then a sum of all the different diagrams in Fig. \ref{fig:one particle operators} and over all the indices. 
 
 \begin{align}
 \hh{F}_N &=& \sum_{ab} f_b^a \{a_a^\dagger a_b \} \quad &+& \sum_{ij} f_j^i \{a_i^\dagger a_j \} \quad &+& \sum_{ia} f_a^i \{a_i^\dagger a_a \}\quad &+& \sum_{ai} f_i^a \{a_a^\dagger a_i \}   \nonumber \\
@@ -592,14 +580,14 @@ The matrix elements of an interaction with a one-body operator $\bra{b}h\ket{a}$
 \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/oneparticle-ph-noindex}}\\ \\ \\ \epsilon_4 = +1\end{matrix} \label{diagram:F_N} \\
 \end{align}
 %
-$\epsilon_n$ is the excitation level of diagram number $n$ and defined by the difference between the number of quasi-creation operators $\mathcal{N}_c$ and the quasi-annihilation operators $\mathcal{N}_a$ divided by 2.
+$\epsilon_n$ is the excitation level of diagram nr $n$ and defined by the difference between the number of quasi-creation operators $\mathcal{N}_c$ and the quasi-annihilation operators $\mathcal{N}_a$ divided by 2.
 
 \begin{equation}
 \epsilon = \frac{\mathcal{N}_c - \mathcal{N}_a}{2}
  \label{def:excitation level}
 \end{equation}
 %
-A two-body operator will be represented by two vertices, $\bullet --- \bullet$ and the matrix elements are defined as before by diagram the rule 2. The diagrammatic representation of $\hh{V}_N$ then becomes
+A two-body operator will be represented by two vertices, $\bullet --- \bullet$ and the matrix elements are defined as before by diagram the rule 2. The diagramatic representation of $\hh{V}_N$ then becomes.
 
 \begin{align}
 \hh{V}_N &=& \frac{1}{4} \sum_{abcd} \vva{ab}{cd} \{a_a^\dagger a_b^\dagger a_d a_c \} \,\, &+& \frac{1}{4} \sum_{ijkl} \vva{ij}{kl} \{a_i^\dagger a_j^\dagger a_l a_k \} \, &+&  \sum_{iabj} \vva{ia}{bj} \{a_i^\dagger a_a^\dagger a_j a_b \} \nonumber \\
@@ -618,11 +606,11 @@ A two-body operator will be represented by two vertices, $\bullet --- \bullet$ a
 %%
 &+& \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V7}}\\ \epsilon_7 = +1 \end{matrix} \quad  &+& 
 \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V8}}\\\\\\ \epsilon_8 = +2 \end{matrix} \quad  &+&
-\begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V9}}\\\\\\ \epsilon_9 = -2 \end{matrix}. \quad  \nonumber \\
+\begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V9}}\\\\\\ \epsilon_9 = -2 \end{matrix} \quad  \nonumber \\
 \label{diagram:V_N}
 \end{align}
 %
-Notice that the $\hh{V}_N$ is a sum of indices $p,q,r,s$ which could either be a particle or hole, we would have $2^4=16$ sums, but some of the sums are equivalent. For instance we have used the following 
+Notice that the $\hh{V}_N$ is a sum over indices $p,q,r,s$ which could either be a particle or hole, we would have $2^4=16$ sums, but some of the sums are equivalent. For instance we have used that 
 
 \begin{align}
 \frac{1}{4} \sum_{iabj} \vva{ia}{bj} \{a_i^\dagger a_a^\dagger a_j a_b \} \quad &+& \frac{1}{4} \sum_{iabj} \vva{ai}{bj} \{a_a^\dagger a_i^\dagger a_j a_b \} \quad  &+& \frac{1}{4} \sum_{iabj} \vva{ia}{jb} \{a_i^\dagger a_a^\dagger a_b a_j \} \nonumber \\
@@ -631,7 +619,7 @@ Notice that the $\hh{V}_N$ is a sum of indices $p,q,r,s$ which could either be a
  \label{proof:V_N term 3} 
 \end{align}
 %
-Which is term 3 in $\hh{V}_N$. Each vertex is unique $A\bullet --- \bullet B$, i.e. we can therefore permute the lines leaving or entering the vertex $A$ or $B$, it will give different diagrams but the same matrix element with a phase factor. For example, the third diagram in $\hh{V}_N$ which is the sum of $\vva{ia}{jb}\{a_i^\dagger a_a^\dagger a_j a_b \}$ can be written in four different ways which is the diagrammatic equivalent of Eq. (\ref{proof:V_N term 3}).
+Which is term 3 in $\hh{V}_N$. Each vertex is unique $A\bullet --- \bullet B$, i.e. we can therefore permute the lines leaving or entering the vertex $A$ or $B$, it will give different diagrams but the same matrix element with a phase factor. For example, the third diagram in $\hh{V}_N$ which is the sum over $\vva{ia}{jb}\{a_i^\dagger a_a^\dagger a_j a_b \}$ can be written in four different ways which is the diagramatic equivalent of Eq. (\ref{proof:V_N term 3}).
 
 \begin{align}
 \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V3proof1}}\end{matrix} =
@@ -652,57 +640,57 @@ In addition we have the cluster operator $\hh{T} = \hh{T}_1 + \hh{T}_2$
  \label{diagram:cluster operator}
 \end{align}
 %
-where the interaction is represented by a solid bar ''\, --- \,``. 
+Where the interaction is represented by a solid bar ''\, --- \,``. 
 
-Now that we have established diagrams for the operators, we can now show how the matrix elements of operators between SDs are represented.
+Now that we have established diagrams for the operators, we can now show how the matrix elements of operatos between SDs are represented.
 
 \begin{align}
 \bra{\Phi_i^a}\hh{T}_1\ket{\Phi_0} = \quad \begin{matrix}\scalebox{0.8}{\input{Figurer/Tikz/T1matrix1}}\end{matrix} \rightarrow \begin{matrix}\scalebox{0.8}{\input{Figurer/Tikz/T1matrix2}}\end{matrix}
  \label{diagram:T1matrix}
 \end{align}
 %
-As mentioned earlier the diagrams are read from bottom to top. We have the reference state on bottom, which is \emph{white space} followed by an N-body operator with an interaction in the middle and then finally the $bra$-state on top.
+As mentioned earlier the diagrams are read from bottom to top. We have the reference state on bottom, which is \emph{white space} followed by an N-body operator with an interaction in the middle and the finally the $bra$-state on top.
 
 \begin{align}
 \bra{\Phi_{ij}^{ab}}\hh{T}_1\ket{\Phi_0} = \quad \begin{matrix}\scalebox{0.8}{\input{Figurer/Tikz/T2matrix1}}\end{matrix} \rightarrow \begin{matrix}\scalebox{0.8}{\input{Figurer/Tikz/T2matrix2}}\end{matrix}
  \label{diagram:T2matrix}
 \end{align}
 %
-All the lines in the N-body operator have to be contracted in order to give non-zero matrix elements, additional particle/hole lines which are not involved in the interaction will be written on the right side.
+All the lines in the N-body operator have to be contracted in order to give nonzero matrix elements, additional particle/hole lines which are not involved in the interaction will be written on the right side.
 
 \begin{align}
 \bra{\Phi_{ikl}^{acd}}\hh{V}_N\ket{\Phi_{jkl}^{bcd}} = \quad \begin{matrix}\scalebox{0.8}{\input{Figurer/Tikz/V3matrix}}\end{matrix}
  \label{diagram:V3matrix}
 \end{align}
 %
-Diagram 3 in $\hh{V}_N$ is therefore the only non-zero contribution for the given the SD. Diagrams that represent the energy equations can be created in the same way. We must remember that our reference state is white space, so we cannot have lines above or below our interaction, i.e. the \emph{excitation level}  have to be zero. This will be the condition that gives us the natural truncation to include only $\hh{T}^2$ diagrams. Since $\hh{T}^3$ has at least an excitation level of 3, but $\hh{H}_N$ has at an excitation level between $-2$ and $2$. 
+Diagram 3 in $\hh{V}_N$ is therefore the only nonzero contribution for the given the SD. Diagrams that represents the energy equations can be created in the same way. We must remember our reference state is white space, so we cannot have lines above or below our interaction, i.e. the \emph{excitation level}  have to be zero. This will be the condition that gives us the natural truncation to include only $\hh{T}^2$ diagrams.0 Since $\hh{T}^3$ have at least an excitation level of 3, but $\hh{H}_N$ have at an excitation level between $-2$ and $2$. 
 
 \subsection{Energy Equation}
 
-We can write out the commutators in Eq. (\ref{eq:bar H similarity series}) and only include those terms in which the Hamiltonian is to the left of the cluster operators. The reason for this is because of Wick's theorem, we cannot get a full contraction when we have a  particle creation operator $a_a^\dagger$ to the left, as we have seen an example of in Eqs. (\ref{def:T_1 F_1}) and (\ref{eq:T_1 F_1 contraction}), i.e. $\bra{\Phi_0}\hh{T}_1\hh{H}_N \ket{\Phi_0} = 0$.
+We can write out the commutators in Eq. (\ref{eq:bar H similarity series}) and only include those terms in which the Hamiltonian is to the left of the cluster operators. The reason for this is because of Wicks theorem, we cannot get a full contraction when we have a  particle creation operator $a_a^\dagger$ to the left, as we have seen an example of in Eqs. (\ref{def:T_1 F_1}) and (\ref{eq:T_1 F_1 contraction}), i.e. $\bra{\Phi_0}\hh{T}_1\hh{H}_N \ket{\Phi_0} = 0$.
 
 \begin{align}
 \bb{H}_c = \hh{H}_N + \hh{H}_N\hh{T}_1 + \hh{H}_N\hh{T}_2 + \frac{1}{2} \hh{H}_N \hh{T}_1^2 + \frac{1}{2} \hh{H}_N \hh{T}_2^2 + \hh{H}_N \hh{T}_1 \hh{T}_2
  \label{eq:rewrite bar H similartiy series}
 \end{align}
 %
-The subscript $c$ indicates that we have a \emph{connected cluster} form of the similarity-transformed Hamiltonian. 
+The subscript $c$ indicates that we have a \emph{connceted cluster} form of the similarity-transformed Hamiltonian. 
 
-Since both $\hh{T}_2$ and $\hh{T}_1\hh{T}_2$ have excitation levels bigger than $+2$, we would not get contributions from the last two terms.  We are going to consider the first non-zero contribution to the coupled cluster energy
+Since both $\hh{T}_2$ and $\hh{T}_1\hh{T}_2$ have excitation levels bigger than $+2$, we would not get contributions from the last two terms.  We are going to consider the first nonzero contribution to the coupled cluster energy
 
 \begin{equation}
 E_{CCSD} - E_0 = \bra{\Phi_0} \hh{H}_N \hh{T}_1 \ket{\Phi_0} + \bra{\Phi_0} \hh{H}_N \hh{T}_2   \ket{\Phi_0} + \frac{1}{2} \bra{\Phi_0} \hh{H}_N \hh{T}_1^2 \ket{\Phi_0}   
  \label{def:CCSD energy c}
 \end{equation}
 %
-A $\hh{T}_1$-diagram have an excitation level of $+1$, we have to combine this with a diagram in $\hh{H}_N$ that has an excitation level of $-1$ to get an non-zero contribution. There are several diagrams in $\hh{F}_N$ and $\hh{V}_N$ that fulfill this criterion, but only diagram 3 in $\hh{F}_N$ that has the reference state on top.
+A $\hh{T}_1$-diagram have an excitation level of $+1$, we have to combine this with a diagram in $\hh{H}_N$ that have have an excitation level of $-1$ to get an nonzero contribution. There are several diagrams in $\hh{F}_N$ and $\hh{V}_N$ that fullfill this criteria, but only diagram 3 in $\hh{F}_N$ that have the reference state on top.
 
 \begin{align}
 \bra{\Phi_0} \hh{F}_N \hh{T}_1 \ket{\Phi_0} = \quad \begin{matrix}\epsilon = -1 \\ \scalebox{0.6}{\input{Figurer/Tikz/F_NT_1part1}}\\ \epsilon = +1\end{matrix} \quad \rightarrow \qquad \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/F_NT_1part2}} \\ \epsilon = 0\end{matrix}
 \label{diagram:F_NT_1}
 \end{align}
 %
-Next we consider $\bra{\Phi_0} \hh{H}_N \hh{T}_2 \ket{\Phi_0}$, here the $\hh{T}_2$ has an excitation level of $+2$, which has to be combined with diagram 9 in $\hh{V}_N$ with an excitation level of $-2$ and reference state on top.
+Next we consider $\bra{\Phi_0} \hh{H}_N \hh{T}_2 \ket{\Phi_0}$, here the $\hh{T}_2$ have an excitation level of $+2$, which has to be combined with diagram 9 in $\hh{V}_N$ with an excitation level of $-2$ and reference state on top.
 
 \begin{align}
 \bra{\Phi_0} \hh{V}_N \hh{T}_2 \ket{\Phi_0} = \quad \begin{matrix}\epsilon = -2 \\ \scalebox{0.6}{\input{Figurer/Tikz/V_NT_2part1}}\\ \epsilon = +2\end{matrix} \qquad \rightarrow \qquad \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/V_NT_2part2}} \\ \epsilon = 0\end{matrix}
@@ -716,14 +704,14 @@ The only contribution left is $\bra{\Phi_0} \hh{H}_N \hh{T}_1^2 \ket{\Phi_0}$, t
 \label{diagram:V_NT_1^2}
 \end{align}
 %
-The factor $1/2$ seem to be very arbitrary, but the diagrammatic rules are consistent with using Wick's theorem and this factor is taken care of when we imply the diagrammatic rules. The energy equation in the diagrammatic form is then
+The factor $1/2$ seem to be very arbritrary, but the Diagrammatic rules are consistent with using Wick's theorem and this factor is taken care of when we imply the diagrammatic rules. The energy equation in the diagramatic form is then
 
 \begin{align}
 E_{CCSD} - E_0 = \quad \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/CCSDenergypart1}}\end{matrix} \quad + \qquad \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/CCSDenergypart2}}\end{matrix} \quad + \quad \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/CCSDenergypart3}}\end{matrix}
 \label{diagram:E_CCSD}
 \end{align}
 %
-Haven written out the energy equation in a diagrammatic form, we now want to translate this into the algebraic equations we got from Eq. (\ref{eq:final energy}). First we have to introduce some rules to how diagrams can be interpreted.
+Haven written out the energy equation in a diagramatic form we now want to translate this into the algebraic equations we got from Eq. (\ref{eq:final energy}). First we have to introduce some rules to how diagrams can be interpreted.
 
 \subsection*{Diagram rules part 2}
 
@@ -732,11 +720,11 @@ Haven written out the energy equation in a diagrammatic form, we now want to tra
 \end{quote} 
 
 \begin{quote}
-{\bf Rule 5:} \em Each interaction line contributes with a matrix element $f_{in}^{out}$ or an amplitude $t_{ijk..}^{abc..}$, it is consistent with \text{\bf Rule 2} 
+{\bf Rule 5:} \em Each interaction line contributes with an matrix element $f_{in}^{out}$ or a amplitude $t_{ijk..}^{abc..}$, it is consistent with \text{\bf Rule 2} 
 \end{quote} 
 
 \begin{quote}
-{\bf Rule 6:} \em Sum of all indices that is associated with lines that begin and end at interaction lines (internal lines). 
+{\bf Rule 6:} \em Sum over all incdices that is associated with lines that begin and end at interaction lines (internal lines). 
 \end{quote}
 
 \begin{quote}
@@ -759,11 +747,11 @@ Haven written out the energy equation in a diagrammatic form, we now want to tra
 \end{figure}
 
 \begin{quote}
-{\bf Rule 8:} \em Each pair of equivalent vertices and equivalent lines give a factor of $\frac{1}{2}$ to be multiplied onto the algebraic expression. Particle/hole-lines that begin and end at the same interactions are  equivalent lines. Equivalent vertices are connected by two $\hh{T}_N$ operators to  $\hh{V}_N$ in the exact same way, i.e. same incoming and outgoing arrows.  
+{\bf Rule 8:} \em Each pair of equivalent vertices and equivalent gives a factor of $\frac{1}{2}$ to be multiplied onto the algebraic expression. Particle/hole-lines that begins and end at the same interactions are  equivalent lines. Equivalent vertices are connected by two $\hh{T}_N$ operators to  $\hh{V}_N$ in the exact same way, i.e. same incoming and outgoing arrows for  
 \end{quote}
 
 \begin{quote}
-{\bf Rule 9:} \em Each pair of \boldmath$unique$ external holes or particle lines give rise to a permutation operator $P(p,q)$. $Unique$ means that the external holes and particles enter/leave different interaction lines. This rule makes the total diagram antisymmetric and includes the Pauli Principle which is already included in the interaction. 
+{\bf Rule 9:} \em Each pair of \boldmath$unique$ external hole or particle lines give rise to a permutation operator $P(p,q)$. $Unique$ means that the external hole and particles enters/leaves different interactions lines. This rule makes the total diagram antisymmetric and includes the Pauli Principle which are already inclued in the interaction. 
 
 \begin{equation} 
 P(p,q)f(p,q) = f(p,q) - f(q,p)
@@ -787,24 +775,24 @@ Now that we have established the diagram rules we can express them in an algebra
  \label{diagram:F_N algebraic}
 \end{equation}
 %
-In this diagram we have two loops and two hole lines, one amplitude, one matrix element and two internal indicies that have to be summed, which gives us a factor $+1$ in total.
+In this diagram we have two loops and two hole lines, one amplitude, one matrix elements and two internal indicies that have to be summed over which gives us a factor $+1$ in total.
 \begin{equation}
 \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/CCSDenergy2}}\end{matrix} = \frac{1}{4} \sum_{ijab} \vva{ij}{ab} t_i^a 
  \label{diagram:V_NT_2 algebraic}
 \end{equation}
 %
-In this diagram we have two loops and two hole lines, two amplitudes, one matrix element and four internal indicies that have to be summed. And it also has two pair of equivalent lines that gives us a factor $+\frac{1}{4}$ in total.
+In this diagram we have two loops and two hole lines, two amplitudes, one matrix element and four internal indicies that have to be summed over. And two pair of equivalent lines that gives us a factor $+\frac{1}{4}$ in total.
 
 \begin{equation}
 \begin{matrix}\scalebox{0.6}{\input{Figurer/Tikz/CCSDenergy3}}\end{matrix} = \frac{1}{2} \sum_{ijab} \vva{ij}{ab} t_i^a t_j^b
  \label{diagram:V_NT_1^2 algebraic}
 \end{equation}
 %
-In this diagram we have two loops and two hole lines, two amplitudes, two matrix elements and four internal indicies that have to be summed. And one pair of equivalent vertices that gives us a factor of $+\frac{1}{2}$
+In this diagram we have two loops and two hole lines, two amplitudes, two matrix elements and four internal indicies that have to be summed over. And one pair of equivalent vertices that gives us a factor of $+\frac{1}{2}$
 This is the same expressions as Eq. (\ref{eq:final energy}) when we used Wick's theorem.
 
 \section{The Amplitude Equations}
-We will use the same procedure for amplitude equations. The \emph{connected cluster} form of the similarity-transformed Hamiltonian for both the singles and doubles equations
+We will use the same procedure for amplitude equations. The \emph{connected cluster} form of the similartiy-transformed Hamiltonian for both the singles and doubles equations
 
 \begin{equation}
 \bra{\Phi_i^a} \hh{H}_N \left(1 + \hh{T}_1 + \hh{T}_2 + \frac{1}{2} \hh{T}_1^2 + \hh{T}_1\hh{T}_2 + \frac{1}{3!} \hh{T}_1^3 \right) \ket{\Phi_0} = 0
@@ -1010,10 +998,10 @@ $\bra{\Phi_{ij}^{ab}}\frac{1}{2}\hh{H}_N\hh{T}_1^2\hh{T}_2\ket{\Phi_0}$ &$\hh{V}
 \section{Concluding Remarks}
 
 \subsection{Issues with the Coupled Cluster Method}
-The CC equations for the energy do not have a variational condition. The result of this is that we could in theory get lower energy than the \emph{exact} when we truncate $\hh{T}$ \cite{crawford}. 
+Convergence etc. see \cite{kummel-ccsd}. The CC equations for the energy does not have any variational condition. Resulting in that we could in theory get lower energy than the \emph{exact} when we truncate $\hh{T}$ \cite{crawford}. 
 
 %
-One of the fundamental postulates in quantum mechanics states that observables are eigenvalues to an Hermitian operator, but the similarity- transformed Hamiltonian $e^{-\hh{T}}\hh{H}e^{\hh{T}}$ is not Hermitian for any $\hh{T}$. 
+One of the fundamental postulates in quantum mechanics states that observables are eigenvalues to an Hermitian operator, but the similartiy transformed Hamiltonian $e^{-\hh{T}}\hh{H}e^{\hh{T}}$ is not Hermitian for any $\hh{T}$. 
  
 \begin{equation}
 \ql (e^{-\hh{T}} \hh{H} e^{\hh{T}} \qr)^{\dagger} = e^{\hh{T}^{\dagger}} \hh{H} e^{-\hh{T}^{\dagger}}  \neq  e^{-\hh{T}} \hh{H} e^{\hh{T}}
@@ -1021,7 +1009,7 @@ One of the fundamental postulates in quantum mechanics states that observables a
 \end{equation}
 %
 
-The similarity-transformed Hamiltonian $\hh{H}'$ and $\hh{H}$ have the same eigenvalues:
+The similarity transformed Hamiltonian $\hh{H}'$ and $\hh{H}$ same eigenvalues:
 
 \small{
 \begin{proof} 
@@ -1035,7 +1023,9 @@ The similarity-transformed Hamiltonian $\hh{H}'$ and $\hh{H}$ have the same eige
  \label{proof:eigenvalues of a similarity transformed Hamiltonian}
 \end{proof}
 %
-$\ket{\Phi_0}$ is the eigenfunction of $\hh{H}'$ and $\ket{\Psi}$ is the eigenfunction of $\hh{H}$. Both gives the same eigenvalues. The $\hh{T} = \hh{T}_1$ gives us the Hartree-Fock approximation,
+$\ket{\Phi_0}$ is the eigenfunctions of $\hh{H}'$ and $\ket{\Psi}$ is the eigenfunction of $\hh{H}$. Both with the same eigenvalues
+%
+The $\hh{T} = \hh{T}_1$ gives us the Hartree Fock approxiamtion,
 
 \begin{equation}
 E_{CCSD} - E_0 = \sum_{ia}f_a^i t_i^a + \frac{1}{2}\sum_{ijab} \vva{ij}{ab}t_i^a t_j^b
@@ -1048,8 +1038,8 @@ f_i^a + \sum_c f_c^a t_i^c + \sum_{kc}\vva{ka}{ci} t_k^c = 0
  \label{def:ccs and Hatree Fock amplitude equations}
 \end{equation}
 
-% 
-% \subsection{Wavefunction Seperability and Size Consistency of the Energy}
-% In CC theory it is possible to $\Psi = e^{T_X + T_Y} \Phi_0$ and get $E = E_X + E_Y$ no can do in CI with linear terms in the ansatz
+
+\subsection{Wavefunction Seperability and Size Consistency of the Energy}
+In CC theory it is possible to $\Psi = e^{T_X + T_Y} \Phi_0$ and get $E = E_X + E_Y$ no can do in CI with linear terms in the ansatz
 
 
