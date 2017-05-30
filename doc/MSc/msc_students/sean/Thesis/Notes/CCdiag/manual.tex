@@ -1,0 +1,896 @@
+\documentclass[a4paper]{article}
+\usepackage{fullpage}
+\setlength\parindent{0pt}
+
+%ccdiag
+\usepackage{tikz}
+\include{ccdiag}
+\pgfrealjobname{manual}
+%
+
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{listings}
+\usepackage{hyperref}
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    colorlinks=true,        % false: boxed links; true: colored links
+    linkcolor=red,          % color of internal links
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+\include{definitions}
+\newcommand{\myind}{\hspace{10pt}}
+
+\begin{document}
+\author{Daniel Kats}
+\title{CCDiag v.1.0}
+\maketitle
+
+\tableofcontents
+
+\section{Using CCDiag}
+
+CCDiag is a TeX file, which allows you to simply draw Coupled Cluster diagrams using TikZ/PGF.
+Only the {\it TikZ} package is required; i.e. to include CCDiag in your TeX file use
+\lstset{language=[LaTeX]Tex, frame=shadowbox, rulesepcolor=\color{gray}}
+\begin{lstlisting}
+%ccdiag
+\usepackage{tikz}
+\include{ccdiag}
+%  
+\end{lstlisting}
+
+A diagram starts with {\bf \textbackslash bdiag} and ends with {\bf \textbackslash ediag}.
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<\mu_1|\op F \op T_1 |0>
+\bdiag
+  \dmoveH{2}
+  \dT{1}{t}
+  \dF{f}
+  \dline{tv1}{t}
+  \dline{t}{f}
+  \dline{f}{fv2}
+\ediag 
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+    %<\mu_1|\op F \op T_1 |0>
+    \bdiag
+    \dmoveH{2}
+    \dT{1}{t}
+    \dF{f}
+    \dline{tv1}{t}
+    \dline{t}{f}
+    \dline{f}{fv2}
+    \ediag
+ \end{minipage}
+%\end{table}
+
+For a symmetric diagram (with Hamilton-operator parts in the middle) use {\bf \textbackslash bdiags}.
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<\mu_1|\op F \op T_1 |0>
+\bdiags
+  \dmoveH{2}
+  \dT{1}{t}
+  \dF{f}
+  \dline{tv1}{t}
+  \dline{t}{f}
+  \dline{f}{fv2}
+\ediag 
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+    %<\mu_1|\op F \op T_1 |0>
+    \bdiags
+    \dmoveH{2}
+    \dT{1}{t}
+    \dF{f}
+    \dline{tv1}{t}
+    \dline{t}{f}
+    \dline{f}{fv2}
+    \ediag
+ \end{minipage}
+%\end{table}
+
+For a non-symmetric diagram with Hamilton-operator parts shifted down use {\bf \textbackslash bdiagd}.
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<0|\op T_1^\dg \op F |\mu_1>
+\bdiagd
+  \dmoveH{2}
+  \dTd{1}{td}
+  \dF{f}
+  \dline{tdv1}{td}
+  \dline{td}{f}
+  \dline{f}{fvd2}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+    %<0|\op T_1^\dg \op F |\mu_1>
+    \bdiagd
+    \dmoveH{2}
+    \dTd{1}{td}
+    \dF{f}
+    \dline{tdv1}{td}
+    \dline{td}{f}
+    \dline{f}{fvd2}
+    \ediag
+ \end{minipage}
+%\end{table}
+
+You can scale the diagram by setting a number in the square brackets after {\bf \textbackslash bdiag}
+or {\bf \textbackslash bdiags}.
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<\mu_1|\op F \op T_1 |0>
+\bdiags[1.5]
+  \dmoveH{2}
+  \dT{1}{t}
+  \dF{f}
+  \dline{tv1}{t}
+  \dline{t}{f}
+  \dline{f}{fv2}
+\ediag 
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+    %<\mu_1|\op F \op T_1 |0>
+    \bdiags[1.5]
+    \dmoveH{2}
+    \dT{1}{t}
+    \dF{f}
+    \dline{tv1}{t}
+    \dline{t}{f}
+    \dline{f}{fv2}
+    \ediag
+ \end{minipage}
+%\end{table}
+
+Or you can scale the diagram vertically and horizontally using
+
+\myind{\bf \textbackslash dvscale}\{{\it scaling factor}\}
+
+and
+
+\myind{\bf \textbackslash dhscale}\{{\it scaling factor}\}
+ 
+\section{Operators}
+
+\subsection{Excitation and deexcitation operators}
+
+\subsubsection{Coupled Cluster excitation/deexcitation operators}
+
+The usual Coupled Cluster operator with label $T_{n}$ can be created using the following command:
+
+\myind{\bf \textbackslash dT}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+Node-names for vertices are generated as {\it node}1, {\it node}2, {\it node}3, ...
+
+The best suitable nodes for external lines are also generated and called {\it node}1v1 and {\it node}1v2 
+(for {\it node}1) etc
+
+For the complex-conjugated counterpart (with label $T^{\dagger}_{n}$) use 
+
+\myind{\bf \textbackslash dTd}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+If the labels are not needed, use
+
+\myind{\bf \textbackslash dTs}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+\myind{\bf \textbackslash dTds}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<0|\op T_2^{(1)\dg} \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dTds[1]{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+%<0|\op T_2^{(1)\dg} \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dTds[1]{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+ \end{minipage}
+%\end{table}
+
+\subsubsection{Bare excitation/deexcitation operators}
+
+One can draw the bare excitation/deexcitation operators explicitly and connect external lines to them.
+
+For $\tau_{\mu_i}$ use
+
+\myind{\bf \textbackslash dTv}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+And for $\tau^{\dagger}_{\mu_i}$ use
+
+\myind{\bf \textbackslash dTdv}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<\mu_2| \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dTdv{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+%<\mu_2| \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dTdv{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+ \end{minipage}
+%\end{table}
+
+\subsubsection{General excitation/deexcitation operators}
+
+One can draw an excitation operator with a custom name using
+
+\myind{\bf \textbackslash dAmp}$[${\it name}$]$\{{\it pert.order}\}\{{\it exc.level}\}\{{\it node}\}
+
+And for an deexcitation operator use 
+
+\myind{\bf \textbackslash dAmpD}$[${\it name}$]$\{{\it pert.order}\}\{{\it exc.level}\}\{{\it node}\}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+%<\Lambda_2| \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dAmpD[$_{\Lambda_2}$]{}{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+%<\Lambda_2| \op F \op T_1 |0>
+\bdiags
+\dmoveH{5}
+\dmoveTd{1}
+\dAmpD[$_{\Lambda_2}$]{}{2}{td}
+\dT{1}{t}
+\dF{f}
+\dcurcur{td1}{t1}
+\dcurcur{td2}{f}
+\ediag
+ \end{minipage}
+%\end{table}
+
+\subsubsection{Customize excitation/deexcitation operators}
+
+It is possible to create custom (de)excitation operators. ${\mathbf U}_n $ and ${\mathbf U}^\dagger_n $ are 
+available already (together with non-labeled versions dUs and dUds):
+
+\myind{\bf \textbackslash dU}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+\myind{\bf \textbackslash dUd}$[${\it pert.order}$]$\{{\it exc.level}\}\{{\it node}\}
+
+There is also a transparent version of operators available:
+
+\myind{\bf \textbackslash dTt}\{{\it exc.level}\}\{{\it node}\}
+
+\myind{\bf \textbackslash dTtd}\{{\it exc.level}\}\{{\it node}\}
+
+You can also create your own styles for operator lines (see Section \ref{sec:Styles}).
+
+\subsection{Parts of Hamiltonian}
+
+\subsubsection{Fock operator}
+
+For Fock operator use
+
+\myind{\bf \textbackslash dF}\{{\it node}\}
+
+The best suitable nodes for external lines are called {\it node}v1 and {\it node}v2. 
+Nodes for external lines going down are called {\it node}vd1 and {\it node}vd2.
+
+For Fock operator without label use
+
+\myind{\bf \textbackslash dFs}\{{\it node}\}
+
+For a reverse Fock operator line (with $\times$ left) use {\bf \textbackslash dFr} or {\bf \textbackslash dFsr}.
+
+\subsubsection{Fluctuation potential}
+
+For fluctuation potential use
+
+\myind{\bf \textbackslash dW}\{{\it node1}\}\{{\it node2}\}
+
+The best suitable nodes for external lines are called {\it node1}v1 and {\it node1}v2, 
+and {\it node2}v1 and {\it node2}v2.
+Nodes for external lines going down are called {\it node1}vd1, {\it node1}vd2, 
+{\it node2}vd1, and {\it node2}vd2.
+
+For fluctuation potential without label use
+
+\myind{\bf \textbackslash dWs}\{{\it node1}\}\{{\it node2}\}
+
+A dressed version of fluctuation potential (with double lines) can be drawn
+using {\bf \textbackslash dWbar} and {\bf \textbackslash dWbars} commands.
+
+\subsubsection{Perturbations}
+
+For one-electron perturbation use
+
+\myind{\bf \textbackslash dX}\{{\it node}\}
+
+({\bf \textbackslash dXr} for a reverse line)
+
+For two-electron perturbation use
+
+\myind{\bf \textbackslash dXtwo}\{{\it node1}\}\{{\it node2}\}
+
+
+\subsubsection{Custom one- and two-electron parts}
+
+For custom one-electron part use
+
+\myind{\bf \textbackslash dHone}$[${\it name}$]$\{{\it node}\}
+
+({\bf \textbackslash dHoner} for a reverse line)
+
+and for two-electron part use
+
+\myind{\bf \textbackslash dHtwo}$[${\it name}$]$\{{\it node1}\}\{{\it node2}\}
+
+You can also create your own styles for operator lines (see Section \ref{sec:Styles}).
+
+\subsubsection{Feynman vs Bartlett convention}
+
+By default the interaction lines are drawn as dashed lines. If you prefer the 
+usual Feynman's electromagnetic-interaction lines use
+
+\myind{\bf \textbackslash dfeynman}
+
+at the beginning of the diagram.
+
+\subsection{Scaling of operator lines}
+
+The size of operator lines can be influenced using
+
+\myind{\bf \textbackslash dscaleop}\{{\it scaling factor}\}
+
+\section{Hole/Particle lines}
+
+\subsection{Arrows}
+
+By default arrows are placed at 62\% of the line. One can change it in the source code 
+(``mark=at position'').
+Alternatively to set arrows at the end of lines uncomment the corresponding ``ph-line-arrow-save''.
+
+One can use 
+
+\myind{\bf \textbackslash dnoarrow}
+
+and
+
+\myind{\bf \textbackslash darrow}
+
+in order to switch off and on the arrows.
+
+\subsection{Straight lines}
+
+In order to connect two vertices with a straight h/p line use
+
+\myind{\bf \textbackslash dline}$[${\it index}$]$\{{\it from-node}\}\{{\it to-node}\}
+
+If {\it index} is given, it will be written to the right of the line.
+
+\subsection{Curved lines}
+
+In order to connect two vertices with a curved h/p line use
+
+\myind{\bf \textbackslash dcurve}$[${\it index}$]$\{{\it from-node}\}\{{\it to-node}\}
+
+If {\it index} is given, it will be written to the right of the line.
+
+You can reverse the bend of the line using 
+
+\myind{\bf \textbackslash dcurver}$[${\it index}$]$\{{\it from-node}\}\{{\it to-node}\}
+
+instead.
+
+You can draw a ``ring'' between two nodes using
+
+\myind{\bf \textbackslash dcurcur}\{{\it from-node}\}\{{\it to-node}\}
+
+\subsection{Intelligent lines through three vertices}
+
+One can connect three vertices with an intelligent line. 
+
+\myind{\bf \textbackslash dcurt}\{{\it from-node}\}\{{\it through-node}\}\{{\it to-node}\}
+
+The most appropriate bend will be calculated automatically.
+
+\section{Shifting operators}
+
+Often in order to improve the diagram-look you have to shift the operator lines.
+There are four shift-commands available:
+\begin{itemize}
+ \item shift excitation operators to the right:
+
+\myind{\bf \textbackslash dmoveT}\{{\it shift}\}
+
+ \item  shift deexcitation operators to the right:
+
+\myind{\bf \textbackslash dmoveTd}\{{\it shift}\}
+
+ \item  shift Hamiltonian-operators to the right:
+
+\myind{\bf \textbackslash dmoveH}\{{\it shift}\}
+
+  \item  shift deexcitation operators up:
+
+\myind{\bf \textbackslash dmovac}\{{\it shift}\}
+
+  \item  shift Hamiltonian-operators up:
+
+\myind{\bf \textbackslash dvmoveH}\{{\it shift}\}
+\end{itemize}
+
+{\it shift}$=1$ in the horizontal direction corresponds to a shift of a half length of single excitation operator
+(or of a quarter of doubles operator) 
+
+\section{Text in diagrams}
+
+\myind{\bf \textbackslash dname}\{{\it text}\} -- write {\it text} (e.g. diagram name) over the diagram
+
+\myind{\bf \textbackslash dtext}\{{\it shift}\}\{{\it text}\} -- write {\it text} in the diagram (with a horizontal shift).
+
+\subsection{Named nodes}
+
+Use operators
+
+\myind{\bf \textbackslash dTone}$[${\it pert.order}$]$\{{\it node}\}\{{\it node name}\}
+
+\myind{\bf \textbackslash dTtwo}$[${\it pert.order}$]$\{{\it node}\}\{{\it node1 name}\}\{{\it node2 name}\}
+
+\myind{\bf \textbackslash dFn}\{{\it node}\}\{{\it node name}\}
+
+\myind{\bf \textbackslash dWn}\{{\it node1}\}\{{\it node2}\}\{{\it node1 name}\}\{{\it node2 name}\}
+
+to name individual nodes. Versions
+{\bf \textbackslash dTsone},
+{\bf \textbackslash dTstwo},
+{\bf \textbackslash dTdone},
+{\bf \textbackslash dTdtwo},
+{\bf \textbackslash dTdsone},
+{\bf \textbackslash dTdstwo},
+{\bf \textbackslash dTdvone},
+{\bf \textbackslash dTdvtwo},
+{\bf \textbackslash dUone},
+{\bf \textbackslash dUtwo},
+{\bf \textbackslash dUsone},
+{\bf \textbackslash dUstwo},
+{\bf \textbackslash dFsn},
+{\bf \textbackslash dFrn},
+{\bf \textbackslash dFsrn},
+{\bf \textbackslash dWsn}
+are also available.
+
+\section{Styles}\label{sec:Styles}
+
+Change {\bf exoper-line-save}, {\bf exvac-line-save}, {\bf hoper-line-save}, {\bf ph-line-arrow-save}(or {\bf ph-line-noarrow-save})
+in order to change excitation operator, bare excitation operator, H-operator, or h/p line styles.
+
+You can create your own operator style for a custom operator (see how {\bf \textbackslash dU} or {\bf \textbackslash dTv} are 
+defined).
+
+\section{Generating external graphics}
+
+put 
+
+\myind{\bf \textbackslash beginpgfgraphicnamed}\{{\it Name-of-diagram}\}
+
+and
+
+\myind{\bf \textbackslash endpgfgraphicnamed}
+
+before and after a block of diagrams that can be put outside, and 
+
+\myind{\bf \textbackslash pgfrealjobname}\{{\it Real-name of the tex document}\}
+
+in the preamble (e.g., after {\bf \textbackslash include\{ccdiag\}}).
+
+Now you can use provided script {\bf makediags} to generate all diagrams:
+
+\myind{\bf makediags} {\it Real-name of the tex document.tex}
+
+The resulting pdf files will be included by pdflatex 
+instead of diagram-generation by later compilations (which can considerably speed up the compilation!) .
+
+\section{Examples}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+\bdiag
+\dmoveH{2}
+\dT{1}{t}
+\dmoveT{2}
+\dT{2}{tt}
+\dWs{wn1}{wn2}
+\dline[\raisebox{0.5cm}{$i$}]{t1v1}{t1}
+\dline{t1}{wn1}
+\dline{wn1}{wn1v2}
+\dline[$j$]{tt1v2}{tt1}
+\dline{tt1}{wn2}
+\dline{wn2}{wn2v1}
+\dline[$k$]{tt2v1}{tt2}
+\dline{tt2}{tt2v2}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiag
+\dmoveH{2}
+\dT{1}{t}
+\dmoveT{2}
+\dT{2}{tt}
+\dWs{wn1}{wn2}
+\dline[\raisebox{0.5cm}{$i$}]{t1v1}{t1}
+\dline{t1}{wn1}
+\dline{wn1}{wn1v2}
+\dline[$j$]{tt1v2}{tt1}
+\dline{tt1}{wn2}
+\dline{wn2}{wn2v1}
+\dline[$k$]{tt2v1}{tt2}
+\dline{tt2}{tt2v2}
+\ediag
+ \end{minipage}
+%\end{table}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+\bdiags
+\dmoveT{1}
+\dmoveTd{1}
+\dU{1}{t}
+\dTdv{1}{td}
+\dW{w1}{w2}
+\dcurt{t}{w1}{td}
+\dcurt{td}{w2}{t}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiags
+\dmoveT{1}
+\dmoveTd{1}
+\dU{1}{t}
+\dTdv{1}{td}
+\dW{w1}{w2}
+\dcurt{t}{w1}{td}
+\dcurt{td}{w2}{t}
+\ediag
+ \end{minipage}
+%\end{table}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+\bdiags
+\dmoveT{3}
+\dmoveTd{3}
+\dTd{2}{td}
+\dUd{1}{ud}
+\dFsr{f}
+\dT{2}{t}
+\dU{1}{u}
+\dcurt{td1}{f}{t1}
+\dcurve{t1}{td1}
+\dcurve{td2}{t2}
+\dline{t2}{ud}
+\dcurver{ud}{u}
+\dline{u}{td2}
+\ediag
+  \end{lstlisting}
+ \end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiags
+\dmoveT{3}
+\dmoveTd{3}
+\dTd{2}{td}
+\dUd{1}{ud}
+\dFsr{f}
+\dT{2}{t}
+\dU{1}{u}
+\dcurt{td1}{f}{t1}
+\dcurve{t1}{td1}
+\dcurve{td2}{t2}
+\dline{t2}{ud}
+\dcurver{ud}{u}
+\dline{u}{td2}
+\ediag
+ \end{minipage}
+%\end{table}
+
+%\begin{table}[htbp]
+ \begin{minipage}[b]{0.5\linewidth}\centering
+  \begin{lstlisting}
+\bdiagd
+\dmoveH{2}
+\dTd{1}{t}
+\dmoveTd{2}
+\dTd{2}{tt}
+\dWs{wn1}{wn2}
+\dline[\raisebox{-0.5cm}{$i$}]{t1v1}{t1}
+\dline{t1}{wn1}
+\dline{wn1}{wn1vd2}
+\dline[$j$]{tt1v2}{tt1}
+\dline{tt1}{wn2}
+\dline{wn2}{wn2vd1}
+\dline[$k$]{tt2v1}{tt2}
+\dline{tt2}{tt2v2}
+\ediag
+\end{lstlisting}
+\end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiagd
+\dmoveH{2}
+\dTd{1}{t}
+\dmoveTd{2}
+\dTd{2}{tt}
+\dWs{wn1}{wn2}
+\dline[\raisebox{-0.5cm}{$i$}]{t1v1}{t1}
+\dline{t1}{wn1}
+\dline{wn1}{wn1vd2}
+\dline[$j$]{tt1v2}{tt1}
+\dline{tt1}{wn2}
+\dline{wn2}{wn2vd1}
+\dline[$k$]{tt2v1}{tt2}
+\dline{tt2}{tt2v2}
+\ediag
+\end{minipage}
+%\end{table}
+
+\begin{minipage}[b]{0.5\linewidth}\centering
+ \begin{lstlisting}
+% transparent operators
+\bdiagd
+\dTtd{1}{t}
+\dTt{1}{tt}
+\dline{t1}{tt1}
+\ediag
+\end{lstlisting}
+\end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiagd
+\dTtd{1}{t}
+\dTt{1}{tt}
+\dline{t1}{tt1}
+\ediag
+\end{minipage}
+
+\begin{minipage}[b]{0.5\linewidth}\centering
+ \begin{lstlisting}
+% named nodes 
+% and an external graphic "ExampleDiag"
+\beginpgfgraphicnamed{ExampleDiag}
+\bdiags
+\dmoveH{1}
+\dmoveTd{6}
+\dTdvtwo{t}{$\kappa$}{$\lambda$}
+\dWsn{w1}{w2}{$\iota$}{$\kappa$}
+\dTsone{tt}{$\iota$}
+\dmoveT{2}
+\dTstwo{ttt}{$\kappa$}{$\lambda$}
+\dcurcur{tt}{w1}
+\dcurt{ttt1}{w2}{t1}
+\dcurver{t1}{ttt1}
+\dcurcur{ttt2}{t2}
+\ediag
+\endpgfgraphicnamed
+\end{lstlisting}
+\end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\beginpgfgraphicnamed{ExampleDiag}
+\bdiags
+\dmoveH{1}
+\dmoveTd{6}
+\dTdvtwo{t}{$\kappa$}{$\lambda$}
+\dWsn{w1}{w2}{$\iota$}{$\kappa$}
+\dTsone{tt}{$\iota$}
+\dmoveT{2}
+\dTstwo{ttt}{$\kappa$}{$\lambda$}
+\dcurcur{tt}{w1}
+\dcurt{ttt1}{w2}{t1}
+\dcurver{t1}{ttt1}
+\dcurcur{ttt2}{t2}
+\ediag
+\endpgfgraphicnamed
+\end{minipage}
+
+
+\begin{minipage}[b]{0.5\linewidth}\centering
+ \begin{lstlisting}
+% bubble and oyster
+% and the p/h counterparts 
+\bdiags[2]
+\dWs{w1}{w2}
+\dbubble{w2}{1}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\doyster{w1}{w2}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\dbubbler{w2}{1}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\doysterr{w1}{w2}
+\ediag
+\end{lstlisting}
+\end{minipage}
+ \begin{minipage}[b]{0.5\linewidth}\centering
+\bdiags[2]
+\dWs{w1}{w2}
+\dbubble{w2}{1}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\doyster{w1}{w2}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\dbubbler{w2}{1}
+\ediag
+\bdiags[2]
+\dWs{w1}{w2}
+\doysterr{w1}{w2}
+\ediag
+\end{minipage}
+
+\subsection{DCD}
+\begin{minipage}[b]{0.5\linewidth}\centering
+\begin{lstlisting}
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dvmoveH{-2}
+\dTdv{2}{td}
+\dWbars{w1}{w2}
+\dcurcur{w1}{td1}
+\dcurcur{w2}{td2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dTdv{2}{td}
+\dmoveH{4.6}
+\dFbars{f}
+\dTs{2}{tt}
+\dcurcur{tt1}{td1}
+\dcurve{td2}{tt2}
+\dcurt{tt2}{f}{td2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dTdv{2}{td}
+\dmoveH{1.2}
+\dscaleop{0.7}
+\dWs{w1}{w2}
+\dscaleop{1}
+\dTs{2}{tt}
+\dcurve{td1}{tt1}
+\dcurt{tt1}{w1}{td1}
+\dcurve{tt2}{td2}
+\dcurt{td2}{w2}{tt2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dmoveH{4.5}
+\dTdv{2}{td}
+\dTs{2}{tt}
+\dscaleop{0.37}
+\dWs{w1}{w2}
+\dscaleop{1}
+\dcurcur{tt1}{td1}
+\dcurt{tt2}{w1}{td2}
+\dcurt{td2}{w2}{tt2}
+\ediag
+\end{lstlisting}
+\end{minipage}
+\begin{minipage}[b]{0.5\linewidth}\centering
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dvmoveH{-2}
+\dTdv{2}{td}
+\dWbars{w1}{w2}
+\dcurcur{w1}{td1}
+\dcurcur{w2}{td2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dTdv{2}{td}
+\dmoveH{4.6}
+\dFbars{f}
+\dTs{2}{tt}
+\dcurcur{tt1}{td1}
+\dcurve{td2}{tt2}
+\dcurt{tt2}{f}{td2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dTdv{2}{td}
+\dmoveH{1.2}
+\dscaleop{0.7}
+\dWs{w1}{w2}
+\dscaleop{1}
+\dTs{2}{tt}
+\dcurve{td1}{tt1}
+\dcurt{tt1}{w1}{td1}
+\dcurve{tt2}{td2}
+\dcurt{td2}{w2}{tt2}
+\ediag
+\bdiags[1.5]
+\dvscale{0.5}
+\dfeynman \dnoarrow
+\dmoveH{4.5}
+\dTdv{2}{td}
+\dTs{2}{tt}
+\dscaleop{0.37}
+\dWs{w1}{w2}
+\dscaleop{1}
+\dcurcur{tt1}{td1}
+\dcurt{tt2}{w1}{td2}
+\dcurt{td2}{w2}{tt2}
+\ediag
+\end{minipage}
+\end{document}

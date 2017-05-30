@@ -1,0 +1,58 @@
+\documentclass[10pt]{report}
+
+\include{preamble}
+
+\begin{document}
+	
+	\begin{titlepage}
+		\centering
+		{\scshape\LARGE University of Oslo \par}
+		\vspace{1cm}
+		{\scshape\Large Master Thesis\par}
+		\vspace{1.5cm}
+		{\huge\bfseries Program Documentation\par}
+		\vspace{2cm}
+		{\Large\itshape Sean Bruce Sangolt Miller\par}
+		\vfill
+		\includegraphics*[scale=0.2]{posliten.png}
+		\vfill
+		supervised by\par
+		Prof. \textsc{Morten Hjorth-Jensen}
+		
+		\vfill
+		
+		% Bottom of the page
+		{\large \today\par}
+	\end{titlepage}
+	
+	\chapter{Layout}
+	
+	My master thesis was built upon the work of Audun Skau Hansen, who, in 2015, received a Msc due to his work on the homogeneous electron gas. His paper, titled \emph{"Coupled Cluster Studies of infinite systems"}, reviewed two different computational schemes he developed to study the infinite electron gas, using the coupled-cluster method. The layout of his program will be presented here, in the form it was when I first received it. This paper is purely meant to explain the program used for my studies. We start with the program layout.
+	
+	\section{Main.cpp}
+	The input parameters for the program are:
+	
+	\begin{itemize}
+		\item \texttt{i0} : The number of first shell
+		\item \texttt{i1} : The number of last shell
+		\item \texttt{iNp} : The number of particles present
+		\item \texttt{rs} : The Wigner-Seiz radius
+		\item \texttt{iterations} : Maximum number of iterations
+		\item \texttt{dConvergenceThreshold} : The number of decimals in the answer
+		\item \texttt{dRelaxation} : Relaxation of amplitude updates
+		\item \texttt{uiStatAlloc} : Maximum size of statically allocated vectors. (use 100000 on smaller calculations
+	\end{itemize}
+	
+	All this is presented on program startup.
+	
+	\section{Python}
+	\subsection{"makeIntMatrix"}
+	Currently (as by 01/11/16) the function essentially wants to make a list $V_{pppp}$, where each element is a numpy matrix where the columns and rows are combinations of SP states. This means, for example, that $V_{pppp}[a,b,c,d] = \langle ab||cd\rangle$. The blocks are identified by a unique number, defined by:
+	
+	\begin{equation}
+		k_{unique}(k=k_a+k_b = k_c+k_d) = k_x + k_y\Delta k + k_z\Delta k^2
+	\end{equation}
+	
+	All combinations where $k_{unique}(k_a+k_b) \neq k_{unique}(k_c+k_d)$ give zero, thus is not stored. This is the explicit implementation of the "block"-approach.
+	
+\end{document}

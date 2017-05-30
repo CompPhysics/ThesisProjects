@@ -1,0 +1,1981 @@
+\documentclass[10pt]{report}
+
+\include{preamble}
+
+\begin{document}
+	
+	\begin{titlepage}
+		\centering
+		{\scshape\LARGE University of Oslo \par}
+		\vspace{1cm}
+		{\scshape\Large Master Thesis\par}
+		\vspace{1.5cm}
+		{\huge\bfseries Quantum Mechanical Studies of Infinite Matter, with an Emphasis on Nuclear Matter, Neutron Star Matter, and Neutrino Spectra\par}
+		\vspace{2cm}
+		{\Large\itshape Sean Bruce Sangolt Miller\par}
+		\vfill
+		\includegraphics*[scale=0.2]{posliten.png}
+		\vfill
+		supervised by\par
+		Prof. \textsc{Morten Hjorth-Jensen}\par
+		
+		\vfill
+		
+		% Bottom of the page
+		{\large \today\par}
+	\end{titlepage}
+	
+	\chapter*{Acknowledgements}
+	
+	- $E = E_0 + E'$ We seek $E$, but can only analytically calculate $E_0$. Hartree-Fock and other perturbatice methods seek to find the best value for $E_0$, while post-Hartree-Fock methods seek to find $E'$.\\
+	
+	Statistical mechanics provides the simplest way to imagine the path integral formalism. All the particles of a grand canonical system \emph{will} move through \emph{all} paths.
+	
+	\begin{abstract}
+		
+	\end{abstract}
+	
+		\pagenumbering{gobble}% Remove page numbers (and reset to 1)
+		\tableofcontents
+		\newpage
+		\pagenumbering{arabic}% Arabic page numbers (and reset to 1)
+		%\begin{multicols*}{2}
+	
+	\part{Making a Theory}
+	
+	\chapter{Introduction}
+	
+	\chapter{Many-Body Quantum Mechanics}
+	\epigraph{\textit{I think I can safely say that nobody understands quantum mechanics.}}{- Richard Feynman}
+	
+	\section{The concept of quantum particles}
+	The fundamental building blocks of the world have been thought about a lot over the course of time. At first, we simply called them \emph{atoms}, from the greek word "\'{a}tomos", meaning undivided. Take a rock and divide it again and again until you can divide it no more, whatever remains is then undividable, and hence the name. "Atom" was the name reserved to refer to whatever would be the smallest bits of matter. It is only unfortunate that in the 18th century, John Dalton decided to refer to the elements of chemistry as atoms, because in 1897 Joseph J. Thomson discovered the electrons within the elements. In short, the "undividable" particles could be divided into smaller particles.\\
+	The discovery of the true\footnote{Even though we call them elementary particles, they might actually be composite. There are several models that extend current ones by suggesting, for example, that quarks are made up of even smaller particles.} "atoms", today called elementary particles, continued for a hundred years after Thomson's discovery, and have today been mapped to such an extent that we can describe all we see in particle colliders. With these elementary particles in place, we have been able to confirm the validity of the standard model of particle physics (SM), which is often said to describe matter and all its interactions. While certainly astonishing, anyone who's ever attempted to solve the double pendulum problem in classical mechanics knows that describing a problem and solving it are two \emph{very} different things.\\
+	
+	Before delving into the gritty details of solutions to problems, we need a clear understanding of what is what. First and foremost, we need to know what physicists mean when they say particle. Physicists often say particles are actually both waves \emph{and} particles, a concept called the wave-particle duality. The "wave" is actually a spatial distribution of probabilities, and can be thought of as follows.\\
+	Heisenberg's uncertainty principle states that we can't exactly know the momentum and position of a particle at the same time. Often we can envision this by the process of measurement. In order to "see" the particle, we shoot a photon at it, with a certain direction and energy, which hits and bounces back. We then catch the photon and the change in energy and direction of the photon tells us the particle was at some position and moving with some speed. This is precisely what we do when we see a ball in motion. However, whereas the photon has no effect on the macroscopic ball, it has a great effect on the tiny particle, changing both its momentum and direction drastically upon impact. Thus we measure the particle and find an \emph{observable quantity} (e.g. momentum, energy, etc), but we no longer know what the particle is doing, since the act of measurement changes everything. Heisenberg's uncertainty principle is an inequality telling us how sure we can be of two different measurable quantities (observables) at a time.\\
+	So let's say we know where a particle is at a certain time due to measurement. Where can we expect it to move after the measurement? This is where Sch\"odinger's equation comes into play. It turns out the probability of appearance behaves as a wave, and Sch\"odinger's equation describes the time evolution of this wave of probability. This makes it easier to realise why we call it a wave. The probability distribution for the particle covers all unrestricted\footnote{A wall, for example, would certainly be a restriction. In the same way, a potential would prevent certain motions, and is, funnily enough, where all our difficulties in particle physics come from.} space, much like water covers a room, where the hight of the water would correspond to the size of the probability. The water surface moves with time, much like the probability "surface" does.\\
+	
+	With this uncertainty regarding particles in place, it suddenly feels weird to call it a particle instead of a wave, rather than the other way around. However, we still see it as a "ball", with a certain momentum and placement. The point of quantum mechanics is that the uncertainty principle is a fundamental aspect of our world, and we \emph{can't} know the particle's properties and placement at all times. We need to describe it statistically, and where we expect it to appear.\\
+	With the concept of quantum particles somewhat clearer, we can set out to express all that which was stated above in a more quantifiable way.
+	
+	\subsection{Hilbert spaces \& particle states}
+	As is taught in most undergraduate quantum mechanics courses, a non-relativistic quantum particle has a probability distribution which "lives" in a Hilbert space. The precise mathematical framework for such a statement was constructed by Johann von Neumann in 1932, with his paper \emph{"Mathematical Foundations of Quantum Mechanics"} [some source]. If we are to understand what this means, we ought to have a better understanding of particles and Hilbert spaces. While actually quite complicated to define, it fully serves our purposes to define a Hilbert space as follows:\\
+	
+	\emph{A Hilbert space is a real or complex inner product space where the inner product satisfies:}
+	\begin{enumerate}
+		\item $\langle x,y\rangle = \overbar{\langle y,x\rangle}$ (complex conjugation)
+		\item $\langle ax_1 + bx_2,y\rangle = a\langle x_1,y\rangle + b\langle x_2,y\rangle$ (linearity)
+		\item $\langle x,x\rangle \geq 0$ (positive definite)
+	\end{enumerate}
+	
+	A real/complex inner product space is a vector space $\mathcal{V}$ with a inner product $\langle x,y\rangle$ ($x,y \in \mathcal{V}$) to which one associates a real/complex number.\\
+	
+	
+	
+	Such a vector is often represented by use of Dirac's "bra-ket" notation, in that a "ket", denoted $|\:\rangle$, is our usual understanding of a vector and a "bra", denoted $\langle\:|$, is a vector in the tangent Hilbert space. This notation will be used throughout this paper.\\
+	An arbitrary particle state $|\Psi\rangle$ can always be defined by a linear combination of a basis in Hilbert space, i.e.
+	
+	\begin{equation}
+		|\Psi\rangle = c_0|\psi_0\rangle + c_1|\psi_1\rangle + c_2|\psi_2\rangle + \ldots \quad,
+	\end{equation}
+	
+	where $\mathcal{H} := \text{span}(|\psi_0\rangle,|\psi_1\rangle,|\psi_2\rangle,\ldots)$ is our Hilbert space. A Hilbert space is spanned by infinite dimensional bases, all of which are "equal". The difference between particle states reside in the weighting of the various coefficients $c_i$. Thus, if a particle wavefunction changes over time, only the coefficients change. ????
+	
+	\subsection{Canonical quantization}
+	Canonical quantization was first proposed by Paul Dirac in his doctoral thesis, where he discussed a means to quantize a classical theory. It is based on the Poisson brackets used in classical mechanics:
+	
+	\begin{equation}
+		\{f,g\} = \sum_{i} \left( \frac{\partial f}{\partial q_i}\frac{\partial g}{\partial p_i} - \frac{\partial f}{\partial p_i}\frac{\partial g}{\partial q_i} \right)
+	\end{equation}
+	
+	where $f$ and $g$ are functions of the canonical coordinates $(q_i,p_i)$ and time $(t)$. To find a similar connection for the quantum theory, we seek some form of canonical quantization. We already know, form the Heisenberg principle,
+	
+	\begin{equation}
+		\left[\hat{X},\hat{P}\right] = \hat{X}\hat{P} - \hat{P}\hat{X} = i\hbar
+	\end{equation}
+	
+	\subsection{Fock spaces}
+	When there are several particles present in some system, then the total state function is a combination of Hilbert spaces. That is to say, two particles do not exist in the same Hilbert space. Instead, \emph{all} quantum particle system exists in a so-called \emph{Fock space}, named after Vladimir Fock.\\
+	A Fock space is a \emph{direct sum} of Hilbert spaces. The phenomenological approach is simply that since each particle has it's own Hilbert space, then if we have a space consisting of all possible combinations of Hilbert spaces, all quantum states must exist in this combined space as well, i.e.
+	
+	\begin{equation}
+		\mathcal{F}_v = \bigoplus_{n=0}^\infty S_v \mathcal{H}^{\otimes n}
+	\end{equation}
+	
+	Since this is threateningly mathematical looking, it can be written out to be less daunting,
+	
+	\begin{equation}
+		\mathcal{F}_v = \mathds{C}\oplus \underbrace{\mathcal{H}}_{H_1} \oplus \underbrace{S_v(\mathcal{H}\otimes \mathcal{H})}_{H_2} \oplus \underbrace{S_v(\mathcal{H}\otimes \mathcal{H}\otimes \mathcal{H})}_{H_3} \oplus \ldots
+	\end{equation}
+	
+	A one-particle system would exist in $H_1$, a single Hilbert space, while a two-particle system would exist in $H_2$, a direct sum of two Hilbert spaces. PROBLEM CONCERNING OVERLAP (\text{http://edoc.hu-berlin.de/dissertationen/klaczynski-lutz-2015-11-06/PDF/klaczynski.pdf} and \text{http://physics.stackexchange.com/questions/273280/interacting-fields-and-hilbert-space}). The operator $S_v$ has to do with symmetry, and will be explained in the next section.
+	Fock space means a total system state is composed of $N$ Hilbert spaces, where $N$ is the number of particles in a real system. A total system state $|\Psi\rangle$ is therefore written as:
+	
+	\begin{equation}
+		|\Psi\rangle = S_v\left\{|\psi_1\rangle \otimes |\psi_2\rangle \otimes \ldots \otimes |\psi_N\rangle\right\}
+	\end{equation}
+	
+	As we see, we have defined $|\Psi\rangle \in H_N$. There is nothing wrong with working with a wave function that exists in two seperate subspaces of Fock space, i.e. $|\Psi\rangle \in H_N\oplus H_M$, or even more subspaces. However, we would then find that operators only act on one subspace, rather than the total subspace. This means that $|\Psi\rangle$ may be split into parts, $|\Psi\rangle = |\psi_1\rangle\otimes|\psi_2\rangle\otimes\ldots$, and that these parts are non-interacting. We would simply be talking about a wave function that is a product of wave functions for completely disconnected systems, and we might as well solve for each system separately. 
+	
+	\subsection{Spin-statistics}
+	We mentioned the prefactor $S_v$ above had to with symmetry. To understand what this means we start with a very important relation in quantum mechanics, called the \emph{spin-statistics theorem}:\\
+	
+	\emph{A particle's wavefunction is either totally symmetric or anti-symmetric, depending on the spin of the particle.}\\
+	
+	Now, before arguing this, we've just introduced a new particle property called \emph{spin}, so let's first discuss it. Spin is something all particles possess, and has its name from its early interpretation where physicists imagined that, in addition to orbital momentum, particle's possessed \emph{intrinsic angular momentum}, or spin. Spin was introduced to explain the quantized values for intrinsic angular momentum, as was first measured in the famous Stern-Gerlach experiment. They [reference needed] found that electrons take on spin values $\pm\frac{h}{2}$. Today, we know electrons are fermions, and fermions are have \emph{half-integer spin}, while bosons have \emph{integer spin}, e.g.
+	
+	\begin{equation}
+		\begin{rcases}
+		S_{\text{fermion}} &= n + \frac{1}{2}\\
+		S_{\text{boson}} &= n
+		\end{rcases} \forall\:n\in\mathbb{N}_0
+	\end{equation}
+	
+	We have not yet answered how spin relates to the total symmetry of a particle's wavefunction. The rigorous proof requires the use of field theory and Lorentz invariance of the action, but the original proposal as to the connection between spin and symmetry comes from many-particle statistics. As is known, statistical mechanics thrives in the thermodynamic limit of quantum mechanics. For sufficiently high energies, Maxwell-Boltzmann statistics describes a system to a good approximation. However, at lower energies, we see a particle system approaches some minimum energy that does not correspond the energy predicted by MB statistics. This is where Fermi and Dirac used the Pauli exclusion principal
+	
+	\subsection{The Pauli exclusion principle}
+	A fundamental fact in physics is the Pauli exclusion principle, stating that two fermions can't exist in the same state, as opposed to bosons. This might seem strange, that nature is so simply divided into particles that can and can't overlap\footnote{As with most rules, there are exceptions to this. They are very weird particles called anyons, but only exist in 2-dimensional systems.}. The Pauli exclusion principle will be the baseline for all the theory contained within this paper.
+	
+	\subsection{Canonical quantization}
+	Canonical quantization is 
+	
+	\section{Second quantization}
+	
+	With the basics of quantum mechanics covered, we can start with the first technical step towards many-body mechanics, starting with something called \emph{second quantization}. Second quantization has its name from treating particles as "quantum numbers", thus introducing another level of quantization. Firstly, we define the creation and annihilation operators,
+	
+	\begin{align}
+		a_\alpha|\alpha\rangle &= |0\rangle\\
+		a_\alpha^\dagger|0\rangle &= |\alpha\rangle,
+	\end{align}
+	
+	where $\alpha$ is some set of quantum numbers, defining a state $|\alpha\rangle$. If we increase the number of particles, we write:
+	
+	\begin{align}
+		a_\alpha|\alpha\beta\gamma\ldots\rangle &= |\beta\gamma\ldots\rangle\\
+		a_\alpha^\dagger|\beta\gamma\ldots\rangle &= |\alpha\beta\gamma\ldots\rangle,
+	\end{align}
+	
+	In other words, the operators introduce another Hilbert space, and define a state $|\alpha\rangle$ within it. We might say that we create a particle, while the annihilation operator does the opposite. We know that fermions and bosons obey different statistics, so we can use it to define commutation relations for these new operators. In fact, it follows directly from equation [eq reference needed]. So we have:
+	
+	\begin{align}
+		[a_\alpha,a_\beta^\dagger] &= \delta_{\alpha\beta} \:,\quad [a_\alpha,a_\beta] = [a_\alpha^\dagger,a_\beta^\dagger] = 0 \quad \text{for bosons}\\
+		\{a_\alpha,a_\beta^\dagger\} &= \delta_{\alpha\beta} \:,\quad \{a_\alpha,a_\beta\} = \{a_\alpha^\dagger,a_\beta^\dagger\} = 0 \quad \text{for fermions}
+	\end{align}
+	
+	In this paper, fermionic systems are being considered, and the anti-commutation relation above will be of great importance, not just in the theoretical aspect, but for practical implementation as well.
+	So how would we write a Slater determinant using the fermion\footnote{Henceforth only called creation operators, with the fermionic properties being implied.} creation operators? We simply write;
+	
+	\begin{align}
+		|\Phi\rangle &= \frac{1}{\sqrt{N!}}\sum_{\sigma \in S_N}(-1)^{|\sigma|}\prod_i a_{\sigma(i)}^\dagger|0\rangle\\
+		&= \frac{1}{\sqrt{N!}}\left(a_1^\dagger a_2^\dagger a_3^\dagger\ldots a_N^\dagger - a_2^\dagger a_1^\dagger a_3^\dagger\ldots a_N^\dagger + \text{all other permutations}\right)|0\rangle\\
+	\end{align}
+	
+	We now have a very simple way of writing the wavefunction. 
+	
+	\section{Introducing interactions}
+	As with all of physics, the messy bit comes when particles start getting frisky and interact with each other. In undergraduate quantum mechanics, the one- and two-body problems are solved analytically which means we have exact solutions\footnote{"Exact" is not quite correct, since even between two charged particles in a vacuum, the Coulomb force is not a perfect potential, i.e. it only describes the electromagnetic interaction. Of course, the strength of the Coulomb force greatly outweighs other interaction types, rendering the others practically pointless, but finding an ideal, let alone perfect, potential becomes a big problem in many-body systems, as we shall see}. The theory of such simpler systems will be discussed below, followed by a discussion on why more interactions prove so difficult to solve, and in some cases even mathematically impossible.
+	
+	\subsection{The Schr\"odinger equation}
+	One of the most famous equations in physics is the Sch\"odinger equation, and rightly so, seeing how it allows us to describe the probabilistic nature of tiny particles. We have actually already covered the equation when introducing canonical quantization of operators.
+	
+	\begin{equation}
+		\left(-\frac{\hbar^2}{2m}\nabla^2 + V\right)\Psi(\bm{r},t) = i\hbar\frac{\partial}{\partial t}\Psi(\bm{r},t)
+	\end{equation}
+	
+	\subsection{One- and two-body operators}
+	When we put an upper bound on the number of interactions permitted in our model, the Hamiltonian can be written in an explicit form. For the one- and two-body Hamiltonian we can always write:
+	
+	\begin{equation}
+		\hat{H} = \sum_i \hat{h}_i + \sum_{i<j} \hat{v}_{ij}
+	\end{equation}
+	
+	where $\hat{h}_i$ a single-particle operator acting on particle $i$ and $\hat{v}_{ij}$ is an interaction between particles $i$ and $j$, where the requirement $i<j$ is forced as we do not wish to count an interaction twice. With the goal of solving the eigenvalue equation,
+	
+	\begin{equation}
+		\hat{H}|\Phi_s\rangle = E_s|\Phi_s\rangle,
+	\end{equation}
+	
+	we insert the Hamiltonian (equation ????)  to find:
+	
+	\begin{align}
+		\begin{split}
+		\left[\sum_i \hat{h}_i + \sum_{i<j} \hat{v}_{ij}\right]\left( \frac{1}{N!} \sum_{\sigma\in S_n}(-1)^{|\sigma|}\prod_{i=1}^{N}\phi_i(x_{\sigma(i)})\right) &= E_s|\Phi_s\rangle\\
+		&= \left[\sum_i \epsilon_i + \sum_{i<j} w_{ij}\right]|\Phi_s\rangle
+		\end{split}
+	\end{align}
+	
+	\section{Time-independent perturbation theory}
+	When a problem proves too difficult to solve analytically, various approximate solutions are guessed at. While quite old now, time-independent perturbation theory (Schr\"odinger, 1926) is one clever way of getting a time-independent solution to the Schr\"odinger equation through iterative series.\\
+	We introduce the perturbation Ansatz, which is the assumption that the Hamiltonian can split into a part we know the eigenstates to, and a small perturbation to potential, i.e.
+	
+	\begin{equation}
+	\hat{H} = \hat{H}_0 + \lambda\hat{V}
+	\end{equation}
+	
+	where $\lambda$ is a measure of the size of the perturbation. It will have to be fairly small compared to $\hat{H}_0$, otherwise far too many terms will be needed in the order expansion\footnote{More on "order expansion" later.}.\\
+	By introducing some new quantities, we find equations 2.8 from Shavitt and Bartlett:
+	
+	\begin{align}
+		\begin{split}
+			\hat{H}(\Phi_n + \chi_n) &= E_n(\Phi_n+\chi_n)\\
+			\hat{H}_0\Phi_n + \hat{V}\Phi_n + \hat{H}\chi_n &= E_n^{(0)}\Phi_n + \Delta E_n\Phi_n + E_n\chi_n\\
+			(\hat{H}-E_n)\chi_n &= (\Delta E_n - \hat{V})\Phi_n
+		\end{split}
+		\label{MBQM | eq | PT general energy equations}
+	\end{align}
+	
+	where $\chi_n \equiv \Psi_n-\Phi_n$ and $\Delta E_n \equiv E_n - E_n^{(0)}$, with $\Psi_n$ being the $n$-th eigenstate of $\hat{H}$ and $\Phi_n$ being the $n$-th eigenstate of $\hat{H}_0$. After a small proof, it turns out that we may demand $\langle\chi_n|\Phi_n\rangle = 0$, such that $\chi_n$ \emph{only} contains the orthogonal terms to $\Phi_n$ that make up the difference between $\Phi_n$ and $\Psi_n$. Thus we choose the so-called intermediate normalization:
+	
+	\begin{align}
+		\langle\Phi_n|\Phi_n\rangle &= 1 \\
+		\langle\Psi_n|\Phi_n\rangle &= 0 \\ 
+		\langle\Psi_n|\Psi_n\rangle &= 1 + \langle\chi_n|\chi_n\rangle
+	\end{align}
+	
+	Inserting this back into \ref{MBQM | eq | PT general energy equations}, we find:
+	
+	\begin{align}
+		\langle\Phi_n|\hat{H}|\Psi_n\rangle &= E_n\langle\Phi_n|\Psi_n\rangle = E_n \\
+		\langle\Phi_n|\hat{H}_0|\Psi_n\rangle &= \langle\hat{H}_0\Phi_n|\Psi_n\rangle = E_n^{(0)}
+	\end{align}
+	
+	which, by subtraction, gives:
+	
+	\begin{equation}
+	\Delta E_n = \langle\Phi_n|\hat{V}|\Psi_n\rangle
+	\end{equation}
+	
+	\subsection{Projection operators}
+	Before continuing, a simple mathematical tool, with important effects, to introduce are the projection operators,
+	
+	\begin{align}
+		\hat{P} &= |\phi_0\rangle\langle\phi_0| \\
+		\hat{Q} &= \mathds{1} - \hat{P} = \sum_{i\neq 0} |\phi_i\rangle\langle\phi_i|\:,
+	\end{align}
+	
+	which, obviously, will allow us to express any state $\psi$ as:
+	
+	\begin{equation}
+		\psi = \hat{P}\psi + \hat{Q}\psi
+	\end{equation}
+	
+	As is required for all projection operators, we have the following relations:
+	
+	\begin{align}
+		\hat{P}^2 &= \hat{P} \\
+		\hat{Q}^2 &= \hat{Q} \\
+		[\hat{P},\hat{Q}] &= 0
+	\end{align}
+	
+	We can now, starting the Schr\"odinger equation, prove
+	
+	\begin{equation}
+		\hat{Q}(\zeta - \hat{H}_0)\hat{Q}\psi = \hat{Q}(\hat{V}-E+\zeta)\psi
+	\end{equation}
+	
+	By choosing $\zeta$ such that the left-hand side is not zero, we may define a (pseudo-)inverse operator to $\hat{Q}$ as
+	
+	\begin{equation}
+		\hat{R}_0 = \frac{\hat{Q}}{\zeta - \hat{H}_0} \equiv \sum_{i,j\neq 0} |\phi_i\rangle\langle\phi_i|\left[\frac{1}{\zeta-\hat{H}_0}\right]|\phi_j\rangle\langle\phi_j|
+	\end{equation}
+	
+	This operator we usually call the \emph{resolvant} of $\hat{H}_0$. In the diagonal case, this becomes:
+	
+	\begin{equation}
+	\hat{R}_0 = \sum_{i\neq 0} \frac{|\phi_i\rangle\langle\phi_i|}{\zeta-E_i^{(0)}}
+	\end{equation}
+	
+	Therefore, the wavefunction may generally be expressed as an infinite series:
+	
+	\begin{equation}
+		\psi = \sum_{m=0}^\infty \left[ \hat{R}_0(\zeta)(\hat{V} - E + \zeta) \right]^m\phi_0
+		\label{MPQM | eq | general PT expression for psi}
+	\end{equation}
+	
+	Unfortunately, $E$ is still an unknown value.
+	
+	\subsection{Rayleigh-Schr\"odinger perturbation theory}
+	We know $\zeta$ is a constant we may choose freely, meaning we make a choice that works greatly in our favour. If we set $\zeta=E_0^{(0)}$, then the parenthesis in equation \ref{MPQM | eq | general PT expression for psi} shortens to (recall $\Delta E \equiv E-E_0^{(0)}$)
+	
+	\begin{align}
+		\psi &= \sum_{m=0}^\infty \left[ \hat{R}_0(E_0^{(0)})(\hat{V} - \Delta E) \right]^m\phi_0 \\
+		\Delta E &= \sum_{m=0}^\infty \langle\phi_0|\hat{V}\left[ \hat{R}_0(E_0^{(0)})(\hat{V} - \Delta E) \right]^m|\phi_0\rangle
+	\end{align}
+	
+	The energy equation is a transcendental equation, thus not having a closed form for $\Delta E$, we can write out the energy equation in orders of $\lambda$ (recall $\hat{V}\propto\lambda$):
+	
+	\begin{align}
+		\begin{split}
+			\Delta E = &\quad\langle\phi_0|\hat{V}|\phi\rangle \\
+			&+ \langle\phi_0|\hat{V}\hat{R}_0(\hat{V}-\Delta E)|\phi_0\rangle\\
+			&+ \langle\phi_0|\hat{V}\hat{R}_0(\hat{V}-\Delta E)\hat{R}_0(\hat{V}-\Delta E)|\phi_0\rangle\\
+			&+ \langle\phi_0|\hat{V}\hat{R}_0(\hat{V}-\Delta E)\hat{R}_0(\hat{V}-\Delta E)\hat{R}_0(\hat{V}-\Delta E)|\phi_0\rangle\\
+			&\:\:\vdots
+		\end{split}
+	\end{align}
+	
+	Since $\hat{R}_0|\psi_0\rangle = 0$, all terms with $\Delta E$ at the rightmost position (the last parenthesis in each term above), we get $\hat{R}_0\Delta E|\psi_0\rangle = \Delta E\hat{R}_0|\psi_0\rangle = 0$. Furthermore, for each $\Delta E$, we again insert the above equation, such that for every $\Delta E$, we get another infinite series. In each new infinite series, we get even more terms with $\Delta E$, giving more infinite series. In short, we get infinities within infinities of terms. As an example, we show the first three lines of the above\footnote{The fourth line is excluded as it is long and imparts little knowledge.}:
+	
+	\begin{align}
+		\begin{split}
+			\Delta E = &\quad\langle\phi_0|\hat{V}|\phi\rangle \\
+			&+ \langle\phi_0|\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle\\
+			&+ \langle\phi_0|\hat{V}\hat{R}_0\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle - \langle\phi_0|\hat{V}\hat{R}_0\left[\langle\psi_0|\hat{V}|\phi_0\rangle + \langle\phi_0|\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle + \ldots\right]\rangle\hat{R}_0\hat{V}|\phi_0\rangle\\
+			&\:\:\vdots
+		\end{split}
+	\end{align}
+	
+	There is, however, a bright spot in this system of infinities; it is still possible to restrict ourselves to orders of $\lambda$ without having infinite amounts of terms. In increasing order of $\lambda$, $\Delta E$ is written
+	
+	\begin{alignat*}{3}
+			\Delta E = &\:&&\langle\phi_0|\hat{V}|\phi\rangle \quad&&\mathcal{O}(\lambda^1)\\
+			&+&& \langle\phi_0|\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle	\quad&&\mathcal{O}(\lambda^2)\\
+			&+&& \langle\phi_0|\hat{V}\hat{R}_0\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle - \langle\psi_0|\hat{V}|\psi_0\rangle\langle\phi_0|\hat{V}\hat{R}_0^2\hat{V}|\phi_0\rangle \quad&&\mathcal{O}(\lambda^3)\\
+			&+&& \langle\phi_0|\hat{V}\hat{R}_0\hat{V}\hat{R}_0\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle - \langle\psi_0|\hat{V}\hat{R}_0\hat{V}|\psi_0\rangle\langle\phi_0|\hat{V}\hat{R}_0^2\hat{V}|\phi_0\rangle \quad&&\\
+			&-&& \langle\psi_0|\hat{V}|\psi_0\rangle\langle\phi_0|\hat{V}\hat{R}_0\left( \hat{V}\hat{R}_0 + \hat{R}_0\hat{V} \right)\hat{R}_0\hat{V}|\phi_0\rangle + \ldots\quad&&\mathcal{O}(\lambda^4)\\
+			&\:\vdots&& \quad&&\mathcal{O}(\lambda^n)\quad n\geq 5
+	\end{alignat*}
+	
+	So, if $\lambda < 1$, we may neglect all terms proportional to $\lambda^n$, for all $n>n'$, where $\lambda^{n'} < \epsilon$, and $\epsilon$ is some lower limit on energy contributions. If we choose to write the energy on the form
+	
+	\begin{equation}
+		\Delta E = E^{(1)} + E^{(2)} + E^{(3)} + \ldots = \sum_{n=1}^\infty E^{(n)}
+	\end{equation}
+	
+	where $n$ signifies the order of $\lambda$, we can make the identification
+	
+	\begin{align}
+		E^{(1)} &= \langle\phi_0|\hat{V}|\phi_0\rangle\\
+		E^{(2)} &= \langle\phi_0|\hat{V}\hat{R}_0\hat{V}|\phi_0\rangle\\
+		E^{(3)} &= \langle\phi_0|\hat{V}\hat{R}_0(\hat{V}-E^{(1)})\hat{R}_0\hat{V}|\phi_0\rangle\\
+		&\:\:\vdots
+	\end{align}
+	
+	By going further, it would be apparent that $(\hat{V}-E^{(1)})$ is a frequent term in the $E^{(n)}$ equations. It is therefore easier to define a operator:
+	
+	\begin{equation}
+		\hat{W} = \hat{V}-E^{(1)}
+	\end{equation}
+	
+	\section{Many-body methods}
+	With knowledge of the Fock space for a setting of $N$ fermions, one will have to solve the Sch\"odinger equation. Since solving the equation is near impossible for all but the simplest systems, perturbation and otherwise many-body methods are the norm in the computational physics and chemistry sciences. The pioneering steps in many-body methods were taken by Douglas Rayner Hartree in 1927 when introducing the self-consistent field method. Fock then generalized the result to fit fermionic many-body systems. (I think)
+	
+	\subsection{The Hartree-Fock equations}
+	The thought behind the Hartree-Fock equations is to find the system ground state energy using the variational principle. Since the Schr\"odinger equation can't be solved analytically, we are forced to guess at a ground state. We can start with claiming the true system state is not so different from the system state of the non-interacting case\footnote{Such a starting point may turn out to be grossly wrong, but, for lack of a better alternative, will nonetheless be used.}. From quantum mechanics, we know \emph{any} wavefunction will abide by the variational principle:
+	
+	\begin{equation}
+		E_0 = \min\left\{\frac{\langle\Phi|\hat{H}|\Phi\rangle}{\langle\Phi|\Phi\rangle}\right\} ,\quad \Phi \subset \mathcal{F}_v
+	\end{equation}
+	
+	Starting with $|\Phi\rangle$ as an $N$-particle, antisymmetric eigenstate of $H_0$, we set out to minimize $\widetilde{E}_0 \equiv \frac{\langle\Phi|\hat{H}|\Phi\rangle}{\langle\Phi|\Phi\rangle}$. While there are many ways of approach a minimization problem, we will use the method of Lagrange multipliers. The method of Lagrange multipliers lets us\footnote{Spesifically, the method finds the extrema of a function where the variables are subjects to some set of constraints. However, the method does not guarantee we find the minima.} change the single-particle (SP) basis for $|\Phi\rangle$ while maintaining the orthonormality of the basis. The energy is divvied up into the non- and interacting bits: 
+	
+	\begin{equation}
+		\langle\Psi|\hat{H}|\Psi\rangle = \langle\Phi|\hat{H}_0|\Phi\rangle + \langle\Phi|\hat{V}|\Phi\rangle
+	\end{equation}
+	
+	where $\hat{V} = \hat{V}_2 + \hat{V}_3 + \ldots + \hat{V}_N$. We already know the system state can be written as:
+	
+	\begin{equation}
+		|\Phi\rangle = \frac{1}{\sqrt{N!}}\sum_{\sigma\in S_N} (-1)^{|\sigma|}\bigotimes_{n=1}^N |\psi_{\sigma(n)}\rangle
+	\end{equation}
+	
+	and therefore the energy can be written as:
+	
+	\begin{equation}
+		\langle\Psi|\hat{H}|\Psi\rangle = \sum_{i=1}^N\langle\psi_i|\hat{h}_i|\psi_i\rangle + \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\psi_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\psi_{\sigma(n)}\rangle
+	\end{equation}
+	
+	Now define the Lagrangian multiplier;
+	
+	\begin{equation}
+		\mathcal{L}\left( \{\psi_i\},\lambda \right) \equiv \langle\Psi|\hat{H}|\Psi\rangle - \sum_{i,j=1}^N \lambda_{ji}\left[ \langle\psi_i|\psi_j\rangle - \delta_{ij} \right]
+	\end{equation}
+	
+	where $\{\psi_i\} = \{\psi_1,\psi_2,\ldots,\psi_N\}$. If we perturb state $\psi_k$ a little bit in the direction of a state $\eta$, i.e.
+	
+	\begin{equation}
+		|\psi_k\rangle \:\mapsto\: |\psi_k + \delta\psi_k\rangle \quad,\quad \delta\psi_k = \epsilon\eta,
+	\end{equation}
+	
+	and for shortness write $f(\epsilon) = \mathcal{L}\left( \{\psi_i\},\lambda \right)$ where $\{\psi_i\} = \{\psi_1,\psi_2,\ldots,\psi_k+\delta\psi_k,\ldots,\psi_N\}$. By the theory of the method used, we must have $\left.\frac{\partial f}{\partial\epsilon}\right|_{\epsilon=0} = f'(0) = 0$. Taking the derivative and letting $\epsilon=0$, we end up with:
+	
+	\begin{align}
+		\begin{split}
+		0 = f'(0) =  \langle\eta|\hat{h}_k|\psi_k\rangle + \langle\psi_k|\hat{h}_k|\eta\rangle &+ \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\widetilde{\psi}_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\psi_{\sigma(n)}\rangle\\
+		&+ \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\psi_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\widetilde{\psi}_{\sigma(n)}\rangle\\
+		&- \sum_{i=1}^N \lambda_{ik}\langle\eta|\psi_i\rangle - \lambda_{ki}\langle\psi_i|\eta\rangle
+		\end{split}
+	\end{align}
+	
+	where $\{\widetilde{\psi}_i\} = \left\{\psi_1,\psi_2,\ldots,\psi_{k-1},\eta,\psi_{k+1},\ldots,\psi_N\right\}$.\\
+	However, $\eta$ is an arbitrary state, and we may equally well choose $i\eta$ as the perturbation, in which case we'll have (note the multiplication by $-i$ to get rid of the imaginary numbers):
+	
+	\begin{align}
+		\begin{split}
+			0 = -if'(0) =  -\langle\eta|\hat{h}_k|\psi_k\rangle + \langle\psi_k|\hat{h}_k|\eta\rangle &- \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\widetilde{\psi}_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\psi_{\sigma(n)}\rangle\\
+			&+ \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\psi_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\widetilde{\psi}_{\sigma(n)}\rangle\\
+			&+ \sum_{i=1}^N \lambda_{ik}\langle\eta|\psi_i\rangle - \lambda_{ki}\langle\psi_i|\eta\rangle
+		\end{split}
+	\end{align}
+	
+	Subtracting the second from the first of the equations above results in:
+	
+	\begin{equation}
+		\left\{0 = \langle\eta|\hat{h}_k|\psi_k\rangle + \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\widetilde{\psi}_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\psi_{\sigma(n)}\rangle
+		- \sum_{i=1}^N \lambda_{ik}\langle\eta|\psi_i\rangle\right\} \quad \forall\:\eta\in\mathcal{H}
+	\end{equation}
+	
+	This equation do not tell us very much. We wanted to find a basis that minimizes the variational principle, which means finding a basis $\{\psi_i\}$ that fulfils the above. Doing so is quite difficult considering we don't even know $\lambda$. Firstly, $\lambda$ is a hermitian matrix, meaning we can always express it as $\lambda = UDU^\dagger$, where $U$ is some unitary matrix and $D$ is a diagonal matrix of eigenvalues of $\lambda$ (denoted $\epsilon_i$). In index form, we may write:
+	
+	\begin{equation}
+		\lambda_{ji} = \sum_l U_{jl}\epsilon_lU_{il}^*
+	\end{equation}
+	
+	Since inner-products in $L^2$ are invariant under a unitary transformation, we may transform $\left\{\psi_i\right\} \:\mapsto\: \{\psi_i'\} = U'\left\{\psi_i\right\}$ for some unitary operator $U'$. This means each basis state is transformed to $|\psi'_i\rangle = |\psi_i\rangle U'_{ij}$. If we now let $U'=U$, equation SOMETHIN' may be written in terms of this transformed basis:
+	
+	\begin{equation}
+		0 = \langle\eta'|\hat{h}_k|\psi_k'\rangle + \frac{1}{N!}\sum_{\sigma,\sigma'\in S_N} (-1)^{|\sigma|+|\sigma'|}\bigotimes_{n'=1}^N \langle\widetilde{\psi}'_{\sigma'(n')}|\hat{V}\bigotimes_{n=1}^N |\psi'_{\sigma(n)}\rangle
+		- \sum_{i=1}^N \epsilon_i\langle\eta'|\psi'_i\rangle
+	\end{equation}
+	
+	These equations (one for each $k$) are the famous Hartree-Fock equations. They provide a simpler requirement which the true single-particle basis has to satisfy. 
+	In other words, if we find a basis fulfilling equation SUMTHING, we'll have found an extrema of equation Variational, which turns out, more often than not, to be the minima we seek.\\
+	
+	If we worked with an infinite single-particle basis, spanning all of $\mathcal{H}$, then solving the equation above would be the end of our troubles. However, with real life being what it is, there exists generally no computer or human capable of solving for such a basis. While we can let a computer solve the Hartree-Fock equations near-perfectly for a finite basis\footnote{Although in our case we already have a Hartree-Fock basism, but more one that later.}, we still won't have a perfect solution, simply because we haven't modelled the problem correctly. Luckily, there exists a number of so-called post-Hartree-Fock methods, where further numerical exercises will let us calculate the ground state with better accuracy.
+	
+	\subsection{The two- \& three-body case}
+	Above we considered the general case $\hat{V} = \hat{V}_2 + \hat{V}_3 + \ldots + \hat{V}_N$. Often we only consider the two-body case, since it is still a very good approximation. For example, we know that quantum electrodynamics only allows a interaction terms between a fermion, anti-fermion, and photon field, and that the electromagnetic coupling coefficient is $\alpha_{EM} \simeq \frac{1}{137}$. This means that, in order for three fermions (electrons) to interact, we need \emph{at least} 10 interaction vertices, which occurs $\emph{a lot}$ smaller probability than the two.body case. So while the two-body electromagnetic interaction is not a perfect approximation, other errors in the many-body methods will quickly outweigh errors in the approximation.\\
+	The two-body potential approximation does, however, hit a bump or two when it encounters the nuclear force. The nuclear force is known for its imperturbability, which means vertex coefficients do not  
+	Therefore, it would be nicer to write the explicit form of the Hartree-Fock equations for two-body potentials, i.e. $\hat{V} = \hat{V}_2$. The potential can generally be written in terms of annihilation/creation operators:
+	
+	\begin{equation}
+		\hat{V}_2 = \frac{1}{4}\sum_{ijkl}\langle\phi_k\phi_l|\hat{w}_2|\phi_i\phi_j\rangle_{AS} \hat{a}_l^\dagger\hat{a}_k^\dagger\hat{a}_j\hat{a}_i
+	\end{equation}
+	
+	All other potentials have a very similar structure, take for example $\hat{V}_3$:
+	
+	\begin{equation}
+		\hat{V}_3 = \frac{1}{36}\sum_{ijklmn}\langle\phi_n\phi_m\phi_l|\hat{w}_3|\phi_k\phi_j\phi_i\rangle_{AS} \hat{a}_n^\dagger\hat{a}_m^\dagger\hat{a}_l^\dagger\hat{a}_k \hat{a}_j\hat{a}_i
+	\end{equation}
+	
+	The energy of such a system is:
+	
+	\begin{align}
+		\begin{split}
+		\langle\Psi|\hat{H}|\Psi\rangle = \sum_{i=1}^N \langle\psi_i|\hat{h}_i|\psi_i\rangle &+ \frac{1}{2}\sum_{i,j=1}^N \left[\langle\psi_i\psi_j|\hat{w}_2|\psi_i\psi_j\rangle - \langle\psi_i\psi_j|\hat{w}_2|\psi_j\psi_i\rangle\right]\\
+		&+ \frac{1}{12}\sum_{i,j,l=1}^N \Big[\langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_i\psi_j\psi_l\rangle - \langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_i\psi_l\psi_j\rangle\\
+		&\hspace{1.45cm} - \langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_j\psi_i\psi_l\rangle - \langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_l\psi_j\psi_i\rangle\\
+		&\hspace{1.44cm} + \langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_l\psi_i\psi_j\rangle + \langle\psi_i\psi_j\psi_l|\hat{w}_3|\psi_j\psi_l\psi_i\rangle\Big]
+		\end{split}
+	\end{align}
+	
+	\section{Post Hartree-Fock methods}
+	As mentioned, the Hartree-Fock method will solve any problem as long as you may work with an infinite one-particle basis. Having truncated the basis size, it will only give an estimate. To further improve upon the ground state energy, we may use some of the uninventively named post Hartree-Fock methods. These methods usually improve upon the energy by inducing correlations between particle states, described by some amplitudes. The three main methods are configuration interaction, coupled cluster theory, and many-body perturbation theory. Below we give a short review of each method, and refer the reader to Shavitt and Bartlett for intermediate steps.
+	
+	\subsection{Many-body perturbation theory}
+	Having covered formal perturbation theory (RSPT), it is not too tricky to move on the many-body scenario. In fact, everything shown so far is still perfectly valid, we only want to make one simplification. Obviously, calculating inner products becomes trickier, since we would expect that introducing $N$ particles gives $N^2$ terms (see som previous potential equation) for the two-body interactions. First, we may split the Hamiltonian into two parts:
+	
+	\begin{equation}
+		\hat{H} = \hat{K} + \hat{L}
+	\end{equation}
+	
+	where we define
+	
+	\begin{align}
+		\hat{K} &= \sum_p \kappa_p c_p^\dagger c_p\\
+		\hat{L} &=  \sum_{pq} \langle\phi_p|\hat{\ell}^{(1)}|\phi_q\rangle c_p^\dagger c_q + \frac{1}{4}\sum_{pqrs} \langle\phi_p\phi_q|\hat{\ell}^{(2)}|\phi_r\phi_s\rangle_{AS} c_p^\dagger c_q^\dagger c_s c_r\:,
+	\end{align}
+	
+	and $\hat{\ell}^{(1)}$ and $\hat{\ell}^{(2)}$ are one- and two-body operators, respectively. Thus, we have separated the Hamiltonian into a one-body part $\hat{K}$ which we have already solved\footnote{It may be $\hat{H}_0$ or $\hat{F}$, and $\kappa_p$ is the $p$'th eigenvalue.} for, and a one- and/or two-body part $\hat{L}$ which we yet have not solved for.\\
+	
+	So far, the formalism we've already developed is identical, as long as we set $\hat{H}_0=\hat{K}$, and $\hat{V}=\hat{L}$, but doing so means we let Slater determinants be our new basis\footnote{We may then think of each basis element as a "direction" in all Hilbert spaces making up our Fock space.}. Therefore, the projection operators take on the new form
+	
+	\begin{align}
+		\hat{P} &\equiv |\Phi_0\rangle\langle\Phi_0| \\
+		\hat{Q} &\equiv \sum_{X\neq0} |\Phi_X\rangle\langle\Phi_X|
+	\end{align}
+	
+	where $X$ takes on all possible excitations of $\Phi_0$.
+	However, as mentioned, we will get ridiculously many terms if we do not do any further simplification.
+	
+	Fortunately, there exists a theorem called the \emph{Slater-Condon rules}, and it states the following:
+	
+	\begin{align}
+		\langle\Phi_i^a|\hat{L}^{(1)}|\Phi\rangle &= \langle\phi_a|\hat{\ell}^{(1)}|\phi_i\rangle \\
+		\langle\Phi_i^a|\hat{L}^{(2)}|\Phi\rangle &= \sum_{j}\langle\phi_j\phi_a|\hat{\ell}^{(2)}|\phi_j\phi_i\rangle_{AS} \\
+		\langle\Phi_{ij}^{ab}|\hat{L}^{(2)}|\Phi\rangle &= \langle\phi_a\phi_b|\hat{\ell}^{(2)}|\phi_i\phi_j\rangle_{AS} \\
+		\langle\Phi_X|\hat{L}^{(2)}|\Phi\rangle = 0
+	\end{align}
+	
+	where $X$ stands for all triple excitations and higher. If we now calculate $E^{(1)}$ from earlier, we find:
+	
+	\begin{equation}
+		E^{(1)} = \langle\Phi_0|\hat{V}|\Phi_0\rangle = \langle\Phi_0|\hat{L}|\Phi_0\rangle = \sum_{i}\langle\phi_i|\hat{\ell}^{(1)}|\phi_i\rangle_{AS} + \sum_{ij}\langle\phi_i\phi_j|\hat{\ell}^{(2)}|\phi_i\phi_j\rangle_{AS}
+	\end{equation}
+	
+	Further on we find:
+	
+	\begin{align}
+		E^{(2)} = \langle\Phi_0|\hat{V}\hat{R}_0\hat{V}|\Phi_0\rangle &= \langle\Phi_0|\hat{L}\hat{R}_0\hat{L}|\Phi_0\rangle \\
+		&= \sum_{X}\frac{|\langle\Phi_X|\hat{L}|\Phi_0\rangle|^2}{\Delta E} \\
+		&= \sum_{ia}\frac{|\langle\Phi_i^a|\hat{L}^{(2)}|\Phi_0\rangle|^2}{h_i-h_a} + \frac{1}{2}\sum_{ijab}\frac{|\langle\Phi_{ij}^{ab}|\hat{L}^{(2)}|\Phi_0\rangle|^2}{h_i+h_j-h_a-h_b}
+	\end{align}
+	
+	\subsection{M\o ller-Plesset perturbation theory}
+	Many-body perturbation theory is not really a post Hartree-Fock method unless we choose to work with a Hartree-Fock basis, in which case we'd change the one-body operator $\hat{K}$ to the Fock operator $\hat{F}$, and let $\hat{U}$ be the two-body part ($\hat{L}$). From earlier, we know the Fock operator can be expressed as:
+	
+	\begin{equation}
+		\hat{F} = \hat{H}_0 + \hat{V}_{HF} = \sum_{pq}\left(h_q^p + \sum_i w_{qi}^{pi}\right)c_p^\dagger c_q
+	\end{equation}
+	
+	and the two-body operator
+	
+	\begin{equation}
+		\hat{U} = \hat{W} - \hat{V}_{HF} = \sum_{pqrs}w_{rs}^{pq} c_p^\dagger c_q^\dagger c_s c_r - \sum_{pqi}w_{qi}^{pi}c_p^\dagger c_q
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+		\hat{V}_{HF} = \hat{V}^{\text{direct}} - \hat{V}^{\text{exchange}} = \sum_{pqi}w_{qi}^{pi}c_p^\dagger c_q
+	\end{equation}
+	
+	
+	
+	\subsection{Configuration interaction}
+	Configuration interaction is based on the principle that any Hilbert, or Fock, state is a linear combination of basis states. With a small proof, we can show that any Slater determinant can be written as:
+	
+	\begin{equation}
+	|\Psi\rangle = A_0|\Phi\rangle + A_1|\Phi_i^a\rangle + A_2|\Phi_{ij}^{ab}\rangle + \ldots = \sum_I A_I|\Phi_I\rangle ,\quad A_I = \langle\Phi_I|\Psi\rangle
+	\end{equation}
+	
+	If we now calculate the Hamiltonian matrix and diagonalize it, we'll have the Hamiltonians eigenvalues along the diagonal. I.e. diagonalize the matrix:
+	
+	\begin{equation}
+	H = \begin{pmatrix}
+	\langle\Phi|\hat{H}|\Phi\rangle & \langle\Phi|\hat{H}|\Phi_i^a\rangle & \langle\Phi|\hat{H}|\Phi_{ij}^{ab}\rangle & \ldots\\
+	\langle\Phi_i^a|\hat{H}|\Phi\rangle & \langle\Phi_i^a|\hat{H}|\Phi_i^a\rangle & \langle\Phi_i^a|\hat{H}|\Phi_{ij}^{ab}\rangle & \ldots\\
+	\langle\Phi_{ij}^{ab}|\hat{H}|\Phi\rangle & \langle\Phi_{ij}^{ab}|\hat{H}|\Phi_i^a\rangle & \langle\Phi_{ij}^{ab}|\hat{H}|\Phi_{ij}^{ab}\rangle & \ldots & \quad\\
+	\vdots & \vdots & \vdots & \ddots\\
+	\\
+	\end{pmatrix}
+	\end{equation}
+	
+	If we chose to consider the infinite basis expansion, called the full configuration interaction (FCI), and managed to diagonalize it, we would have the exact eigenstates to any system.
+	
+	\subsection{Coupled-cluster theory}
+	
+	\section{Size-consistency and size-extensivity}
+	For any physical system $S$, we would expect that if we have $S$ divided into two subsystems, $A$ and $B$, that do not interact in any way, then the total system energy would be the sum of energies of the subsystems, i.e.
+	
+	\begin{equation}
+		E(S) = E(A) + E(B)
+	\end{equation}
+	
+	where members of $A$ to not depend on members of $B$, and vice versa. A more physical way to visualize this, is by saying the summed energy of $A$ and $B$ should equal the energy of system $AB$ but with a big separation between the two systems, like two bubbles of gas separated by empty space. In many cases, we find this property to be fulfilled. Unfortunately, not in truncated CI.\\
+	
+	Closely related, size-extensivity means that adding more particles to a system means the energy scales accordingly. I.e. if we assume non-interacting particles, the energy should increase by adding additional single-particle energies. Some many-body methods are not size-extensive.
+	
+	\section{The homogeneous electron gas}
+	Infinite nuclear matter is quite similar to the homogeneous electron gas (HEG), in the sense that they are both infinite, fermionic systems. This means they share the same plane-wave basis, and that a study into nuclear matter can easily be developed alongside a study of HEG. Let us briefly review a model for the gas, such that we may later compare to the nuclear case.\\
+	
+	
+	\subsection{Ewald interaction}
+	The two-body electromagnetic interaction is approximated by the Coulomb interaction,
+	
+	\begin{equation}
+		\hat{V}(\bm{r}) = -\frac{e}{|\bm{r_{12}}|^2},
+	\end{equation}
+	
+	where $\bm{r}_{12} = \bm{r}_1 - \bm{r}_2$ is the distance between particle 1 and 2.
+	
+	\subsection{Bloch's theorem}
+	Bloch's theorem shows that if an operator has a translational symmetry, then along the axis of this symmetry, the eigenstate of the operator will be of the form:
+	
+	\begin{equation}
+		\psi(\bm{r}) = e^{i\bm{k}\cdot\bm{r}}u(\bm{r})
+	\end{equation}
+	
+	where $u(\bm{r})$ is a function with the same periodicity as the operator.\\
+	
+	The proof is quite simple. Let $\hat{T}_{\bm{n}}$ be a translational operator that shifts the position of a state by
+	
+	$$
+	\Delta \bm{r} \equiv n_1a_1\bm{e}_1 + n_2a_2\bm{e}_2 + n_3a_3\bm{e}_3 + \ldots = \sum_in_ia_i\bm{e}_i\:,
+	$$
+	
+	where $\bm{e}_i$ form a basis of $\mathbb{R}^m$, such that
+	
+	\begin{equation}
+		\hat{T}_{\bm{n}}\psi(\bm{r}) = \psi(\bm{r}+\Delta \bm{r})
+	\end{equation}
+	
+	If we assume $\psi(\bm{r})$ to be an eigenstate\footnote{Since a Hamiltonian is independent of coordinate representation, we have $[\hat{T},\hat{H}] = 0$. Commuting operators have the same eigenstates.} of $\hat{T}_{\bm{n}}$, we have the relation:
+	
+	\begin{equation}
+		\hat{T}_{\bm{n}}\psi(\bm{r}) = C_{\bm{n}}\psi(\bm{r}+\Delta\bm{r})
+	\end{equation}
+	
+	As inner products in Hilbert space are invariant under the $U(1)$ group (a complex phase), we have the identity:
+	
+	\begin{equation}
+		C_{\bm{n}} = \prod_{j=1}^me^{2\pi i\theta_j}
+	\end{equation}
+	
+	where $\theta_j$ are arbitrary constants due to invariance. As such, we may choose to define them through the relation $\bm{k} = \sum_i \theta_i\bm{b}_i$, where $\bm{b}_i$ are the basis elements for momentum space. We may define the function:
+	
+	\begin{equation}
+		u(\bm{r}) = e^{-i\bm{k}\cdot\bm{r}}\psi(\bm{r})
+	\end{equation}
+	
+	By acting on $u(\bm{r})$ with $hat{T}_{\bm{n}}$, we can show:
+	
+	\begin{align}
+		\begin{split}
+			\hat{T}_{\bm{n}}u(\bm{r}) = u(\bm{r} + \Delta\bm{r}) &= e^{-i\bm{k}\cdot(\bm{r}+\Delta\bm{r})}\psi(\bm{r}+\Delta\bm{r})\\
+			&= e^{-i\bm{k}\cdot\bm{r}}e^{-i\bm{k}\cdot\Delta\bm{r}}\prod_{j=1}^me^{2\pi i\theta_j}\psi(\bm{r})\\
+			&= e^{-i\bm{k}\cdot\bm{r}}\prod_{j=1}^me^{2\pi i\theta_j}\prod_{j=1}^me^{2\pi i\theta_j}\psi(\bm{r})\\
+			&= u(\bm{r})
+		\end{split}
+	\end{align}
+	
+	So $u(\bm{r})$ has the same periodicity as the operator, and we have proved the Bloch wavefunction.\\
+	
+	For this work, we will restrict particle movement to cubes of size $\mathcal{L}^3$, which is reasonable from the Pauli principle, and thus use the quantum mechanical box potential
+	
+	\begin{equation}
+		\hat{V} = \begin{cases}
+		&0 \quad\text{if}\quad 0<x,y,z<L \\
+		&V \quad\text{otherwise}
+		\end{cases}
+	\end{equation}
+	
+	
+	
+	\newpage
+	\chapter{Coupled Cluster Theory}
+	Coupled-cluster (CC) theory was developed by Fritz Coester and Hermann K\"ummel in the late 1950s (reference needed), although the potential of the model was truly realised by Ji\v{r}i \v{C}\'{i}\v{z}ek in his 1966 paper (reference needed). A non-perturbation theory \\
+	
+	Coupled-cluster theory has been named the "golden standard" in theoretical chemistry, due to the high accuracy with relatively low computational cost.\\
+	
+	Coupled-cluster theory can be reviewed in great depth, but there already exists excellent literature covering the entire field, such as Shavitt and Bartlett. Therefore, this chapter will mainly cover that which is deemed necessary at a basic level to understand and apply the method. It will mainly follow the trail of thought presented in Shavitt and Bartlett. Interesting notes and comments will be made whenever it is possible without lengthy mathematical proofs.
+	
+	
+	\section{The exponential ansatz}
+	An arbitrary state can expressed as a linear combination of Slater determinants
+	
+	\begin{equation}
+		|\Psi\rangle = |\Phi\rangle + \sum_{\alpha=N+1}^\infty\sum_{i=1}^Nc_i^\alpha|\Phi_i^\alpha\rangle + \frac{1}{4}\sum_{\alpha,\beta=N+1}^\infty\sum_{i,j=1}^Nc_{ij}^{\alpha\beta}|\Phi_{ij}^{\alpha\beta}\rangle +\ldots
+		\label{EQ 3.1 general WF}
+	\end{equation}
+	
+	where $c_{ijk\ldots}^{\alpha\beta\gamma\ldots}$ are the linear coefficients of each base state. This means all states can be expressed from the Hartree-Fock solution. The linear combination can be rewritten by the use of orbital cluster operators:
+	
+	\begin{align}
+		\hat{T}_1 &\equiv \sum_{\alpha=N+1}^\infty\sum_{i=1}^Nt_i^\alpha a_ \alpha^\dagger a_i\\
+		\hat{T}_2 &\equiv \frac{1}{2!}\sum_{\alpha,\beta=N+1}^\infty\frac{1}{2!}\sum_{i,j=1}^Nt_{ij}^{\alpha\beta} a_\alpha^\dagger a_\beta^\dagger a_ ia_j\\
+		\hat{T}_3 &\equiv \frac{1}{3!}\sum_{\alpha,\beta,\gamma=N+1}^\infty\frac{1}{3!}\sum_{i,j,k=1}^Nt_{ijk}^{\alpha\beta\gamma} a_\alpha^\dagger a_\beta^\dagger a_\gamma^\dagger a_ia_ja_k\\
+		&\quad\quad\quad\quad\quad\vdots
+	\end{align}
+	
+	In general we define $\hat{T}_n$:
+	
+	\begin{equation}
+		\hat{T}_n \equiv \left(\frac{1}{n!}\right)^2\sum_{\alpha,\beta,\ldots=N+1}^\infty\sum_{i,j,\ldots=1}^N t_{ij\ldots}^{\alpha\beta\ldots} a_\alpha^\dagger a_\beta^\dagger \ldots a_ ia_j\ldots
+	\end{equation}
+	
+	We can only annihilate as many fermions, say $N$, from the reference state $|\Phi\rangle$ as are present in the system. Since $\hat{T}_{N+1}$ annihilates $N+1$ states from $|\Phi\rangle$, leaving zero as the result of annihilating the vacuum, our series ends with $\hat{T}_N$. With these operators, equation \ref{EQ 3.1 general WF} can be rewritten as
+	
+	\begin{align}
+		\begin{split}
+		|\Psi\rangle = \Big(\mathds{1} &+ \hat{T}_1 + \frac{1}{2!}\hat{T}_1^2 + \frac{1}{3!}\hat{T}_1^3 + \ldots + \frac{1}{N!}\hat{T}_1^N\\
+		&+ \hat{T}_2 + \frac{1}{2}\hat{T}_2^2 + \frac{1}{3!}\hat{T}_2^3 + \ldots + \frac{1}{(N/2)!}\hat{T}_2^{N/2}\\
+		&+ \ldots + \hat{T}_N \\
+		&+ \hat{T}_2\hat{T}_1 + \frac{1}{2!}\hat{T}_2\hat{T}_1^2 + \ldots\Big)|\Phi\rangle
+		\end{split}
+	\end{align}
+	
+	Notice that we now need to find the coefficients $t_i^a$, $t_{ij}^{ab}$, $\ldots$, rather than $c_i^a$, $c_{ij}^{ab}$, $\ldots$, and that this is the main problem of the CC method. It is customary to call the $t$-coefficients for \emph{amplitudes}. If we now define a new operator $\hat{T} \equiv \hat{T}_1 + \hat{T}_2 + \hat{T}_3 + \ldots + \hat{T}_N$, then the series above may be rewritten:
+	
+	\begin{align}
+		\begin{split}
+		|\Psi\rangle &= \left(\sum_{n=0}^\infty \frac{1}{n!}\hat{T}^n\right)|\Phi\rangle\\
+		&= e^{\hat{T}}|\Phi\rangle
+		\end{split}
+	\end{align}
+	
+	where $\hat{T}$ is called the \emph{cluster operator}. An $N$ fermion system is fully represented by $\hat{T}|\Phi\rangle$, where $\hat{T} = \mathds{1} + \hat{T}_1 +\ldots+\hat{T}_N$.\\
+	
+	There is a very fortuitous advantage to the exponential Ansatz, which is that size-consistency follows naturally from it. As discussed the previous chapter, size-consistency requires that the total energy of two non-interacting systems $A$ and $B$, is
+	
+	\begin{equation}
+		E(A+B) = E(A) + E(B)
+	\end{equation}
+	
+	If the two systems are non-interacting, then the ground state ought to be separable:
+	
+	\begin{equation}
+		\Phi_0(AB) = \Phi_0(A)\Phi_0(B)
+	\end{equation}
+	
+	Furthermore, if the cluster operator is additive,
+	
+	\begin{equation}
+		\hat{T}(AB) = \hat{T}(A) + \hat{T}(B)\:,
+	\end{equation}
+	
+	then we can derive for the full wavefunction:
+	
+	\begin{align}
+		\begin{split}
+			\Psi(AB) &= e^{\hat{T}(AB)}\Phi_0(AB) \\
+			&= e^{\hat{T}(A)}e^{\hat{T}(B)}\Phi_0(A)\Phi_0(B) \\
+			&= e^{\hat{T}(A)}\Phi_0(A)e^{\hat{T}(B)}\Phi_0(B) \\
+			&= \Psi(A)\Psi(B) 
+		\end{split}
+	\end{align}
+	
+	As we see, even the wavefunctions for the systems are independent. Last, we explicitly check size-consistency;
+	
+	\begin{align}
+		\begin{split}
+			\hat{H}(AB)\Psi(AB) &= \left[ \hat{H}(A) + \hat{H}(B) \right]\Psi(A)\Psi(B) \\
+			&= \left[ \hat{H}(A)\Psi(A)\right]\Psi(B) + \Psi(A)\left[\hat{H}(B)\Psi(B)\right] \\
+			&= \left[E(A) + E(B)\right]\Psi(AB)
+		\end{split}
+	\end{align}
+	
+	\section{The coupled cluster equations}
+	With the exponential ansatz at hand, we can, in theory, tackle any system, since if we introduce more interactions to our model, we simply add more cluster operators. However, the reason we don't\footnote{The same reason as to why the CC approach is not used in all many-body problems.} is because of the huge computational effort required for each new operator introduced. In fact, even the triples operators are so time consuming they are often omitted in computational studies, not to mention $n\geq 4$ operators.\\
+	The reason as to why the computational time increases so rapidly can be seen from the \emph{coupled-cluster equations}.\\
+	
+	The coupled-cluster equations are used to find the correlation amplitudes $t_{ij\ldots}^{\alpha\beta\ldots}$, which are needed to calculate the coupled-cluster energy $E_{CC}$. A possible starting point is then to start with:
+	
+	\begin{equation}
+		\overbar{H}|\Phi_0\rangle = E_{CC}|\Phi_0\rangle
+		\label{EQ 3.2 general energy equation}
+	\end{equation}
+	
+	where $\bar{H}$ is the similarity transform of the Hamiltonian operator, i.e.
+	
+	\begin{equation}
+		\overbar{H} = e^{-\hat{T}}\hat{H}_Ne^{\hat{T}}
+	\end{equation}
+	
+	
+	where
+	
+	\begin{equation}
+		\hat{H}_N = \hat{H} - \langle\Phi_0|\hat{H}|\Phi_0\rangle
+	\end{equation}
+	
+	is the system Hamiltonian but with the reference energy subtracted. If we now act from the left in equation \ref{EQ 3.2 general energy equation} with either $\langle\Phi_0|$ or $\langle\Phi^*| = \langle\Phi_{ij\ldots}^{\alpha\beta\ldots}|$, we get two results:
+	
+	\begin{align}
+	\langle\Phi_0|\overbar{H}|\Phi_0\rangle &= E_{CC}
+	\label{EQ 3.2 general CC equation for energy}\\
+	\langle\Phi^*|\overbar{H}|\Phi_0\rangle &= 0
+	\label{EQ 3.3 general CC equation for amplitudes}
+	\end{align}
+	
+	These are the CC equations. The CC amplitudes are unknown, so we need to solve the CC equations to find them, and then use the amplitudes to calculate $E_{CC}$, using equation \ref{EQ 3.2 general CC equation for energy}. The coupled cluster method therefore seems to consist of writing down all the CC equations (equation \ref{EQ 3.3 general CC equation for amplitudes}), solving them by finding the correct amplitudes, and finally using the amplitudes to calculate $E_{CC}$. Logically simple but practically difficult.\\
+	The big problem is finding the CC amplitudes. Since they are unknown, where do we start? It turns out we maybe solve them iteratively, by using the amplitudes at some iteration to find the amplitudes at the next. Therefore we need an equation for the iterative process.\\
+	
+	Before ending this section, we want to simplify the problem, and decide to rewrite $\overbar{H}$ using the Baker-Campbell-Hausdorff expansion [Shavitt and Bartlett, page 293] to get;
+	
+	\begin{equation}
+		\overbar{H} = \hat{H}_N + \left[ \hat{H}_N,\hat{T} \right] + \frac{1}{2!}\left[\left[ \hat{H}_N,\hat{T} \right],\hat{T}\right] + \frac{1}{3!}\left[\left[ \left[\hat{H}_N,\hat{T} \right],\hat{T}\right],\hat{T}\right] + \ldots\:,
+		\label{EQ 3.2 BCH expansion}
+	\end{equation}
+	
+	The generalized Wick's theorem states that contractions within a normal-ordered string give zero contribution in a product of normal-ordered strings, i.e:
+	
+	\begin{equation}
+		\{S_1\}\{S_2\}\{S_3\}\ldots = \{S_1S_2S_3\ldots\} + \sum_{\text{(1)}}\{\contraction[2pt]{}{S}{{}_1}{S}S_1S_2S_3\ldots\} + \sum_{\text{(2)}}\{\contraction[4pt]{S_1S_2}{S}{{}_3}{\ldots}\contraction[2pt]{}{S}{{}_1}{S}S_1S_2S_3\ldots\} + \ldots
+	\end{equation}
+	
+	where $S_i$ are strings of operators. Since both $\hat{H}_N$ and $\hat{T}$ are defined on normal-ordered form, we express all products in equation \ref{EQ 3.2 BCH expansion} using Wick's theorem. From the section on second quantization, we know the commutation relations of the creation and annihilation operators within $\hat{H}_N$ and $\hat{T}$, and that the only non-zero contractions are:
+	
+	\begin{align}
+		\contraction[2pt]{}{\hat{a}}{}{\hat{b}}\hat{a}\hat{b}^\dagger &= \delta_{ab}\\
+		\contraction[2pt]{}{\hat{i}}{{}^\dagger}{\hat{j}}\hat{i}^\dagger\hat{j} &= \delta_{ij}
+	\end{align}
+	
+	From these two identities, it is fairly simple to realize that all contractions between cluster operators are zero, and the same goes for all contractions between $\hat{H}_N$ and $\hat{T}$ where $\hat{T}$ is to the left of $\hat{H}_N$. The only remaining, non-zero terms are:
+	
+	\begin{align}
+		\begin{split}
+		\overbar{H} &= \hat{H}_N + \frac{1}{2} \contraction[2pt]{}{\hat{H}}{{}_N}{\hat{T}}\hat{H}_N\hat{T} + \frac{1}{3!}\contraction[2pt]{}{\hat{H}}{{}_N}{\hat{T}}
+		\contraction[2pt]{}{\hat{H}}{{}_N\hat{T}}{\hat{T}}\hat{H}_N\hat{T}\hat{T} + \ldots \\
+		&= \left(\hat{H}_Ne^{\hat{T}}\right)_C
+		\end{split}
+	\end{align}
+	
+	Here we have introduced the notation $(\ldots)_C$, where the subscript means the leftmost operator is contracted at least once with every operator to the right.\\
+	Now, the CC equations look as follows:
+	
+	\begin{align}
+	\langle\Phi_0|\left(\hat{H}_Ne^{\hat{T}}\right)_C|\Phi_0\rangle &= E_{CC}\\
+	\langle\Phi^*|\left(\hat{H}_Ne^{\hat{T}}\right)_C|\Phi_0\rangle &= 0
+	\end{align}
+	
+	We have greatly reduced the number to terms in comparison to the earlier CC equations.
+	
+	\section{Diagrammatic approach}
+	The easiest way to derive the CC amplitude equations is by use of \emph{Feynman-Goldstone diagrams}. This method is often called the diagrammatic approach, and is favourable because it is visually intuitive, reducing the possibility of algebraic mistakes, and because we automatically sum over equivalent terms in a single diagram. Those acquainted with basic Feynman diagrams and the reasoning behind them will recognise these qualities of the diagrammatic approach.
+	
+	\subsection{Diagram rules}
+	Like Feynman diagrams, CC diagrams (or Goldstone diagrams) follow a series of rules regarding lines, arrows, and vertices. 
+	
+	There are 10 rules (Shavitt and Bartlett, page 296, and Audun, page 60) regarding the interpretation of diagrams.
+	
+	\fbox{\parbox{\textwidth}{Rules for interpretation of diagrams:
+			\begin{enumerate}
+				\item \emph{Labelling}: Open lines are labelled as holes if they point downwards and as particles if they point upwards. These labels are the indices of the "bra" in equation \ref{EQ 3.3 general CC equation for amplitudes}.
+				
+				\item \emph{One-body prefactor}: A one-particle interaction gives a factor $f_{out,in}$.
+			
+				\item \emph{Two-body prefactor}: A two-particle interaction gives a factor $\langle\: \text{left-out} \: \text{right-out} \:||\: \text{left-in} \: \text{right-in} \:\rangle$.
+				
+				\item \emph{Amplitude prefactors}: A connection gives a factor $t_{ij\ldots}^{ab\ldots}$.
+				
+				\item \emph{Summation of indices}: All internal lines/labels are summed over.
+				
+				\item \emph{Equivalent internal lines}: Equivalent internal lines give a factor $\frac{1}{2}$. two internal lines are considered equivalent when they point in the same direction and connect the same two vertices.
+				
+				\item \emph{Equivalent $T$-vertices}: Equivalent $\hat{T}_m$ vertices give a factor $\frac{1}{2}$. Such vertices are considered equivalent if they have the same number of line pairs and connect in the same way to the interaction vertex.
+				
+				\item \emph{Phase factor}: Each diagram has a factor $(-1)^{h-l}$, where $h$ is the number of hole lines and $l$ is the number of loops. External lines are considered "looped", so for a bra $\langle \Phi_{ij}^{ab}|$ we would immediately add +2 to $l$, since $(i,a)$ and $(j,b)$ are considered to form "quasiloops".
+				
+				\item \emph{Permutation of external lines}: For a pair of external lines are connected to the same vertex, we consider them equivalent. We sum over all permutations of inequivalent external lines, with a prefactor $(-1)^{\sigma(P)}$ for each term.
+				
+				\item \emph{Factor cancellation}: We cancel a factor $\frac{1}{2}$ caused by equivalent $\hat{T}_m$-vertices for each pair of external lines connected to equivalent vertices.
+			\end{enumerate}}}
+	
+	\subsection{Sign labels, page 299 Shavitt and Bartlett}
+	A tool that lets us easily construct all possible Goldstone diagrams for some CC equation is using so-called \emph{sign labels}. A sign label is an assignment of signs (pluses or minuses) to a vertex diagram. We can then match different vertex diagrams such that the combined diagram has a certain excitation level. For example, if we want to draw all the diagrams included in the equation $\langle\Phi_{ij}^{ab}|\left(\hat{H}_Ne^{\hat
+		T}\right)|\Phi_0\rangle = 0$, then we need to include all diagrams where the excitation level is 2, since $\langle\Phi_{ij}^{ab}|$ has excitation level 2. We will explain more further on.\\
+	The convention is as follows. To each open hole line we assign a minus, and to each open particle line we assign a plus. Internal lines aren't assigned any sign, which we will symbolize by a zero. I.e. (illustration needed)\\
+	
+	A good example of the sign convention are the terms in the normal-product form of the Hamiltonian operator ($\hat{H}_N$). We know we can write $\hat{H}_N = \hat{F}_N + \hat{W}$, where we have:
+	
+	\begin{equation}
+		\hat{F}_N = \sum_{pq} f_{pq}\{\hat{p}^\dagger \hat{q}\} = \sum_{ab} f_{ab}\{\hat{a}^\dagger \hat{b}\} + \sum_{ij} f_{ij}\{\hat{i}^\dagger \hat{j}\} + \sum_{ai} f_{ai}\{\hat{a}^\dagger \hat{i}\} + \sum_{ia} f_{ia}\{\hat{i}^\dagger \hat{a}\}
+	\end{equation}
+	
+	as the one-body term, and
+	
+	\begin{align}
+		\begin{split}
+		\hat{W} = \frac{1}{2}\sum_{pqrs}\langle pq||rs\rangle \{\hat{p}^\dagger\hat{q}^\dagger\hat{r}\hat{s}\} = &\frac{1}{4}\sum_{abcd}\langle ab||cd\rangle \{\hat{a}^\dagger\hat{b}^\dagger\hat{d}\hat{c}\} + \frac{1}{4}\sum_{ijkl}\langle ij||kl\rangle \{\hat{i}^\dagger\hat{j}^\dagger\hat{k}\hat{l}\} + \sum_{ijab}\langle ai||bj\rangle \{\hat{a}^\dagger\hat{i}^\dagger\hat{j}\hat{b}\} \\
+		+&\frac{1}{2}\sum_{abci}\langle ab||ci\rangle \{\hat{a}^\dagger\hat{b}^\dagger\hat{i}\hat{c}\} + \frac{1}{2}\sum_{ijka}\langle ia||jk\rangle \{\hat{i}^\dagger\hat{a}^\dagger\hat{k}\hat{j}\} + \frac{1}{2}\sum_{abci}\langle ai||bc\rangle \{\hat{a}^\dagger\hat{i}^\dagger\hat{c}\hat{b}\} \\
+		+&\frac{1}{2}\sum_{ijka}\langle ij||ka\rangle \{\hat{i}^\dagger\hat{j}^\dagger\hat{a}\hat{k}\} + \frac{1}{4}\sum_{abij}\langle ab||ij\rangle \{\hat{a}^\dagger\hat{b}^\dagger\hat{j}\hat{i}\} + \frac{1}{4}\sum_{ijab}\langle ij||ab\rangle \{\hat{i}^\dagger\hat{j}^\dagger\hat{b}\hat{a}\}
+		\end{split}
+	\end{align}
+	
+	as the two-body term of the normal-ordered Hamiltonian. Perhaps not pretty, but certainly systematic. We're now curious as to how this looks in diagrammatic form. Recalling that annihilation operators remove states that are already present in $|\Phi\rangle$ (our reference Slater determinant), the annihilation operators symbolise states that are "inbound" to some interaction vertex, i.e. lines coming in from below. In the same manner, creation operator creates states, "outbound" states, meaning lines that move from the vertex and up. If we study equations 9.105 and 9.106 in Shavitt and Bartlett, shown below, it is easy to understand how the diagrams represent the algebraic terms.
+	
+	%\input{One_body_diagrams}
+	%\input{Two_body_diagrams}
+	
+	As we see, it's fairly easy to interpret the diagrams in this simple form. Consider now the signs of each diagram:
+	
+	%\input{Hamiltonian_signs}
+	
+	Since the CC equations consist of terms where the Hamiltonian is contracted with orbital cluster operators, we need to know how to construct the CC operators as diagrams. It is important to note that since there are always sums over the indices in the CC operators, we need not write arrows on the lines, only how many of each sign there is\footnote{If we really wanted to, we'd be free to write arrows. It's just not necessary.}. Below we show the first 3 cluster operator vertices.
+	
+	\begin{figure}[h]
+		\centering
+		$
+		\underset{+\quad-}{\bdiag
+		\dhscale{1.5}
+		\dTs{1}{t}
+		\dnoarrow
+		\dline{tv1}{t}
+		\dline{t}{tv2}
+		\ediag}
+		$
+		\hspace{2cm}
+		$
+		\underset{+\quad+\quad-\quad-}{\bdiag
+		\dhscale{1.5}
+		\dTs{2}{tt}
+		\dnoarrow
+		\dline{tt1v1}{tt1}
+		\dline{tt1}{tt1v2}
+		\dline{tt2v1}{tt2}
+		\dline{tt2}{tt2v2}
+		\ediag}
+		$
+		\hspace{2cm}
+		$
+		\underset{+\quad+\quad+\quad-\quad-\quad-}{\bdiag
+		\dhscale{1.5}
+		\dTs{3}{ttt}
+		\dnoarrow
+		\dline{ttt1v1}{ttt1}
+		\dline{ttt1}{ttt1v2}
+		\dline{ttt2v1}{ttt2}
+		\dline{ttt2}{ttt2v2}
+		\dline{ttt3v1}{ttt3}
+		\dline{ttt3}{ttt3v2}
+		\ediag}
+		$
+	\end{figure}
+	
+	We now have all we need to start constructing diagrams. As explained at the start of this section, we need to match vertex diagrams to form combined diagrams with a certain excitation level. All combined diagrams are then added to give all the terms of the same CC equation. The energy equation has excitation level zero, then the amplitude equations follow in ascending order of excitation.\\
+	An example on how we now proceed might be useful. Say we wish to construct the diagram that gives the term $\hat{H}_{N,8}\hat{T}_1\hat{T}_2$, where $\hat{H}_{N,8}$ is the 8th diagram in the above Hamiltonian diagrams. Below we show all distinct diagrams as well as their algebraic interpretations.
+	
+	\begin{figure}[h]
+		\centering
+		$\bdiag
+			\dmoveH{1}
+			\dT{1}{t}
+			\dWs{w1}{w2}
+			\dmoveT{1}
+			\dT{2}{tt}
+			\dcurcur{w1}{t}
+			\dcurcur{t}{w1}
+			\dline{tt1}{w2}
+			\dline[$\:a$]{w2}{w2v1}
+			\dline[$\:i$]{tt1v2}{tt1}
+			\dline[\raisebox{1cm}{$j$}]{tt2v1}{tt2}
+			\dline[$\:b$]{tt2}{tt2v2}
+			\ediag
+		$
+		\hspace{2cm}
+		$
+		\bdiag
+		\dmoveH{1.65}
+		\dT{1}{t}
+		\dWs{w1}{w2}
+		\dmoveT{0.8}
+		\dT{2}{tt}
+		\dline[\raisebox{1cm}{$i$}]{tv1}{t}
+		\dline{t}{w1}
+		\dline[$\:a$]{w1}{tv2}
+		\dcurcur{tt1}{w2}
+		\dcurcur{w2}{tt1}
+		\dline[\raisebox{1cm}{$j$}]{tt2v1}{tt2}
+		\dline[$\:b$]{tt2}{tt2v2}
+		\ediag
+		$
+		\hspace{2cm}
+		$
+		\bdiag
+		\dmoveH{0.6}
+		\dT{1}{t}
+		\dscaleop{1.55}
+		\dWs{w1}{w2}
+		\dscaleop{1}
+		\dmoveT{1}
+		\dT{2}{tt}
+		\dline[\raisebox{1cm}{$i$}]{tv1}{t}
+		\dline{t}{w1}
+		\dline[$\:a$]{w1}{tv2}
+		\dline[\raisebox{1cm}{$\:j$}]{tt1v1}{tt1}
+		\dline{tt1}{w2}
+		\dline{w2}{tt2}
+		\dline[$\:b$]{tt2}{tt2v2}
+		\ediag
+		$
+	\end{figure}
+	
+	Finally, there is also the diagram:
+	
+	\begin{figure}[h]
+		\centering
+		$
+		\bdiag
+		\dmoveH{6}
+		\dT{1}{t}
+		\dscaleop{0.9}
+		\dWs{w1}{w2}
+		\dscaleop{1}
+		\dmoveT{1}
+		\dT{2}{tt}
+		\dline[\raisebox{1cm}{$i$}]{tv1}{t}
+		\dline[$\:a$]{t}{tv2}
+		\dcurcur{tt1}{w1}
+		\dcurcur{w1}{tt1}
+		\dline[$\:j$]{tt2v2}{tt2}
+		\dline{tt2}{w2}
+		\dline[$\:b$]{w2}{tt2v1}
+		\ediag
+		$
+	\end{figure}
+	
+	There is, however, one last theorem we need in order to fully utilize the diagrammatic method. Up until now, we have not made any distinction between unlinked diagrams, where we multiply two separate diagrams to give us the desired excitation level, and linked diagrams, where all vertices are connected (or linked) in some way. Above, we have 3 linked diagrams and 1 unlinked. While this does not seem so bad, we'd find the number of diagrams increase dramatically if we always included all possible diagrams with excitation level 2. Fortunately, there is exists a theorem, named the \emph{linked-diagram theorem},  which states that only linked diagrams contribute to the wavefunction energy.
+	
+	\subsection{The linked-diagram theorem}
+	In his 1957 paper, Goldstone proved that unlinked diagrams do not contribute to the wavefunction energy.
+	
+	\subsubsection{Factorization theorem}
+	
+	\subsubsection{Proof of linked-diagram theorem}
+	
+	\section{Coupled-cluster models}
+	\subsection{A first example: coupled-cluster doubles (CCD)}
+	With the rules of constructing and interpreting the CC diagrams, we can start looking at various coupled-cluster models, starting with the so-called Coupled-Cluster doubles equations. If we set $\hat{T} = \hat{T}_2$, we choose to consider CCD. That is, we consider only double excitations in our CC operator. This means our amplitude equations are given by the addition of all possible linked diagrams with excitation level 2. In table \ref{CC | table | "CCD amp eq derivation"} below, we show all CCD amplitude diagrams together with their algebraic interpretation in such a manner that it easy to see which rule gives which factor. Note that rule 10 does not apply for any diagram here.
+	
+	\begin{table}[h]
+	\centering
+	\begin{tabular}{ccccccccccc}
+		Name & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 & \\ \hline
+		& $f_{k,i}$ &  & $t_{jk}^{ab}$ & $\sum_{k}$ &  &  & $(-1)^{2-2}$ & $P(ij)$ & &\\
+		& $f_{a,c}$ &  & $t_{ij}^{cb}$ & $\sum_{c}$ &  &  & $(-1)^{3-2}$ & $P(ab)$ & &\\
+		$L_a$ & & $\langle kl||ij \rangle$ & $t_{kl}^{ab}$ & $\sum_{kl}$ & $\frac{1}{2}$ &  & $(-1)^{2-2}$ &  & &\\
+		$L_b$ & & $\langle ab||cd \rangle$ & $t_{ij}^{cd}$ & $\sum_{cd}$ & $\frac{1}{2}$ &  & $(-1)^{2-2}$ &  & &\\
+		$L_c$ & & $\langle kb||ic \rangle$ & $t_{kj}^{ac}$ & $\sum_{ck}$ &  &  & $(-1)^{3-2}$ & $P(ab)P(ij)$ & &\\
+		$Q_a$ & & $\langle kl||cd \rangle$ & $t_{kl}^{ab}$ $t_{ji}^{dc}$ & $\sum_{klcd}$ & $\frac{1}{4}$ &  & $(-1)^{4-2}$ &  & &\\
+		$Q_b$ & & $\langle kl||cd \rangle$ & $t_{ki}^{ac}$ $t_{lj}^{bd}$ & $\sum_{klcd}$ &  & $\frac{1}{2}$ & $(-1)^{4-4}$ & $P(ab)P(ij)$ & &\\
+		$Q_c$ & & $\langle kl||cd \rangle$ & $t_{ki}^{cd}$ $t_{lj}^{bd}$ & $\sum_{klcd}$ & $\frac{1}{2}$ &  & $(-1)^{4-3}$ & $P(ij)$ & &\\
+		$Q_d$ & & $\langle kl||cd \rangle$ & $t_{lk}^{ac}$ $t_{ji}^{bd}$ & $\sum_{klcd}$ & $\frac{1}{2}$ &  & $(-1)^{4-3}$ & $P(ab)$ & & \\ \hline
+	\end{tabular}
+	\caption{All terms for the CCD amplitude equations.}
+	\label{CC | table | "CCD amp eq derivation"}
+	\end{table}
+	
+	By now adding all CCD amplitude terms, we arrive at\footnote{We must also add the lone Hamiltonian term, which is the first term seen here.}:
+	
+	\begin{align}
+		\begin{split}
+		\langle ab||ij\rangle &+ \hat{P}(ab)\sum_{c}f_{bc}t_{ij}^{ac} - \hat{P}(ij)\sum_{k}f_{kj}t_{kj}^{ab}\\
+		&+ \frac{1}{2}\sum_{cd}\langle ab||cd\rangle t_{ij}^{cd} + \frac{1}{2}\sum_{kl}\langle kl||ij\rangle t_{kl}^{ab} + \hat{P}(ij|ab)\sum_{kc}\langle kb||cj\rangle t_{ik}^{ac}\\
+		&+ \frac{1}{4}\sum_{klcd}\langle kl||cd\rangle t_{ij}^{cd}t_{kl}^{ab} + \hat{P}(ij)\sum_{klcd}\langle kl||cd\rangle t_{ik}^{ac}t_{jl}^{bd}\\
+		&- \frac{1}{2}\hat{P}(ij)\sum_{klcd}\langle kl||cd\rangle t_{ik}^{dc}t_{lj}^{ab} - \frac{1}{2}\hat{P}(ab)\sum_{klcd}\langle kl||cd\rangle t_{lk}^{ac}t_{ij}^{db}\\
+		&= 0
+		\end{split}
+	\end{align}
+	
+	As mentioned earlier, with a canonical Hartree-Fock basis, all off-diagonal elements of the Fock matrix ($f_{\alpha\beta}$) are zero, and only the self-energy terms remain, which we denote $\epsilon_i \equiv f_{ii} = h_i + \sum_{j}\langle ij||ij\rangle$. We may then rewrite the above equation as
+	
+	\begin{equation}
+		(\epsilon_i+\epsilon_j-\epsilon_a-\epsilon_b)t_{ij}^{ab} = \langle ab||ij\rangle + L(t) + Q(t)
+	\end{equation}
+	
+	or
+	
+	\begin{equation}
+		t_{ij}^{ab} = \frac{\langle ab||ij\rangle + L(t) + Q(t)}{\epsilon_i+\epsilon_j-\epsilon_a-\epsilon_b}
+		\label{EQ 3.4 CCD amplitudes equation}
+	\end{equation}
+	
+	where $L(t)$ is the sum over all the ladder diagrams ($L_a$ to $L_c$) and $Q(t)$ is the sum over all quadratic $\hat{T}_2$ terms ($Q_a$ to $Q_d$), each term already shown in table \ref{CC | table | "CCD amp eq derivation"}.\\
+	
+	We'll get back to why we wish to express the amplitudes as that shown in equation \ref{EQ 3.4 CCD amplitudes equation}.
+	
+	\subsection{Coupled-cluster singles and doubles (CCSD)}
+	Deriving the CCSD equations is not very difficult, but it requires much caution as we are very prone to mistakes. Therefore, we will only list them here. For a full derivation we will simply refer the reader to excellent derivations as presented in Shavitt and Bartlett, and Audun's msc. As we now have two different kinds of amplitudes, $t_i^a$ and $t_{ij}^{ab}$, we get two distinct sets of amplitude equations. We can further note that the amplitudes contribute to one another, which we already expected from the exponential ansatz and the contracted form the CC equations ($\langle\Phi^*|\{\hat{H}_Ne^{\hat{T}}\}_C|\Phi_0\rangle = 0$). The 
+	
+	\subsection{Coupled-cluster doubles and triples (CCDT)}
+	
+	\section{Convergence of iterative series}
+	
+	\newpage
+	\chapter{Effective Field Theory}
+	Quantum field theory and the standard model works wonders in describing the basic nature of our universe. We know from the previous chapters that the complexity of a system increases drastically with the introduction of more particles and many-body forces, but something not yet considered is how to deal with many-body systems \emph{within} many-body systems. Specifically, neutrons and protons are \emph{not} elementary particles. They are composite particles made up of three quarks, held together by the strong nuclear force. However, we want to describe a large-scale nuclear system, which is near impossible within the framework of QCD, owing to the limits of the computational power available today. This is where an \emph{effective field theory} can be used. An effective field theory is a model that preserves the symmetries of a more fundamental field theory, but uses assumptions for the momentum- or mass-scale to make truncations in various expansions. For example, if we want to model a low-energy system, we can expand our Lagrangian density in terms of $\frac{p^2}{M^2}$ (often written as $\Lambda$), and remove high order terms.\\
+	A common misconception concerning effective field theories is that we use a free Lagrangian with some heuristically or empirically motivated potential. This, funnily enough, is the exact opposite of what we actually do in making an effective Lagrangian. We make the \emph{most general} [reference to Weinberg, 1979] Lagrangian that exists, which still preserves the underlying symmetries, and then assume some scale $\Lambda$ in which to expand, allowing us to make truncations. In short, we use symmetry to find our potential rather than making clever guesses at one.\\
+	This approach to complicated systems was pioneered by Steven Weinberg, who, in 1979, wrote a paper generalizing the approach described above. The notation below will mostly follow in his example.\\
+	
+	\section{Renormalization in field theories}
+	
+	\subsection{Wilson's approach}
+	A simply and very intuitive way to look on renormalization was shown by Wilson, where he introduced the concept of \emph{renormalization flow}.\\
+	
+	Wilson's approach uses $\phi^4$-theory and functional method to show the nature of renormalization. As is usual, we introduce a momentum cut-off such that our momentum-space integrals do not diverge. Therefore, our partition function becomes:
+	
+	\begin{align}
+		\begin{split}
+		Z[\mathcal{J}] &= \int\mathcal{D}\phi e^{i\int\left[\mathcal{L} + \mathcal{J}\phi\right]} \\
+		&= \left( \prod_k\int d\phi(k) \right)e^{i\int\left[\mathcal{L} + \mathcal{J}\phi\right]}
+		\end{split}
+	\end{align}
+	
+	where
+	
+	\begin{equation}
+		\phi(k) = 0 \quad\forall |k|>\Lambda
+	\end{equation}'
+	
+	and $\Lambda$ is the momentum cut-off parameter. Performing a Wick rotation and setting $\mathcal{J} = 0$, we get:
+	
+	\begin{equation}
+		Z[\mathcal{J}=0] = \int\left[\mathcal{D}\phi\right]_\Lambda e^{i\int\left[ \frac{1}{2}\left(\partial_\mu\phi\right)^2 + \frac{1}{2}m^2\phi^2 + \frac{\lambda}{4!}\phi^4\right]}
+	\end{equation}
+	
+	where $\left[\mathcal{D}\phi\right]_\Lambda$ is the integral over $\phi(k)$ with respect to $\Lambda$.\\
+	We now choose to further reduce the momentum-space with a parameter $\{\beta\in[0,1]\}$ and assume we may separate our field as:
+	
+	\begin{equation}
+		\phi \mapsto \hat{\phi}\phi \quad\text{such that}\quad \hat{\phi} \begin{cases}
+		 \phi(k) \: &,\:k\in[\beta\Lambda,\Lambda) \\
+		 0 \: &,\:\text{otherwise}
+		\end{cases}
+	\end{equation}
+	
+	With this decomposition, the partition function becomes
+	
+	\begin{align}
+		\begin{split}
+			Z[\mathcal{J}=0] = &\int\mathcal{D}\phi \exp\left(i\int\mathcal{L}\right) \\
+			&\times\int\mathcal{D}\hat{\phi} \exp\left(i\int\left[ \frac{1}{2}\left(\partial_\mu\hat{\phi}\right)^2 + \frac{1}{2}m^2\hat{\phi}^2 + \lambda\left\{ \frac{1}{6}\phi^3\hat{\phi} + \frac{1}{4}\phi^2\hat{\phi}^2 + \frac{1}{6}\phi\hat{\phi}^3 + \frac{1}{4!}\hat{\phi}^4 \right\}\right]\right)
+		\end{split}
+	\end{align}
+	
+	Terms quadratic in $\phi\hat{\phi}$ are zero since Fourier components with different momentum are orthogonal. We would like to construct an effective Lagrangian that applies in the range given by $\beta$, i.e we want to prove
+	
+	\begin{equation}
+		Z[\mathcal{J}=0] = \int\left[\mathcal{D}\phi\right]_{\beta\Lambda} e^{-\int d^dx\mathcal{L}_{\text{eff}}(\phi)}
+	\end{equation}
+	
+	This we do by treating all terms proportional to $\lambda$ as perturbations, as well as the mass term (since we assume $m^2\ll\Lambda^2$). The leading order term is the kinetic term,
+	
+	\begin{equation}
+		\int\mathcal{L}_0 = \frac{1}{2}\int\frac{d^dk}{(2\pi)^d}\hat{\phi}^*k^2\phi\:,
+	\end{equation}
+	
+	which leads to the Green's function:
+	
+	\begin{equation}
+	\contraction[2pt]{}{\hat{\phi}}{(k)}{\phi}\hat{\phi}(k)\phi(p) = \frac{1}{k^2}(2\pi)^d\delta^{(d)}(k+p)\Theta(k)
+	\end{equation}
+	
+	where $\Theta(k)$ is the step function:
+	
+	\begin{equation}
+		\Theta(k) = \begin{cases}
+		1\:,&\:|k|\in[\beta\Lambda,\Lambda)\\
+		0\:,&\:\text{otherwise}
+		\end{cases}
+	\end{equation}
+	
+	Knowing this, we expand the exponential with the $\phi^2\hat{\phi}^2$-term:
+	
+	\begin{equation}
+		-\int d^dx \frac{\lambda}{4}\phi^2\contraction[2pt]{}{\hat{\phi}}{}{\hat{\phi}}\hat{\phi}\hat{\phi} = -\frac{1}{2}\int \frac{d^dk}{(2\pi)^d}\mu\phi(k)\phi(-k)
+		\label{EFT | eq | phi^2hatphi^2-term}
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+		\mu = \frac{\lambda}{2}\int_{|k|\in[\beta\Lambda,\Lambda)}\frac{d^dk}{(2\pi)^d}\frac{1}{k^2}\frac{\lambda}{(4\pi)^{d/2}\Gamma\left(\frac{d}{2}\right)}\frac{1-\beta^{d-2}}{d-2}\Lambda^{d-2}
+	\end{equation}
+	
+	is a function of $\beta$ and $\Lambda$. We see now, however, that equation \ref{EFT | eq | phi^2hatphi^2-term} could also come from expanding
+	
+	\begin{equation}
+		e^{-\int d^dx \left(\frac{1}{2}\mu\phi^2 + \ldots\right)}\:,
+	\end{equation}
+	
+	which means we consider $\mu$ to be an effective mass.\\
+	The Green's function $\contraction[2pt]{}{\hat{\phi}}{(k)}{\phi}\hat{\phi}(k)\phi(p)$ can be written as a Feynman propagator:
+	
+	Equation \ref{EFT | eq | phi^2hatphi^2-term} is a contribution to the scalar field propagator from high momentum fields ($\hat{\phi}$), which gave a contribution $\mu$ at order $\lambda$.
+	If we consider diagrams of second order ($\mathcal{O}(\lambda^2)$), we have two possibilities:
+	
+	
+	The first diagram is merely a scalar-field self-interaction, and contributes to $\mu$ as well, except at higher order. The second diagram gives
+	
+	\begin{equation}
+		-\frac{1}{4!}\int d^dx\zeta\phi^4
+	\end{equation}
+	
+	where
+	
+	\begin{align}
+		\begin{split}
+		\zeta &= -4! \frac{2}{2!}\left(\frac{\lambda}{4}\right)^2\int_{|k|\in[\beta\Lambda,\Lambda)}\frac{d^dk}{(2\pi)^d}\frac{1}{k^2} \\
+		&= \frac{-3\Lambda^2}{(2\pi)^{d/2}\Gamma\left(\frac{d}{2}\right)}\frac{1-\beta^{d-4}}{d-4}\Lambda^{d-4}\\
+		\underset{d\rightarrow4}{\longrightarrow}&\: \frac{-3\lambda^2}{16\pi^2}\ln\left(\frac{1}{\beta}\right)
+		\end{split}
+	\end{align}
+	
+	From this, we may interpret the ultraviolet divergence of the loop-diagram interaction as a contribution from all momentum scales ($\beta=(0\rightarrow1)$).\\
+	We know disconnected diagrams do not contribute to the physical parameters, so we may define an effective Lagrangian:
+	
+	\begin{equation}
+		\mathcal{L}_{\text{eff}} = \left(\partial_\mu\phi\right)^2 + \frac{1}{2}m^2\phi^2 + \frac{\lambda}{4!}\phi^4 + (\text{sum of all connected diagrams}) \quad,\:\text{where}\: |k|<\beta\Lambda
+	\end{equation}
+	
+	Thus, we may indeed write an effective Lagrangian as proposed above.\\
+	
+	\subsubsection{Rescaling}
+	Rather than work with functions of $\beta$, we wish to work in a scale-independent theory. If we choose to rescale length and momentum as
+	
+	\begin{equation}
+		k' \equiv \frac{k}{\beta} \hspace{2cm} x' \equiv \beta x
+	\end{equation}
+	
+	With the rescaling, we can quite easily show that if we also rescale the scalar field as
+	
+	\begin{equation}
+		\phi' \equiv \left[\beta^{2-d}(1+\Delta Z)\right]^{1/2}\phi
+	\end{equation}
+	
+	and the physical constants
+	
+	\begin{align}
+		\begin{split}
+			m'^2 &= \left(m^2 + \Delta m^2\right)(1+\Delta Z)^{-1}\beta^{-2} \\
+			\lambda'^2 &= \left(\lambda + \Delta \lambda\right)(1+\Delta Z)^{-2}\beta^{d-4} \\
+			&\vdots
+		\end{split}
+	\end{align}
+	
+	where the $\Delta$'s are small since they are diagram contributions, we get back the effective Lagrangian in the same form.\\
+	We may now choose another $\beta$ ($\beta'$), and again perform the rescaling. If we keep on doing such rescalings up until we reach $\Lambda$, we get a continuously varying effective Lagrangian. In other words, we get a Lagrangian that "flows" through some space of physical constants, or a "space of theories", if we're feeling poetic. The continuously generated transformations between Lagrangians is referred to as the \emph{renormalization group}.
+	
+	\subsection{Renormalization flow}
+	Let's focus on the renormalization flow previously mentioned.
+	
+	\subsection{Renormalized perturbation theory}
+	The approach by Wilson is wonderfully instructive in understanding renormalization, but, sadly, impossible to apply in practical problems. Therefore, we turn to a much more gritty, but far more powerful, method called renormalized perturbation theory. When learning basic quantum field theory, we always work with perturbation theory when using Feynman diagrams. For example, $\phi^4$-theory uses a small constant $\lambda$, such that we may ignore higher order terms. Similarly, QED has the electronmagnetic coupling constant $\alpha_e \simeq \frac{1}{137}$, which allows us to ignore higher order terms and still find physically measurable results. QCD is not so forgiving, since the strong coupling constant $g_s \simeq 1$ at low energies, making it impossible use perturbation theory.\\
+	
+	To those still new to renormalization, it then comes as a bit of a shock to learn that the perturbation theory they have learned so far, may be considered simply a certain limit of a renormalized perturbation theory. Furthermore, renormalized perturbation theory follows almost exactly the same rules as those for "normal" perturbation theory, except we know a bit more about the physical constants we use. We will briefly explain all of this below.
+	
+	\newpage
+	\chapter{Chiral Perturbation Theory}
+	With a better grasp of the EFT formalism, we can apply it to nuclear systems. Nuclear matter consists of, you guessed it, protons and neutrons. These particles are the constituents of our large-scale nuclear system, and QCD provides the detailed analysis of them and their interaction. Chiral perturbation theory provides an effective model derived from QCD.
+	
+	\section{Quantum chromodynamics and $SU(3)$}
+	Quantum chromodynamics (QCD for short) allows us to model the so-called strong nuclear force, named thus due it's role in the behaviour of nuclei and nuclear interactions. The participants of the theory are \emph{quarks} and \emph{gluons}, elementary particles in the standard model of particle physics. Quarks and gluons are special as they carry a so-called \emph{colour} charge, of which there are three; red, blue, and green\footnote{Its best to mention now that "colour" is simply a word, without any relation to the concept of colour as perceived in everyday life (the way we perceive photon frequencies). The colour charge is only used to distinguish between the possible quantum states for these particles.}. In short, quarks and gluons have another set of quantum numbers not available to the other elementary particles, and quantum chromodynamics model the interactions that take place in "colour space".
+	
+	\subsection{The Lagrangian density of QCD}
+	The degrees of freedom offered by the colour property means the irreducible representation of the special unitary group $SU(3)$ fits nicely, as it has three degrees of freedom as well.\\
+	
+	Deriving the QCD Lagrangian by the gauge principle is done as follows; starting with the free Lagrangian
+	
+	\begin{equation}
+	\mathcal{L}_{\text{free1}} = \sum_f \bar{q}_f\left(i\slashed \partial - m_f\right)q_f
+	\end{equation}
+	
+	where $q_f$ is a Dirac spinor for flavour type $f$, a $SU(3)$ field transformation is performed:
+	
+	\begin{equation}
+	q_f^\alpha \:\rightarrow\: U^\alpha_\beta q_f^\beta
+	\end{equation} 
+	
+	where $U = e^{-ig_s\frac{\lambda^a}{2}\theta_a}$ and $\lambda^a$ are the Gellmann matrices in the fundamental representation. As is standard, now locality is demanded: $\theta_a \:\rightarrow\: \theta_a(x)$. Of course, the problem now is that the Lagrangian is not invariant under such a transform, so a covariant derivative must be found.\\
+	In non-abelian gauge theory, for local invariance under some symmetry (Lie) group ($\psi \:\rightarrow\: V(x)\psi$), the unitary matrix $V(x)$ can be expanded infinitesimally about $x$:
+	
+	\begin{equation}
+	V(x) = 1 + i\alpha^i(x)t^a + \mathcal{O}(\alpha^2)
+	\end{equation}
+	
+	where $t^a$ are the generators of the group and $\alpha^i$ some rotation. From the definition of the covariant derivative along a vector $n^\mu$:
+	
+	\begin{equation}
+	n^\mu D_\mu\psi = \lim_{\epsilon\:\rightarrow\:0} \frac{1}{\epsilon}\left[\psi(x+\epsilon x) - U(x+\epsilon x,x)\psi(x)\right]
+	\label{Def_of_D}
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+	U(y,x) \:\rightarrow\: V(y)U(y,x)V^\dagger(x)
+	\end{equation}
+	
+	So by infinitesimal expansion, in the case of $SU(3)$ ($V(x) = e^{-ig_s\frac{\lambda^a}{2}\theta_a(x)}$):
+	
+	\begin{equation}
+	U(x+\epsilon, x) = 1 + ig_s\epsilon n^\mu G_\mu^a \lambda_a + \mathcal{O}(\epsilon^2)
+	\end{equation}
+	
+	Here $G_\mu^a$ are the gauge fields of $SU(3)$, later to be identified with the gluon fields. The absence of $\theta$, from $V$, is due to the details of the expansion. When inserting the above in equation \ref{Def_of_D} and taking the limit, it follows:
+	
+	\begin{equation}
+	D^\mu q_f = \left[ \partial^\mu - ig_s\frac{\lambda^a}{2}G_a^\mu(x) \right]q_f
+	\end{equation}
+	
+	In order for this to transform in the same manner as the quark field alone,
+	
+	Thus the first order interactive term between the quarks and gluons is found, but the gauge-invariant kinetic gluon term remains hidden. Again, from non-abelian gauge theory it is known that the field strength must be found.\\
+	The covariant derivative transforms as:
+	
+	\begin{equation}
+	D^\mu \:\rightarrow\: UD^\mu U^\dagger
+	\end{equation}
+	
+	This is known because $D^\mu q_f$ is invariant, and since $U$ is unitary: $D^\mu q_f \:\rightarrow\: UD^\mu q_fU^\dagger = UD^\mu U^\dagger U q_fU^\dagger$\\ So the above transform means the gluon field transforms as:
+	
+	\begin{equation}
+	G^\mu \:\rightarrow\: UG^\mu U^\dagger - \frac{i}{g_s}(\partial^\mu U)U^\dagger
+	\end{equation}
+	
+	This is obviously not an invariant quantity then. Instead, one can introduce a tensor:
+	
+	\begin{align}
+		\begin{split}
+		G^{\mu\nu}(x) &\equiv \frac{i}{g_s}[D^\mu,D^\nu]\\
+		&= \partial^\mu G^\nu - \partial^\nu G^\mu - ig_s[G^\mu,G^\nu]\\
+		&\equiv \frac{\lambda^a}{2}G_a^{\mu\nu}(x)
+		\end{split}
+	\end{align}
+	
+	where:
+	
+	\begin{equation}
+	G_a^{\mu\nu} = \partial^\mu G_a^\nu - \partial^\mu G_a^\nu + g_sf^{abc}G_b^\nu G_c^\nu
+	\end{equation}
+	
+	and $f^{abc}$ is the group structure constant. Now one has an invariant term:
+	
+	\begin{equation}
+	G^{\mu\nu} \:\rightarrow\: UG^{\mu\nu}U^\dagger
+	\end{equation}
+	
+	In order to get kinetic terms, and to remove the free indices, the final Lagrangian is:
+	
+	\begin{equation}
+	\mathcal{L}_{\text{QCD}} = -\frac{1}{4}G_a^{\mu\nu}G_{\mu\nu}^a + \sum_f \bar{q}_f(i\gamma^\mu D_\mu - m_f)q_f
+	\end{equation}
+	
+	Just in appearance, this is identical to the QED Lagrangian. However, there are important differences. The biggest difference between the QED and QCD Lagrangian lies of course in the "force carriers", where there is one photon and eight gluons. This means that whereas there or no photon-photon couplings, there are gluon-gluon couplings. Additionally, the electric charge in the QED Lagrangian is unique for each fermion. In QCD, the colour charge is the same for all fermions. This is tied to QED employing $U(1)$, i.e. the transformation of each fermion was linear such that the "coefficients" are free to be chosen. In $SU(3)$, however, the transformations are non-linear ($\lambda_a$ and $\lambda_b$ determine $\lambda_c$). As such, $g_s$ is the same for all fermions; the strong coupling constant.
+	
+	\section{Symmetries in quantum mechanics}
+	While we have already discussed the symmetries of wavefunctions and the spin-statistics theorem, and its connection to Lorentz invariance, we have not really discussed symmetries in general. It perhaps seems superfluous to start with the basics, however we will need it to move on the chiral symmetry, and the consequences of breaking it with the reintroduction of massive quark fields.
+	
+	\subsection{Noether's theorem}
+	Before delving right into symmetries and their connection with conserved currents and charges, a brief reminder of \emph{Noether's theorem} ought to be given. Due to the importance of symmetry in physics, most undergraduate physicists have some knowledge of the theorem, however it's rarer to understand it in the context of quantum mechanics and field theories, and even less so in quantum field theories.\\
+	In classical mechanics, Noether's theorem uses the invariance of the Lagrangian under some symmetry to show that some quantities remain unaltered. Examples of this is angular momentum, which remains unaltered by a angular transformation of the system coordinates, and the stress-energy tensor, which is found to be conserved when performing a Lorentz transform.\\
+	
+	Consider a classical action $S_{C}$ defined as the path-integral for some given Lagrangian $L_{C}$:
+	
+	\begin{equation}
+		S_{C} = \int d^3x \:L_{C}(\Phi,\Pi,\bm{x})
+	\end{equation}
+	
+	where $\Phi := \left\{\phi_1,\phi_2,\ldots,\phi_n\right\}$ and  $\Pi := \left\{\partial_\mu\phi_1,\partial_\mu\phi_2,\ldots,\partial_\mu\phi_n\right\}$ are canonical coordinates, and $\bm{x}$ are coordinates in $\mathbb{R}^3$ (3-dimensional Euclidean space). If $S_C$ does not change when we change, or transform, the system coordinates, we say we have a symmetry under the group form which that kind of transform originates.\\
+	An example is  rotating a $\mathbb{R}^3$ coordinate system, which means acting on the basis vectors with the rotational matrices. These matrices are actually \emph{one} representation of the Lie group $SO(3)$, see appendix B for further discussion on Lie group properties. Therefore, we say a system is $SO(3)$ invariant if 3-dimensional rotations changes nothing\footnote{If the reader finds this case a little too trivial, consider a system where inversion of one coordinate, say $x\rightarrow -x$, changes nothing. We then say a system has a $\mathbb{R}\setminus\mathbb{Z}_2$ symmetry; a real line $\mathbb{R}$, where each positive number is equivalent to the respective negative number ($\mathbb{Z}_2$ symmetry), except zero, which has no "inverse".}.\\
+	
+	Now, given some Lagrangian $L_C$, we may use the Euler-Lagrange equations,
+	
+	\begin{equation}
+		\left(\frac{\partial}{\partial \phi_i} - \frac{d}{dt}\frac{\partial}{\partial \left(\partial_\mu \phi_i\right)}\right)L_C = 0\:,
+	\end{equation}
+	
+	to prove Noether's theorem.
+	
+	\subsubsection{In classical field theory}
+	The classical field version of Noether's theorem follows quite naturally. Assuming the Lagrangian depends on fields $\Phi_i$ and conjugate fields $\Pi_i=\partial_\mu\Phi_i$, the Euler-Lagrange equations of motion look like:
+	
+	\begin{equation}
+		\frac{\partial\mathcal{L}}{\partial\Phi_i} - \partial_\mu\left(\frac{\partial\mathcal{L}}{\partial\Pi_i}\right) = 0
+		\label{ChPtTh | eq | euler-lagrange for fields}
+	\end{equation}
+	
+	We know $\mathcal{L}$ is invariant under some global transformation. To promote it to a local one, we study which effect a local transformation has. Firstly, that means writing the transformations of the fields as:
+	
+	\begin{align}
+		\begin{split}
+			\Phi_i(x) \mapsto \:& \Phi_i(x) + \delta\Phi_i(x) \\
+			&= \Phi_i(x) - i\epsilon_a(x)F_{ai}[\Phi(x)]
+		\end{split}
+	\end{align}
+	
+	where $\epsilon_a(x)$ is the $a$'th transformation of $\Phi_i(x)$, and $F_ai$ is the transformation generator. With this knowledge, we find the change in the Lagrangian:
+	
+	\begin{align}
+		\begin{split}
+			\delta\mathcal{L} &= \mathcal{L}' - \mathcal{L}\\
+			&= \frac{\partial\mathcal{L}}{\partial\Phi_i}\delta\Phi_i + \frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}\partial_\mu(\delta\Phi_i) + \mathcal{O}(\epsilon^2) \\
+			&= \epsilon_a\left[ -i\frac{\partial\mathcal{L}}{\partial\Phi_i}F_{ai} - i\frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}\partial_\mu F_{ai} \right] + \partial_\mu\epsilon_a\left[ -i\frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}F_{ai} \right] \\
+			&= \epsilon_a\partial_\mu( J_a^\mu) + \partial_\mu( \epsilon_aJ_a^\mu)
+		\end{split}
+	\end{align}
+	
+	where we defined
+	
+	\begin{align}
+		J_a^\mu &= -i\frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}F_{ai} \\
+		\partial_\mu(J_a^\mu) &= -i\partial_\mu\left(\frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}\right)F_{ai} - i\frac{\partial\mathcal{L}}{\partial(\partial_\mu\Phi_i)}\partial_\mu F_{ai}
+	\end{align}
+	
+	From the equation of motion (\ref{ChPtTh | eq | euler-lagrange for fields}), we see $\partial_\mu(J_a^\mu)=0$. Therefore, our Noether currents are now
+	
+	\begin{align}
+		J_a^\mu &= \frac{\partial (\delta\mathcal{L})}{\partial(\partial_\mu\epsilon_a)} \\
+		\partial_\mu J_a^\mu &= \frac{\partial (\delta\mathcal{L})}{\partial\epsilon_a} = 0
+	\end{align}
+	
+	\subsubsection{In quantized field theory}
+	
+	\subsection{Ward identities}
+	
+	Define the generating functional as:
+	
+	\begin{align}
+		\begin{split}
+		W[j,j^*,j_\mu] &= e^{iZ[j,j^*,j_\mu]}\\
+		&= \langle \Omega|T\left( e^{i\int d^4x\left[ j(x)\Phi\dagger(x) + j^*\Phi(x) + j_\mu(x)J^\mu(x) \right]} \right)| \Omega\rangle
+		\end{split}
+	\end{align}
+	
+	Here, $\Phi$, $\Phi^\dagger$, and $J^\mu(x)$ are the fields operators and Noether current in the Heisenberg picture.
+	
+	\section{Weinberg's Noether-current algebra}
+	
+	A realization by Steven Weinberg was that the conserved Noether-currents derived from the QCD Lagrangian, themselves have a symmetry group, seen from the so-called \emph{Neother-current algebra}. Before discussing the group algebra itself, we start by proving its existence.
+	
+	\subsection{Symmetry currents in the chiral limit}
+	Since quarks are $SU(2)$ spinors, we know from basic QFT that they may decomposed into left- and right-handed representations
+	
+	\begin{equation}
+		q(x) = (P_R+P_L)q(x) = q_R(x) + q_L(x)
+	\end{equation}
+	
+	where $P_{L/R}$ are the left \& right projection operators, and have the identities:
+	
+	\begin{align}
+		P_{L/R}^2 &= P_{L/R} \\
+		P_{R} + P_{L} &= \mathds{1} \\ 
+		\left(P_{L/R}\right)\left(P_{R/L}\right) &= 0
+	\end{align}
+	
+	The interaction terms we have between quark fields go as $\bar{q}\Gamma q$, where $\Gamma$ symbolizes any of the Dirac field bilinears, such that in general:
+	
+	\begin{equation}
+		\bar{q}\Gamma q = \begin{cases}
+		&\bar{q}_R\Gamma q_R + \bar{q}_L\Gamma q_L \quad\text{for}\quad \Gamma=\{\gamma^\mu, \gamma^\mu\gamma_5\}\\
+		&\bar{q}_R\Gamma q_L + \bar{q}_L\Gamma q_R \quad\text{for}\quad \Gamma=\{\mathds{1}, \gamma_5, \sigma^{\mu\nu}\}
+		\end{cases}
+	\end{equation}
+	
+	This applies outside the chiral limit as well. We can now express $\mathcal{L}^{(0)}$ in terms of left- and right-handed projections:
+	
+	\begin{equation}
+		\mathcal{L}^{(0)} = -\frac{1}{4}G_a^{\mu\nu}G_{\mu\nu}^a + \sum_{f} \left( \bar{q}_{f,R}i\slashed Dq_{f,R} + \bar{q}_{f,L}i\slashed Dq_{f,L} \right)
+	\end{equation}
+	
+	Since the Dirac equation i flavour independent, the Lagrangian is invariant under the product group $G=U_L(3)\times U_R(3)$. This is a classical global symmetry. Since the product group is diffeomorphic to $G'=SU_L(3)\times SU_R(3)\times U_L(1)\times U_R(1)$, we may choose to represent the transformations under $G$ as those of $G$, such that:
+	
+	\begin{align}
+		q_R &\mapsto \exp\left( -i\sum_{a=1}^8 \Theta_{Ra}\frac{\lambda_a}{2} \right)e^{-i\Theta_R}q_R \\
+		q_L &\mapsto \exp\left( -i\sum_{a=1}^8 \Theta_{La}\frac{\lambda_a}{2} \right)e^{-i\Theta_L}q_L
+	\end{align}
+	
+	
+	
+	\begin{equation}
+		\left[Q_I^i, Q_I^j\right] = i\epsilon^{ijk}Q_I^k
+	\end{equation}
+	
+	\begin{equation}
+		\left[Q_L^i, Q_R^j\right] = 0
+	\end{equation}
+	
+	or, equivalently
+	
+	\begin{align}
+	\left[Q_V^i, Q_V^j\right] &= i\epsilon^{ijk}Q_V^k \\
+	\left[Q_A^i, Q_A^j\right] &= i\epsilon^{ijk}Q_V^k \\
+	\left[Q_V^i, Q_A^j\right] &= i\epsilon^{ijk}Q_A^k 
+	\end{align}
+	
+	\section{Spontaneous symmetry breaking}
+	Spontaneous symmetry breaking is well known from its role in the Higgs mechanism, but such is far from its sole application. \emph{"Spontaneous symmetry breaking occurs when the ground state of a system does not possess the full symmetry of the theory"}\footnote{Citation source: https://arxiv.org/pdf/0912.4139v5.pdf, page 2}.
+	
+	
+	\subsection{Goldstone's theorem and massless Goldstone bosons}
+	Let's assume, for some scalar field $\phi_n(x)$, there is a broken, continuous symmetry. The field transforms under this symmetry as:
+	
+	\begin{equation}
+		\phi_n(x) \quad \rightarrow \quad \phi_n(x) + i\epsilon\sum_m t_{nm}\phi_m(x)
+	\end{equation}
+	
+	"Explicit symmetry breaking is the breaking of a symmetry of a theory by terms in its defining equations of motion that do not respect the symmetry, and is what gives Goldstone bosons mass should there be a continuous symmetry breaking." -Wikipedia
+	
+	\section{Chiral symmetry breaking}
+	Assuming massless quarks is often referred to as working in the \emph{chiral limit}. We can show that the chiral symmetry of QCD breaks\\
+	
+	\subsection{Left- and right-handed representation}
+	The triplet transforms linearly under $SU(2)_V \in SU(2)_L\times SU(2)_R$\\
+	
+	The fundamental representation of $SO(4)$ is 4-dimensional. We already have three pion fields $\bm{\pi}$, so we introduce some fourth component $\sigma$, such that $p=(\bm{\pi},\sigma)$ represents points on a 4-sphere. An infinitesimal rotation of $p_4$ can be written as the transformation\footnote{\text{https://arxiv.org/pdf/1001.3229v1.pdf}}:
+	
+	\begin{equation}
+		p \:\mapsto\: \left( \mathds{1}_4 + \sum_{i=1}^3 \theta_i^VV_i + \theta_i^AA_i \right)p
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+		\sum_{i=1}^3 \theta_i^VV_i = \begin{pmatrix}
+		0 & -\theta_3^V & -\theta_2^V & 0\\
+		\theta_3^V & 0 & \theta_1^V & 0\\
+		-\theta_2^V & \theta_1^V & 0 & 0\\
+		0 & 0 & 0 & 0
+		\end{pmatrix}
+	\end{equation}
+	
+	\begin{equation}
+		\sum_{i=1}^3 \theta_i^AA_i = \begin{pmatrix}
+		0 & 0 & 0 & \theta_1^A\\
+		0 & 0 & 0 & \theta_2^A\\
+		0 & 0 & 0 & \theta_3^A\\
+		-\theta_1^A & -\theta_2^A & -\theta_3^A & 0
+		\end{pmatrix}
+	\end{equation}
+	
+	As we see, only three fields are independent with respect to 4-dimensional rotations. Furthermore, $(\bm{\pi},\sigma)$ has to fulfil the requirement:
+	
+	\begin{equation}
+		\bm{\pi}^2 + \sigma^2 = F^2
+	\end{equation}
+	
+	where $F$ is a constant of dimension mass. Inserting this requirement above, we find the fields transform as:
+	
+	\begin{align}
+		\begin{split}
+			\bm{\pi} &\:\mapsto\: \bm{\pi} + \bm{\theta}^V\times\bm{\pi}\\
+			\bm{\pi} &\:\mapsto\: \bm{\pi} + \bm{\theta}^A\sqrt{F^2 - \bm{\pi}^2}
+		\end{split}
+	\end{align}
+	
+	where $\bm{\theta}^{V,A}\equiv \left\{\theta_i^{V,A}\right\}$. Thus we have found a non-linear representation.
+	
+	\subsection{Massive quark fields}
+	The chiral limit does work quite well in the very low energy spectrum, but as we want a more realistic theory, we will now move away from the massless quarks assumption. This is done by using the low mass of the up and down quarks as perturbation constants, a method pioneered by Weinberg in the 90s, and the cause for the name chiral \emph{perturbation} theory.\\
+	
+	
+	
+	
+	\newpage
+	\chapter{Interacting Nuclear Matter}
+	
+	\epigraph{\textit{Ordo ad chao}}{}
+	
+	\section{Interacting nucleons and nuclei}
+	
+	Since nuclei are modelled with strong short-range repulsive potentials, perturbation theory\footnote{In other words, we can't neglect diagrams above a certain order. The strong coupling constant is of order 1 in the low energy limit ???}. This is why Brueckner's \emph{G-matrix} is the go-to procedure for most calculations in microscopic nuclear structure physics.
+	
+	\section{The chiral effective Lagrangian}
+	Using the chiral perturbation formalism of the previous chapter, the effective Lagrangian for nuclear systems can be written:
+	
+	\begin{equation}
+		\mathcal{L}_{eff} = \mathcal{L}_{\pi\pi} + \mathcal{L}_{\pi N} + \mathcal{L}_{NN} + \mathcal{L}_{\pi NN} + \mathcal{L}_{\pi\pi NN} + \ldots + \mathcal{L}_{NNN} + \mathcal{\mathcal{L}}_{\pi NNN} + \ldots
+	\end{equation}
+	
+	As one can see, the Lagrangian is infinitely long, but this is no different than what is seen in perturbative quantum field theory, as we ignore effect up to a certain order. The classification of orders, given by the so-called index of interaction,
+	
+	\begin{equation}
+		\Delta \equiv d + \frac{n}{2} - 2,
+	\end{equation}
+	
+	where $d$ is the number of derivatives or pion-masses and $n$ the number of nucleon fields, allows us to rewrite the Lagrangian as
+	
+	\begin{equation}
+		\mathcal{L} = \mathcal{L}^{\Delta = 0} + \mathcal{L}^{\Delta = 1} + \mathcal{L}^{\Delta = 2} + \mathcal{L}^{\Delta = 4} + \ldots
+	\end{equation}
+	
+	This is deceptively simple-looking. Each term here is quite complicated, and many papers have been written on the topic of their derivation.  Performing naive dimensional analysis, where we assign a power to each appearance of a pion mass term or momentum\footnote{Either nucleon 3-momentum or pion 4-momentum.}, Weinberg showed that the power of an irreducible Feynman diagram will satisfy
+	
+	\begin{equation}
+		\nu_W = 4-A-2C + 2L + \sum_i\Delta_i\:,
+	\end{equation}
+	
+	where $A$ is the number of nucleon lines, $C$ the number of separately connected pieces, and $L$ is the number of loops. The formula works for all cases of $A\leq2$, but problems may arise for $A>2$. Therefore, it is now more common to use the modified version for $A\geq 2$:
+	
+	\begin{equation}
+		\nu = -2+2A-2C+2L+\sum_i\Delta_i
+	\end{equation}
+	
+	\section{The Lippmann-Schwinger equation}\footnote{This is all taken from page 111 in Weinberg}
+	
+	The Lippmann-Schwinger equation is one of the most used equations in particle scattering theory. It is an explicit solution to the eigenvalue problem $H\Psi_\alpha^\pm = E\Psi_\alpha^\pm$. It is fairly easy to derive using this eigenvalue equation,
+	
+	\begin{equation}
+		H\Psi_\alpha^\pm = E_\alpha\Psi_\alpha^\pm,
+	\end{equation}
+	
+	and rewriting to
+	
+	\begin{equation}
+		(E_\alpha - H_0)\Psi_\alpha^\pm = V\Psi_\alpha^\pm
+	\end{equation}
+	
+	Since $\lim\limits_{V\rightarrow0} \Psi_\alpha^\pm = \Phi_\alpha$, we can again rewrite and get
+	
+	\begin{equation}
+		\Psi_\alpha^\pm = \Phi_\alpha + (E_\alpha - H_0 \pm i\epsilon)^{-1}V\Psi_\alpha^\pm
+	\end{equation}
+		
+	which, when expanded in a free-particle basis, becomes the Lippmann-Schwinger equations:
+	
+	\begin{equation}
+		\Psi_\alpha^\pm = \Phi_\alpha + \int d\beta \frac{T_{\beta\alpha}^\pm}{E_\alpha - E_\beta \pm i\epsilon}\Phi_\beta
+	\end{equation}
+	
+	\begin{equation}
+		T_{\beta\alpha}^\pm \equiv \left(\Phi_\beta,V\Psi_\alpha^\pm\right)
+	\end{equation}
+		
+	\section{Brueckner-Bethe theory}
+	
+	Define the Brueckner G-matrix as the sum over all possible Feynman diagrams\footnote{Feynman diagrams in the same style as those used in CC theory. For further details, see \emph{Realistic effective interactions for nuclear systems} by M. Hjorth-Jensen et al./Physics reports 261 (1995) 125-270.} for a interacting nuclear system.:
+	
+	\begin{align}
+		\begin{split}
+		\frac{1}{2}\tilde{G}_{ijij}= \frac{1}{2}\tilde{V}_{ijij} &+ \sum_{mn>k_F} \frac{1}{2}\tilde{V}_{ijmn}\frac{1}{\epsilon_i+\epsilon_j-\epsilon_m-\epsilon_n}\\
+		&\times\left[ \frac{1}{2}\tilde{V}_{mnij} + \sum_{pq>k_F} \frac{1}{2}\tilde{V}_{mnpq}\frac{1}{\epsilon_m+\epsilon_n-\epsilon_p-\epsilon_q} + \ldots \right]
+		\end{split}
+	\end{align}
+	
+	where $\tilde{G}_{abcd} \equiv \langle k_ak_b|\tilde{G}|k_ck_d\rangle_{AS}$. The expression inside the brackets is simply $\frac{\tilde{G}_{mnij}}{2}$, leaving us with:
+	
+	\begin{equation}
+		\tilde{G}_{ijij}= \tilde{V}_{ijij} + \sum_{mn>k_F} \frac{1}{2}\tilde{V}_{ijmn}\frac{1}{\epsilon_i+\epsilon_j-\epsilon_m-\epsilon_n}\tilde{G}_{mnij}
+	\end{equation}
+	
+	where $V$ is the nucleon-nucleon (NN) potential. A more general G-matrix is
+	
+	\begin{equation}
+		G_{ijij}= V_{ijij} + \sum_{mn>0} V_{ijmn}\frac{Q(mn)}{\omega-\epsilon_m-\epsilon_n}G_{mnij}
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+	Q(k_m,k_n) =
+		\begin{cases}
+		1  & \quad \text{if} \quad k_m,k_n > k_F\\
+		0  & \quad \text{else}\\
+		\end{cases}
+	\end{equation}
+	
+	is the G-matrix Pauli exclusion operator. A compact form of the G-matrix equation is:
+	
+	\begin{equation}
+		G(\omega) = V + V\frac{Q}{\omega - H_0}G(\omega) \quad,\quad Q = \sum_{mn} |\psi_m\psi_n\rangle Q(mn)\langle\psi_m\psi_n|
+	\end{equation}
+	
+	The Pauli operator might not commute with the Hamiltonian, in which case a replacement,
+	
+	\begin{equation}
+		\frac{Q}{\omega - H_0} \:\rightarrow\: Q\frac{1}{\omega - QH_0Q}Q,
+	\end{equation}
+	
+	will have to be made
+	
+	\section{The Minnesota potential}
+	Assuming nucleon fields have isospin symmetry, the two-body potential between two particles take the general form
+	
+	\begin{equation}
+		\langle pq|\hat{v}|rs\rangle \equiv \langle \bm{k}_p\sigma_p\tau_p\bm{k}_q\sigma_q\tau_q |\hat{v}| \bm{k}_r\sigma_r\tau_r\bm{k}_s\sigma_s\tau_s\rangle
+		\label{On int nucl | eq | initial Minnesota potential}
+	\end{equation}
+	
+	where $\bm{k}_\alpha$ is the spatial momentum (3-momentum) of state $\alpha$, $\sigma_\alpha$ is the spin, and $\tau_\alpha$ is the isospin. We choose to speak in terms of the relative momentum,
+	
+	\begin{equation}
+		\bm{k} \equiv \frac{1}{2}(\bm{k}_p - \bm{k}_q)\:,
+	\end{equation}
+	
+	and the centre of mass momentum,
+	
+	\begin{equation}
+		\bm{K} \equiv \frac{1}{2}(\bm{k}_p + \bm{k}_q)\:,
+	\end{equation}
+	
+	thus altering equation \ref{On int nucl | eq | initial Minnesota potential} such that,
+	
+	\begin{equation}
+		\langle pq|\hat{v}|rs\rangle = \langle \bm{K}\bm{k}\sigma_p\tau_p\sigma_q\tau_q |\hat{v}| \bm{K}'\bm{k}'\sigma_r\tau_r\sigma_s\tau_s\rangle
+	\end{equation}
+	
+	Charge, spin, and momentum conservation lets us shorten the expression,
+	
+	\begin{equation}
+		\langle pq|\hat{v}|rs\rangle = \delta_{T_z,T_z'}\delta(\bm{K}-\bm{K}')\underbrace{\langle \bm{k}T_z(S_z=\sigma_p+\sigma_q) |\hat{v}| \bm{k}'T_z'(S_z'=\sigma_r+\sigma_s)\rangle}_{\ast}
+	\end{equation}
+	
+	where $T_z=\tau_p+\tau_q$ and $T_z'=\tau_r+\tau_s$. An assumption made in the Minnesota model is that the nucleon interaction depends purely on internucleon distance, which means purely on relative momentum in the Fourier transformed form, i.e. $\hat{v} = \hat{v}(\bm{k},\bm{k}')$. Thus we may separate the spin and momentum inner products:
+	
+	\begin{equation}
+		\ast := \sum_{SS'} \underbrace{\langle\frac{1}{2}\sigma_p\frac{1}{2}\sigma_q|SS_z\rangle\langle\frac{1}{2}\sigma_r\frac{1}{2}\sigma_s|S'S_z'\rangle}_{\text{Clebsh-Gordan recoupling coefficients}} \langle \bm{k}T_zSS_z |\hat{v}| \bm{k}'T_z'SS_z\rangle
+	\end{equation}
+	
+	Using a partial wave expansion, we may generally express our momentum states as:
+	
+	\begin{equation}
+		|\bm{k}\rangle = \sum_{l=0}^{\infty}\sum_{m_l=-l}^{l}i^l Y_l^{m_l}(\hat{k}|klm_l\rangle
+	\end{equation}
+	
+	where I don't know what $Y_l^{m_l}$ is...\\
+	Expressing the inner product in momentum space, we may write:
+	
+	\begin{equation}
+		\langle\bm{k}\bm{K}|\hat{v}|\bm{k}'\bm{K}'\rangle = \int_{\mathbb{R}^3} d\bm{r}d\bm{r}' e^{-i\bm{k}'\cdot\bm{r}'}V(\bm{r},\bm{r}')e^{i\bm{k}\cdot\bm{r}}\delta(\bm{K},\bm{K}')
+	\end{equation}
+	
+	However, if we have a spherically symmetric potential, we may use the spherical harmonics to do the partial wave expansion. That means our plane wave states become:
+	
+	\begin{equation}
+		e^{i\bm{k}\cdot\bm{r}} = \langle \bm{r}|\bm{k}\rangle = 4\pi \sum_{lm}i^lj_l(kr)Y_{lm}^*(\hat{\bm{k}})Y_{lm}(\hat{\bm{r}})
+	\end{equation}
+	
+	where $j_l$ are the spherical Bessel functions, and $Y_{lm}$ are the spherical harmonics.\\
+	
+	We know that nucleon-nucleon interactions are symmetric under rotational, parity, and isospin transformations, meaning the inner product is diagonal with respect to these operations, i.e. to total angular momentum $J$, spin $S$, and isospin $T$. So, finally, we find:
+	
+	\begin{equation}
+		\langle \bm{k}'|v|\bm{k}\rangle = (4\pi)^2\sum_{JM}\sum_{lm}\sum_{l'm'} i^{l+l'} Y_{lm}^*(\hat{\bm{k}})Y_{l'm'}(\hat{\bm{k}})\zeta_{m'M_sM}^{l'SJ}\zeta_{mM_sM}^{lSJ}\langle \bm{k}'l'STJM|v|\bm{k}lSTJM\rangle
+	\end{equation}
+	
+	where we have defined
+	
+	\begin{equation}
+		\langle \bm{k}'l'STJM|v|klSTJM\rangle \equiv \int_{\mathbb{R}^+}j_{l'}(k'r') \langle l'STJM|v|lSTJM\rangle j_l(kr)r'^2 dr' r^2dr
+	\end{equation}
+	
+	The Minnesota potential is a two-body interaction of the above type, except the integrals are instead given by physical constants, and the form of the radial potential is
+	
+	\begin{equation}
+		V_\alpha(r) = V_\alpha e^{-\alpha r^2}
+	\end{equation}
+	
+	where
+	
+	\begin{equation}
+		V(r) = \frac{1}{2}\left( V_R + \frac{1}{2}(1+P_{12}^\sigma)V_T + \frac{1}{2}(1-P_{12}^\sigma)V_S\right)\left(1 - P_{12}^\sigma P_{12}^\tau)\right)
+	\end{equation}
+	
+	where $P_{12}^\sigma \equiv \frac{1}{2}(1+\sigma_1\cdot\sigma_2)$ and $P_{12}^\tau \equiv \frac{1}{2}(1+\tau_1\cdot\tau_2)$ are the exchange operators for spin and isospin, respectively. In momentum space, the inner product becomes:
+	
+	\begin{equation}
+		\langle \bm{k}_p\bm{k}_q|V_\alpha|\bm{k}_r\bm{k}_s\rangle = \frac{V_\alpha}{L^3}\left(\frac{\pi}{\alpha}\right)^{3/2}e^{\frac{-q^2}{4\alpha}}
+	\end{equation}
+	
+	where we have defined the relative momentum $\bm{q} \equiv \frac{1}{2}(\bm{k}_p-\bm{k}_q-\bm{k}_r+\bm{k}_s)$.
+	
+	\section{Pionless effective potentials}
+	
+	\section{Fermion superfluidity}
+	\subsection{Landau-Fermi liquids}
+	
+	\part{Implementation and Analysis}
+	
+	\begin{comment}
+	\chapter{How I make TA "work"}
+	So far I have 2 virtualbox Ubuntu OS going on my computer. In order to install and run TiledArray (TA) I did the following:
+	
+	\begin{itemize}
+		\item Install the necessary requisites:
+		\begin{itemize}
+			\item Eigen3 (I put it in a folder Eigen3 in my home folder).
+			\item tbb. I don't know what it is, but get it through package manager.
+			\item MPI, but not OpenMPI. I simply called "sudo apt-get install mpich".
+		\end{itemize}
+		\item Use "sudo apt clean".
+		\item Git clone the TA repository.
+		\item Make a "build" folder in the TA directory.
+		\item Within the build folder, make a Cmake script with the lines:
+		\begin{lstlisting}
+		cmake .. -D CMAKE_INSTALL_PREFIX=/home/sean/tiledarray/install \
+			-D CMAKE_BUILD_TYPE= Release \ 
+			-D EIGEN3_INCLUDE_DIR= /home/sean/Eigen3 \
+			-D LAPACK_LIBRARIES="-L/usr/lib/libblas/ -llpack -lblas" \
+			-D BLAS_LIBRARIES="-L/usr/lib/libblas/ -lblas" \
+			-D TBB_ROOT_DIR=/usr/lib/x86_64-linux-gnu/ \
+			-D BUILD_SHARED_LIBS=TRUE \
+			-D CMAKE_C_COMPILER= gcc \
+			-D CMAKE_CXX_COMPILER=g++ \
+			-D CMAKE_CXX_FLAGS="-std=c++11" \
+			-D TA_BUILD_UNITTEST=ON \
+			-D ENABLE_MPI=ON \
+			-D MPI_C_COMPILER=mpicc \
+			-D MPI_CXX_COMPILER=mpicxx \
+		/home/sean/tiledarray/
+		\end{lstlisting}
+		\item Use "sudo make -j"
+		\item Use "sudo make check"
+		\item Use "sudo make install"
+		\item You'll need to specify the MADworld and tiledarray libraries by running:
+		\begin{lstlisting}
+			export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/sean/tiledarray/install/lib/
+		\end{lstlisting}
+		\item Finally, to run a simple program called "test.cpp", call:
+		\begin{lstlisting}
+			mpic++ test.cpp -I/usr/include/mpich -I/home/sean/tiledarray/install/include/ -I/home/sean/Eigen3 -std=c++11 -o test.x -L/home/sean/tiledarray/install/lib/ -L/usr/local/lib/ -lpthread -ltbb -lblas -lMADworld -ltiledarray
+		\end{lstlisting}
+		\item Have fun.
+	\end{itemize}
+	\end{comment}
+	
+	\chapter{Implementation}
+	
+	\section{Memory}
+	
+	\section{The block-sparse implementation}
+	While simply storing the entire interaction matrix is perfectly fine for small systems with a small SP basis set, it is practically impossible for larger problems. The number of elements in the interaction matrix is equal to $N_{SP}^4$. Even with a small basis of 200 states, we will have to store 1,600,000,000 floating-point numbers. Fortunately, our matrix consists almost entirely of zero-valued elements. Since the CC amplitude equations are only interested in summation, zero-valued elements are of no interest whatsoever, and there are many tricks we may use to reduce the amount of numbers we'll have to store.\\
+	
+	However, we'll see that even with our clever storage tricks, we still can't store the \emph{entire} interaction matrix, the blame mostly belonging to $V_{pppp}$. It is a sad fact that our program will eventually have to calculate the same values repeatedly, increasing the run-time drastically.\\
+	
+	\subsection{Sparse matrix storage}
+	When we say we have a sparse matrix, we mean it is a matrix with elements mostly equal zero. It is therefore better, memory wise, to rather store where the matrix is non-zero on the form:
+	
+	\begin{equation*}
+		\begin{pmatrix}
+			\text{element value} \\ \text{row index} \\ \text{column index}
+		\end{pmatrix}
+	\end{equation*}
+	
+	As a simple example, a matrix,
+	
+	\begin{equation*}
+		\begin{pmatrix}
+			0 & 0 & 0 & 3 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 5 & 0 \\
+			0 & 2 & 0 & 0 & 0 & 0 \\
+			0 & 0 & 0 & 0 & 3 & 1 \\
+			0 & 0 & 4 & 0 & 0 & 0 \\
+		\end{pmatrix} \:,
+	\end{equation*}
+	
+	may be more efficiently stored sparsely,
+	
+	\begin{equation*}
+		\begin{pmatrix}
+			3 & 5 & 2 & 3 & 1 & 4 \\
+			1 & 2 & 3 & 4 & 4 & 5 \\
+			4 & 5 & 1 & 5 & 6 & 3 \\
+		\end{pmatrix} \:,
+	\end{equation*}
+	
+	as now we only store $3\times6$ integers, as opposed to $5\times5$ integers in the original case. The problem with this implementation, as reviewed by Audun, is that it is far too slow when it comes to CC diagram calculations. We need to multiply big matrices of elements very many times, and doing so without any optimized linear algebra packages like BLAS takes simply too much CPU time. Therefore, we will instead use \emph{block matrix storage}.
+	
+	\subsection{Block matrix storage}
+	While the sparse-implementation above is perfectly reasonable, it is also quite difficult to use in linear algebra programs such as BLAS. Luckily, there is another approach known as the block-implementation. We know that our interaction matrix may only have non-zero elements where momentum conservation is upheld, that is:
+	
+	\begin{equation}
+		\langle pk||rs\rangle = \delta_{\bm{k}_p + \bm{k}_q,\bm{k}_r + \bm{k}_s}
+	\end{equation}
+	
+	Therefore, we only have to store the parts of the interaction matrix where this applies. Unfortunately, the matrix does not divide nicely into "chunks" where momentum conservation applies. Instead, the conserving elements are spread throughout the matrix in a seemingly random manner. Therefore, we gather all elements of a certain total momentum together in separate matrices, or \emph{blocks}. To imagine this, we may consider the interaction matrix of all particles to look as follows:
+	
+	\begin{equation}
+		V_{pppp} = \left( V_{\bm{k}_{tot,1}}, V_{\bm{k}_{tot,2}}, V_{\bm{k}_{tot,3}}, \ldots, V_{\bm{k}_{tot,m}}\right)
+	\end{equation}
+	
+	where $V_{tot,i}$ is a matrix made up of all pairs of states $(k_\alpha, k_\beta)$ that have total momentum $k_i = k_\alpha + k_\beta$.\\
+	
+	Now we might start to wonder if this really helps or not, because what we gain in memory, we might loose in computation time. For example, the CC diagrams are contractions over states, not pairs of states, like $V_{tot,i}$ are indexed in. Does that mean we have to check every single row and columns in $V_{tot,i}$ to have the same indices as $T_{i}$ has? No, and the reason is simple. Previously, we said a fair starting point for our amplitude iterations was to assume the diagrams did not contribute to $t_{ij}^{ab}$, i.e.
+	
+	\begin{equation}
+		t_{ij}^{ab} = \frac{V_{ab}^{ij}}{f_i + f_j - f_a - f_b}
+	\end{equation}
+	
+	That means our amplitude matrix, $T$, will have the same form as $V_{hhpp}$. If we then shape all interaction matrices ($V_{hhhh}$, $V_{hhpp}$, $V_{hphp}$, and $V_{pppp}$) with the same order of indices, we may do matrix products without worries, meaning we now have a fully functioning approach to reduce memory usage \emph{and} we may use BLAS to perform linear operations.
+	
+	\section{Block implementation}
+	Since the use of linear algebra programs, such as BLAS, would be preferable, the use of \emph{mapping} has been employed. A map can be considered to refer to any which way one would correlate two ways to format the same structure of elements. For example, the transpose of a matrix is simply an explicit way in which to take the elements of some matrix $A$ and put them into a matrix $A^T$, and is one example of a map, or mapping.\\
+	This is quite relevant for when we want to map the elements of a tensor onto a two-dimensional matrix. Our map has to abide by certain restrictions in order to be useful. As mentioned, we want to be able to use the matrix inner-product function of BLAS, which means matrix multiplication must be well-defined.\\
+	
+	The sparse approach is reasonable for a random distribution of non-zero elements, which is \emph{not} the case for us. Therefore the block approach is better.\\
+	
+	Many of the diagrams calculated in this work posed disguised, yet big problems. In order to make use of BLAS-like programs, it is required to have two dimensional matrices to multiply. For example, the CCD $L_a$ diagram is quite simple. The sum goes as follows:
+	
+	\begin{equation}
+		L_a \leftarrow \sum_{cd}\langle ab||cd\rangle t_{ij}^{cd} = v_{cd}^{ab}t_{ij}^{cd}
+	\end{equation}
+	
+	where we decided to introduce the anti-symmetrized interaction matrix $v$, where the columns represent particle state pairs $(a,b)$ and the rows represent the particle state pairs $(c,d)$. We see this translates easily into two dimensional matrices. \\
+	We know already that all CC amplitudes not in $t_{ij}^{ab}$ are zero, due to it's declaration from MBPT2. Recalling how the concept of channels was introduced, we also know that elements of different total momentum and spin do not overlap. I.e. elements of $\left(t_{ij}^{ab}\right)_{k_{u_i}}$ do not contribute to $\left(t_{ij}^{ab}\right)_{k_{u_j}}$, where $k_{u_i}\neq k_{u_j}$.\\
+	
+	However, consider the CCD $L_c$ diagram:
+	
+	\begin{equation}
+	L_c \leftarrow \sum_{ck}\langle ak||cj\rangle t_{ik}^{cb} = v_{ak}^{cj}t_{ik}^{cb}
+	\end{equation}
+	
+	Here it is not trivial to write the sum as matrix products, since we would multiply only over specific parts of the matrices, something BLAS certainly will not do for us. Instead, we introduce the concept of \emph{alignment}.\\
+	
+	\subsection{Alignment}
+	Aligning\footnote{The word "alignment" has been chosen since we align the matrix elements such that matrix products are possible.} the matrices means introducing new, aligned matrices where the columns and rows are made such that we may do the sums as matrix products. Unfortunately, there are some complications with doing so. Firstly, we use the notation $\tilde{A}$ for the aligned version of a matrix $A$. This means that the matrices in $L_a$ are their own aligned version. The matrices in $L_c$ would be written as:
+	
+	\begin{equation}
+		v_{ak}^{cj}t_{ik}^{cb} \quad\rightarrow\quad \tilde{v}_{aj}^{ck}\tilde{t}_{ib}^{ck} = \left(\tilde{v}\tilde{t}\right)_{aj}^{ib}
+	\end{equation}
+	
+	Theoretically pretty, but practically difficult. Due to the deceleration of $t_{ij}^{ab}$, we still require conservation of momentum and spin, i.e.
+	
+	\begin{equation}
+		\bm{k}_i + \bm{k}_j = \bm{k}_a + \bm{k}_b \equiv \bm{K}
+	\end{equation}
+	
+	However, the matrix product above is only non-zero for
+	
+	\begin{equation}
+		\bm{k}_i + \bm{k}_k = \bm{k}_c + \bm{k}_b = \bm{k}_a + \bm{k}_k = \bm{k}_c + \bm{k}_j
+		\label{Implementation | eq | mom. cons. for L_c}
+	\end{equation}
+	
+	While both equations apply for $L_c$, there are many additional channels that contribute to $t_{ij}^{ab}$ due to equation \ref{Implementation | eq | mom. cons. for L_c}, since we may still vary the $k$ and $c$ indices for a given set $(i,j,a,b)$.
+	
+	\chapter{Results}
+	
+	\section{CCD}
+	\section{CCDT-1}
+	\section{Benchmarking}
+	
+	\newpage
+	\begin{appendices}
+	\chapter{Differential geometry}
+	\subsection{Manifolds}
+	\subsubsection{Topological spaces}
+	Before even defining a manifold, we need to have an understanding of so-called \emph{topological spaces}. While there are several equivalent definitions, we will use the "open set" definition. So, a topological space is an ordered pair $(S,\tau)$, where $S$ is a set and $\tau$ is a collection of all \emph{open} subsets of $S$, that satisfies:
+	
+	\begin{enumerate}
+		\item The empty set $\emptyset$ and the full set $S$ are members of $\tau$: $\emptyset, S\in \tau$
+		\item Any union of sets in $\tau$ is still within $\tau$: $\left\{\bigcup_\alpha U_\alpha\in\tau\: \forall \:U_\alpha\in\tau\right\}$ 
+		\item Intersections of any finite number of sets in $\tau$ is still within $\tau$: $\left\{U\bigcap V\in\tau\: \forall \:U,V\in\tau\right\}$ 
+	\end{enumerate}
+	
+	It is called "open set" because the set is just that; open. There is no boundary which restricts the members of $\tau$, they are fully self-contained. An element $x\in S$ has \emph{neighbourhood} $U_\alpha$ if $x\in U_\alpha$. With this sense of neighbourhoods, it gets easier to understand why we call it a \emph{topological} space. Topology is the mathematical study of shapes, and if we know where points are in respect to each other via neighbourhoods of points within some well-defined set $S$ of points, we can construct a "shape". Of course, we will be a bit more mathematically formal than this.
+	
+	\subsubsection{Charts}
+	In addition to topological spaces, a manifold requires a so-called \emph{atlas}, which is a collection of \emph{charts}. These charts are what allows us to describe translations on the manifold by the use of coordinate systems.\\
+	Given two sets, we may define a mapping between the members of the two sets. For example, let's say we have two sets $A = \{a_1,a_2,a_3,a_4\}$ and $B = \{b_1,b_2,b_3,b_4\}$, and a map $\phi: A \to B$ such that $\phi: a_i\mapsto b_i$. We then call $\phi$ a map from $A$ to $B$. Immediately, might remind us of functions; given a member $x \in \mathbb{R}$, we get a value $f(x) \in \mathbb{R}$. If we call the subset of $\mathbb{R}$ spanned by $f(x)$ for $\mathbb{F}$, then we could say $f$ is our map, and
+	
+	\begin{equation}
+		f: \mathbb{R} \to \mathbb{F}
+	\end{equation}
+	
+	Given this simple concept, we'll need some terms that describe the details of a map. Let's call the set we map \emph{from} for the domain, and the set we map \emph{to} for the co-domain. All maps fall into one of the following classifications:
+	
+	\begin{enumerate}
+		\item Surjective: Every member of the codomain is mapped onto at least once, such that all members of the domain have been mapped, but may share mapping. I.e. the map is one-to-one.
+		\item Injective: Every member of the domain is mapped into the codomain, such that all members of the domain have been mapped and do not share mapping. I.e. the map is onto.
+		\item Bijective: All members of the domain are mapped uniquely onto all members of the codomain, giving a one-to-one correspondence between the two domains. I.e. the map is both onto and one-to-one.
+	\end{enumerate}
+	
+	All maps we speak of will be bijective, such that there will be no "overlap" between members. Only bijective maps have a well-defined inverse map $\phi^{-1}$, going from the codomain back to the domain.\\
+	
+	As we know, translations (in time, space, momentum, etc) are smooth movements. In the earlier example, walking across the Earth means smoothly moving from one set member to the next. However, we need a precise definition of smoothness. That is where \emph{continuous maps} come into play.\\
+	Defining continuous maps is very simple. We say a map $\phi: S\rightarrow S'$ is continuous if for any open set $U' \subseteq S'$, the complementary set $U\subseteq S$ is an open set. It might seems curious as to why continuity is defined by inverse mapping, but it is very natural when considering functions as we know them.\\
+	As mentioned earlier, a function takes one set of values and produces another, which is why, as mentioned earlier, it has very much to do with maps. However, functions as we normally consider them are defined in a coordinate system, which a topological space is not. 
+	
+	\subsubsection{Manifolds}
+	A $n$-dimensional manifold $M$ is a topological space that locally can be mapped to a Euclidean space $\mathbb{R}^n$. That is, we may divide our manifold into open sets $U_\alpha$ ($\bigcap_\alpha U_\alpha = M$), and map each set to $\mathbb{R}^n$, i.e.
+	
+	\begin{equation}
+		\phi_\alpha: U_\alpha \rightarrow \mathbb{R}^n
+	\end{equation}
+	
+	We can let our manifold have another property called \emph{differentiability}. If, for any two open sets $U_\alpha$ and $U_\beta$, the \emph{transition function} $\phi_\alpha \circ \phi_\beta^{-1}$ is differentiable. We call our manifold a $C^k$-manifold if the transition function is $k$-times differentiable. We call it a \emph{smooth} manifold if it is a $C^\infty$-manifold. The set of all these charts is called the atlas of $M$.
+	
+	It is often helpful to imagine this with the surface of the Earth as our manifold (which would be a 2-sphere; $S^2$), and we can easily portray an area around a point with a Euclidean coordinate system, such as a city. However, our coordinate system fails to cover the entire sphere (you can go in one direction and come back to where you started).\\
+	
+	
+	\subsection{Tangent bundles}
+	
+	\chapter{Lie groups}
+	
+	\chapter{Gauge theories}
+	
+	\end{appendices}
+	
+\end{document}

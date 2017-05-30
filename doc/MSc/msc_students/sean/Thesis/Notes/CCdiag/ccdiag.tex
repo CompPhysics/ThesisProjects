@@ -1,0 +1,650 @@
+%
+% \usepackage{tikz}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.pathreplacing,decorations.markings}
+
+%from tex.stackexchange.com
+\tikzset{
+  % style to apply some styles to each segment of a path
+  on each segment/.style={
+    decorate,
+    decoration={
+      show path construction,
+      moveto code={},
+      lineto code={
+        \path [#1]
+        (\tikzinputsegmentfirst) -- (\tikzinputsegmentlast);
+      },
+      curveto code={
+        \path [#1] (\tikzinputsegmentfirst)
+        .. controls
+        (\tikzinputsegmentsupporta) and (\tikzinputsegmentsupportb)
+        ..
+        (\tikzinputsegmentlast);
+      },
+      closepath code={
+        \path [#1]
+        (\tikzinputsegmentfirst) -- (\tikzinputsegmentlast);
+      },
+    },
+  },
+  % style to add an arrow in the middle of a path
+  mid arrow/.style={postaction={decorate,decoration={
+        markings,
+  %                     place for arrows
+        mark=at position .54 with {\arrow[#1]{>}}
+      }}},
+  % style to add an arrow in the middle of a path
+  mid rarrow/.style={postaction={decorate,decoration={
+        markings,
+  %                     place for arrows
+        mark=at position .38 with {\arrow[#1]{<}}
+      }}},
+}
+
+% from http://tex.stackexchange.com/questions/25678/nicer-wavy-line-with-tikz
+\pgfdeclaredecoration{complete sines}{initial}
+{
+  \state{initial}[
+        width=+0pt,
+        next state=sine,
+        persistent precomputation={\pgfmathsetmacro\matchinglength{
+            \pgfdecoratedinputsegmentlength / int(\pgfdecoratedinputsegmentlength/\pgfdecorationsegmentlength)}
+            \setlength{\pgfdecorationsegmentlength}{\matchinglength pt}
+        }] {}
+  \state{sine}[width=\pgfdecorationsegmentlength]{
+        \pgfpathsine{\pgfpoint{0.25\pgfdecorationsegmentlength}{0.5\pgfdecorationsegmentamplitude}}
+        \pgfpathcosine{\pgfpoint{0.25\pgfdecorationsegmentlength}{-0.5\pgfdecorationsegmentamplitude}}
+        \pgfpathsine{\pgfpoint{0.25\pgfdecorationsegmentlength}{-0.5\pgfdecorationsegmentamplitude}}
+        \pgfpathcosine{\pgfpoint{0.25\pgfdecorationsegmentlength}{0.5\pgfdecorationsegmentamplitude}}
+  }
+  \state{final}{}
+}
+
+%
+%             CCDiag v.1.0 
+%           D.Kats, September 2011
+%
+% \bdiag[<scale>] start diagram. If <scale> is given, the diagram will be scaled
+% \bdiags[<scale>]: the H diagram will be placed in the middle (otherwise it is shifted halfway to the vacuum)
+%
+% \dT[<order>]{<exc.level>}{<node>} -> T_<exc.level>^{(<order>)}
+% node-names are generated as <node>1, <node>2, <node>3, ...
+% can be used without <order> (\dT{<exc.level>}{<node>})
+% same with \dU (will print U_<exc.level> as label)
+% for excitation operators without label use \dTs
+% One can customize labels (see e.g. how \dU is defined)
+% \dTd, \dTds, \dUd are T^{\dagger}, {}^{\dagger}, U^{\dagger}
+%
+% \dTdv[<order>]{<exc.level>}{<node>} : draw vacuum explicitly (\tau^\dagger) 
+% \dTv[<order>]{<exc.level>}{<node>} -> \tau
+%
+% \dF{<node>} -> F
+% \dFs{<node>} : one-electron operator without label
+% \dX{<node>} : one-electron perturbation (X as label)
+% \dHone[<name>]{<node>} : one-electron operator with label <name> 
+% \dW{<left node>}{<right node>} -> W
+% \dWs{<left node>}{<right node>} : two-electron operator without label
+% \dXtwo{<left node>}{<right node>} : two-electron perturbation (X as label)
+% \dHtwo[<name>]{<left node>}{<right node>} : two-electron operator with label <name>
+%
+% \dline[<index>]{<from node>}{<to node>} ->    "--->" (if <index> given - write <index> to the right of the line)
+% \dcurve[<index>]{<from node>}{<to node>} ->   curved "--->" 
+% \dcurver[<index>]{<from node>}{<to node>} ->   curved "--->" (reverse bend)
+% \dcurcur{<node1>}{<node2>} ->     cycled curved "--->"
+% \dcurt{<from node>}{<through node>}{<to node>} -> curved "--->" over three nodes! 
+% \dcurtr{<from node>}{<through node>}{<to node>} ->   curved "--->" over three nodes (reverse bend) (not needed anymore!)
+%
+%  left vacuum-node for <node1> is called <node1>v1
+%  right -------------"----------------   <node1>v2
+%
+% \dmovex{<value>} or \dmoveH{<value>} -> move W or F horizontally 
+% \dmoveT{<value>} -> move T horizontally
+% \dmovac{<value>} -> move vacuum (and daggers) vertically 
+% \dmoveTd{<value>} -> move T^\dagger horizontally
+%
+% \dscale{<value>} -> scale size of diagrams with <value>
+%
+% \dname{<text>} -> write <text> over the diagram
+% \dtext{<shift>}{<text>} -> write <text> in the diagram with horizontal shift
+%
+% change exoper-line-save, exvac-line-save, hoper-line-save, ph-line-save
+%  in order to change excitation operator, explicit vacuum, H-operator, or p/h line styles.
+
+
+\edef\xcoord{11} \edef\xcoor{11} \edef\xcoorbeg{11} \edef\xcoorend{11} \edef\result{11} \edef\ycoor{11} \edef\ycoord{11} %\edef\scal{11} 
+\pgfmathsetmacro{\scalh}{1} %default scale-value
+\pgfmathsetmacro{\scalv}{1} %default scale-value
+\pgfmathsetmacro{\xcoord}{(-1*\scalh)} \pgfmathsetmacro{\ycoord}{(-1*\scalv)} 
+\pgfmathsetmacro{\xcoor}{\xcoord} \pgfmathsetmacro{\ycoor}{(\ycoord+1*\scalv)} 
+\pgfmathsetmacro{\xcoordg}{\xcoord}
+\pgfmathsetmacro{\xcoorH}{\xcoord}
+\pgfmathsetmacro{\yvac}{(\ycoor+0.5*\scalv)} \pgfmathsetmacro{\xvac}{(0.25*\scalh)} \pgfmathsetmacro{\xdvac}{(0.5*\scalh)}
+\newcounter{stoer} 
+\def\firstargum{}
+\def\emptyargum{}
+%p/h line styles
+%arrows at the end 
+%\tikzset{ph-line-arrow-save/.style={->,>=stealth,thin}}
+%\tikzset{ph-liner-arrow-save/.style={ph-line-save,<-}}
+%arrows in the middle
+\tikzset{ph-line-arrow-save/.style={>=stealth,thin,postaction={on each segment={mid arrow}}}}
+\tikzset{ph-liner-arrow-save/.style={>=stealth,thin,postaction={on each segment={mid rarrow}}}}
+\tikzset{ph-line-noarrow-save/.style={thin}}
+\tikzset{ph-line-save/.style={ph-line-arrow-save}}
+\tikzset{ph-liner-save/.style={ph-liner-arrow-save}}
+%line styles
+\tikzset{exoper-line-save/.style={very thick, solid}}
+\tikzset{exvac-line-save/.style={thick, dotted}}
+\tikzset{hoper-line-fey-save/.style={ decoration={complete sines,segment length=0.1cm,amplitude=0.1cm}, decorate}}
+\tikzset{hoper-line-save/.style={very thick, dashed}}
+\tikzset{hoperbar-line-save/.style={ hoper-line-save, double}}
+\tikzset{exoper2-line-save/.style={ thick, solid, double}}
+\tikzset{exoper3-line-save/.style={ thick, transparent}}
+\tikzset{exoper-line/.style={exoper-line-save}}
+\tikzset{hoper-line/.style={hoper-line-save}}
+\tikzset{ph-line/.style={ph-line-save}}
+
+\newcommand{\bdiag}[1][]{
+ \ifx&#1&%
+  \begin{tikzpicture}
+ \else
+  \begin{tikzpicture}[scale=#1]
+ \fi
+}
+\newcommand{\bdiags}[1][]{
+ \bdiag[#1]
+  %symmetric diagram
+   \pgfmathsetmacro{\yvac}{(\ycoor+1*\scalv)}
+   \pgfmathsetmacro{\xvac}{(0.5*\scalh)}
+}
+\newcommand{\bdiagd}[1][]{
+ %dagger diagram: ycoor moved to the bottom
+ \pgfmathsetmacro{\ycoor}{(\ycoord+0.5*\scalv)}
+ \pgfmathsetmacro{\xcoordg}{\xcoord}
+ \pgfmathsetmacro{\xcoorH}{\xcoord}
+ \pgfmathsetmacro{\yvac}{(\ycoor+1*\scalv)} \pgfmathsetmacro{\xvac}{(0.5*\scalh)} \pgfmathsetmacro{\xdvac}{(0.25*\scalh)}
+ \bdiag[#1]
+}
+
+\newcommand{\ediag}{\end{tikzpicture}}
+\newcommand{\ediags}{\ediag}
+\newcommand{\ediagd}{\ediag}
+
+\newcommand{\dAmp}[4][]{%for all
+\pgfmathsetmacro{\xcoorbeg}{(\xcoor+0.5*\scalh)} 
+\pgfmathsetmacro{\xcoorend}{(\xcoorbeg+#3*\scalh/2)} 
+\draw[exoper-line](\xcoorbeg,\ycoord) -- (\xcoorend,\ycoord);
+\pgfmathsetmacro{\result}{(\xcoorend+0.35*\scalh)} 
+% write label if given
+\ifx&#1&%
+  \pgfmathsetmacro{\xcoor}{\xcoorend}
+\else
+  \node at (\result,\ycoord){#1};
+  \pgfmathsetmacro{\xcoor}{(\xcoorend+0.25*\scalh)}
+\fi
+% calculate the vertex-distance (singles are a special case)
+\ifnum#3=1
+ \pgfmathsetmacro{\xxx}{((\xcoorend-\xcoorbeg)/2)} 
+ \pgfmathsetmacro{\result}{\xcoorbeg}
+\else
+ \pgfmathsetmacro{\xxx}{((\xcoorend-\xcoorbeg)/( #3 - 1 ))} 
+ \pgfmathsetmacro{\result}{(\xcoorbeg-\xxx)}
+\fi
+% set all nodes (and give them names)
+\foreach \x in {1,...,#3}
+{
+  \coordinate (vertex) at ($(\result,\ycoord)+(\x*\xxx,0)$);
+  \node[inner sep=0pt,minimum size=0pt] (#4\x) at  (vertex) {};
+  \coordinate (vtxvac) at ($(\result,\yvac)+(\x*\xxx,0)$);
+  \node[inner sep=0pt,minimum size=0pt] (#4\x v1) at ($(vtxvac)-(\xvac,0)$) {};
+  \node[inner sep=0pt,minimum size=0pt] (#4\x v2) at ($(vtxvac)+(\xvac,0)$) {};
+}
+\node[inner sep=0pt,minimum size=0pt] (#4) at  (#41) {};
+\node[inner sep=0pt,minimum size=0pt] (#4v1) at (#41v1) {};
+\node[inner sep=0pt,minimum size=0pt] (#4v2) at (#41v2) {};
+% set perturbation (if given)
+\ifx&#2&%
+%
+\else  
+\pgfmathsetmacro{\result}{((\xcoorend+\xcoorbeg)/2)} 
+\setcounter{stoer}{#2} 
+\node[inner sep=0pt,minimum size=0pt] at (\result,\ycoord){{\footnotesize\slshape\sffamily \Roman{stoer}}}; 
+\fi
+}
+
+\newcommand{\dAmpD}[4][]{%for all
+\pgfmathsetmacro{\xcoorbeg}{(\xcoordg+0.5*\scalh)} 
+\pgfmathsetmacro{\xcoorend}{(\xcoorbeg+#3*\scalh/2)} 
+\draw[exoper-line](\xcoorbeg,\yvac) -- (\xcoorend,\yvac);
+\pgfmathsetmacro{\result}{(\xcoorend+0.35*\scalh)} 
+% write label if given
+\ifx&#1&%
+\pgfmathsetmacro{\xcoordg}{\xcoorend}
+\else
+\node at (\result,\yvac){#1};
+\pgfmathsetmacro{\xcoordg}{(\xcoorend+0.25*\scalh)}
+\fi
+% calculate the vertex-distance (singles are a special case)
+\ifnum#3=1
+ \pgfmathsetmacro{\xxx}{((\xcoorend-\xcoorbeg)/2)} 
+ \pgfmathsetmacro{\result}{\xcoorbeg}
+\else
+ \pgfmathsetmacro{\xxx}{((\xcoorend-\xcoorbeg)/( #3 - 1 ))} 
+ \pgfmathsetmacro{\result}{(\xcoorbeg-\xxx)}
+\fi
+% set all nodes (and give them names)
+\foreach \x in {1,...,#3}
+{
+  \coordinate (vertex) at ($(\result,\yvac)+(\x*\xxx,0)$);
+  \node[inner sep=0pt,minimum size=0pt] (#4\x) at  (vertex) {};
+  \coordinate (vtxvac) at ($(\result,\ycoord)+(\x*\xxx,0)$);
+  \node[inner sep=0pt,minimum size=0pt] (#4\x v1) at ($(vtxvac)-(\xdvac,0)$) {};
+  \node[inner sep=0pt,minimum size=0pt] (#4\x v2) at ($(vtxvac)+(\xdvac,0)$) {};
+}
+\node[inner sep=0pt,minimum size=0pt] (#4) at  (#41) {};
+\node[inner sep=0pt,minimum size=0pt] (#4v1) at (#41v1) {};
+\node[inner sep=0pt,minimum size=0pt] (#4v2) at (#41v2) {};
+% set perturbation (if given)
+\ifx&#2&%
+%
+\else
+\pgfmathsetmacro{\result}{((\xcoorend+\xcoorbeg)/2)} 
+\setcounter{stoer}{#2} 
+\node[inner sep=0pt,minimum size=0pt] at (\result,\yvac){{\footnotesize\slshape\sffamily \Roman{stoer}}}; 
+\fi
+}
+
+\newcommand{\dHone}[2][]{\pgfmathsetmacro{\xcoorbeg}{(\xcoorH+0.5*\scalh)}
+\pgfmathsetmacro{\xcoorend}{(\xcoorbeg+0.5*\scalh)} 
+\draw[hoper-line](\xcoorbeg,\ycoor) -- (\xcoorend,\ycoor);
+\node at (\xcoorend,\ycoor){$\bf \times$};
+\pgfmathsetmacro{\result}{(\xcoorend+0.35*\scalh)} 
+%name of operator
+\ifx&#1&%
+\pgfmathsetmacro{\xcoorH}{\xcoorend}
+\else
+\node at (\result,\ycoor){#1};
+\pgfmathsetmacro{\xcoorH}{(\xcoorend+0.25*\scalh)}
+\fi
+\node[inner sep=0pt,minimum size=0pt] (#2) at (\xcoorbeg,\ycoor){}; 
+\pgfmathsetmacro{\xx}{(\xcoorbeg-\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v1) at (\xx,\yvac) {}; 
+\pgfmathsetmacro{\xx}{(\xcoorbeg+\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v2) at (\xx,\yvac) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg-\xdvac/2)}
+\node[inner sep=0pt,minimum size=0pt] (#2vd1) at (\xx,\ycoord) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg+\xdvac/2)}
+\node[inner sep=0pt,minimum size=0pt] (#2vd2) at (\xx,\ycoord) {};
+\node[inner sep=0pt,minimum size=0pt] (#21) at  (#2) {};
+\node[inner sep=0pt,minimum size=0pt] (#21v1) at (#2v1) {};
+\node[inner sep=0pt,minimum size=0pt] (#21v2) at (#2v2) {};
+}
+
+\newcommand{\dHoner}[2][]{\pgfmathsetmacro{\xcoorbeg}{(\xcoorH+0.5*\scalh)}
+\pgfmathsetmacro{\xcoorend}{(\xcoorbeg+0.5*\scalh)} 
+\draw[hoper-line](\xcoorbeg,\ycoor) -- (\xcoorend,\ycoor);
+\node at (\xcoorbeg,\ycoor){$\bf \times$};
+\pgfmathsetmacro{\result}{(\xcoorend+0.35*\scalh)} 
+%name of operator
+\ifx&#1&%
+\pgfmathsetmacro{\xcoorH}{\xcoorend}
+\else
+\node at (\result,\ycoor){#1};
+\pgfmathsetmacro{\xcoorH}{(\xcoorend+0.25*\scalh)}
+\fi
+\node[inner sep=0pt,minimum size=0pt] (#2) at (\xcoorend,\ycoor){}; 
+\pgfmathsetmacro{\xx}{(\xcoorend-\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v1) at (\xx,\yvac) {}; 
+\pgfmathsetmacro{\xx}{(\xcoorend+\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v2) at (\xx,\yvac) {};
+\pgfmathsetmacro{\xx}{(\xcoorend-\xdvac/2)}
+\node[inner sep=0pt,minimum size=0pt] (#2vd1) at (\xx,\ycoord) {};
+\pgfmathsetmacro{\xx}{(\xcoorend+\xdvac/2)}
+\node[inner sep=0pt,minimum size=0pt] (#2vd2) at (\xx,\ycoord) {};
+}
+
+\newcommand{\dHtwo}[3][]{ \pgfmathsetmacro{\xcoorbeg}{(\xcoorH+0.5*\scalh)}
+\pgfmathsetmacro{\xcoorend}{(\xcoorbeg+1*\scalh)} 
+\draw[hoper-line](\xcoorbeg,\ycoor) -- (\xcoorend,\ycoor); 
+\pgfmathsetmacro{\result}{(\xcoorend+0.35*\scalh)} 
+%name of operator
+\ifx&#1&%
+\pgfmathsetmacro{\xcoorH}{\xcoorend}
+\else
+\node at (\result,\ycoor){#1};
+\pgfmathsetmacro{\xcoorH}{(\xcoorend+0.25*\scalh)}
+\fi
+\node[inner sep=0pt,minimum size=0pt] (#2) at (\xcoorbeg,\ycoor) {};
+\node[inner sep=0pt,minimum size=0pt] (#3) at (\xcoorend,\ycoor) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg-\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v1) at (\xx,\yvac) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg+\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2v2) at (\xx,\yvac) {}; 
+\pgfmathsetmacro{\xx}{(\xcoorend-\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#3v1) at (\xx,\yvac) {};
+\pgfmathsetmacro{\xx}{(\xcoorend+\xvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#3v2) at (\xx,\yvac) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg-\xdvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2vd1) at (\xx,\ycoord) {};
+\pgfmathsetmacro{\xx}{(\xcoorbeg+\xdvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#2vd2) at (\xx,\ycoord) {}; 
+\pgfmathsetmacro{\xx}{(\xcoorend-\xdvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#3vd1) at (\xx,\ycoord) {};
+\pgfmathsetmacro{\xx}{(\xcoorend+\xdvac/2)} 
+\node[inner sep=0pt,minimum size=0pt] (#3vd2) at (\xx,\ycoord) {};
+} 
+
+%general excitations
+\newcommand{\dT}[3][]{\dAmp[$_{T_#2}$]{#1}{#2}{#3}}
+\newcommand{\dTs}[3][]{\dAmp{#1}{#2}{#3}}
+
+\newcommand{\dU}[3][]{
+\tikzset{exoper-line/.style={exoper2-line-save}}
+\dAmp[$_{U_#2}$]{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dUs}[3][]{
+\tikzset{exoper-line/.style={exoper2-line-save}}
+\dAmp{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dTt}[3][]{
+\tikzset{exoper-line/.style={exoper3-line-save}}
+\dAmp{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dTv}[3][]{
+\tikzset{exoper-line/.style={exvac-line-save}}
+\dAmp{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dTd}[3][]{\dAmpD[$_{T^{\dagger}_#2}$]{#1}{#2}{#3}}
+\newcommand{\dTds}[3][]{\dAmpD{#1}{#2}{#3}}
+
+\newcommand{\dUd}[3][]{
+\tikzset{exoper-line/.style={exoper2-line-save}}
+\dAmpD[$_{U^{\dagger}_#2}$]{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dUds}[3][]{
+\tikzset{exoper-line/.style={exoper2-line-save}}
+\dAmpD{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dTtd}[3][]{
+\tikzset{exoper-line/.style={exoper3-line-save}}
+\dAmpD{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+\newcommand{\dTdv}[3][]{
+\tikzset{exoper-line/.style={exvac-line-save}}
+\dAmpD{#1}{#2}{#3}
+\tikzset{exoper-line/.style={exoper-line-save}} }
+
+%excitations with named nodes
+\newcommand{\dTone}[3][]{\dAmp[$_{T_1}$]{#1}{1}{#2}; \draw (#2) node[below] {\footnotesize\slshape\sffamily #3};}
+\newcommand{\dTtwo}[4][]{\dAmp[$_{T_2}$]{#1}{2}{#2}; \draw (#21) node[below] {\footnotesize\slshape\sffamily #3};\draw (#22) node[below] {\footnotesize\slshape\sffamily #4};}
+\newcommand{\dTsone}[3][]{\dAmp{#1}{1}{#2}; \draw (#2) node[below] {\footnotesize\slshape\sffamily #3};}
+\newcommand{\dTstwo}[4][]{\dAmp{#1}{2}{#2}; \draw (#21) node[below] {\footnotesize\slshape\sffamily #3};\draw (#22) node[below] {\footnotesize\slshape\sffamily #4};}
+\newcommand{\dTdone}[3][]{\dAmpD[$_{T^{\dagger}_1}$]{#1}{1}{#2}; \draw (#2) node[above] {\footnotesize\slshape\sffamily #3};}
+\newcommand{\dTdtwo}[4][]{\dAmpD[$_{T^{\dagger}_2}$]{#1}{2}{#2}; \draw (#21) node[above] {\footnotesize\slshape\sffamily #3};\draw (#22) node[above] {\footnotesize\slshape\sffamily #4};}
+\newcommand{\dTdsone}[3][]{\dAmpD{#1}{1}{#2}; \draw (#2) node[above] {\footnotesize\slshape\sffamily #3};}
+\newcommand{\dTdstwo}[4][]{\dAmpD{#1}{2}{#2}; \draw (#21) node[above] {\footnotesize\slshape\sffamily #3};\draw (#22) node[above] {\footnotesize\slshape\sffamily #4};}
+\newcommand{\dTdvone}[3][]{
+  \tikzset{exoper-line/.style={exvac-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTdsone{#2}{#3}
+  \else
+    \dTdsone[#1]{#2}{#3}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} }
+\newcommand{\dTdvtwo}[4][]{
+  \tikzset{exoper-line/.style={exvac-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTdstwo{#2}{#3}{#4}
+  \else
+    \dTdstwo[#1]{#2}{#3}{#4}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} }
+\newcommand{\dUone}[3][]{
+  \tikzset{exoper-line/.style={exoper2-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTone{#2}{#3}
+  \else
+    \dTone[#1]{#2}{#3}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} 
+}
+\newcommand{\dUtwo}[4][]{
+  \tikzset{exoper-line/.style={exoper2-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTtwo{#2}{#3}{#4}
+  \else
+    \dTtwo[#1]{#2}{#3}{#4}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} 
+}
+\newcommand{\dUsone}[3][]{
+  \tikzset{exoper-line/.style={exoper2-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTsone{#2}{#3}
+  \else
+    \dTsone[#1]{#2}{#3}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} 
+}
+\newcommand{\dUstwo}[4][]{
+  \tikzset{exoper-line/.style={exoper2-line-save}}
+  % set perturbation (if given)
+  \ifx&#1&%
+    \dTstwo{#2}{#3}{#4}
+  \else
+    \dTstwo[#1]{#2}{#3}{#4}
+  \fi
+  \tikzset{exoper-line/.style={exoper-line-save}} 
+}
+
+
+%Hamilton parts
+\newcommand{\dF}[1]{\dHone[$_{F}$]{#1}}
+\newcommand{\dFs}[1]{\dHone{#1}}
+\newcommand{\dFbar}[1]{
+  \tikzset{hoper-line/.style={hoperbar-line-save}}
+  \dHone[$_{F}$]{#1}
+  \tikzset{hoper-line/.style={hoper-line-save}}
+}
+\newcommand{\dFbars}[1]{
+  \tikzset{hoper-line/.style={hoperbar-line-save}}
+  \dHone{#1}
+  \tikzset{hoper-line/.style={hoper-line-save}}
+}
+\newcommand{\dX}[1]{\dHone[$_{X}$]{#1}}
+
+\newcommand{\dFr}[1]{\dHoner[$_{F}$]{#1}}
+\newcommand{\dFsr}[1]{\dHoner{#1}}
+\newcommand{\dXr}[1]{\dHoner[$_{X}$]{#1}}
+
+\newcommand{\dW}[2]{\dHtwo[$_{W}$]{#1}{#2}}
+\newcommand{\dWs}[2]{\dHtwo{#1}{#2}}
+\newcommand{\dWbar}[2]{
+  \tikzset{hoper-line/.style={hoperbar-line-save}}
+  \dHtwo[$_{\bar W}$]{#1}{#2}
+  \tikzset{hoper-line/.style={hoper-line-save}}
+}
+\newcommand{\dWbars}[2]{
+  \tikzset{hoper-line/.style={hoperbar-line-save}}
+  \dHtwo{#1}{#2}
+  \tikzset{hoper-line/.style={hoper-line-save}}
+}
+\newcommand{\dXtwo}[2]{\dHtwo[$_{X}$]{#1}{#2}}
+%Hamilton parts with named nodes
+\newcommand{\dFn}[2]{\dHone[$_{F}$]{#1}; \draw (#1) node[below] {\footnotesize\slshape\sffamily #2};}
+\newcommand{\dFsn}[2]{\dHone{#1}; \draw (#1) node[below] {\footnotesize\slshape\sffamily #2};}
+\newcommand{\dFrn}[2]{\dHoner[$_{F}$]{#1}; \draw (#1) node[below] {\footnotesize\slshape\sffamily #2};}
+\newcommand{\dFsrn}[2]{\dHoner{#1}; \draw (#1) node[below] {\footnotesize\slshape\sffamily #2};}
+\newcommand{\dWn}[4]{\dHtwo[$_{W}$]{#1}{#2}; \draw (#1) node[above] {\footnotesize\slshape\sffamily #3};\draw (#2) node[above] {\footnotesize\slshape\sffamily #4};}
+\newcommand{\dWsn}[4]{\dHtwo{#1}{#2}; \draw (#1) node[above] {\footnotesize\slshape\sffamily #3};\draw (#2) node[above] {\footnotesize\slshape\sffamily #4};}
+
+
+
+\newcommand{\dline}[3][]{
+\ifx&#1&%
+\draw[ph-line](#2) -- (#3);
+\else
+\draw[ph-line](#2) -- node[inner sep=0pt,minimum size=0pt,right = 0.5pt] {\footnotesize\slshape\sffamily #1} (#3);
+\fi
+}
+\newcommand{\dcurve}[3][]{
+\ifx&#1&%
+\draw[ph-line](#2) to [bend right=30] (#3);
+\else
+\draw[ph-line](#2) to [bend right=30] node[inner sep=0pt,minimum size=0pt,right = 0.5pt] {\footnotesize\slshape\sffamily #1} (#3);
+\fi
+}
+\newcommand{\dcurver}[3][]{
+  \tikzset{ph-line/.style={ph-liner-save}}
+  \dcurve[#1]{#3}{#2}
+  \tikzset{ph-line/.style={ph-line-save}}
+}
+\newcommand{\dcurcur}[2]{\dcurve{#1}{#2} \dcurve{#2}{#1}}
+
+\newcommand{\dcurt}[3]{
+  \draw[ph-line] let \p1 = (#1), \p2 = (#2)
+    in \pgfextra{
+        \pgfmathsetmacro{\dx}{\x2==\x1}
+        \pgfmathsetmacro{\dy}{\y2>\y1}
+        \pgfmathsetmacro{\ang}{90-2*atan((\y2-\y1)/(\x2-\x1+\dx/10))}
+        \pgfmathsetmacro{\ango}{180*(1-\dy) - \ang +1}
+        \pgfmathsetmacro{\angi}{90-180*\dy +1}
+       }
+    (#1) to [out=\ango,in=\angi] (#2);
+
+  \draw[ph-line] let \p1 = (#2), \p2 = (#3)
+    in \pgfextra{
+        \pgfmathsetmacro{\dx}{\x2==\x1}
+        \pgfmathsetmacro{\dy}{\y2>\y1}
+        \pgfmathsetmacro{\ang}{90-2*atan((\y2-\y1)/(\x2-\x1+\dx/10))}
+        \pgfmathsetmacro{\angi}{-180*\dy - \ang + 361}
+        \pgfmathsetmacro{\ango}{180*\dy -89 }
+       } 
+    (#2) to [out=\ango,in=\angi] (#3);
+}
+% switch to this one if TexLive2011 is available
+%\newcommand{\dcurt}[3]{
+  %\draw[ph-line] let \p1 = (#1), \p2 = (#2)
+    %in \pgfextra{
+        %\pgfmathsetmacro{\dx}{\x2==\x1 ? 1 : \x2-\x1 } 
+        %\pgfmathsetmacro{\ang}{\x2==\x1? -90 :90-2*atan((\y2-\y1)/(\dx))}
+        %\pgfmathsetmacro{\sang}{\y2>\y1? -1 : 1}
+        %\pgfmathsetmacro{\ango}{\y2>\y1? -\ang : 180 - \ang}
+        %\pgfmathsetmacro{\angi}{\y2>\y1? -90 : 90}
+       %}
+    %(#1) to [out=\ango,in=\angi] (#2);
+  %\draw[ph-line] let \p1 = (#2), \p2 = (#3)
+    %in \pgfextra{
+        %\pgfmathsetmacro{\dx}{\x2==\x1 ? 1 : \x2-\x1 }
+        %\pgfmathsetmacro{\ang}{\x2==\x1 ? -90 : 90+2*atan((\y2-\y1)/(\dx))}
+        %\pgfmathsetmacro{\angi}{\y2>\y1? \ang : 180 + \ang}
+        %\pgfmathsetmacro{\ango}{\y2>\y1? 90 : -90}
+       %}
+    %(#2) to [out=\ango,in=\angi] (#3);
+%}
+\newcommand{\dcurtr}[3]{
+  \tikzset{ph-line/.style={ph-liner-save}}
+  \dcurt{#3}{#2}{#1}
+  \tikzset{ph-line/.style={ph-line-save}}  
+}
+
+\newcommand{\dbubble}[2]{
+  \draw[ph-line] (#1) arc (180:360:#2*0.25*\scalh) node (#1cir) {};
+  \draw[ph-line] (#1cir) arc (0:180:#2*0.25*\scalh) {};
+}
+\newcommand{\dbubbler}[2]{
+  \tikzset{ph-line/.style={ph-liner-save}}
+  \dbubble{#1}{#2}
+  \tikzset{ph-line/.style={ph-line-save}}  
+}
+\newcommand{\doyster}[2]{
+  \draw[ph-line](#1) to [bend right=60] (#2);
+}
+\newcommand{\doysterr}[2]{
+  \tikzset{ph-line/.style={ph-liner-save}}
+  \doyster{#1}{#2}
+  \tikzset{ph-line/.style={ph-line-save}}  
+}
+
+\newcommand{\dmoveH}[1]{\pgfmathsetmacro{\xcoorH}{(\xcoorH+#1*0.25*\scalh)}}
+\newcommand{\dmoveT}[1]{\pgfmathsetmacro{\xcoor}{(\xcoor+#1*0.25*\scalh)}}
+\newcommand{\dmoveTd}[1]{\pgfmathsetmacro{\xcoordg}{(\xcoordg+#1*0.25*\scalh)}}
+\newcommand{\dmovac}[1]{\pgfmathsetmacro{\yvac}{(\yvac+#1*0.25*\scalv)}}
+\newcommand{\dmovex}[1]{\dmoveH{#1}} %alias
+\newcommand{\dvmoveH}[1]{\pgfmathsetmacro{\ycoor}{(\ycoor+#1*0.25*\scalv)}}
+
+\newcommand{\dname}[1]{
+\pgfmathsetmacro{\xx}{(\xcoord+1*\scalh)} \pgfmathsetmacro{\result}{(\yvac+0.25*\scalv)} 
+\node at (\xx,\result) {#1};}
+\newcommand{\dtext}[2]{\pgfmathsetmacro{\xx}{(\xcoord+#1*\scalh)} \pgfmathsetmacro{\result}{((\ycoord+\yvac)/2)} 
+\node at (\xx,\result) {#2};}
+
+\newcommand{\dvscale}[1]{
+  \pgfmathsetmacro{\scalv}{#1} 
+  \pgfmathsetmacro{\ycoord}{(-1*\scalv)} 
+  \pgfmathsetmacro{\ycoor}{(\ycoord+1*\scalv)} 
+  \pgfmathsetmacro{\yvac}{(\yvac*\scalv)} 
+}
+\newcommand{\dhscale}[1]{
+  \pgfmathsetmacro{\scalh}{#1} 
+  \pgfmathsetmacro{\xcoord}{(-1*\scalh)} 
+  \pgfmathsetmacro{\xcoor}{\xcoord} 
+  \pgfmathsetmacro{\xcoordg}{\xcoord}
+  \pgfmathsetmacro{\xcoorH}{\xcoord}
+  \pgfmathsetmacro{\xvac}{(\xvac*\scalh)}
+}
+
+\newcommand{\dscale}[1]{
+  \dvscale{#1}
+  \dhscale{#1}
+}
+
+\newcommand{\dscaleop}[1]{\pgfmathsetmacro{\scalh}{#1}}
+
+\newcommand{\dfeynman}{
+  \tikzset{hoper-line-save/.style={hoper-line-fey-save}}
+  \tikzset{hoperbar-line-save/.style={hoper-line-save, double}}
+}
+
+\newcommand{\dnoarrow}{
+\tikzset{ph-line-save/.style={ph-line-noarrow-save}}
+\tikzset{ph-liner-save/.style={ph-line-noarrow-save}}
+\tikzset{ph-line/.style={ph-line-save}}
+}
+\newcommand{\darrow}{
+\tikzset{ph-line-save/.style={ph-line-arrow-save}}
+\tikzset{ph-liner-save/.style={ph-liner-arrow-save}}
+\tikzset{ph-line/.style={ph-line-save}}
+}
+
+% end of CCDiag
+
+
+% test:
+% \bdiag
+% \dmovex{2}
+% \dT{1}{t}
+% \dT{2}{t2}
+% \dW{wn1}{wn2}
+% \dline{t1}{wn1}
+% \dline{t1v1}{t1}
+% \dline{t21}{wn2}
+% \dline{t21}{t2v1}
+% \dline{wn1}{wn1v2}
+% \dline{wn2}{wn2v2}
+% \dline{t22v1}{t22}
+% \dline{t22}{t22v2}
+% \ediag
