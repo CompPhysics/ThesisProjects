@@ -1,0 +1,31 @@
+
+		\begin{center}
+			\begin{tikzpicture} [node distance=2cm]
+			\node (Setup system) [roundrect] {Calculate channels and interaction matrix elements};% of one particle in one dimension};
+			
+			\node (Set T2)[roundrect, below of=Setup system, yshift=-0.5cm]{Set $T_2$ amplitudes from MBPT2 approximation:
+				$t_{ij}^{ab} = \frac{V_{ij}^{ab}}{\epsilon_i+\epsilon_j-\epsilon_a-\epsilon_b}$};
+			
+			\node(Calc CCDT)[roundrect, below of=Set T2, yshift=-0.5cm]{Calculate all CCDT diagrams, except $D_{10b}$ and $D_{10c}$, using $t_{2,\text{old}}$.};
+			
+			\node(Update T3)[roundrect, below of=Calc CCDT, yshift=-0.5cm]{Update the $T_3$ amplitudes: $t_{3,n+1} = \frac{T_{1a}(t_{3,n},t_{2,n}) + T_{1b}(t_{3,n},t_{2,n}) + \ldots}{\epsilon_i+\epsilon_j+\epsilon_k-\epsilon_a-\epsilon_b - \epsilon_c}$};
+			
+			\node(Calc D10)[roundrect, below of=Update T3, yshift=-0.5cm]{Calculate $D_{10b}$ and $D_{10c}$.};
+			
+			\node(Update T2)[roundrect, below of=Calc D10, yshift=-0.5cm]{Update the $T_2$ amplitudes: $t_{2,n+1} = \frac{L_a(t_{3,n},t_{2,n}) + L_b(t_{3,n},t_{2,n}) + \ldots}{\epsilon_i+\epsilon_j-\epsilon_a-\epsilon_b}$};
+			
+			\node(Check E)[roundrect, below of=Update T2, yshift=-0.5cm]{Check if $|E_{n+1}-E_n| < \epsilon$};
+			
+			\node(Finish)[roundrect, below of=Check E, yshift=-0.5cm]{Calculate $\frac{E_{\text{tot}}}{A}$};
+			
+			\draw [arrow] (Setup system) -- (Set T2);
+			\draw [arrow] (Set T2) -- (Calc CCDT);
+			\draw [arrow] (Calc CCDT) -- (Update T3);
+			\draw [arrow] (Update T3) -- (Calc D10);
+			\draw [arrow] (Calc D10) -- (Update T2);
+			\draw [arrow] (Update T2) -- (Check E);
+			\draw [arrow,rectangle connector=-4cm] (Check E) to node[descr] [anchor=north]{No} (Calc CCDT);
+			\draw [arrow] (Check E) -- node [anchor=east]{Yes} (Finish);
+			
+			\end{tikzpicture}
+		\end{center}
