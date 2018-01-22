@@ -1,0 +1,310 @@
+%%
+%% Automatically generated file from DocOnce source
+%% (https://github.com/hplgit/doconce/)
+%%
+%%
+% #ifdef PTEX2TEX_EXPLANATION
+%%
+%% The file follows the ptex2tex extended LaTeX format, see
+%% ptex2tex: http://code.google.com/p/ptex2tex/
+%%
+%% Run
+%%      ptex2tex myfile
+%% or
+%%      doconce ptex2tex myfile
+%%
+%% to turn myfile.p.tex into an ordinary LaTeX file myfile.tex.
+%% (The ptex2tex program: http://code.google.com/p/ptex2tex)
+%% Many preprocess options can be added to ptex2tex or doconce ptex2tex
+%%
+%%      ptex2tex -DMINTED myfile
+%%      doconce ptex2tex myfile envir=minted
+%%
+%% ptex2tex will typeset code environments according to a global or local
+%% .ptex2tex.cfg configure file. doconce ptex2tex will typeset code
+%% according to options on the command line (just type doconce ptex2tex to
+%% see examples). If doconce ptex2tex has envir=minted, it enables the
+%% minted style without needing -DMINTED.
+% #endif
+
+% #define PREAMBLE
+
+% #ifdef PREAMBLE
+%-------------------- begin preamble ----------------------
+
+\documentclass[%
+oneside,                 % oneside: electronic viewing, twoside: printing
+final,                   % draft: marks overfull hboxes, figures with paths
+10pt]{article}
+
+\listfiles               %  print all files needed to compile this document
+
+\usepackage{relsize,makeidx,color,setspace,amsmath,amsfonts,amssymb}
+\usepackage[table]{xcolor}
+\usepackage{bm,ltablex,microtype}
+
+\usepackage[pdftex]{graphicx}
+
+\usepackage[T1]{fontenc}
+%\usepackage[latin1]{inputenc}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+
+\usepackage{lmodern}         % Latin Modern fonts derived from Computer Modern
+
+% Hyperlinks in PDF:
+\definecolor{linkcolor}{rgb}{0,0,0.4}
+\usepackage{hyperref}
+\hypersetup{
+    breaklinks=true,
+    colorlinks=true,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor,
+    citecolor=black,
+    filecolor=black,
+    %filecolor=blue,
+    pdfmenubar=true,
+    pdftoolbar=true,
+    bookmarksdepth=3   % Uncomment (and tweak) for PDF bookmarks with more levels than the TOC
+    }
+%\hyperbaseurl{}   % hyperlinks are relative to this root
+
+\setcounter{tocdepth}{2}  % levels in table of contents
+
+% prevent orhpans and widows
+\clubpenalty = 10000
+\widowpenalty = 10000
+
+% --- end of standard preamble for documents ---
+
+
+% insert custom LaTeX commands...
+
+\raggedbottom
+\makeindex
+\usepackage[totoc]{idxlayout}   % for index in the toc
+\usepackage[nottoc]{tocbibind}  % for references/bibliography in the toc
+
+%-------------------- end preamble ----------------------
+
+\begin{document}
+
+% matching end for #ifdef PREAMBLE
+% #endif
+
+\newcommand{\exercisesection}[1]{\subsection*{#1}}
+
+
+% ------------------- main content ----------------------
+
+
+
+% ----------------- title -------------------------
+
+\thispagestyle{empty}
+
+\begin{center}
+{\LARGE\bf
+\begin{spacing}{1.25}
+Studies of Infinite Matter Systems, from the Homogeneous Electron Gas to Dense Matter 
+\end{spacing}
+}
+\end{center}
+
+% ----------------- author(s) -------------------------
+
+\begin{center}
+{\bf Master of Science thesis project${}^{}$} \\ [0mm]
+\end{center}
+
+\begin{center}
+% List of all institutions:
+\end{center}
+    
+% ----------------- end author(s) -------------------------
+
+% --- begin date ---
+\begin{center}
+Jan 22, 2018
+\end{center}
+% --- end date ---
+
+\vspace{1cm}
+
+
+\section{Aims}
+
+The aim of this thesis is to develop a Full Configuration Interaction Quantum Monte Carlo (FCIQMC)
+code that can be used to study properties of fermions in infinite systems. The latter can span from 
+the homogenous electron gas in two and three dimensions to infinite nuclear matter present in neutron stars. 
+The formalism to be developed follows the recent work of \href{{http://www.nature.com/nature/journal/v493/n7432/full/nature11770.html}}{Alavi and co-workers}. The aim is to extend upon the thesis of \href{{https://www.duo.uio.no/handle/10852/37172}}{Karl Leikanger} in order to study strongly interacting systems like infinite nuclear matter.  If successful, the FCIQMC method has the potential to provide \emph{almost-exact} solutions for ground state properties of strongly interacting many-particle systems. 
+
+\subsection{General introduction to the  physical systems}
+
+The homogeneous electron gas in two and three dimensions and 
+bulk nucleonic matter are interesting for several reasons. The equation of state (EoS) of
+neutron matter determines for example properties of supernova
+explosions and of neutron
+stars.
+The determination and our understanding of the EoS for nuclear matter
+is intimately linked with our capability to solve the nuclear
+many-body problem. Here, correlations beyond the mean field play an
+important role.  Theoretical studies of nuclear matter and the
+pertinent EoS span back to the very early days of nuclear many-body
+physics. Early computations are nicely described in the 1967 review by \href{{https://journals.aps.org/rmp/issues/39/4}}{Day}. 
+In these calculations, mainly particle-particle
+correlations were summed to infinite order.  Other correlations were
+often included in a perturbative way. Coupled cluster calculations of
+nuclear matter were performed already during the late 1970s and early. In recent years, there has been a
+considerable algorithmic development of first-principle methods for
+solving the nuclear many-body problem. A systematic inclusion of other
+correlations in a non-perturbative way are nowadays accounted for in
+Monte Carlo methods,
+self-consistent Green's function approaches and 
+nuclear density functional theory. \href{{https://github.com/ManyBodyPhysics/LectureNotesPhysics/blob/master/doc/src/lnp.pdf}}{The recent Lecture Notes in Physics on Computational Nuclear Physics covers many of the above many-body methods} as well as presenting extensive repositories for numerical methods.
+The homogeneous electron gas has played a central role in solid state physics, not only as a viable model for understanding important aspects
+of condensed matter systems  but also as a benchmark system for various many-body methods.  
+Still, all of the above many-body methods rely on specific approximations (and thereby truncations) to the full set of many-body correlations.
+The FCIQMC method, as demonstrated by \href{{http://www.nature.com/nature/journal/v493/n7432/full/nature11770.html}}{Alavi and co-workers}, has the potential to provide almost \emph{exact} results for ground state properties of fermionic and bosonic systems. As such, when applied to both the homogeneous electron gas and infinite nuclear matter, the method has the potential to provide important benchmarks for other many-body methods. 
+
+\subsection{Many-body approaches to infinite matter}
+
+For an infinite homogeneous system  like nuclear matter or the electron gas, 
+the one-particle wave functions are given by plane wave functions
+normalized to a volume $\Omega$ for a quadratic box with length
+$L$. The limit $L\rightarrow \infty$ is to be taken after we
+  have computed various expectation values. In our case we will
+  however always deal with a fixed number of particles and finite size
+  effects become important. 
+\[
+\psi_{\mathbf{k}m_s}(\mathbf{r})= \frac{1}{\sqrt{\Omega}}\exp{(i\mathbf{kr})}\xi_{m_s}
+\]
+where $\mathbf{k}$ is the wave number and $\xi_{m_s}$ is a spin function
+for either spin up or down
+\[ 
+\xi_{m_{s}=+1/2}=\left(\begin{array}{c} 1
+  \\ 0 \end{array}\right) \hspace{0.5cm}
+\xi_{m_{s}=-1/2}=\left(\begin{array}{c} 0 \\ 1 \end{array}\right).\]
+The single-particle energies for the three-dimensional electron gas
+are
+\[    
+\varepsilon_{n_{x}, n_{y}, n_{z}} = \frac{\hbar^{2}}{2m}\left( \frac{2\pi }{L}\right)^{2}(n_{x}^{2}+n_{y}^{2}+n_{z}^{2}),
+\]
+resulting in the magic numbers $2$, $14$, $38$, $54$, etc.  
+
+In general terms, our Hamiltonian contains at most a two-body
+interaction. In second quantization, we can write our Hamiltonian as
+\begin{equation}
+\hat{H}= \sum_{pq}\langle p | \hat{h}_0 | q \rangle a_p^{\dagger} a_q + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle a_p^{\dagger} a_q^{\dagger} a_s a_r,
+\label{eq:ourHamiltonian}
+\end{equation} 
+where the operator $\hat{h}_0$ denotes the single-particle
+Hamiltonian, and the elements $\langle pq|v|rs\rangle$ are the
+anti-symmetrized Coulomb interaction matrix elements.  Normal-ordering
+with respect to a reference state $|\Phi_0\rangle$ yields
+\begin{equation}
+\hat{H}=E_0 + \sum_{pq}f_{pq}\lbrace a_p^{\dagger} a_q\rbrace + \frac{1}{4}\sum_{pqrs}\langle pq |v| r s \rangle \lbrace a_p^{\dagger} a_q^{\dagger} a_s a_r \rbrace,
+\label{eq:normalorder}
+\end{equation}
+where $E_0=\langle\Phi_0| \hat{H}| \Phi_0\rangle$ is the reference energy
+and we have introduced the so-called  Fock matrix element defined as
+\begin{equation}
+f_{pq} = \langle p|\hat{h}_0| q \rangle + \sum\limits_{i} \langle pi |v| qi\rangle.
+\label{eq:fockelement}
+\end{equation}
+The curly brackets in Eq.~(\ref{eq:normalorder}) indicate that the
+creation and annihilation operators are normal ordered.
+
+The unperturbed part
+of the Hamiltonian is defined as the sum over all the single-particle
+operators $\hat{h}_0$, resulting in
+\[
+\hat{H}_{0}=\sum_i\langle i|\hat{h}_0|i \rangle= {\displaystyle\sum_{\mathbf{k}_{i}m_{s_i}}}
+\frac{\hbar^{2}k_i^{2}}{2m}a_{\mathbf{k}_{i}m_{s_i}}^{\dagger}
+a_{\mathbf{k}_{i}m_{s_i}}.
+\]
+We will throughout suppress, unless explicitely needed, all references
+to the explicit quantum numbers $\mathbf{k}_{i}m_{s_i}$. The summation
+index $i$ runs over all single-hole states up to the Fermi level.
+
+The general anti-symmetrized two-body interaction matrix element 
+\[
+\langle pq |v| r s \rangle = \langle
+\mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle,
+\]
+is given by the following expression
+  \begin{align}
+    & \langle
+    \mathbf{k}_{p}m_{s_{p}}\mathbf{k}_{q}m_{s_{q}}|v|\mathbf{k}_{r}m_{s_{r}}\mathbf{k}_{s}m_{s_{s}}\rangle
+    \nonumber \\ =&
+    \frac{e^{2}}{\Omega}\delta_{\mathbf{k}_{p}+\mathbf{k}_{q},
+      \mathbf{k}_{r}+\mathbf{k}_{s}}\left\{
+    \delta_{m_{s_{p}}m_{s_{r}}}\delta_{m_{s_{q}}m_{s_{s}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{r}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{r}-\mathbf{k}_{p})^{2}} \right. \nonumber
+    \\ & \left. -
+    \delta_{m_{s_{p}}m_{s_{s}}}\delta_{m_{s_{q}}m_{s_{r}}}(1-\delta_{\mathbf{k}_{p}\mathbf{k}_{s}})\frac{4\pi
+    }{\mu^{2} + (\mathbf{k}_{s}-\mathbf{k}_{p})^{2}} \right\},
+    \nonumber
+  \end{align}
+for the three-dimensional electron gas.  The energy per electron computed with
+the reference Slater determinant can then be written as 
+(using hereafter only atomic units, meaning that $\hbar = m = e = 1$)
+\[
+E_0/N=\frac{1}{2}\left[\frac{2.21}{r_s^2}-\frac{0.916}{r_s}\right],
+\]
+for the three-dimensional electron gas.  This will serve as the first benchmark in setting up a
+program for the FCIQMC method. 
+The electron gas provides a very useful benchmark at the Hartree-Fock level since it provides
+an analytical solution for the Hartree-Fock energy single-particle energy and the total  energy per particle. 
+
+Most of the details for setting up a single-particle basis and performing a Hartree-Fock calculation for infinite systems can be found in chapter 8 of \href{{https://github.com/ManyBodyPhysics/LectureNotesPhysics/blob/master/doc/src/lnp.pdf}}{the recent Lecture Notes in Physics mentioned above}.
+
+
+
+\subsection{Specific tasks}
+
+The first task of this thesis is to develop a code which implements the abovementioned single-particle basis for a two-dimensional and three-dimensional infinite homogeneous gas of electrons  using a cartesian basis. With this basis, the next task is to write a code which computes the Hartree-Fock energy. These results will be benchmarked against analytical results for the electron gas as well as existing numerical results for infinite nuclear matter. 
+The next step is, using a Hartree-Fock basis, to develop a Variational Monte Carlo code that uses a simple form for the two-body correlation function based on perturbation theory to second order. 
+The final task is to develop an FCIQMC code for infinite systems using as input the Hartree-Fock and the optimal energy from the Variational Monte Carlo calculations. The results will be benchmarked against other many-body methods and can easily lead to publications in international journals. 
+
+
+
+
+
+\section{Progress plan and milestones}
+
+The aims and progress plan of this thesis are as follows
+
+\begin{itemize}
+  \item Fall 2xxx: Develop a program which sets up a cartesian single-particle basis for infinite systems and perform Hartree-Fock calculations for the infinite electron gas in two and three dimensions.
+
+  \item Fall 2xxx:  Set up a Variational Monte Carlo code that uses a Jastrow factor based on many-body perturbation theory to first order in the wave operator.
+
+  \item Fall 2xxx:  Start developing the FCIQMC method and perform the first calculations for simpler two-electron systems in two and three dimensions.
+
+  \item Spring 2xxx: Develop and finalize a fully object-oriented and parallelized FCIQMC code which can be used to study the infinite electron gas. The results can in turn be benchmarked with other first principle calculations.
+
+  \item Spring 2xxx: The last part deals with a proper write-up of the thesis, final runs and discussion of the results.
+\end{itemize}
+
+\noindent
+The thesis is expected to be handed in May/June 2xxx.
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ------------------- end of main content ---------------
+
+% #ifdef PREAMBLE
+\end{document}
+% #endif
+
