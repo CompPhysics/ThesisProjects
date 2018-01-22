@@ -1,0 +1,261 @@
+%%
+%% Automatically generated file from DocOnce source
+%% (https://github.com/hplgit/doconce/)
+%%
+%%
+% #ifdef PTEX2TEX_EXPLANATION
+%%
+%% The file follows the ptex2tex extended LaTeX format, see
+%% ptex2tex: http://code.google.com/p/ptex2tex/
+%%
+%% Run
+%%      ptex2tex myfile
+%% or
+%%      doconce ptex2tex myfile
+%%
+%% to turn myfile.p.tex into an ordinary LaTeX file myfile.tex.
+%% (The ptex2tex program: http://code.google.com/p/ptex2tex)
+%% Many preprocess options can be added to ptex2tex or doconce ptex2tex
+%%
+%%      ptex2tex -DMINTED myfile
+%%      doconce ptex2tex myfile envir=minted
+%%
+%% ptex2tex will typeset code environments according to a global or local
+%% .ptex2tex.cfg configure file. doconce ptex2tex will typeset code
+%% according to options on the command line (just type doconce ptex2tex to
+%% see examples). If doconce ptex2tex has envir=minted, it enables the
+%% minted style without needing -DMINTED.
+% #endif
+
+% #define PREAMBLE
+
+% #ifdef PREAMBLE
+%-------------------- begin preamble ----------------------
+
+\documentclass[%
+oneside,                 % oneside: electronic viewing, twoside: printing
+final,                   % draft: marks overfull hboxes, figures with paths
+10pt]{article}
+
+\listfiles               %  print all files needed to compile this document
+
+\usepackage{relsize,makeidx,color,setspace,amsmath,amsfonts,amssymb}
+\usepackage[table]{xcolor}
+\usepackage{bm,ltablex,microtype}
+
+\usepackage[pdftex]{graphicx}
+
+\usepackage[T1]{fontenc}
+%\usepackage[latin1]{inputenc}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+
+\usepackage{lmodern}         % Latin Modern fonts derived from Computer Modern
+
+% Hyperlinks in PDF:
+\definecolor{linkcolor}{rgb}{0,0,0.4}
+\usepackage{hyperref}
+\hypersetup{
+    breaklinks=true,
+    colorlinks=true,
+    linkcolor=linkcolor,
+    urlcolor=linkcolor,
+    citecolor=black,
+    filecolor=black,
+    %filecolor=blue,
+    pdfmenubar=true,
+    pdftoolbar=true,
+    bookmarksdepth=3   % Uncomment (and tweak) for PDF bookmarks with more levels than the TOC
+    }
+%\hyperbaseurl{}   % hyperlinks are relative to this root
+
+\setcounter{tocdepth}{2}  % levels in table of contents
+
+% prevent orhpans and widows
+\clubpenalty = 10000
+\widowpenalty = 10000
+
+% --- end of standard preamble for documents ---
+
+
+% insert custom LaTeX commands...
+
+\raggedbottom
+\makeindex
+\usepackage[totoc]{idxlayout}   % for index in the toc
+\usepackage[nottoc]{tocbibind}  % for references/bibliography in the toc
+
+%-------------------- end preamble ----------------------
+
+\begin{document}
+
+% matching end for #ifdef PREAMBLE
+% #endif
+
+\newcommand{\exercisesection}[1]{\subsection*{#1}}
+
+
+% ------------------- main content ----------------------
+
+
+
+% ----------------- title -------------------------
+
+\thispagestyle{empty}
+
+\begin{center}
+{\LARGE\bf
+\begin{spacing}{1.25}
+High-Performance Computing 
+\end{spacing}
+}
+\end{center}
+
+% ----------------- author(s) -------------------------
+
+\begin{center}
+{\bf Master of Science thesis project${}^{}$} \\ [0mm]
+\end{center}
+
+\begin{center}
+% List of all institutions:
+\end{center}
+    
+% ----------------- end author(s) -------------------------
+
+% --- begin date ---
+\begin{center}
+Jan 22, 2018
+\end{center}
+% --- end date ---
+
+\vspace{1cm}
+
+
+\subsection{Quantum Monte Carlo using CPUs and GPUs}
+
+The aim of this thesis is to develop  diffusion Monte Carlo (DMC) and a Variational
+Monte Carlo (VMC) programs written in OpenCL and/or CUDA, in order to test the potential
+of Graphical processing units (GPUs) in Monte Carlo studies of both bosonic and fermionic systems.
+
+The thesis entails the development of  VMC and DMC codes for bosons and fermions,
+tailored to run on large supercomputing cluster with thousands of cores.
+These codes will then be rewritten in OpenCL and/or CUDA and tested on different GPUs,
+in order to see if a considerable speedup can be gained.
+Such a speedup, if we at least an order of magnitude is gained compared 
+with existing in C++/Fortran codes that run on present  supercomputers, will have trememdous consenquences for ab initio studies of quantum mechanical systems.  The prices of the GPUs are of the order of few thousands of NOK, compared
+with large supercomputers which can cost billions of NOK. 
+
+The physics cases will deal with Bose-Einstein condensation and studies
+of the structure of atoms like Neon or Argon or electrons confined to move in harmonic oscilaltor like traps. 
+In this way, both bosonic and fermionic systems will be tested.
+
+
+The aim is to use these methods and evaluate 
+the ground state properties of
+a trapped, hard sphere Bose gas over a wide range of densities
+using VMC and DMC  methods with several 
+trial wave functions, as well as testing fermionic systems. These wave functions are used 
+to study the sensitivity of condensate and 
+non-condensate properties to the hard sphere radius and the number 
+of particles.
+The traps we will use are both a spherical symmetric (S) harmonic and 
+an elliptical (E) harmonic trap in three dimensions given by 
+ \begin{equation}
+V_{ext}({\bf r}) = 
+\Bigg\{
+\begin{array}{ll}
+        \frac{1}{2}m\omega_{ho}^2r^2 & (S)\\
+\strut
+	\frac{1}{2}m[\omega_{ho}^2(x^2+y^2) + \omega_z^2z^2] & (E)
+\label{trap_eqn}
+\end{array}
+\end{equation}
+with 
+\begin{equation}
+    H = \sum_i^N \left(
+        \frac{-\hbar^2}{2m}
+        { \bigtriangledown }_{i}^2 +
+        V_{ext}({\bf{r}}_i)\right)  +
+        \sum_{i<j}^{N} V_{int}({\bf{r}}_i,{\bf{r}}_j),
+\end{equation}
+as the two-body Hamiltonian of the system.
+Here $\omega_{ho}^2$ defines the trap potential strength.  In the case of the
+elliptical trap, $V_{ext}(x,y,z)$, $\omega_{ho}=\omega_{\perp}$ is the trap frequency
+in the perpendicular or $xy$ plane and $\omega_z$ the frequency in the $z$
+direction.
+The mean square vibrational amplitude of a single boson at $T=0K$ in the 
+trap (\ref{trap_eqn}) is $<x^2>=(\hbar/2m\omega_{ho})$ so that 
+$a_{ho} \equiv (\hbar/m\omega_{ho})^{\frac{1}{2}}$ defines the 
+characteristic length
+of the trap.  The ratio of the frequencies is denoted 
+$\lambda=\omega_z/\omega_{\perp}$ leading to a ratio of the
+trap lengths
+$(a_{\perp}/a_z)=(\omega_z/\omega_{\perp})^{\frac{1}{2}} = \sqrt{\lambda}$.
+
+We represent the inter-boson interaction by a pairwise, hard core potential
+\begin{equation}
+V_{int}(r) =  \Bigg\{
+\begin{array}{ll}
+        \infty & r \leq a\\
+        0 & {r} > a
+\end{array}
+\end{equation}
+where $a$ is the hard core diameter of the bosons.  Clearly, $V_{int}(r)$
+is zero if the bosons are separated by a distance $r$ greater than $a$ but
+infinite if they attempt to come within a distance $r \leq a$.
+
+Similarly, for the fermionic systems we will study systems of electrons confined to move in two- and three-dimensional harmonic oscillator traps, so-called quantum dot systems.
+
+
+\paragraph{Progress plan and milestones.}
+The aims and progress plan of this thesis are as follows
+
+\begin{itemize}
+\item Develop a program that implements serially both variational and diffusion Monte Carlo methods for bosons and fermions.
+
+\item Implement interacting and non-interacting systems
+
+\item Implement various potentials
+
+\item Parallelise the program with MPI and OpenCL to use all the available cores
+
+\item Implement the blocking and the bootstrap methods  for error calculation
+\end{itemize}
+
+\noindent
+The more explicit timeline is 
+
+\begin{enumerate}
+ \item Fall 2017: Develop a VMC and DMC code for boson in OpenCL and CUDA
+
+ \item Fall 2017: Develop a VMC and DMC  code for fermions in OpenCL.
+\end{enumerate}
+
+\noindent
+ oSpring 2018: Extensive benchmarks of codes and writeup of master thesis.
+
+
+The thesis is expected to be finalized May/June 2018.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ------------------- end of main content ---------------
+
+% #ifdef PREAMBLE
+\end{document}
+% #endif
+
