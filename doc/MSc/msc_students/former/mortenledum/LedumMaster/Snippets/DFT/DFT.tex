@@ -1,0 +1,489 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+
+
+\renewcommand{\R}{{\bf R}}
+\renewcommand{\r}{{\bf r}}
+\newcommand{\p}{{\bf p}}
+\newcommand{\q}{{\bf q}}
+\renewcommand{\H}{\mathcal{H}}
+\newcommand{\psit}{\left|\psi(t)\right\rangle}
+
+
+
+%Atomic Reference Data for Electronic Structure Calculations \url{http://math.nist.gov/DFTdata/atomdata/node4.html}
+
+
+\chapter{Density functional theory}
+%\subsection{Intro and motivation}
+Because the wave function is such an unbelievably complicated function, depending on $4N$ degrees of freedom (of which $3N$ are spatial coordinates), it is natural to ask the question: Is it possible to represent the state of an electronic system in a more succinct way? A natural candidate for such an entity is the electronic number density, $\rho(\r)$, which we will mostly refer to as simply \emph{the density}. It would be remarkable if we could deal with enormously complex quantum mechanical systems by means of a function depending only on three spatial coordinates and spin(!) \cite{kryachko}\comment{p163}. 
+
+It turns out that exactly this is possible. There is a one-to-one correspondance between the ground state density, $\rho_0(\r)$, and the external potential (up to an additive constant) and thus also the Hamiltonian \cite{toulouse}\comment{p5}. Since the Hamiltonian uniquely determines all properties of a quantum mechanical system, we can in principle determine all the information in the many-body wave function (of the ground state and \emph{all} excited states) from the ground state density alone \cite{martin}\comment{p119}. The fact that the density can be determined from the wave function is almost trivially true, but that the converse is true is the content of the Hohenberg-Kohn theorems. 
+
+However, the theorems of Hohenberg and Kohn guarantee only the existence and uniqueness of an \emph{energy functional}, $E[\rho]$, which can be used to determine the energy from the density. Without knowing the form of $E[\rho]$ and a computational scheme for calculating it, we are still no closer to being able to use the electron density as the basic variable in electronic structure calculations. This is where the Kohn-Sham ansatz comes in, making it possible for us to calculate structure properties of electronic systems by essentially solving a different system: a non-interacting system with the electrons moving in an effective potential which by construction yields the same ground state density as the original system. 
+
+We will begin our discussion of {\bf Density functional theory} (DFT [sometimes prepended KS, making it Kohn-Sham density functional theory \{KS-DFT\}]) by considering the theoretical framework and the Hohenberg-Kohn theorems. Then we will consider the Kohn-Sham ansatz and how DFT calculations are performed in practice.
+
+
+\section{The Hohenberg-Kohn theorems}
+Recall from \ref{section:bornoppenheimer} that the \emph{electronic} Hamiltonian under the Born-Oppenheimer approximation takes the form
+\begin{align}
+\hat H &= -\frac{1}{2}\sum_{i=1}^N\nabla^2_i + \sum_{i=1}^N\sum_{j=i+1}^N \frac{1}{|\r_i-\r_j|} - \sum_{i=1}^N\sum_{A=1}^M \frac{Z_A}{|\r_i-\r_A|}.
+\end{align}
+We will in the following relabel the last term, and define
+\begin{align}
+\sum_{i=1}^{N}\sum_{A=1}^M \frac{-Z_A}{|\r_i-\r_A|} &\equiv \hat V_\text{ext}.
+\end{align}
+Since the first two terms of the Hamiltonian are the same for any system of $N$ electrons, the external potential term $\hat V_\text{ext}$ completely fixes the electronic Hamiltonian as a whole. In fixing $\hat H$, we also fix the spectrum and so the ground state and all its derived properties are determined by $N$ and $\hat V_\text{ext}$ alone \cite{yangparr}\comment{p51}. One such property is of course the ground state electronic density.
+
+In the following, we will denote by $v(\r)$ the spatial (position basis) representation of the external potential $\hat V_\text{ext}$
+
+\subsection*{The first Hohenberg-Kohn theorem}
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+  \matrix (m)[
+    matrix of math nodes,
+    nodes in empty cells,
+    minimum width=width("998888"),
+  ] {
+  \hat V_\text{ext}(\r) &  \mathlarger{\mathlarger{\xleftarrow{\text{Hohenberg-Kohn}}}} & \rho_0(\r) \\
+& & \\
+\mathlarger{\mathlarger{\downarrow}} & & \mathlarger{\mathlarger{\uparrow}} \\
+& & \\
+\hat H & \mathlarger{\mathlarger{\xrightarrow{\text{Schrödinger equation}}}} & \Psi(\R) \\
+};
+  \draw (-4,-2) -- (4,-2);
+  \draw (-4,-2) -- (-4,2);
+  \draw (4,-2) -- (4,2);
+  \draw (-4,2) -- (4,2);
+\end{tikzpicture}
+\caption{Schematic representation of the Hohenberg-Kohn theorems. Knowing the external potential fixes the Hamiltonian, from which we can extract the spectrum. The ground state density may then be extracted from the ground state wave function. The Hohenberg-Kohn theorems allows us (in principle) to find the potential if we know only the ground state wave function, making a one-to-one correspondence, $\hat V_\text{ext}(\r)\Leftrightarrow\rho_0(\r)$.  Adapted from a similar figure in \cite{martin}\comment{p112}.  \label{fig:DFT1}}
+\end{center}
+\end{figure}
+
+As mentioned already, the external potential trivially determines the electron density. The first theorem of Hohenberg and Kohn proves the highly non-trivial converse statement: the external potential is uniquely determined (up to an additive constant) by the ground state electron density \cite{hohenberg-kohn}. We outline the deceptively simple proof in the following paragraphs.
+
+Consider two potentials, $\hat V_1$ and $\hat V_2$, differing by more than an additive constant, $\hat V_1 \not= \hat V_2 + \text{const}$ and denote the ground state energies of the corresponding Hamiltonians by $E_1$ and $E_2$ respectively. Assume now that the ground state wave functions of the two Hamiltonians are \emph{the same}, $\Psi_1(\R)=\Psi_2(\R)$. Since all parts of the Hamiltonian apart from $\hat V_\text{ext}$ coincide, subtracting the two Schrödinger equations gives
+\begin{align}
+\hat H_1|\Psi\rangle - \hat H_2 |\Psi\rangle = \left(\hat V_1 - \hat V_2\right)|\Psi\rangle &= \left(E_1-E_2\right)|\Psi\rangle.
+\end{align}
+In terms of the wave functions (projecting the equation onto the position basis) this yields
+\begin{align}
+\sum_{i=1}^N \big[\hat v_1(\r_i) - \hat v_2(\r_i)\big] \Psi(\r_1,\r_2,\dots,\r_N) &= \left(E_1-E_2\right) \Psi(\r_1,\r_2,\dots,\r_N),
+\end{align}
+which means $\hat V_1-\hat V_2=\text{const}$, in contradiction with the assumption. 
+
+We proceed thus with $\Psi_1(\R)$ and $\Psi_2(\R)$ neccessarily different. Assume now that $\Psi_1(\R)$ and $\Psi_2(\R)$ have the same ground state electronic density, $\rho_0(\r)$. From the variational principle (c.f.\ section \ref{variational}), we know that 
+\begin{align}
+E_1=\big\langle \Psi_1 |\hat H_1 |\Psi_1\big\rangle &< \big\langle \Psi_2 |\hat H_1 |\Psi_2\big\rangle \nn\\
+%
+&= \big\langle \Psi_2 | \hat H_2 + \hat V_1 - \hat V_2 |\Psi_2\big\rangle \nn\\
+%
+&= E_2 + \int \,\mathrm{d}^3\r \big[v_1(\r) - v_2(\r) \big] |\Psi_2(\R)|^2 \nn\\
+%
+\Rightarrow \ \ E_1 &< E_2 + \int \,\mathrm{d}^3\r \big[v_1(\r) - v_2(\r) \big] \rho_0(\r). \label{eq:dft1}
+\end{align}
+Exchanging the arbitrary indices $1\leftrightarrow2$, gives rise to 
+\begin{align}
+E_2 &< E_1 + \int \,\mathrm{d}^3\r \big[v_2(\r) - v_1(\r) \big] \rho_0(\r), \label{eq:dft2}
+\end{align}
+and adding \eq{dft1} from \eq{dft2} gives finally the contradiction $E_1+E_2 < E_1 + E_2$ since the integrals differ only by a sign. But this means that clearly, different $\hat V_\text{ext}$ necessarily produce different $\rho_0(\r)$ \cite{toulouse}\comment{p5}.\footnote{As a hands-on example of the first theorem in practice, it is instructive to consider the Coulombic external potential of $M$ stationary nuclei, $\hat V=-\sum_{A=1}^M Z_A/|\r-\r_A|$. In order to uniquely determine the system, we need to know the number of electrons, $N$, the position of the nuclei, $\r_A$, and their charges, $Z_A$. The local maxima of the ground state density coincides perfectly with the nuclei positions. Furthermore, the Kato cusp condition states that at the nuclei (c.f.\ section \ref{cuspconds}) $(\partial \bar\rho_0(r_A)/\partial r_A)_{r_A\rightarrow 0}=-2Z_A\bar\rho_0(0)$, where $\bar\rho(r_A)$ denotes the spherical average of density around nucleus $A$ and $r_A=|\r-\r_A|$. This determines $Z_A$ from the ground state density also. Finally, the integral over the density itself gives the number of electrons, $N=\int\,\mathrm{d}^3\r \rho_0(\r)$. 
+
+This is known as E. Bright Wilson's observation \cite{roos}\comment{p92}.}
+
+The statement of the first Hohenberg-Kohn theorem is represented in diagrammatic form in \fig{DFT1}.
+
+\subsection*{The second Hohenberg-Kohn theorem}
+Since, by the first theorem, the Hamiltonian is determined uniquely by the density, that means the wave function can be considered a functional of the density also, $\Psi[\rho]$. Following the original article by Hohenberg and Kohn\cite{hohenberg-kohn}, we note that this means the kinetic energy operator and the electron-electron interaction operators are also both functionals of the density. These can be combined into the \emph{universal functional}, 
+\begin{align}
+F[\rho(\r)] \equiv \big\langle \Psi|\hat T + \hat W|\Psi \big\rangle.
+\end{align}
+A further energy functional, $E_V[\rho]$, can be defined as 
+\begin{align}
+E_V[\rho(\r)] &\equiv F[\rho(\r)] + \int\mathrm{d}^3\r \,v(\r)\rho(\r),
+\end{align}
+where $v(\r)$ is the position basis representation of an arbitrary external potential. It is clear that minimizing $E_V[\rho]$ will yield the ground state energy of the system with Hamiltonian $\hat H = \hat T + \hat W + \hat V_\text{ext}$. In the present section we restrict ourselves to densities representing a system of $N$ electrons, i.e. fixing $\int\mathrm{d}^3\r\,\rho(\r)=N$.
+
+We now consider the energy functional evaluated at some other density, $\rho(\r)\not=\rho_0(\r)$, with $\rho_0(\r)$ being the corresponding density of the ground state of $\hat H$, $\rho_0(\r)=\int|\Psi_0(\R)|^2$. The other density, $\rho(\r)$, is taken to be the corresponding ground state density of \emph{some other} external potential, $\hat V_\text{ext}'$. Evaluating the functional gives
+\begin{align}
+E_V[\rho(\r)] &= \big\langle\Psi|\hat T + \hat W|\Psi\big\rangle + \big\langle\Psi|\hat V_\text{ext}|\Psi\big\rangle = \big\langle \Psi|\hat H|\Psi\big\rangle.
+\end{align}
+Having established that the external potential is a functional of the density, this gives us now almost trivially that $E_V[\rho]>E_V[\rho_0]$ for any density that is not the one associated with the true ground state corresponding to $\hat V_\text{ext}$ \cite{martin}\comment{p125}. 
+
+%If $F[\rho]$ were a known and sufficiently simple functional of $\rho$, the problem of determining the ground-state energy and density in a given external potential would be rather easy since it requires merely the minimization of a functional of the three-dimensional density function.
+\subsection*{The way forward}
+Essentially, the two Hohenberg-Kohn theorems say that all properties of an electronic quantum mechanical system is uniquely determined by the ground state density alone. Also, a \emph{universal functional} for the energy in terms of the density, valid for any external potential, exists and it attains a global minimum for exactly the true ground state density $\rho_0(\r)$. In the words of Hohenberg and Kohn \cite{hohenberg-kohn}: 
+\begin{shadequote}[r]{P. Hohenberg \& W. Kohn}
+If $F[\rho]$ were a known and sufficiently simple functional of $\rho$, the problem of determining the ground-state energy and density in a given external potential would be rather easy since it requires merely the minimization of a functional of the three-dimensional density function.
+\end{shadequote}
+
+Indeed, all of electronic structure theory would have been \emph{solved} in one fell swoop. Predictably, this is not the case. Determination of the universal functional is anything but trivial. In order to make real progress with the approach of considering the electronic density as the primary variable, we turn now to the framework proposed by Kohn and Sham.
+
+\section{Kohn-Sham ansatz}
+In their seminal 1965 paper \cite{kohnsham}, Kohn and Sham outlined a way to obtain a set of single electron equations in the density that can be solved self-consitently to obtain the total electronic energy. In order to accomplish this, they consider an auxiliary non-interacting system in place of the original one \cite{martin}\comment{p135}. 
+ 
+Kohn and Sham tell us to consider a non-interacting system for which the ground state density is the same as the ground state density for the interacting system in question. The existence of such a non-interacting system of electrons is far from obvious. In fact, determining necessary constraints on $\hat V_\text{ext}$ for it to be \emph{non-interacting} $v$\emph{-representable} is still an open question in the theoretical foundations of density functional theory. For almost all real world problems, it is necessary to simply assume the existence of a non-interacting system for which the ground state density coincides with that of $\hat V_\text{ext}$ \cite{engel,martin}\comment{p71}\comment{p145}. The assumption that such a non-interacting system exists constitutes the Kohn-Sham ansatz.
+
+We denote the non-interacting Hamiltonian and the corresponding effective potential by $\hat H_s$ and $\hat V_s$, with spatial representation $v_s(\r)$. Since the electrons in this auxiliary system do not feel the coulombic inter-electron force, we know that the \emph{exact} ground state is represented by a Slater determinant filled with the energetically lowest $N$ single electron solutions of the single electron Schrödinger equation \cite{yangparr}\comment{p143}. Note that the Schrödinger equation is by construction separable, since it only involves the kinetic energy operator and a (multiplicative) external potential operator. The one-electron Hamiltonian takes the form
+\begin{align}
+\hat h_s \psi_i = \left[-\frac{1}{2}\nabla^2 + v_s(\r)\right]\psi_i = \varepsilon_i \psi_i,
+\end{align}
+with eigenstates $\psi_i$. Since $\hat H_s$ is spin-independent\footnote{If the original Hamiltonian is spin-dependent, the effective potential needs to also carry spin-dependency in order to give the required spin-density. This is a complication we will fully ignore here.} and obviously commutes with $\hat S_z$, we may choose the $\psi_i$ to be products of spatial orbitals and the normalized spinor eigenstates of $\hat S_z$, $\psi_i(\r,\sigma)=\phi_n(\r)\chi(\sigma)$. We note that the quantum number $i$ represents both spatial and spin quantum numbers. This means we can write the exact ground state wave function and the density as 
+\begin{align}
+\Psi_0(\R)&=\frac{1}{\sqrt{N}}\vmat{cccc}{
+\psi_1(\r_1) & \psi_2(\r_1) & \dots & \psi_N(\r_1) \\
+\psi_1(\r_2) & \psi_2(\r_2) & \dots & \psi_N(\r_2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\psi_1(\r_N) & \psi_2(\r_N) & \dots & \psi_N(\r_N)},
+\end{align}
+with 
+\begin{align}
+\rho_0(\r) &= \sum_{i=1}^N |\psi_i(\r)|^2 = \sum_\sigma \sum_{n=1}^{N/2} |\phi_n(\r)|^2 = 2\sum_{n=1}^{N/2} |\phi_n(\r)|^2.
+\end{align}
+
+In general, the kinetic energy operator as a functional of the density is not known. However, in the auqiliary non-interacting system, we can write down the closed form expression in terms of the $\psi_i$s \cite{yangparr}\comment{p143}:
+\begin{align}
+T_s[\rho(\r)] &= -\sum_{i=1}^N\big\langle \psi_i|-\frac{1}{2}\nabla_i^2|\psi_i\big\rangle.
+\end{align}
+Recall that the universal energy functional has the form $F[\rho]=T[\rho]+W[\rho]$, i.e. the sum of the kinetic and the inter-electronic potential functionals. Kohn and Sham now suggest we rewrite $F[\rho]$ in terms of the known non-interacting kinetic energy functional as
+\begin{align}
+F[\rho]&= T_s[\rho] + J[\rho] + E_\text{xc}[\rho],
+\end{align}
+where $J[\rho]$ is the classical coulomb interaction functional and $E_\text{xc}[\rho]$ is essentially \emph{everything that is left over} \cite{hohenberg-kohn}. The $J[\rho]$ functional we will shortly see is the functional form of the $\hat J$ operator in the Hartree-Fock approximation (see section \ref{HF}), while $E_\text{xc}[\rho]$ is called the exchange-correlation energy and contains the (hopefully small) correction needed for $T_s[\rho]$ in order to make it into $T[\rho]$ and the non-classical part of the electron-electron interaction $\hat W$ \cite{yangparr,martin}\comment{p144}\comment{p138}. 
+
+The \emph{exact} (recall that the density of the auqiliary system is the same as the original density) energy functional of the fully interacting system can now be written as 
+\begin{align}
+E[\rho] &= T_s[\rho] + J[\rho] + \int\mathrm{d}^3\r\,\rho(\r)v(\r) + E_\text{xc}[\rho],
+\end{align}
+where $v(\r)$ is the position basis representation of $\hat V_\text{ext}$. For completeness, we state also the explicit form of the exchange-correlation energy 
+\begin{align}
+E_\text{xc}[\rho] &= \left(T[\rho] - T_s[\rho] \right) + \left(W[\rho] - J[\rho]\right),
+\end{align}
+where $W[\rho]=J[\rho]-K[\rho]$ is the functional corresponding to the two-body term in the original Hamiltonian. 
+
+It may seem like we have made no progress at all: We started off with an unknown functional $F[\rho]$, and after introducing the Kohn-Sham ansatz we are still left with an unknown (albeit different) functional, $E_\text{xc}[\rho]$. The exchange-correlation functional, however, may be easier to approximate. Also, we have introduced a separable (by construction) Hamiltonian from which we can extract a set of coupled one-electron Schrödinger equations which we may solve in order to obtain the true ground state density (and in principle all other properties of the system). Note carefully that at this point, no approximations (beyond Born-Oppenheimer and the assumption that the original density was non-interacting $v$-representible) have been made, and so we may consider the preceding results to be exact. This represents a conceptually major difference between DFT and Hartree-Fock theory: The latter is an approximate set of equations which we solve exactly, while DFT constitutes a set of exact equations which we are forced to solve approximately (because we don't know closed form expressions for $E_\text{xc}$).
+
+
+
+\section{The Kohn-Sham equations}
+In the same way Roothan and Hall introduced orbitals to the Hartree-Fock formalism \ref{HF}, we now introduce a set of spin-orbitals in the DFT scheme. The single determinantal wave function is constructed from $N$ orthonormal spin-orbitals, $\{\psi_i(\r)\}_{i=1}^N$, where we have absorbed the spin quantum number into the label $i$. In the restricted case, this means that $i$ and $i+1$ are spatially pair-wise identical, with differing spin index. The energy functional can now be written in terms of the orbitals as 
+\begin{align}
+E[\rho,\psi] = T_s[\psi]+J[\rho] + E_\text{xc}[\rho] + \int\mathrm{d}^3\r\, v(\r),
+\end{align}
+with
+\begin{align}
+J[\rho]&= \int\int \mathrm{d}^3\r_1\mathrm{d}^3\r_2\, \frac{\rho(\r_1)\rho(\r_2)}{|\r_1-\r_2|} \nn\\ &= \sum_{i=1}^N\sum_{j=1}^N \int\int \mathrm{d}^3\r_1\mathrm{d}^3\r_2\, \frac{|\psi_i(\r_1)|^2|\psi_j(\r_2)|^2}{|\r_1-\r_2|},
+\end{align}
+and
+\begin{align}
+T_s[\psi] = -\frac{1}{2}\sum_{i=1}^N \int\mathrm{d}^3\r\, \psi_i^*(\r)\nabla^2 \psi_i(\r).
+\end{align}
+Minimizing this functional\textemdash analogous to the Hartree-Fock minimization procedure of chapter \ref{HF}\textemdash yields the Kohn-Sham orbital equations \cite{martin}
+\begin{align}
+\Bigg[\underbrace{-\frac{\nabla^2}{2} - v(\r) + \int\mathrm{d}^3\r'\, \frac{\rho(\r')}{|\r'-\r|}+\frac{\delta E_\text{xc}[\rho]}{\delta \rho(\r)}}_{\displaystyle\equiv \hat F^\text{KS}}  \Bigg]\psi_i(\r) = \sum_{j=1}^N \varepsilon_{ij}\psi_j(\r), \label{eq:orbks}
+\end{align}
+where $\varepsilon$ is once again a matrix of Lagrange multipliers. Expanding the Kohn-Sham orbitals in a known basis of atomic orbitals $\{\varphi_k(\r)\}_{k=1}^L$, applying a unitary transformation diagonalizing the Kohn-Sham operator $\hat F^\text{KS}$, and writing \eq{orbks} in weak form (c.f.\ section \ref{rheq}) gives the {\bf Kohn-Sham equations}
+\begin{align}
+\sum_{k=1}^L C_{ki}\hat F^\text{KS} \varphi_k(\r) = \varepsilon_i\sum_{k=1}^L C_{ki}\varphi_k(\r),
+\end{align}
+or in matrix representation
+\begin{align}
+F^\text{KS}C=\bm{\varepsilon}SC.
+\end{align}
+
+In the restricted case, the matrix elements $F^\text{KS}_{pq}$ are given by
+\begin{align}
+F^\text{KS}_{pq} = \langle \varphi_p|\hat h|\varphi_q\rangle + 2\sum_{rs}D_{rs}\langle pq|\hat w|rs\rangle +\int\mathrm{d}^3\r\, \varphi_p(\r)\varphi_q(\r)v_\text{xc}(\r),
+\end{align}
+where $\langle \,\cdot\,|\,\cdot\,\rangle$ denotes integration over \emph{spatial} coordinates only and the exchange-correlation \emph{potential} is defined as the functional derivative (see appendix \ref{functionals}) of the exchange-correlation energy 
+\begin{align}
+v_\text{xc}(\r) \equiv \frac{\delta E_\text{xc}[\rho]}{\delta \rho(\r)}. 
+\end{align}
+
+
+
+
+\section{Local density approximation}
+The efficacy of the DFT scheme now depends sorely on the quality of the basis set $\{\varphi_k\}_{k=1}^L$, and more importantly the form of the exchange-correlation energy functional. Since we do not know the exact form, we are forced to parameterize approximations to it. This can be done in various ways, the simplest of which\textemdash the local density approximation (LDA)\textemdash is the only one we will discuss in this thesis. The LDA is based on the exchange-correlation energy of the uniform electron gas as per the original suggestion of Kohn and Sham \cite{kohnsham,kvaal}. It is usually written down in terms of the exchange-correlation energy per particle, $\epsilon_\text{xc}$,
+\begin{align}
+E_\text{xc}^\text{LDA}[\rho] = \int\mathrm{d}^3\r\, \rho(\r)\epsilon_\text{xc}\big[\rho(\r)\big].
+\end{align}
+The exchange part was shown by Dirac to be \cite{dirac1930note}
+\begin{align}
+E^\text{LDA}_\text{x}[\rho] = -\frac{3}{4}\left(\frac{3}{\pi}\right)^{\nicefrac{1}{3}}\int\mathrm{d}^3\r\, \rho^{\nicefrac{4}{3}}.
+\end{align}
+For the correlation part, however, no such simple expression exists. Despite this difficulty, highly accurate quantum Monte Carlo calculations on the correlation energy of the free electron gas were performed in 1980 by Ceperley and Alder \cite{ceperley1980ground} and these were subsequently parameterized in several different ways by Vosko, Wilk, and Nussair (VWN) \cite{vwn}. This resulted in functional forms usable in practical DFT calculations. In the present work we use the VWN5 parameterization (c.f.\ the original paper), which depends on the \emph{electron gas parameter},
+\begin{align}
+r_s &\equiv \left( \frac{3}{4\pi \rho(\r))} \right)^{\nicefrac{1}{3}},
+\end{align}
+and the \emph{spin polarization}
+\begin{align}
+\xi(\r) &\equiv \frac{\rho_\uparrow(\r) - \rho_\downarrow(\r)}{\rho_\uparrow(\r) + \rho_\downarrow(\r)}.
+\end{align}
+The gas parameter is simply a rescaling of the density, while the spin polarization represents the relative difference in spin-up and spin-down densities at $\r$. If $\xi$ is large, Vosko and co-workers suggest using the "ferromagnetic" exchange 
+\begin{align}
+\epsilon_\text{x}^\text{F}(r_s) &= - 3(2^{\nicefrac{1}{3}}) \left( \frac{9}{32\pi^2} \right)^{\nicefrac{1}{3}} \frac{1}{r_s},
+\end{align}
+while for $\xi=0$, the "paramagnetic"
+\begin{align}
+\epsilon_\text{x}^\text{P}(r_s) &= - 3 \left( \frac{9}{32\pi^2} \right)^{\nicefrac{1}{3}} \frac{1}{r_s}
+\end{align}
+is used. In total, the polarized exchange part of $E_\text{xc}$ takes the form
+\begin{align}
+\epsilon_\text{x}(r_s,\xi) = \epsilon_\text{x}^\text{P}(r_s) + \big[\epsilon_\text{x}^\text{F}(r_s) - \epsilon_\text{x}^\text{P}(r_s) \big] f(\xi),
+\end{align}
+with 
+\begin{align}
+f(\xi) \equiv \frac{(1+\xi)^{\nicefrac{4}{3}} + (1-\xi)^{\nicefrac{4}{3}} -2}{2(2^{\nicefrac{1}{3}} - 1)}.
+\end{align}
+
+A similar expression is used for the correlation part, with
+\begin{align}
+\epsilon_\text{c}^\text{P}(r_s) + \big[\epsilon_\text{c}^\text{F}(r_s) - \epsilon_\text{c}^\text{P}(r_s) \big] f(\xi).
+\end{align}
+The $\epsilon_\text{c}$ terms are parametrized by \cite{yangparr}\comment{p275}
+\begin{align}
+\epsilon_\text{c}(r_s) &= \frac{A}{2}\left\{ \ln\left(\frac{x}{X(x)}\right) + \frac{2b}{Q}\tan^{-1}\left(\frac{Q}{2x+b}\right) \right.\nn\\
+& \ \ \ \ \ \ \ \left.- \frac{bx_0}{X(x_0)} \left[\ln\left(\frac{(x-x_0)^2}{X(x)} \right) + \frac{2(b+2x_0)}{Q}\tan^{-1}\left(\frac{Q}{2x-b} \right) \right]  \right\}, \label{eq:corre}
+\end{align}
+with 
+\begin{align}
+x &\equiv \sqrt{r_s}, \nn\\
+%
+X(x) &\equiv x^2+bx+c, \nn\\
+%
+Q &\equiv \sqrt{4c-b^2}. \nn
+\end{align}
+For $\xi=0$ we have $A=0.0621814$, $x_0=-0.409286$, $b=13.0720$, and $c=42.7198$, while for $\xi\not=0$ the parameters change, but the functional form of \eq{corre} remains the same.
+
+
+
+
+
+
+
+\section{Numerical integration grids}
+Since the integral of the exchange-correlation potential over the density is rarely (if ever) calculable analytically, we are forced to resort to numerical integration schemes in order to evaluate it. In the one dimensional case, strong and robust integration schemes based on gaussian quadrature integrate any sufficiently \emph{smooth} function to high accuracy using a modest number of integration points \cite{hjorthjensen}\comment{p116}. However, in multiple dimensions, the problem of numerically integrating a multi-variable function is considerably more challenging. Although the philosophy behind is unchanged, the actual application required a lot more thought. This is in large part because all the nuclei represent singularities which hinder the sucessful application of products of gaussian quadrature rules \cite{voronoi1}. Before we begin discussing integrals in density functional theory, we refer the reader to a short introduction to numerical integration in section \ref{numericalintegration} of the appendix. 
+
+The integrals of interest within the framework of density functional theory are integrals over the electronic density. Since we know a priori that the density falls off exponentially in the long range limit (c.f. section \ref{wfproperties}), this reduces to a locally contained integral in some finite and \emph{small} region in space close to the nuclei. Since the potentials are in general functions of the density and its derivatives (which of course also falls off exponentially) we are guaranteed that the exchange-correlation potentials also vanishes exponentially as we move far away from the nuclei. 
+
+\subsection{Simple spherical grid}
+\begin{SCfigure}
+\centering
+\includegraphics[width=7cm]{sphericalGrid.png}
+\caption{Example of a simple spherical shell grid for a single radius $r$. The full grid employs $m$ total such shell grids, one for each of the logarithmically spaced values $r_i$. Note the relatively higher density at the pole. This example grid uses 20 linearly spaced points in both the polar and azimuthal angles, $\theta$ and $\phi$ for a total of 400 points.\label{fig:dft2}}
+\end{SCfigure}
+When dealing with a single nucleus, we may simply choose some cut-off radius and place integration points either linearly or in some other fashion along the radius up to this cut-off radius. Since we are primarily interested in integrands which fall off exponentially with the radius, having more points closer to the nucleus will yield a better approximation with fewer points. A simple example is logarithmically spaced points along the radius. At every such radius, we place $k^2$ angular points, $m$ linearly spaced points in the polar and the azimuthal angle respectively.
+
+The weight for each of the points is simply the volume element of the sphere at radius $r_i$, polar angle $\theta_j$, and azimuthal angle $\phi_k$. In addition we need to multiply by the finite change in $r$, $\theta$, and $\phi$. In total, we recover the familiar spherical polar volume element \cite{rottmann}\comment{p69}  { }with the addition of $\Delta r \Delta \theta \Delta \phi$,
+\begin{align}
+w_{ijk} &= r_i^2\sin\theta_j (\underbrace{r_{i}-r_{i-1}}_{\Delta r_i}) (\underbrace{\theta_j-\theta_{j-1}}_{\Delta \theta_j})(\underbrace{\phi_k-\phi_{k-1}}_{\Delta \phi_k}) \nn\\
+&= r_i^2\sin\theta_j \Delta r_i \left(\frac{\pi}{m-1}\right)\left(\frac{2\pi}{m-1}\right) \nn\\
+&= \frac{2\pi r_i^2\sin\theta_j \Delta r_i}{(m-1)^2}.
+\end{align}
+
+\newcommand{\drv}{\,\mathrm{d}^3{\bf r}}
+Under this approximation, the numerical integral over a functional of the density, $F[\rho]$, is given by (in terms of cartesian coordinates)
+\begin{align}
+\int F[\rho]\drv \approx \sum_{i=1}^n\sum_{j=1}^m\sum_{k=1}^m w_{ijk}F\left[\rho(x_\alpha,y_\beta,z_\gamma)\right],
+\end{align}
+with $x_\alpha=r_i\sin\theta_j\cos\phi_k$, $y_\beta=r_i\sin\theta_j\sin\phi_k$, and $z_\gamma=r_i\cos\theta_j$ being the normal transformation form spherical polar $\rightarrow$ cartesian coordinates.
+
+The cut-off radius may be chosen to be the radius at which the most diffuse basis function has fallen to below some pre-assigned threshold value, $\varepsilon$. With cartesian gaussian basis functions, $\{\chi_b(\r)\}_{b=1}^M=\mathcal{B}$, the cut-off takes the value 
+\begin{align}
+r_\text{cut-off}=\sqrt{\frac{\log\varepsilon}{\min\left\{|\alpha_b|:\chi_b\in\mathcal{B} \right\}}}.
+\end{align}
+
+An example of such a grid is shown in \fig{dft2}. Only the shell at $r_i=1$ is shown, the full grid consists of $m$ such shells at logarithmically spaced $r_i$s.
+
+\subsection{Efficiency of angular grids and the \emph{product Gaussian quadrature formula}}
+The naive grid described in the previous section \emph{works}, but is far from optimal. In order to derive a quadrature rule more suited to our purpose, we turn our attention to the general problem of integrating a function $f(\theta,\phi)$ on the surface of a unit sphere $\mathbb{S}^2=\{\r\in\mathbb{R}^3:|\r|=1\}$. Let us now ask: Is there an \emph{optimal} way to distribute points and find associated weights such that the approximation
+\begin{align}
+I = \int_0^\pi\mathrm{d}\theta \int_0^{2\pi}\mathrm{d}\phi \,f(\theta,\phi) \approx \sum_{i=1}^nw_if(\theta_i,\phi_i) \label{eq:sphericalapprox}
+\end{align}
+is the best possible approximation for a given number of points $n$? In order to make the question more precise, we note that any such function $f:\mathbb{S}^2\rightarrow\mathbb{R}$ may be expressed in terms of the spherical harmonics (since they form a complete basis for the square integrable functions on $\mathbb{S}^2$, $L^2(\mathbb{S}^2)$ \cite{atkinson}. So let us rephrase the question as: Is there a way to distribute points and find associated weights such that the approximation in \eq{sphericalapprox} integrates \emph{exactly} any linear combination of spherical harmonics with degree up to $L$?
+
+Before we go on to answer this question, let us define more rigorously what we mean by an expansion in terms of spherical harmonics. The spherical harmonics themselves are given by \cite{rottmann}
+\begin{align}
+Y^m_l(\theta,\phi)=\frac{1}{\sqrt{2\pi}}P^m_l(\cos\theta)e^{im\phi},
+\end{align}
+with $-l\le m \le l$ and $l,m\in\mathbb{N}$. The polynomials $P^m_l$ are the \emph{normalized associated Legendre polynomials}.\footnote{The associated Legendre polynomials are solutions to the differential equation
+\begin{align}
+\der{}{x}\left[\left(1-x^2\right)\der{}{x}P^m_l(x)\right]+\left[ l(l+1)-\frac{m^2}{1-x^2} \right]P^m_l(x)=0,
+\end{align}
+which attains non-zero and non-singular solutions in $[-1,1]$ if and only if $m$ and $l$ are both integers, with $l\ge m$ \cite{rottmann}\comment{p92}. An explicit formula for the polynomials is for example 
+\begin{align}
+P^m_l(x)=\frac{(-1)^m}{2^ll!}\sqrt{\left(1-x^2\right)^m}\der{^{l+m}}{x^{l+m}}\left(x^2-1\right)^l.
+\end{align}
+} Expanding $f$ in terms of these harmonics constitutes finding $c_{lm}$,
+\begin{align}
+\tilde f(\theta,\phi)=\sum_{l=0}^L\sum_{m=-l}^lc_{lm}Y^m_l(\theta,\phi) \label{eq:ftilde}
+\end{align}
+such that $e=\lVert\tilde f - f \rVert$ is minimized \cite{matinf5620} (in the sense that the "error" $e$ is orthogonal to the finite dimensional subspace of $L^2(\mathbb{S}^2)$ spanned by the harmonics up to and including degree $L$). This is known as the Galerkin method, and the governing equation for the coefficients is the inner product 
+\begin{align}
+c_{lm}&=\int_{\mathbb{S}^2}\mathrm{d}\theta\mathrm{d}\phi\,f(\theta,\phi)Y^m_l(\theta,\phi).\label{eq:dft11}
+\end{align}
+The decay rate of the coefficients with increasing $l$ determines how well $\tilde f$ approximates $f$, i.e. the convergence rate of the spherical harmonic expansion \cite{beentjes}\comment{p2}.
+
+Dealing with the problem of integrating functions across the surface of a sphere, McLaren defined in 1963 a measure of the effectiveness of a quadrature rule by how high order $L$ the rule would integrate \emph{exactly} using $K$ independent arbitrary variables used. In terms of the number of points used, the McLaren efficiency is defined as \cite{mclaren}
+\begin{align}
+E &= \frac{\text{Number of spherical harmonics up to and including order }L}{\text{Number of variables associated with }N\text{ points}} =  \frac{(L+1)^2}{3N}.
+\end{align}
+The total number of independent variables is 3 for each point: two angles and a weight. The total number of spherical harmonics up to and including order $L$ is 
+\begin{align}
+\sum_{l=0}^L\sum_{m=-l}^l1 &= \sum_{l=0}^L(2l+1) = \sum_{l=0}^L2l +\sum_{l=0}^L1 \nn\\
+&= L(L+1)+(L+1)=(L+1)(L+1)=(L+1)^2.
+\end{align} 
+In general we expect $E\le1$, although in rare cases $E>1$ \cite{atkinson}\comment{p188}.
+
+Let us now consider the efficacy of the common practice of applying a Newton-Cotes quadrature rule (for example the trapezoidal rule) in $\phi$ and a Gauss-Legendre scheme for the $\theta$ integral. An equally spaced grid of $M$ points ensures exact integration of 
+\begin{align}
+\int_0^{2\pi}\mathrm{d}\phi\,e^{im\phi},
+\end{align}
+for all $m\le M$, whereas a gaussian quadrature rule using the Legendre polynomials gives exact integration of the associated Legendre polynomials
+\begin{align}
+\int_0^\pi \mathrm{d}\theta\, P_l^m(\cos\theta),
+\end{align}
+for $l\le M$ if $(M+1)/2$ points are used \cite{beentjes}\comment{p3}. In total, the "product Gaussian quadrature formula" takes the form \cite{atkinson}\comment{p169}
+\begin{align}
+I\approx \sum_{i=1}^{M}w_i\sum_{j=0}^{\frac{L+1}{2}} w_j f(\theta_i,\phi_j),
+\end{align}
+and the efficiency is $E=2/3$ \cite{mclaren}.
+
+\subsection{Lebedev quadrature}
+\begin{figure}
+\centering
+\includegraphics[width=7cm]{gaussianSphere.png}\includegraphics[width=7cm]{lebedevSphere.png}
+\caption{Example of the product gaussian grid (left) and the Lebedev grid (right). The former employs 20 integration points in the Legendre quadrature and 20 points in the equidistant $\phi$ grid, for a total of 400 points. The latter is a 25th order grid, with a total of 266 points. Note the cluttering of points at the pole for the product gaussian grid. Adapted from a similar figure in \cite{beentjes}\comment{p4}.\label{fig:dft1}}
+\end{figure}
+Since the product Gaussian quadrature fails to attain $E\approx1$, it is natural to consider it's flaws and look for an improved scheme. An obvious weakness of the product scheme is the clustering of integration points at the poles. Because the spacing in the polar angle $\theta$ is linear and there are a constant number of azimuthal angle $\phi$ points for every $\theta_i$, the distance along the surface of the unit sphere between adjacent angular points $\phi_j$ and $\phi_{j+1}$ approaches zero as $\theta\rightarrow0$ or $\pi$. Intuitively, the points close to the poles should not be more important than the points at the equator, since we are fully allowed to rotate the coordinate system $90^\circ$ along the polar angle\textemdash essentially switching the poles and the equator\textemdash without affecting the value of the integral.
+
+In fact, this very observation is crucial in order to make progress: Any rotation or inversion (all points reversed through a given plane) that leaves the sphere invariant should also leave the quadrature invariant. This observation is the contents of a theorem due to Sobolev (for an english translation of his seminal 1962 paper, see e.g. \cite{sobolev}\comment{p461}). Essentially, Sobolev states that given a quadrature rule to integrate a spherical harmonic monomial\footnote{I.e. $f(\theta,\phi)=Y^m_l(\theta,\phi)$ for some single unique $l$ and $m$.} $f$ on $\mathbb{S}^2$, $I(f)$, the rule must neccessarily give the same result as the quadrature rule resulting from first applying a rotation or inversion,
+\begin{align}
+I(f)=I(\gamma[f]),
+\end{align}
+\emph{if $f$ is invariant under $\gamma$}. Here, $\gamma\in G$ and $G$ denotes the discrete symmetry group of the sphere. The theorem further states crucially that in order for $I$ to integrate all spherical harmonic monomials (and thus also all linear combinations of harmonics, such as the approximation $\tilde f$ from \eq{ftilde}) it is sufficient to only demand $I$ integrate exactly all the monomoials which are invariant under $\gamma\in G$ \cite{atkinson}\comment{p185}. 
+
+In the 1970s, Lebedev (who was a Ph.D. student under Sobolev) constructed a class of invariant quadratures based on this idea by working out the invariant spherical harmonics and solving the resulting system of non-linear equations for the points and weights \cite{lebedev,beentjes}\comment{p4}. Lebedev published multiple articles deriving higher and higher order methods, culminating in quadrature rules of degree over a hundred. 
+
+An example of a Lebedev grid is shown in \fig{dft1}, alongside a gaussian product grid. We note the difference in the cluttering of the points towards the poles for the gaussian grid. Lebedev's grid attains efficiency $E=1$, and as such we expect about equal integration results as when using a gaussian product grid of $3/2$ as many points \cite{beentjes}\comment{p5}. This means that the $400$ point gaussian quadrature on the left and the 266 point Lebedev quadrature on the right should in practice yield the exact same precision. We note that in using the Lebedev grid, we are implicitly expanding the integrand in terms of spherical harmonics which means the precision of the quadrature depends heavily on the relatively rapid convergence of the spherical harmonics coefficients $c_{lm}$ of \eq{dft1} \cite{voronoi1}.
+
+\subsection{Complete molecular grids, Voronoi and Wigner-Seitz partitioning \label{voronoi}}
+In order to expand the previous spherical shell grid to a full integral over the entire molecular volume, we need to pair it with a quadrature rule for the radius. For the case of a single atom we may simply pair the Lebedev grid with a Gauss-Laguerre scheme\footnote{The (generalized) Laguerre polynomials are the solutions to the differential equation
+\begin{align}
+x\der{^2y(x)}{x^2}+\left(1+\alpha-x\right)\der{y(x)}{x}+ny(x)=0,
+\end{align}
+with $n$ a non-negative integer and $\alpha$ an arbitrary real constant \cite{rottmann}. An explicit expression for the polynomials themselves can be found by the so-called Rodrigues formula:
+\begin{align}
+L_n(x) = x^{-\alpha}\frac{1}{n!}\left(\der{}{x}-1\right)^nx^{n+\alpha}.
+\end{align}
+The weight function $W(x)$ for the Laguerre polynomials in the setting of gaussian quadrature takes the form $W(x)=x^\alpha e^{-x}$.} for the radial integral.  
+
+However, the polyatomic case is considerably harder to deal with because of the aforementioned problem of the nuclei representing singularities which ruin the favorably low error scaling and convergence properties enjoyed by gaussian quadrature applied to more well-behaved integrands. Before we dive into the thick of things, we need to first introduce the notion of Voronoi partitioning.
+
+Assume we are given a set of $K$ points $\{\r_i\}_{i=1}^K$. We may partition any volume enclosing these points (e.g. all of $\mathbb{R}^3$) into $K$ separate regions in a unique way such that any point in region $j$ is closer to $\r_j$ than to any other $\r_i$, $i=1,2,\dots,j-1,j+1,\dots,K$. Even if the idea dates back \emph{at least} as far as the 17th century and Descartes, the procedure and the resulting structure takes its name from Russian-Ukrainian mathematician G. Voronoi: it is called {\bf Voronoi partitioning} or a Voronoi diagram (or sometimes also Dirichlet tesselation, after German mathematician P.G.L. Dirichlet) \cite{sack}\comment{p203}. For the special case of a regular crystalline lattice of atoms in three-dimensional space is considered the Voronoi partitioning is known as Wigner-Seitz cells \cite{voronoi1}. An example of a Voronoi partitioning of a molecular volume is shown in \fig{dft3}, where the boundaries between the Voronoi cells for the \ce{H20} molecule are drawn as gray walls.
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.5\textwidth]{voronoi.png}
+\caption{Example of a Voronoi partitioning for the water molecule \ce{H2O}. Since this is a planar molecule, the Voronoi partitioning is strictly two-dimensional, with trivial vertical components. All surfaces stretch out to infinity, but is truncated in the plot at $\pm1$ and $\pm5$ for the vertical and horizontal directions, respectively. The polar covalent \ce{O-H} bonds are marked with black lines. \label{fig:dft3}}
+\end{SCfigure}
+
+In the following we will describe Boerrigter, Velde, and Baerends' integration scheme for polyatomic molecules which employ Lebedev spherical grids and handle the radial integral by partitioning the molecular volume into Voronoi cells \cite{voronoi1}. We will call the resulting quadrature rule for the {\bf Voronoi grid}.
+
+Boerrigter and co-workers note that much of the difficulty in computing the integrals for such multi-atomic molecular systems stem from the singularities inherent in the point-like nuclei. A relatively straight forward way to circumvent these divergencies is to integrate in spherical polar coordinates centered \emph{at the nuclei}. Since the $r^2$ factor of the Jacobian associated with the coordinate transformation supresses the $1/r$ factor of the Coulomb interaction, the resulting quadrature rule is well-behaved at and around $r\rightarrow0$. The proposed algorithm divides the molecular volume into a set of Voronoi cells for each atom. Next, non-overlapping spheres are constructed by fixing the largest atom-centered spheres that can be contained in each cell. This divides the entire volume into a set of spheres (on which the integration is relatively easy), and an "interstitial" region \cite{voronoi1}. 
+
+The integral over the atomic spheres is done by a Lebedev and Gauss-Legendre product (possibly with the Legendre grid split into multiple sub-regions for heavy atoms, in order to ensure enough emphasis is given to the tight core) \cite{voronoi2}.
+
+The integral over the interstitial region is split into quadrangular and triangular pyramids, as shown in \fig{dft4}. This essentially means we are integrating over what is left of the Voronoi partition, after we have already dealt with the atomic spheres. The base of the pyramids can in general be any polygon, but it is always possible to split a $n$-vertex polygon into a quadrangle and a $n-2$-vertex polygon and iteratively reduce the number of sides of the polygon while generating more and more quadrangles. Depending on if the starting side number $n$ of the original $n$-gon was even or odd, the last partition ends up as a quadrangle or a triangle. 
+
+In order to map the general truncated (atomic sphere removed) pyramid onto the unit cube, three parameters $u$, $v$, and $w$ are defined. A general point on the base is given in terms of $u$ and $v$ as
+\begin{align}
+{\bf Q}(u,v) = (1-u)(1-v){\bf A} + u(1-v){\bf B}+uv{\bf C}+(1-u)v{\bf D},
+\end{align}
+with ${\bf A}$, ${\bf B}$, ${\bf C}$, and ${\bf D}$ being the vertices of the base \cite{voronoi1}. The line $S_1$ is defined as the common line of the planes $ABO$ and $CDO$, while $S_2$ is the common line of $ADO$ and $CBO$ \cite{voronoi2}. The angles $\phi_1$ and $\phi_2$ are aligned $45^\circ$ w.r.t. the $x$ and $y$-axes. 
+
+We will leave out the rest of the technicalities here. The important take-away is that the Voronoi grid always integrates over volumes containing nuclei in terms of spherical polar coordinates centered at said nuclei. This ensures the Lebedev-Legendre quadrature is well-behaved for the atomic spheres. For the complete expressions for the quadrature points and weights for both the atomic spheres and the interstitial regions, see \cite{voronoi2}.
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.5\textwidth]{interstitial.pdf}
+\caption{Illustration of a triangular interstitial region outside of the atomic sphere. The base of the quadrangular pyramid, $ABCD$, is the edge of the Voronoi cell between the atom at $O$ and the neighbouring atom. The integral is taken over cartesian coordinates in the basal plane and radially from the atomic sphere surface $z_0(x,y)$ to $(x,y,z_B)$ at the base. This is equivalent to the beam of solid angle $\Delta \Omega$ with corresponding $\phi_1$ and $\phi_2$ associated with $x$ and $y$. The $z$ coordinate at the base is denoted $z_B$.  Figure taken from \cite{voronoi2}.\label{fig:dft4}}
+\end{SCfigure}
+
+\section{Becke grid}
+The Voronoi grid of Boerrigter and co-workers is unfortunately not very well suited for complete automation. A complication which was largely ignored in the previous section is that in order for optimal integral convergence, further splitting of the radial grids is needed. E.g. a partitioning of the atomic sphere into two or even three separate regions, say $(0,0.1.)$, $(0.1,0.3)$, and $(0.3,1)$ may be needed in order to obtain acceptable results \cite{voronoi1}. It is however hard to come up with \emph{general} guide lines for where exactly such splitting should occur, given arbitrary atomic charges and geometries. We will therefore end our discussion of numerical integration with the grid due to Becke \cite{beckegrid}.
+
+He suggests a scheme based on the same philosophy, dividing the molecular volume into Voronoi cells. However, instead of constructing "hard atomic spheres" and treating the left-over interstitial regions separately, he introduces a "fuzzy" cellular partitioning, i.e. a Voronoi tessellation with smooth and continuous transitions between cells. 
+
+Becke starts out with a two-center coordinate system known as \emph{confocal elliptical coordinates}, $(\lambda,\mu,\phi)$, where the $\phi$ coordinate denotes the angle about the internuclear axis, while $\lambda$ and $\mu$ are defined as 
+\begin{align}
+\lambda = \frac{r_1+r_2}{R_{12}}, \ \ \text{ and } \ \ \mu=\frac{r_1-r_2}{R_{12}},
+\end{align}
+where $r_1$, $r_2$, and $R_{12}$ denote distance to nucleus one, distance to nucleus two, and the internuclear separation, respectively \cite{beckegrid}. The confocal coordinate system corresponds to representing positions in terms of confocal (i.e. all sharing focal points) quadrics, generalizations of the conic sections: ellipses, hyperbolas, and parabolas. The $\mu$ coordinate represents the inter-nuclear separation, with the surface at $\mu=0$ being the edge of the Voronoi cells of nuclei 1 and 2, i.e. the surface at which $r_1=r_2$. The limit $\mu\rightarrow-1$ ($\mu\rightarrow+1$) correspond to the ray extending from the midpoint, through nucleus 1 (nucleus 2), and out to infinity \cite{rottmann}. 
+
+For nucleus $i$, taking the confocal elliptical coordinates relative to all other nuclei $j$ gives a set of coordinate systems $\{(\lambda_{ij},\mu_{ij},\phi_{ij})\}_{j=1,j\not=i}^M$, with which we can express the Voronoi cells as step functions of $\mu_{ij}$:
+\begin{align}
+s(\mu_{ij})=\left\{\mat{lcrcccr}{
+  1 & \text{ for } & -1 & \le & \mu_{ij} & \le & 0 \\
+  0 & \text{ for } & 0 & < & \mu_{ij} & \le & 1
+} \right. \label{eq:dft10}
+\end{align}
+with $P_i(\r)=\prod_{j\not=i}s(\mu_{ij})$ being the \emph{cell function} for nuclei $i$ which takes the value $1$ whenever $\r$ is inside the Voronoi cell for nuclei $i$, and $0$ otherwise \cite{beckegrid}. Becke now suggests replacing the sharp step function by a less sharp "cutoff function," yielding the aforementioned "fuzzy" Voronoi partitioning. 
+
+The cutoff function is not unique (the only necessary properties being $f(-1)=-1$, $f(+1)=+1$, and vanishing derivatives at both these points), so Becke simply chooses a simple one: $s_n(\mu)=[1-p^n(\mu)]/2$ with $p(\mu)=3\mu/2-\mu^3/2$ and $p^n(\mu)$ being the $n$ times iterated $p$. The iterations $p^n(\mu)$ yield progressively sharper cutoff profiles $p^n\equiv p\circ p\circ p \circ \dots \circ p$ ($n$-times), $p^n(\r)=p \left\{ p \left( \dots p \left [\r\right] \dots \right) \right\}$, with $\lim_{n\rightarrow \infty}s_n$ recovering \eq{dft10} \cite{kuczma}. Examples of the iteration for various values of $n$ is shown in \fig{dft4}.
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.5\textwidth, trim=0 200 0 200, clip]{beckeIteration.pdf}
+\caption{\protect\rule{0ex}{5ex}The Becke cutoff profile as a function of the confocally elliptical inter-nuclear separation coordinate, $\mu$, for various values of iteration, $k$. We note that in the limit of very high $k$, the step function of \eq{dft10} is reproduced. Adapted from a similar figure in \cite{beckegrid}. \label{fig:dft5}}
+\end{SCfigure}
+
+Next, for each nucleus assign to each point in the (entire) molecular volume a relative weight $w_m(\r)$, such that for any given $\r$, the following holds
+\begin{align}
+\sum_{m=1}^Mw_m(\r) = 1.
+\end{align}
+We demand that $w_m(\r)$ be assigned in such a way as to take the value unity in the viscinity of nucleus $m$, and vanish in the viscinity of every other nucleus. Using the previously described cutoff functions (Becke suggests a value of $n=3$ iterations of the polynomial $p$), we can assign $w_m(\r)$ as \cite{beckegrid}
+\begin{align}
+w_n(\r) = \frac{P_n(\r)}{\sum_{m=1}^MP_m(\r)}. \label{eq:dft12}
+\end{align}
+
+Having defined the relative weight of each point in space, the only thing that remains to be done is to define around each nucleus a local spherical polar coordinate system $(r_m,\theta_m,\phi_m)$ and we can rewrite the integral any (scalar-valued) real-valued function $F(\r)$ as a sum over \emph{single center integrals} $F_m(\r)$ as
+\begin{align}
+I&=\int F(\r)\,\mathrm{d}^3\r  \label{eq:dft13} \\
+%
+&= \sum_{m=1}^M\int F_m(\r)\,\mathrm{d}^3\r. \label{eq:dft14}
+\end{align}
+Each $F_m(\r)$ is the single center integrand defined by the weight function \eq{dft12},
+\begin{align}
+F_m(\r) \equiv w_m(\r)F(\r),
+\end{align}
+and we note that since $\sum_{m=1}^Mw_m(\r)=1$, the sum over all $F_m(\r)$ is equal to $F(\r)$ for every point $\r$, and so the two integrals of Eqs. (\ref{eq:dft13}) and (\ref{eq:dft14}) are equal. 
+
+In short, the scheme proposed by Becke maps the problem of integrating across the whole molecular volume onto a series of much simpler \emph{single center integrals} over the viscinity of each nucleus. Since the weight function of nucleus $m$ vanishes close to any other nucleus, we can just integrate over a simple spherical Lebedev grid (with the $r$ integral handled by a Gauss-Chebychev quadrature of the second kind, as proposed by Becke and co-workers) for each nucleus without having to worry about the singularities at the other nucleonic centers \cite{becke2}. Since we can create a spherical grid around each nucleus with cutoff radii dependent on the orbitals of the basis centered around that nucleus, we know that we always include \emph{enough} of the surrounding space to obtain sufficient precision in the integral. This is in contrast to the scheme proposed by Boerrigter and co-workers \cite{voronoi1}, described in previously in section \ref{voronoi}. In that scheme we are guaranteed only to \emph{directly} hit the volume enclosed by the largest sphere that we can totally enclose within each Voronoi cell, and subsequently have to handle in some intricate and complicated way the "left-over volume" that is inside each Voronoi cell but not inside this sphere. 
+
+
+
+
+
+
+
+
+
+%\printbibliography
+
+
+
+
+\end{document}
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
+ 
+% \lstinputlisting[firstline=1,lastline=2, float=p!, caption={}, label=lst:1]{<code>.m}
+

@@ -1,0 +1,375 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+
+
+\renewcommand{\R}{{\bf R}}
+\renewcommand{\r}{{\bf r}}
+\newcommand{\p}{{\bf p}}
+\newcommand{\q}{{\bf q}}
+\renewcommand{\H}{\mathcal{H}}
+\newcommand{\psit}{\left|\psi(t)\right\rangle}
+
+
+\chapter{Variational Monte Carlo validation tests}
+Recall that we are working in Hartree atomic units, meaning energies are given in terms of the Hartree $[E_h]$, and lengths in Bohr radii $[a_0]$. See appendix \ref{units}.
+
+\newcommand{\EL}{E_\text{L}}
+\section{Non-interacting electrons \label{nonintvmc}}
+The simplest possible VMC calculations can be done on non-interacting, hydrogen-like atoms. With $N$ electrons orbiting a single charge-$Z$ nucleus, with no electron-electron interaction, the Hamiltonian takes the form
+\begin{align}
+\hat H=\sum_{i=1}^N\left[-\frac{\nabla_i^2}{2}-\frac{Z}{|\r_i-\r_A|}\right].
+\end{align}
+In this case the Schrödinger equation has a known solution, taking the form of a single Slater determinant filled with hydrogenic orbitals. As this is an actual closed form solution, the local energy becomes independent of the electronic configuration
+\begin{align}
+\EL(\R)=\frac{1}{\Psi(\R)}\hat H\Psi(\R) = \frac{1}{\Psi(\R)}E\Psi(\R)=E.
+\end{align}
+Since samples are all identical, the variance vanishes exactly. The orbital energies depend on the squared principal quantum number \textemdash c.f.\ the hydrogen atom energies\textemdash as
+\begin{align}
+E_n^\text{non-interacting}=-\frac{Z^2}{2n^2}.
+\end{align}
+The total energy of the first and second row closed shell systems thus is 
+\begin{align}
+E_\text{He}^\text{non-interacting} &= -2\frac{2^2}{21^2} = -4, \\
+E_\text{Be}^\text{non-interacting} &= -2\frac{4^2}{21^2}-2\frac{4^2}{22^2} = -20, \ \text{ and}\\
+E_\text{Ne}^\text{non-interacting} &= -2\frac{10^2}{21^2}-8\frac{10^2}{22^2} = -200.
+\end{align}
+All three results are reproduced exactly by the VMC implementation, with standard deviations (no blocking) on the order of the machine precision, $\sigma\sim 10^{-15}$.
+
+\section{The effect of the Jastrow factor}
+\begin{figure}
+\centering
+\includegraphics[width=0.99\textwidth,trim=50 50 50 50, clip]{jastrowhole2.png}
+\caption{Detail of the \ce{Be} wave function at the point where two electrons meet. Shown is $|\Psi(\r_1;\r_2,\r_3,\r_4)|^2$ for a part of the $x_1-y_1$-plane of the electronic coordinates of electron one, when the (opposite-spin) electron two is held at $\r_2=(1,1,0)$. The placement of electron two is indicated by a floating sphere. The remaining two electrons are far separated and held fixed far from the location of this plot. The plot set into the surface beneath indicate the contours of the wave function. The single \ce{Be} is located at $\r_A=\bm{0}$.  \label{fig:jastrowhole}}
+\end{figure}
+The Jastrow factor introduces dynamic electron correlations to the wave function. As opposed to the Hartree-Fock scheme\textemdash in which all electrons interact only with the combined averaged charge density of the other electrons\textemdash dynamic correlations introduce instantaneous repulsion between electrons moving around in the molecular volume.  In general, VMC is able to recover roughly 80-90\% of the correlation energy\textemdash c.f.\ section \ref{HFlimit}\textemdash with highly optimized (multi-parameter) Jastrow factors (and possibly a linear combination of Slater determinants) \cite{umrigar}. 
+
+The single-parameter, two-body Jastrow factor used in the present work ensures the electron-electron cusp\textemdash c.f.\ section \ref{section:eecusp}\textemdash condition is upheld by reducing the value of the wave function whenever two electrons get close to each other. Same-spin electrons occupying the same spot in space is strictly forbidden by the Pauli princple, and the determinantal form of the wave function ensures that is vanishes exactly as such configurations. This is however not true of opposite-spin electrons. While the Jastrow factor changes the wave function in regions of configuration space where $\r_1$ and $\r_2$ are close, it does not make it vanish. Under certain conditions, the probability density at $\r_1=\r_2$ is even higher than the surrounding configurations \cite{atkins}\comment{\url{https://chemistry.stackexchange.com/questions/68405/can-two-electron-occupy-the-same-spatial-spot-in-a-statistical-way}}. An example of the Jastrow factor's effect on the electron density is shown in \fig{jastrowhole}. The plot shows the wave function as function of $\r_1$ varying over a plane intersecting $\r_2$, with $\r_2$, $\r_3$, and $\r_4$ held fixed. The \ce{Be} nucleus is located at $\r_A=\bm{0}$, and we note the exponential decay away from the origin is the overall form. However, we also note a distinct \emph{Jastrow hole} at the position of electron two. 
+
+Introduction of the Jastrow factor makes the VMC framwork in principle better suited to handle interacting many-electron systems than e.g.\ HF. We have built in a single variational parameter in $J(\R)$, namely $\beta$. Recall that
+\begin{align}
+J(\R)=\exp\left[\sum_{i=1}^N\sum_{j=i+1}^N \frac{a_{ij}r_{ij}}{1+\beta r_{ij}} \right],
+\end{align}
+with $a_{ij}$ depending on the spin-projections of electrons $i$ and $j$. In order to obtain a better parametrization of the many-electron wave function than the single Slater determinant, we need to find the optimal value of $\beta$. The naive brute force method of just trying every single $\beta$ you can think of works at the small scale, but becomes unfeasible as the system size increases. An example of such a search is shown in \fig{hebeta}, for \ce{He} using a STO-6G HF Slater determinant. The statistical error bars shown are standard deviation estimates obtained by blocking.
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.5\textwidth,trim=0  200 0 200, clip]{hebeta3.pdf}
+\caption{Energy expectation value as function of the Jastrow variational parameter, $\beta$. Error bars shown are estimated standard deviations obtained by blocking. The minimum found by a gradient descent search is located at $\beta=0.347$. The inset shows details around the minimum. \label{fig:hebeta}}
+\end{SCfigure}
+
+However, with a Slater determinant already optimized with HF orbitals, we can ideally have a VMC wave function which depends on only \emph{a single} parameter. This makes optimization much easier. Even so, in the present work we employ a simple gradient descent scheme. Between each run of the Metropolis algorithm, the value of $\beta$ is updated according to
+\begin{align}
+\beta_{k+1} = \beta_k - \gamma \nabla \langle \EL\rangle,
+\end{align}
+with the gradient calculated by \cite{hjorth-jensen}
+\begin{align}
+\pder{\langle \EL\rangle}{\beta} &= 2\left( \left\langle \frac{1}{\Psi[\beta]}\pder{\Psi[\beta]}{\beta}\EL[\beta]\right\rangle - \left\langle \frac{1}{\Psi[\beta]}\pder{\Psi[\beta]}{\beta} \right\rangle \Big\langle\EL[\beta]\Big\rangle \right).
+\end{align}
+The basic gradient descent uses $\gamma=1$, but this can be extended to various more optimal alternatives\footnote{See e.g.\ the method of Barzilai and Borwein which attempts to approximate the Hessian without having to actually calculate it \cite{BARZILAIBORWEIN}. This is an example of a larger class of Quasi-Newton methods for optimization in cases where the Hessian (or even the gradient) is too expensive to compute directly.}. An example of the gradient descent in action can be seen in \tab{gradd}, where we use the \ce{He} atom as an example\textemdash this time with a Slater determinant occupied by hydrogenic orbitals (with a previously optimized value of the variational exponent $\alpha$). 
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{6}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                   &                          &          &  & \textbf{Gradient}        & & \textbf{Change}\\
+\textbf{Iteration} & \textbf{Energy} $[E_h]$  &  $\beta$ &  & \phantom{-}\textbf{w.r.t. } $\beta$ & & \phantom{-}\textbf{in } $\beta$\\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+     0   &   -2.8872   &       0.2 & & -0.080519  &  &         \\
+     1   &   -2.8897   &   0.28052 & & -0.02479  &   & 0.0805 \\
+     2   &   -2.8918   &   0.30531 & & -0.013644  &  &  0.0248 \\
+     3   &   -2.8887   &   0.31895 & & -0.0089535  & &   0.0136 \\
+     4   &   -2.8925   &   0.32791 & & -0.0071841  & &   0.0090 \\
+     5   &   -2.8929   &   0.33509 & & -0.0029369  & &   0.0072 \\
+     6   &   -2.8922   &   0.33803 & & -0.0017893  & &   0.0029 \\
+     7   &   -2.8894   &   0.33882 & & -0.0019688  & &   0.0018 \\
+     8   &   -2.8923   &   0.34079 & & -0.0020466  & &   0.0020 \\
+     9   &   -2.8890   &   0.34283 & & -0.0010756  & &   0.0020 \\
+    10   &   -2.8878   &   0.34391 & & -0.0011909  & &   0.0011 \\
+    11   &   -2.8895   &   0.34510 & & -0.0019628  & &   0.0012 \\
+    12   &   -2.8914   &   0.34706 & & -0.0015739  & &   0.0020 \\
+    13   &   -2.8891   &   0.34864 & &  0.0001866  & &   0.0016 \\ 
+    14   &   -2.8866   &   0.34845 & &   & &  -0.0002 \\
+    \\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Example of the gradient descent algorithm applied to the \ce{He} atom with hydrogenic orbitals. The already optimized $\alpha=1.843$ was used for all iterations. The tollerance criteria for stopping was a change in $\beta$ of $\varepsilon\le0.001$ which was achieved in 14 iterations, each with a modest $10^6$ Monte Carlo cycles. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a4a2fd7a8698a7fe5a0118b9e78786e118e52d67}. \label{tab:gradd}}
+\end{table}
+
+Once an optimization run has been done  with relatively few Monte Carlo cycles and the energy minimum w.r.t.\ the variational parameters has been found we run a computationally heavier \emph{single-point} calculation with these parameters. With the optimal $\alpha$ and $\beta$, we find e.g.\ using the Slater type orbitals an energy of $-2.8901E_h$ with standard deviation (after blocking) $\sigma\sim10^{-4}E_h$. 
+
+\section{First and second row closed-shell atoms and diatomics}
+If we want to run VMC on open-shell systems, we need to account for different spin configurations meaning we need to also suggest spin-flip Metropolis steps. This is a complication we want to avoid, so we will focus the testing now on closed-shell systems. First and second row closed-shell atoms include \ce{He}, \ce{Be}, and \ce{Ne} with $2$, $4$, and $10$ electrons, respectively. In addition we will include the homogenous diatomics \ce{Be2} and \ce{H2} in our validation set. The results of the validation runs are shown in \tab{vmcval}. 
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X  *{6}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+        &  &           &          &                         & \phantom{-}\textbf{Standard} & \phantom{.}\textbf{Relative error}    \\
+        &  &  $\alpha$ & $\beta$  & \textbf{Energy} [$E_h$] & \textbf{deviation, } $\sigma$ & \textbf{w.r.t. reference } [$\%$]             \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+He       & & 1.843  & 0.347  & -2.89018  & 0.000075  & 0.47 \\
+H${}_2$  & & 1.289  & 0.401  & -1.1581   & 0.00013   & 1.43 \\ 
+Be       & & 3.983  & 0.094  & -14.503   & 0.0019    & 1.15 \\
+Be${}_2$ & & 3.725  & 0.246  & -28.75    & 0.024     & 2.23 \\ 
+Ne       & & 10.22  & 0.091  & -127.91   & 0.0012    & 0.81 \\ 
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Energies of first and second row closed-shell atomic and homogenous diatomic systems, calculated under VMC. Hydrogenic orbitals are used, with parameters $\alpha$ and $\beta$ as given below. The given standard deviations are computed using the blocking technique. Reference energies taken from Filippi and Umrigar (\ce{Be2}), Buendía and co-workers (\ce{Be} and \ce{Ne}), and Moskowitz and Kalos (\ce{He} and \ce{H2}) \cite{umrigar,buendia,moskowitz1981new}. Varying numbers of Metropolis cycles used, from $4\cdot10^9$ for the lightest \ce{He} to only $4\cdot10^7$ for the heaviest \ce{Be2}. \label{tab:vmcval}}
+\end{table}
+
+We note that for \ce{He}, the VMC approach improves considerably on the HF energy ($-2.8599 E_h$ at the 6-311++G** level). The Slater determinant consists of a single orbital only meaning the variational Monte Carlo single-parameter-orbital offers comparable freedom in functional form as the HF linear combinations. In addtion, the presence of the Jastrow factor improves heavily on the ability to model the electron-electron interaction and thus has quite a large effect on the resulting calculated energy. The same observation is true of the \ce{H2} molecule, for which the HF energy is $-1.1325 E_h$ at the 6-311++G** level. Even though our simple VMC wave function recovers some of the missing correlation energy, we are still quite far off of the reference $-1.1746 E_h$ \cite{moskowitz1981new}.
+
+For the case of \ce{Be}, we find that our VMC estimate differs more from the reference energy of Buendía and co-workers of $-14.667 E_h$. Even though \ce{Be} is a closed-shell atom, the first excitation corresponds to a lower energy gap than the corresponding gaps for the noble gasses \ce{He} and \ce{Ne}. Essentially, the transition $E_\text{2s}\rightarrow E_\text{2p}$ is smaller than the first excitation possible in e.g.\ \ce{Ne}, namely $E_\text{2p}\rightarrow E_\text{3s}$. Note carefully that even though the non-interacting hydrogen-like atoms have energies independent of the azimuthal quantum number $l$, this is of course not true of actual atoms for which the electronic interaction breaks the $l$-degeneracy.  
+
+In cases such as \ce{Be}\textemdash where the HOMO-LUMO\footnote{\emph{Highest occupied molecular orbital} and \emph{lowest unoccupied molecular orbital}, respectively.} energy gap is small\textemdash we expect the multi-configurational nature of the true wave function to play an important role. Such near-degeneracies are well handled by using e.g.\ a multi-configurational self-consistent field \footnote{Multi-configurational self-consistent field methods, see e.g.\ \cite{helgaker}.} linear combination of determinants \cite{BUENDIA2006241}. This means that our single Slater determinant is less suited to approximating the true wave function, resulting in less accuracy in calculated energies.
+
+For the larger systems, the \emph{single-parameter} determinant starts to rear it's proverbial ugly head. As the number of orbitals needed increases, the ability of a single variational parameter to approximate well all of them becomes more and more unrealistic. This drawback of our simple variational form begins to overshadow the Jastrow factor asset (as compared to HF) for larger atomic systems At $Z=10$ the Hartree-Fock energy is more accurate than VMC at the 6-311++G** level (at $-128.527 E_h$), only narrowly beating out the minimal 3-21G (at $-127.804 E_h$ compared to $E_\text{VMC}=-127.91 E_h$).
+
+\subsubsection{A comment on the overall accuracy compared to literature results}
+In general, our variational wave function is much less sophisticated than corresponding ones found in the contemporary litterature. Even the parametrizations used by Moskowitz and Kalos in the early 1980s exhibit more parameters and greater freedom than our functional form \cite{moskowitz1981new}. In more modern VMC approaches, many more variational parameters are used. An example is the Jastrow factor of Buendía and co-workers, consisting of two-, and three-body terms with 17 distinct variational parameters \cite{buendia}. Their Slater determinant combination is the result of an OEP calculation (\emph{optimized effective potential} method, see e.g.\ Talman and co-workers \cite{talman1976optimized}) which yields results roughly analogous to HF.  
+
+In short, competing with such results with our simple trial wave function is in no way realistic. Obtaining results differing from the literature by on the order of $\sim 1\%$ is thus interpreted as a sign the machinery is working well. 
+
+
+\section{Testing the gaussian orbitals}
+A natural next step in the validation is testing the implementation of the Gaussian type orbitals in the VMC program. In order to isolate only this part for testing, we consider the same non-interacting hydrogen-like atoms as in section \ref{nonintvmc}. Fitting\footnote{All curve fitting in the present work is done in {\sc Matlab} using the LAD (\emph{least absolute deviations}, as opposed to the more familiar \emph{least squared deviations}) approach and the trust-region algorithm proposed by Moré and co-workers \cite{charnes1955optimal,koenker1978regression,more1983computing}.} Gaussian type orbitals to the hydrogen orbitals in a manner à la the STO-nG wave functions, we compare the ground state energy to the true $E_0$ for varying n. The results for \ce{He} can be seen in \tab{vmcgaussnonint}, where we have dubbed the Gaussian fits HTO-nG.
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                 &                          & \phantom{-}\textbf{Standard}          & \textbf{Relative error}    \\
+\textbf{Orbital} & \textbf{Energy} $[E_h]$  & \textbf{deviation} $[E_h]$ & \textbf{w.r.t. HTO} [$\%$]  \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+HTO-1G & -2.8227  & 0.0034  &   29.43 \\
+HTO-2G & -3.8156  & 0.0025  &    4.61 \\
+HTO-3G & -3.9636  & 0.0020  &    0.91 \\
+HTO-4G & -3.9913  & 0.0016  &    0.22 \\
+HTO-5G & -3.9973  & 0.0014  &    0.07 \\
+HTO-6G & -3.9991  & 0.0012  &    0.02 \\
+Hydrogenic    & -4.0    & 0.0 & \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Energies calculated using the Gaussian fits of the hydrogenic orbitals, denoted HTO-nG (with $\text{n}=1,2,\dots,6$ representing the number of Gaussian primitives used for each orbital) for the \ce{He} atom with \emph{non-interacting} electrons. The \emph{exact} wave function is the hydrogenic Slater, giving $\sigma_\text{hydrogenic}=0$. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a4a2fd7a8698a7fe5a0118b9e78786e118e52d67}. \label{tab:vmcgaussnonint}}
+\end{table}
+
+We note that the implementation appears to work as it should. The next step is to include the 2s orbitals, and calculate the non-interacting energy for \ce{Be}. This is done in \tab{vmcgaussnonint2}. Evidently, the HTO-1G orbitals are qualitatively wrong, failing to capture the nodal structure of the 2s hydrogenic orbital with only a single primitive. With positive energy, the 1G \ce{Be} does not admit bound state solutions. 
+
+Despite the catastrophic failure at HTO-1G, already with two primitives is the 2s node sufficiently well approximated to result in roughly a $\sim5\%$ relative error. The convergence looks strikingly similar to that of the \ce{He} atom in \tab{vmcgaussnonint}. 
+
+Corresponding examples of calculations \emph{with} the Jastrow factor and interacting electrons are shown in Tables \ref{tab:vmcv1} and \ref{tab:vmcv2}, for \ce{He} and \ce{Be} respectively.
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                 &                          & \phantom{-}\textbf{Standard}          & \textbf{Relative error}    \\
+\textbf{Orbital} & \textbf{Energy} $[E_h]$  & \textbf{deviation} $[E_h]$ & \textbf{w.r.t. HTO} [$\%$]  \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+HTO-1G &  33.509   & 0.061   &  267.6 \\
+HTO-2G & -18.999   & 0.019   &  5.05 \\
+HTO-3G & -19.841   & 0.015   &  0.80 \\
+HTO-4G & -19.964   & 0.011   &  0.18 \\
+HTO-5G & -19.9804  & 0.0091  &  0.10 \\
+HTO-6G & -19.9921  & 0.0074  &  0.04 \\
+Hydrogenic    & -20.0    & 0.0 & \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Energies calculated using the Gaussian fits of the hydrogenic orbitals, denoted HTO-nG (with $\text{n}=1,2,\dots,6$ representing the number of Gaussian primitives used for each orbital) for the \ce{Be} atom with \emph{non-interacting} electrons. The \emph{exact} wave function is the hydrogenic Slater, giving $\sigma_\text{hydrogenic}=0$. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a4a2fd7a8698a7fe5a0118b9e78786e118e52d67}. \label{tab:vmcgaussnonint2}}
+\end{table}
+
+\begin{table}[p]
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                 &                          & \phantom{-}\textbf{Standard}          & \textbf{Relative error}    \\
+\textbf{Orbital} & \textbf{Energy} $[E_h]$  & \textbf{deviation} $[E_h]$ & \textbf{w.r.t. STO} [$\%$]  \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+STO-1G & -1.775  & 0.0031  &  38.57 \\
+STO-2G & -2.675  & 0.0022  &   7.43 \\
+STO-3G & -2.841  & 0.0017  &   1.69 \\
+STO-4G & -2.877  & 0.0013  &   0.44 \\
+STO-5G & -2.886  & 0.0011  &   0.13 \\
+STO-6G & -2.887  & 0.0011  &   0.09 \\
+STO    & -2.8897 & 0.00086 & \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Binding energies for \ce{He} calculated using Slater type orbitals (STO) and $n$ gaussians fitted to the slater orbitals (STO-$n$G). Only the 1s slater type orbital is used. $10^7$ monte carlo cycles were used for all simulations. An effective charge of $\alpha=1.843$ was used as exponent for the STO, and $\beta=0.347$ was used as parameter for the Jastrow factor. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a5a3580b2dc7c4a48594b853c32ad7082b99345c}. \label{tab:vmcv1}}
+\end{table}
+
+\begin{table}[p]
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                 &                          & \phantom{-}\textbf{Standard}          & \textbf{Relative error}    \\
+\textbf{Orbital} & \textbf{Energy} $[E_h]$  & \textbf{deviation} $[E_h]$ & \textbf{w.r.t. STO} [$\%$]  \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+STO-1G & -10.10  & 0.023  &   30.00 \\
+STO-2G & -13.53  & 0.024  &    6.22 \\
+STO-3G & -14.03  & 0.022  &    2.76 \\
+STO-4G & -14.27  & 0.013  &    1.10 \\
+STO-5G & -14.41  & 0.012  &    0.12 \\
+STO-6G & -14.425 & 0.014  &    0.02 \\
+STO    & -14.428 & 0.0090 & \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Binding energies for \ce{Be} calculated using slater type orbitals (STO) and $n$ gaussians fitted to the slater orbitals (STO-$n$G). Only the 1s and 2s slater type orbitals are used. $5\e{6}$ monte carlo cycles were used for all simulations. An effective charge of $\alpha=3.983$ was used as exponent for the STO, and $\beta=0.094$ was used as parameter for the Jastrow factor. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a5a3580b2dc7c4a48594b853c32ad7082b99345c}. \label{tab:vmcv2}}
+\end{table}
+
+\section{Cusp effects and \emph{cusp corrections}}
+As discussed in section \ref{section:gaussianorbitals}, the Gaussian orbitals do not satisfy the electron-nucleus cusp condition at $r_{iA}\rightarrow0$. For the SCF methods\textemdash which depend on the orbitals only in the weak integral sense (see section \ref{rheq})\textemdash this is not a big problem. When the only quantities entering the equations are integrals over all space, then minute imperfections in one tiny region of configuration space is not critical. When performing VMC integration, however, we are continuously sampling the local energy at specific configurations. If $\EL$ seemingly diverges for a small portion of these configurations, it poses a very real problem since sampling only a couple such points will cause the Monte Carlo average to become imprecise and make the variance explode. Especially worrying is the fact that this happens at the position of maximum probability, i.e.\ the only place where $\Psi(\R)$ attains a maximum.
+
+As we discussed in chapter \ref{wavefunctions}, any finite linear combination of Gaussian primitives will yield a vanishing derivative at $r_{iA}\rightarrow 0$. For increasing numbers of primitives, we can force the contracted Gaussian into a STO-shape, which holds for smaller and smaller $r_{iA}$. This leads to linear combinations in which some primitives have enormously large exponents. When differentiating twice, these exponents make  
+\begin{align}
+\pder{^2}{r_{iA}^2} \psi_\text{STO-nG}
+\end{align} 
+oscillate rapidly and with large amplitude close to the nucleus (see \fig{cuspdd}). A case study is presented in \fig{cuspc}. 
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{cuspc11.pdf}
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{cuspc22.pdf}
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{cuspc33.pdf}
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{cuspc44.pdf}
+\caption{Example showing the cusp problems of the Gaussian linear combinations. A STO-5G fit to the 1s STO of a non-interacting \ce{Be} atom is shown (top-left), along with a comparison of the double derivative of the two (top-right and bottom-left [logarithmic absolute difference]). The bottom-right shows the difference in \emph{local single-electron energy}\textemdash as defined in \eq{selocal}\textemdash for the two orbitals.\label{fig:cuspc}}
+\end{figure}
+
+
+Let us now define the effective \emph{local single-electron energy}, 
+\begin{align}
+\EL^\text{s-e}(\r)=\frac{1}{\psi(\r)}\left[-\frac{\nabla^2}{2}-\frac{Z}{|\r-\r_A|}\right]\psi(\r), \label{eq:selocal}
+\end{align}
+for the spatial orbital $\psi(\r)$ \cite{ma2005scheme}. In \fig{cuspc}, we consider $\EL^\text{s-e}$ for the 1s orbital of a non-interacting \ce{Be} atom. Analogous to the actual full local energy, the single-electron local energy is constant in $\r$ when considering the \emph{true} ground state. In this case, the true ground state is simply the 1s STO which is shown together with a STO-5G Gaussian fit. The top-left plot shows very good correspondence between the two, but differentiating reveals the subtle differences. Taking the Laplacian accentuates the spread, and shown in the bottom-left plot is the absolute difference 
+\begin{align}
+|\psi_\text{STO-5G}(\r)-\psi_\text{STO}(\r)|.
+\end{align}
+For small $r$, the difference blows up. The bottom-right graph shows the proverbial bottom line: The difference between the correct cusp STO and the Gaussians diverges. Since $\EL^\text{s-e}[\psi_\text{STO}]=E^\text{s-e}$ is constant, 
+\begin{align}
+\Big|\EL^\text{s-e}[\phi_\text{STO-5G}]-\EL^\text{s-e}[\phi_\text{STO}]\Big|=\Big|\EL^\text{s-e}[\phi_\text{STO-5G}]-E^\text{s-e}\Big|.
+\end{align}
+The bottom-right plot is worryingly far from the constant it ideally should be.
+
+
+\subsubsection{The case of \ce{Ne}}
+For a noble gas\textemdash such as \ce{Ne}\textemdash this effect is emphasized by the tight electronic structure. With a small spatial extent of only $r\sim0.72 a_0$, the \ce{Ne} atom is more tightly bound than e.g.\ Beryllium at $r\sim2.11 a_0$ \cite{clementi}. A higher density of electrons around the nucleus point combined with the sharper exponential decay\textemdash necessitating higher exponent Gaussians for fitting\textemdash give us problems in the VMC calculations. Shown in \tab{stone} are results from running \ce{Ne} with varying STO-nG wave function ansatzes through the Metropolis machinery. Electron-interaction and Jastrow factor are both enabled for these calculations. 
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+                 &                          & \phantom{-}\textbf{Standard}          & \textbf{Relative error}    \\
+\textbf{Orbital} & \textbf{Energy} $[E_h]$  & \textbf{deviation} $[E_h]$ & \textbf{w.r.t. STO} [$\%$]  \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+STO-1G & -97.07   & 0.24   &  22.35 \\
+STO-2G & -115.90  & 0.23   &  7.29\\
+STO-3G & -118.83  & 0.20   &  4.95\\
+STO-4G & -124.09  & 0.28   &  0.74\\
+STO-5G & -123.91  & 0.13   &  0.89\\
+STO-6G & -123.63  & 0.13  &  1.11\\
+STO    & -125.02  & 0.10   & \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Energies calculated using the Gaussian fits of the Slater type orbitals, STO-nG (with $\text{n}=1,2,\dots,6$ representing the number of Gaussian primitives used for each orbital) for the \ce{Ne} atom. A STO calculations is presented for comparison. Note that the $\alpha$ and $\beta$ parameters were not properly tuned to the variational minimum for this calculations. However, the key point is comparison of STO and STO-nG and in this regard the value of the energy is immaterial\textemdash the difference is what matters. Produced using \url{github.com/mortele/VMC} commit \inlinecc{a4a2fd7a8698a7fe5a0118b9e78786e118e52d67}. \label{tab:stone}}
+\end{table}
+
+The calculated variance is an order of magnitude worse than for the lighter atoms, and the convergence to the STO energy is erratic at best. The results are, however, passable. We are within about $\sim 1\%$ of the reference STO energy, but there is really no reason to use the less stable STO-nG basis sets in the VMC calculations. The reason for employing Gaussian orbitals in the first place was only for ease of integration in SCF methods. 
+
+\subsection{Cusp correction}
+Recall that these previous results were all ran with basis sets which by design mimic the STO orbitals. The cusp conditions are not met, but the local energy remains well-behaved for reasonably small values of the electron-nucleus distance. This all breaks down\textemdash however\textemdash when we consider e.g.\ the Pople family basis sets (see section \ref{poplebasis}). In such cases, handling the cusp problem explicitly in post-HF calculations is the only way to obtain reasonable, low-variance results in a reasonable amount of (CPU-)time.
+
+\begin{SCfigure}
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{cuspdd.pdf}
+\caption{Example showing the double derivative of the STO-5G of \fig{cuspc}, compared to the double derivative of the corresponding STO. \label{fig:cuspdd}}
+\end{SCfigure}
+
+There are multiple ways to perform {\bf cusp correction} of the contracted Gaussian functions. One approach is to use the Jastrow factor, including in it a term proportional to
+\begin{align}
+J^\text{nuclear}(\R)\sim \exp\left[\sum_{i=1}^N \sum_{A=1}^M \frac{Z_Ar_{iA}}{2(1+\gamma r_{iA})}\right].
+\end{align}
+The $\gamma$ parameter is another variational parameter which needs to be optimized variationally, analogous to $\beta$. See e.g.\ \cite{Akramine,BUENDIA2006241,reynolds}. A different approach consists of modifying the orbitals of s-type symmetry directly, ensuring they satisfy the electron-nucleus cusp. Most proposed algorithms define a cut-off, inside which the s orbitals are replaced:
+\begin{align}
+\psi_s(\r)=\left\{ \mat{lcr}{
+    \text{Contracted Gaussian}  & \text{ for } & |\r|>r_\text{cutoff} \\
+    \text{Replacement function} & \text{ for } & |\r|\le r_\text{cutoff} \\
+}\right. 
+\end{align} 
+The method of replacement differs, with various researchers using quintic splines (Manolo and co-workers), a fourth order polynomial (Ma and co-workers), or substitution by STOs (Manten and Lüchow), among other approaches \cite{manolo,ma2005scheme,manten}. An illustration of the idea is shown in \fig{cuspdd}, where replacement within some finite cutoff $r_\text{cutoff}$ yields a smooth second derivative à la the STO. 
+
+Performing any form of cusp correction is unfortunately outside the scope of the present work. This means we are consigned to work with Slater type orbitals for VMC in the main body of this thesis.
+
+
+%\url{http://aip.scitation.org/doi/pdf/10.1063/1.2890722}
+%\url{http://aip.scitation.org/doi/pdf/10.1063/1.1394757}
+%\url{http://www.tcm.phy.cam.ac.uk/~mdt26/papers/nemec_2010.pdf}
+
+
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=0  200 0 200, clip]{blocking.pdf}
+\caption{Example of the blocking procedure applied to the \ce{Be} atom, running $N=10^6$ Monte Carlo cycles. The notation $\sigma(b)$ denotes the standard deviation, calculated with a block size of $b$. We note the clear plateau starting at around $b=1500$. Final blocking estimate for the standard deviation is calculated to be $\sigma(1500)=0.011 E_h$. \label{fig:blocking}}
+\end{SCfigure}
+
+\section{Blocking}
+A short example of the blocking procedure is shown in the following. We consider the \ce{Be} atom with an STO Slater-Jastrow wave function. Running $10^6$ Monte Carlo cycles yields an energy of $E=-14.4937 E_h$ with a naive non-blocking estimate of the standard deviation of $\sigma(1)=0.00137 E_h$. We define in the following $\sigma(b)$ to denote the value of the standard deviation, calculated with a block size $b$. The calculated blocking deviations are shown in \fig{blocking}, where we note a clear initial increase and a subsequent plateau. 
+
+As demonstrated by Flyvbjerg and Petersen, we interpret the (approximate) point at which the plateau starts to be an estimate of the correlation time $\tau$ \cite{blocking}. In this case, that appears to be around $b=1500$. The blocking estimate for the \emph{true} standard deviation thus becomes $\sigma(1500)=0.011$, and the energy can be presented as 
+\begin{align}
+E=-14.494E_h \pm 0.011 E_h.
+\end{align} 
+
+Once the correlation length is known for a system, it is reasonable to assume the same correlation length holds for similar systems. For this reason, the actual blocking procedure needs only be performed a handful of times. When the correlation length is known for a particular system (or one closely related), the calculation of the blocking variance and standard deviations can be done on the fly directly in the \CC{}{ }code. In order to avoid having to perform blocking too many times, we use a modest \emph{over-estimate} of the correlation length $\tau$ in the present work. This over-estimate is then used for numerous more or less similar systems. This comes at the cost of essentially reporting \emph{under-estimates} of the real accuracy of our program.
+
+
+
+\end{document}
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
+ 
+% \lstinputlisting[firstline=1,lastline=2, float=p!, caption={}, label=lst:1]{<code>.m}
+

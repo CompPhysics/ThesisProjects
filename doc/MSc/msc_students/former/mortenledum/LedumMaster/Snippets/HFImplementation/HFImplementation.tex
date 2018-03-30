@@ -1,0 +1,729 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+\chapter{Implementation: Hartree-Fock\label{HFI}}
+The following is a description of the implementation of the Hartree-Fock framework described in chapter \ref{HF}. The main body of the method consists of around $7\,000$ significant\footnote{As counted by the \lstinline{cloc} program which counts \emph{significant} lines of code, leaving out blank lines, comment lines, etc. \cite{cloc}} lines of \CC{}  code. It consists of about 15 significant classes, with associated sub-classes, of which a generic user is required to interact with only three for basic usage: The managing \inlinecc{System} class, an appropriate sub-class of the \inlinecc{Atom} super-class, and either one of \inlinecc{RestrictedHartreeFock} or \inlinecc{UnrestrictedHartreeFock} depending on which framework is desired.
+
+The code is object oriented and completely general in that it can compute an approximation to the energy of any molecular configuration possible. Although it will of course be unfeasibly slow in doing so for large systems where the basis size far exceeds $10^2$. As noted in section \ref{section:gaussianorbitals}, the mathematically more tractable Cartesian Gaussian basis functions are used in place of the physically more realistic Slater type orbitals. It is in principle tuneable to any desired precision\textemdash bounded from below by the Hartree-Fock limit (see section \ref{HFlimit})\textemdash by employing larger and larger basis sets. All basis sets used in the current work are taken from the \emph{Basis Set Exchange} \cite{basissetexchange}. The specific basis sets used are described in section \ref{basissetsused}.
+
+The code consists of two mostly disjoint parts. The bulk of the program consists of code necessary to solve\textemdash in analytic fashion\textemdash one-, and two-electron integrals in terms of Gaussian orbitals. The second and more succinct part deals with setting up and solving the Roothan-Hall (Pople-Nesbet) equations. 
+
+
+The code base has been rigorously tested for first and second row atoms, with Gaussian orbitals up to and including \emph{f} type, but expanding to heavier atoms and higher angular momentum basis functions is in principle straightforward. A number of basis sets are available, and adding new ones is made easy by the accompanying python script \inlinecc{basisFileParser.py}. It parses Gaussian basis set files in the Turbomole format, \inlinecc{.tm}, and outputs \CC{}  code ready for use in the Hartree-Fock program \cite{TURBOMOLE}. 
+
+After calculating the energy, the \emph{Hartree-Fock basis} may be output to file for use later in e.g.\ the VMC code (see \ref{VMCimplementation}). 
+
+Before going on we present an overview of the basis sets employed. We then start off by describing simple usage of the code with some examples and then go on to expand on the implementation of some key classes and methods.
+
+\section{Basis sets used \label{basissetsused}}
+In the present work we employ a range of different basis sets for the first and second row elements. The minimal \inlinecc{3-21G} as well as the \inlinecc{3-21++G} set which adds diffuse functions to hydrogen are taken from Binkley and co-workers \cite{binkley1980}. The \inlinecc{6-31G} sets\textemdash doubling the number of contracted functions for each core electron\textemdash are taken from Hehre and co-workers and Dill and co-workers (for \ce{Li} and \ce{B}) \cite{hehre1972,dill1975}. Double zeta sets, adding another contracted function for each atomic orbital denoted \inlinecc{6-311G} originate from the work of Krishnan and co-workers \cite{krishnan1980}. The corresponding sets with added diffuse and polarization functions \inlinecc{G-311++G**}, aswell as the \inlinecc{G-311++G(2d,2p)} basis set which adds \emph{p} and \emph{d} polarization functions to \ce{H} is also taken from their work. Lastly, the correlation-consistent polarized triple zeta \inlinecc{cc-pVTZ} and the corresponding \emph{augmented} \inlinecc{aug-cc-pVQZ} quintuple zeta with added diffuse functions are taken from Dunning and co-workers \cite{dunning1989}.
+
+\section{Introductory examples \label{hfexample}}
+The simplest usage of the HF code requires four lines of \CC{}  code:
+\begin{lstlisting}[language={[std]c++}]
+System He;
+He.addAtom(new Helium("3-21G", vec{0,0,0}));
+RestrictedHartreeFock solver(&He);
+solver.solve();
+\end{lstlisting}
+First the \inlinecc{System} instance is created. Secondly, a \ce{He} atom is added at the origin with a minimal \inlinecc{3-21G} basis set. The vector \inlinecc{vec} parameter to the \inlinecc{System::addAtom} method determines the position of the atom. Subsequently, an \inlinecc{RestrictedHartreeFock} solver is setup and the last line solves the Roothan-Hall equations using default parameters of tolerance $\varepsilon=10^{-8}E_h$, and a maximum of $50$ iterations. Running the above code gives on the fly output shown in \fig{hfexamplefig}, and the final HF energy $E=-2.8356E_h$.
+
+More complicated molecular structures can easily be set up by simply adding more atoms. The following code sets up an un-restricted Hartree-Fock calculations of the ground state \ce{H2O} molecule
+\begin{lstlisting}[language={[std]c++}]
+vec O  { 0.000, 0.000, 0.000};
+vec H1 {-1.430, 1.108, 0.000};
+vec H2 { 1.430, 1.108, 0.000};
+
+System H2O;
+H2O.addAtom(new Oxygen  ("6-311++G**", O));
+H2O.addAtom(new Hydrogen("6-311++G**", H1));
+H2O.addAtom(new Hydrogen("6-311++G**", H2));
+
+UnrestrictedHartreeFock solver(&H2O);
+solver.solve();
+\end{lstlisting}
+with the output $E=-76.0529E_h$. Using the diffuse-polarized \inlinecc{6-311++G**} basis set, the water molecule problem contains a grand total of $37$ contracted basis functions. 
+
+\begin{figure}[p]
+\begin{lstlisting}[deletekeywords={int}]
+ ================== Starting SCF iterations ================= 
+ => Maximum iterations:    50         
+ => Convergence criterion: 1e-08      
+ => Total basis size:      2          
+ => Number of atoms:       1          
+ => Number of electrons:   2          
+   ------------------------------------------------------- 
+   | Helium : 3-21G            ( 0.000,  0.000,  0.000)  | 
+   ------------------------------------------------------- 
+
+ ============================================================ 
+       Iteration               Energy          Convergence 
+ ------------------------------------------------------------ 
+               0          -1.67146855       
+               1          -2.30499718          0.726635902 
+               2          -2.58019861          0.340771411 
+               3          -2.70960718          0.159819875 
+               4          -2.77284144         0.0746829736 
+               5          -2.80424894         0.0346626565 
+               6          -2.81994424         0.0159319385 
+
+                             ...                           
+
+              23          -2.83567975       2.09616335e-07 
+              24          -2.83567981       1.21250965e-07 
+              25          -2.83567984       6.93867538e-08 
+              26          -2.83567986        3.9361673e-08 
+              27          -2.83567987       2.21682601e-08 
+              28          -2.83567987        1.2409513e-08 
+              29          -2.83567987       6.91096458e-09 
+ ============================================================ 
+
+ Self consistency SUCCESFULLY reached. 
+
+ => Iterations used:                                     29   
+ => Final convergence test:           6.910964578388246e-09 
+ => Final electronic energy:             -2.835679869873355  
+ => Final energy (eV):                   -77.16279085427311 
+ => Final energy:                        -2.835679869873355 
+ ============================================================
+\end{lstlisting}
+\caption{Output of the first example program shown at the start of section \ref{hfexample}. The right hand side column labeled \inlinecc{convergence} shows the average of absolute difference between eigenvalues of the Fock matrix between iterations. This is the test used to check for convergence, with $\varepsilon$ being the \inlinecc{convergence criterion} given as input to \inlinecc{RestrictedHartreeFock::solve}. If no $\varepsilon$ is provided, a default value of $10^{-8}$ is used. \label{fig:hfexamplefig}}
+\end{figure}
+
+\section{Overview of selected classes}
+\subsection{Overlap and kinetic integral evaluation}
+The majority of the code base and the majority of the run-time of the Hartree-Fock program is taken up by the integral evaluation code. The dominating factor w.r.t.\ computational complexity is the evaluation of the four-index $J$ and $K$ integrals. We will begin our discussion of integral evaluation with the \inlinecc{OverlapIntegrator} class.
+
+\subsubsection{Overlap integrals}
+In order to perform the overlap integrals we will employ the scheme of McMurchie and Davidson, hinted at in section \ref{section:gaussprod} \cite{mcmurchie}. Exploiting the properties of the Hermite Gaussians (c.f.\ section \ref{hermitegauss}), we can integrate Gaussian products with relative ease. 
+
+Recall the notation of the overlap distributions of \eq{overlapdistr},
+\begin{align}
+\Omega_{ij}(x)=g_i^\alpha(x;A_x)g_j^\beta(x;B_x)=K_{AB}x_A^ix_B^j\mathrm{e}^{-p x_p^2},
+\end{align}
+with $K_{AB}$ constant and $p=\alpha + \beta$. By the completeness of the Hermite polynomials, we may expand any polynomial of degree $i+j$ in terms of Hermite polynomials of degree $t\le i+j$ \cite{hochstadt}. This means we can write $\Omega_{ij}(x)$ in terms of $\Lambda_t(x)$ with expansion coefficients $E^{ij}_t$, i.e.\ \cite{taylor}\comment{p798}
+\begin{align}
+\Omega_{ij} = \sum_{t=0}^{i+j}E_t^{ij}\Lambda_t.
+\end{align}
+Consider now the incremented $\Omega_{i+1,j}$, obtained by left-multiplying by an additional factor of $x_A$. We may use the Gaussian recurrence relation, \eq{recurrence1}, to relate this to $\Omega_{ij}$ by
+\begin{align}
+\Omega_{i+1,j}&=A_x\Omega_{ij}=(x-A_x)\Omega_{ij} \nn\\
+%
+&=(x-P_x)\Omega_{ij}+(P_x-A_x)\Omega_{ij} \nn\\
+%
+&= x_p\Omega_{ij}-x_{PA}\Omega_{ij}. \label{eq:overlap1}
+\end{align} 
+
+We will now use the multiplication result for Hermite Gaussians shown in section \ref{section:gaussproperties}\textemdash\eq{lefthermite}\textemdash to expand the $x_p\Omega_{ij}$ term as
+\begin{align}
+x_p\Omega_{ij} &= \sum_{t=0}^{i+j}E^{ij}_t\left[t\Lambda_{t-1} + \frac{1}{2p}\Lambda_{t+1}\right] \nn\\
+%
+&= \sum_{t=1}^{i+j+1} \left[(t+1)E_{t+1}^{ij} + \frac{1}{2p}E^{ij}_{t-1} \right],
+\end{align}
+yielding finally \cite{integrals}\comment{p11}
+\begin{align}
+\Omega_{i+1,j}=\sum_{t=1}^{i+j+1}\left[ \frac{1}{2p}E^{ij}_{t-1} + (t+1)E^{ij}_{t+1}+x_{PA}E_t^{ij} \right]\Lambda_t.
+\end{align}
+Equating this with the straight-forward expansion $\Omega_{i+1,j}=\sum_{t=1}^{i+j+1}E_t^{ij}\Lambda_t$, we find the recurrence relations for $E_t^{ij}$ as \cite{taylor}\comment{p798}
+\begin{align}
+E_0^{00}&=K_{AB}, \\
+%
+E_t^{i+1,j}&= \frac{1}{2p} E_{t-1}^{ij} + x_{PA}E_t^{ij} + (t+1)E_{t+1}^{ij}, \text{ and } \\
+%
+E_t^{i,j+1}&= \frac{1}{2p} E_{t-1}^{ij} + x_{PB}E_t^{ij} + (t+1)E_{t+1}^{ij}.
+\end{align}
+Using the conditions $E_t^{ij}=0$ if $t<0$ or $t>i+j$, this gives us an algorithm for calculating Hermite expansion coefficients \cite{dragly}.
+
+\renewcommand{\r}{{\bf r}}
+Having calculated the expansion, finding the overlap integral is trivial: 
+\begin{align}
+\left\langle g_{ijk}^\alpha(\r_\alpha;{\bf A})\big|g_{lmn}^\beta(\r_\beta;{\bf B})\right\rangle &= \int_{-\infty}^\infty\mathrm{d}^3\r\, g_{ijk}^\alpha(\r_\alpha;{\bf A})g_{lmn}^\beta(\r_\beta;{\bf B})\nn\\
+%
+&= \sum_{t=0}^{i+l}\sum_{u=0}^{j+m}\sum_{v=0}^{k+n}E_t^{il}E_u^{jm}E_v^{kn}\int_{-\infty}^\infty\mathrm{d}^3\r\, \Lambda_{tuv}^{\alpha+\beta}(\r_P) \nn\\
+%
+S_{il}S_{jm}S_{kn}&= E_0^{il}E_0^{jm}E_0^{kn} \sqrt{\left(\frac{\pi}{\alpha+\beta}\right)^3}. \label{eq:overlaphermite}
+\end{align}
+
+The \inlinecc{OverlapIntegrator} class computes the integral by \eq{overlaphermite} as
+\begin{lstlisting}[language={[std]c++}]
+double OverlapIntegrator::computeIntegral(GaussianPrimitive* primitive1,
+                                          GaussianPrimitive* primitive2) {
+
+    m_hermiteGaussian.setupCoefficients(primitive1, primitive2);
+    const double exponentSum    = m_hermiteGaussian.getExponentSum();
+    m_sqrtPiOverP               = sqrt(M_PI / exponentSum);
+    const int    xExponent1     = primitive1->xExponent();
+    const int    yExponent1     = primitive1->yExponent();
+    const int    zExponent1     = primitive1->zExponent();
+
+    const int    xExponent2     = primitive2->xExponent();
+    const int    yExponent2     = primitive2->yExponent();
+    const int    zExponent2     = primitive2->zExponent();
+
+    m_Ex = m_hermiteGaussian.getCoefficientX(xExponent1, xExponent2);
+    m_Ey = m_hermiteGaussian.getCoefficientY(yExponent1, yExponent2);
+    m_Ez = m_hermiteGaussian.getCoefficientZ(zExponent1, zExponent2);
+    return m_Ex * m_Ey * m_Ez * 
+	       m_sqrtPiOverP * m_sqrtPiOverP * m_sqrtPiOverP;
+}
+\end{lstlisting}
+
+\subsubsection{Evaluating the Hermite Gaussian expansion coefficients}
+The \inlinecc{OverlapIntegrator} class has a member instance of the \inlinecc{HermiteGaussian} class which sets up the Hermite factorization. This class essentially has one job: Computing the $E_q^{ab}$ coefficients for any given $g_{ijk}^\alpha (\r;{\bf A})g_{lmn}^\beta(\r;{\bf B})$ product. The Hermite coefficients are stored in an array of \inlinecc{arma::cube} objects, which themselves are vectors of matrices or rank 3 tensors. In total, this makes the \inlinecc{m_coefficients} object a rank 4 tensor with indices ordered as $(x,i,j,t)$ and size $(3,i+1,j+1,i+j+1)$. 
+
+An excerpt of the \inlinecc{HermiteGaussian::computeCoefficients} method is shown here:
+\begin{lstlisting}[language={[std]c++}]
+void HermiteGaussian::computeCoefficients() {
+    // ...
+    double  alpha   = m_exponent1;
+    double  beta    = m_exponent2;
+    double  p       = alpha + beta;
+    double  mu      = alpha * beta / p;
+    vec     AB      = m_nucleusPosition1 - m_nucleusPosition2;
+    vec     P       = (alpha * m_nucleusPosition1 + 
+                       beta  * m_nucleusPosition2) / p;
+    vec     PA      = P - m_nucleusPosition1;
+    vec     PB      = P - m_nucleusPosition2;
+
+    for (int i = 0; i<3; i++) {
+        cube& E = m_coefficients[i];
+        double AB_ = AB(i);
+        double PA_ = PA(i);
+        double PB_ = PB(i);
+
+        int iA = 0;
+        E(0,0,0) = exp(- mu * AB_ * AB_);
+        for (int iB = 0; iB < iB_loopLimits[i]; iB++) {
+            for (int t = 0; t < t_loopLimits[i]; t++) {
+                if (! (iA == 0 && iB == 0 && t == 0)) {
+                    // E(i, j-1, t-1)
+                    double previousIBpreviousT = 0;
+                    if (isCoefficientNonZero(iA, iB-1, t-1)) {
+                        previousIBpreviousT = E(iA, iB-1, t-1);
+                    }
+                    // E(i, j-1, t)
+                    double previousIB = 0;
+                    if (isCoefficientNonZero(iA, iB-1, t)) {
+                        previousIB = E(iA, iB-1, t);
+                    }
+                    // E(i,j-1, t+1)
+                    double previousIBnextT = 0;
+                    if (isCoefficientNonZero(iA, iB-1, t+1)) {
+                        previousIBnextT = E(iA, iB-1, t+1);
+                    }
+                    E(iA,iB,t) = (1./(2*p))   * previousIBpreviousT   +
+                                 PB_          * previousIB            +
+                                 (t+1)        * previousIBnextT;
+                }
+            }
+        }
+
+    // Repeat for i
+    // ...
+}
+\end{lstlisting}
+The \inlinecc{HermiteGaussian::isCoefficientZero} method checks if $t<0$ or $t>i+j$, in which case $E_t^{ij}=0$ is returned. Only the building of the $i=0,j=0,1,2,\dots$ coefficients is shown; the loop over \inlinecc{iA} is omitted. The setup of the \inlinecc{loopLimits} arrays at the beginning of the function is also omitted, but the \inlinecc{iA} and \inlinecc{iB} upper limits are set to $i+1$, $l+1$, etc. The $t$, $u$, and $v$ loops run from zero to $i+l+1$, $j+m+1$, and $k+n+1$.
+
+\subsubsection{Computing kinetic integrals}
+The kinetic integrals,
+\begin{align}
+T_{IJ}\equiv -\frac{1}{2}\left\langle g_{ijk}^\alpha(\r_\alpha;{\bf A})\bigg| \pder{^2}{x^2}+\pder{^2}{y^2}+\pder{^2}{z^2} \bigg|g_{lmn}^\beta(\r_\beta;{\bf B})\right\rangle
+\end{align}
+are evaluated as linear combinations of overlap integrals, $S_{ab}$. We denote $g_{ijk}\equiv g_I$ and $g_{lmn}\equiv g_J$ for brevity when defining $T_{IJ}$. From \eq{cartesiandiff} we know the effect on Cartesian Gaussians of differentiation w.r.t.\ $x$, and so we may write the kinetic integral components as
+\begin{align}
+T_{ij}&=-\frac{1}{2}\left\langle g_{i}^\alpha(x_\alpha;A_x)\bigg| \pder{^2}{x^2} \bigg|g_{j}^\beta(x_\beta;B_x)\right\rangle \nn\\
+%
+&= -\frac{1}{2}\left\langle g_{i}^\alpha(x_\alpha;A_x) \bigg| 4\beta^2 g_{j+2}^\beta - 2\beta (2j+1)g_{j}^\beta + j(j-1)g_{j-2}^\beta   \right\rangle,
+\end{align}
+where we have suppressed the arguments on $g_{j}^\beta(x_\beta;B_x)$. Since the other two terms are independent of $x$, the \emph{full} kinetic integral can be written in terms of the overlap integrals as
+\begin{align}
+T_{IJ}&= -\frac{1}{2}\left\langle g_{ijk}^\alpha(\r_\alpha;{\bf A})\bigg| \pder{^2}{x^2}+\pder{^2}{y^2}+\pder{^2}{z^2} \bigg|g_{lmn}^\beta(\r_\beta;{\bf B})\right\rangle \nn\\
+%
+&= -\frac{1}{2}\left[T_{il}S_{jm}S_{kn} + S_{il}T_{jm}S_{kn} + S_{il}S_{jm}T_{kn}\right]
+\end{align}
+with 
+\begin{align}
+T_{ij} = 4\beta^2 S_{i,j+2} - 2\beta (2j+1)S_{ij}+ j(j-1)S_{i,j-2}.
+\end{align}
+
+The implementation of the \inlinecc{KineticIntegrator} class exploits the fact that if $E^{ij}_t$ is known, then any overlap integral with $i'<i$ and/or $j'<j$ is already computed\textemdash simply extract the component of $E$ with the correspondingly lower indices. Since building $E^{ij}_t$ necessitates the evaluation of all $E^{i'j'}_t$ with $i'<i$ and $j'<j$, these are guaranteed to already be known once the overlap $S_{i,j+2}$ is computed. 
+
+An excerpt of \inlinecc{KineticIntegrator::computeIntegral} is presented in the following. Note that the \inlinecc{KineticIntegrator::computeAdjustedOverlapIntegral} simply extracts the relevant $E_t^{ij}$ indices and computes the corresponding $S_{ij}$ accordingly, without re-computing the Hermite expansion.
+\begin{lstlisting}[language={[std]c++}]
+double KineticIntegrator::computeIntegral(GaussianPrimitive* primitive1,
+                                          GaussianPrimitive* primitive2) {
+    // ...
+    primitive2->adjustExponentX(2);
+    primitive2->adjustExponentY(2);
+    primitive2->adjustExponentZ(2);
+    m_overlapIntegrator.computeIntegral(primitive1, primitive2);
+    primitive2->adjustExponentX(-2);
+    primitive2->adjustExponentY(-2);
+    primitive2->adjustExponentZ(-2);
+
+    vec& S = m_overlapIntegrals;
+    S(0) = m_overlapIntegrator.getIntegralIndicesDimension(ix,jx,0);
+    S(1) = m_overlapIntegrator.getIntegralIndicesDimension(iy,jy,1);
+    S(2) = m_overlapIntegrator.getIntegralIndicesDimension(iz,jz,2);
+
+    for (int dimension = 0; dimension < 3; dimension++) {
+        for (int adjustment = -2; adjustment <= 4; adjustment+=4) {
+            computeAdjustedOverlapIntegral(dimension, adjustment);
+        }
+    }
+    for (int dimension = 0; dimension < 3; dimension++) {
+        computeT(dimension);
+    }
+
+    return - 0.5 * (m_T(0) * S  (1)  * S  (2) +
+                    S  (0) * m_T(1)  * S  (2) +
+                    S  (0) * S  (1)  * m_T(2));
+}
+\end{lstlisting}
+The \inlinecc{KineticIntegrator::computeT} simply computes $T_{ij}$ by 
+\begin{lstlisting}[language={[std]c++}]
+void KineticIntegrator::computeT(int d) {
+    double beta     = m_primitive2->exponent();
+    int    j        = m_primitive2->getExponentDimension(d);
+    m_T(d)  = 4*beta*beta    * m_adjustedOverlapIntegrals(d,1)   -
+              2*beta*(2*j+1) * m_overlapIntegrals(dimension)     +
+              j*(j-1)        * m_adjustedOverlapIntegrals(dimension,0);
+}
+\end{lstlisting}
+
+\renewcommand{\R}{{\bf R}}
+\subsection{Electron-nucleus Coulomb integrals}
+The electron-nucleus Coulomb integrals are on the form 
+\begin{align}
+V_{IJ}=\int\mathrm{d}^3\r\, \frac{g^\alpha_I(\r;{\bf A})g^\beta_J(\r;{\bf B})}{|\r-\r_C|},
+\end{align}
+where $g_I$ and $g_J$ are primitives centered on nuclei $A$ and $B$, respectively, and the integral is taken over coordinates relative to (a potentially different) nucleus $C$. We will denote $|\r-\r_C|\equiv r_C$, and we recognize the overlap distribution $\Omega_{IJ}$ in the numerator of the integrand,
+\begin{align}
+V_{IJ}=\int\mathrm{d}^3\,\r \frac{\Omega_{IJ}}{r_C}.
+\end{align}
+Unfortunately, these integrals do not factor in Cartesian coordinates, but it turns out that we may find a closed form solution in terms of the lower incomplete gamma function. We may rewrite the $1/r_C$ factor in terms of the integral over a Gaussian by employing the identiy \cite{rottmann}\comment{p154}
+\begin{align}
+\int_{-\infty}^\infty\mathrm{d}x\,\mathrm{e}^{-\lambda x^2} = \sqrt{\frac{\pi}{\lambda}}. \label{eq:gaussintegral}
+\end{align}
+Using \eq{gaussintegral}, $1/r_C$ becomes
+\begin{align}
+\frac{1}{r_C}=\frac{1}{\sqrt{\pi}}\int_{-\infty}^\infty\mathrm{d}t\,\mathrm{e}^{-r_C^2 t^2}.
+\end{align}
+
+With the integral representation of $1/r_C$, $V_{IJ}$ is a four dimensional integral,
+\begin{align}
+V_{IJ}=\frac{K_{AB}}{\sqrt{\pi}}\int\mathrm{d}^3\r\, \big(x_A^iy_A^jz_A^k\big)\big(x_B^ly_B^mz_B^n\big)\mathrm{e}^{-pr_P^2}\int_{-\infty}^\infty\mathrm{d}t\,\mathrm{e}^{-r_C^2 t^2},
+\end{align}
+where $p=\alpha+\beta$, ${\bf P}$ is the "center of mass" between ${\bf A}$ and ${\bf B}$, and $K_{AB}=\mathrm{e}^{-\alpha\beta r_{AB}^2/p}$ as usual (c.f.\ section \ref{section:gaussianorbitals}). As we did with the overlap integrals, we may of course again expand the overlap distribution in terms of Hermite Gaussians
+\begin{align}
+V_{IJ}=\frac{1}{\sqrt{\pi}}\int\mathrm{d}^3\r\, \sum_{tuv}E^{il}_{t}E^{jm}_uE^{kn}_v \Lambda^{\alpha+\beta}_{tuv}(\r_P)\int_{-\infty}^\infty\mathrm{d}t\,\mathrm{e}^{-r_C^2 t^2}. \label{eq:vij}
+\end{align}
+
+\subsubsection{One center Coulomb integrals}
+In order to make progress, we turn to the simplified one center integral of just
+\begin{align}
+V_p\equiv \int\mathrm{d}^3\r\,\frac{\mathrm{e}^{-pr_P^2}}{r_C}= \frac{1}{\sqrt{\pi}}\int\mathrm{d}^3\r\int_{-\infty}^\infty\mathrm{d}t\, \mathrm{e}^{-pr_P^2} \mathrm{e}^{-t^2r_C^2}.
+\end{align}
+Using the Gaussian product rule and subsequently applying \eq{gaussintegral} thrice gives \cite{integrals}\comment{p17}
+\begin{align}
+V_p=\frac{2}{\sqrt{\pi}}\int_{0}^\infty\mathrm{d}t\, \exp\left(pR_{CP}^2 \frac{t^2}{p+t^2}\right)\left(\frac{\pi}{p+t^2}\right)^{\nicefrac{3}{2}}.
+\end{align}
+The even integral over $(-\infty,\infty)$ was transformed to twice the integral over $[0,\infty)$, and $R_{CP}$ denotes (predictably) the distance $R_{CP}=|{\bf C}-{\bf P}|$. Performing next the substitution $u^2\equiv t^2/(p+t^2)$ with transformed integration measure 
+\begin{align}
+\mathrm{d}t=\frac{1}{p}\left(\frac{t^2}{u^2}\right)^{\nicefrac{3}{2}}\mathrm{d}u,
+\end{align}
+and integration limits $[0,1]$ we obtain
+\begin{align}
+V_p = \frac{2\pi}{p}\int_0^1\mathrm{d}u\, \mathrm{e}^{-pR_{CP}^2u^2}.
+\end{align}
+Introducing the {\bf Boys function}, $F_n(x)=\int_0^1\mathrm{d}t\,\mathrm{e}^{-xt^2}t^{2n}$, we can rewrite this finally as \cite{taylor}
+\begin{align}
+V_p=\frac{2\pi}{p}F_0(pR_{CP}^2). \label{eq:onecenterv}
+\end{align}
+
+\subsubsection{Evaluing the Boys function}
+The Boys function is related to the lower incomplete gamma function as
+\begin{align}
+F_n(x) = \frac{\gamma(n+\nicefrac{1}{2},x)}{2x^{n+\nicefrac{1}{2}}} \label{eq:boysgamma}
+\end{align}
+where the integral representation of the incomplete gamma function can be written as
+\begin{align}
+\Gamma(s,x) = \int_x^\infty \mathrm{d}t\, t^{s-1}\mathrm{e}^{-t} \ \ \text{ and } \ \ \gamma(s,x) = \int_0^x\mathrm{d}t\, t^{s-1}\mathrm{e}^{-t},
+\end{align}
+for the upper ($\Gamma$) and lower ($\gamma$) regions, respectively \cite{gamma,temme}. The gamma function proper is obviously just the sum of the lower and upper regions, $\Gamma(\alpha)=\gamma(\alpha,x)+\Gamma(\alpha,x)$. Integrating $\gamma(s,x)$ by parts yields the relation
+\begin{align}
+\gamma(s,x) = \int_0^x\mathrm{d}t\, t^{s-1}\mathrm{e}^{-t} = -\mathrm{e}^{-t}t^{s-1}+\int_0^x\mathrm{d}t\, t^{s-2}\mathrm{e}^{-t},
+\end{align}
+from which we can derive the following recurrence relation for $F_n(x)$ \cite{taylor}
+\begin{align}
+F_n(x)=\frac{2x\,F_{n+1}(x)+\mathrm{e}^{-x}}{2n+1}. \label{eq:boysr}
+\end{align}
+Using \eq{boysr} we may efficiently find $F_m(x)$ for any $m\le n$ if we compute once the value $F_n(x)$. This involves only $5(n-m)$ FLOPs, as opposed to the re-evaluation in terms of the gamma function which is significantly more computationally expensive (see e.g.\ \cite{guseinov}). In the Hartree-Fock framework, this is implemented in the \inlinecc{BoysFunction} class, and the method
+\begin{lstlisting}[language={[std]c++}]
+double BoysFunction::computeAndApplyDownwardRecurrence(double x, double n) {
+    m_recurrenceValues = zeros<vec>(n+1);
+    m_recurrenceValues(n) = compute(x, n);
+
+    const double expMinusX = std::exp(-x);
+    for (int m=n; m>0; m--) {
+        m_recurrenceValues(m-1) = (2*x*m_recurrenceValues(m) + expMinusX) /
+                                  (2.0*m-1.0);
+    }
+    return m_recurrenceValues(0);
+}
+\end{lstlisting}
+The \inlinecc{BoysFunction::compute} method simply evalues the Boys function $F_n(x)$ by application of \eq{boysgamma} and the \inlinecc{boost::math} library\footnote{\url{http://www.boost.org/doc/libs/1_65_1/libs/math/doc/html/math_toolkit/sf_gamma/igamma.html}},
+\begin{lstlisting}[language={[std]c++}]
+double BoysFunction::analyticalIncompleteGammaFunction(double x, double n) {
+    const double nPlusOneHalf = n+0.5;
+    return (x==0) ? 1.0/(n+1) : 1.0/(2*pow(x,nPlusOneHalf)) * 
+                                boost::math::tgamma_lower(nPlusOneHalf,x);
+}
+\end{lstlisting}
+
+
+\subsubsection{Computing Hermite integral expansions}
+Recall the Hermite Gaussian expansion of the $V_{IJ}$ integrand of \eq{vij},
+\begin{align}
+V_{IJ}=\frac{1}{\sqrt{\pi}}\int\mathrm{d}^3\r\, \sum_{tuv}E^{il}_{t}E^{jm}_uE^{kn}_v \Lambda^{\alpha+\beta}_{tuv}(\r_P)\int_{-\infty}^\infty\mathrm{d}t\,\mathrm{e}^{-r_C^2 t^2}.
+\end{align}
+Moving the expansion coefficients out of the integral, and inserting the definition of the Hermite Gaussians gives
+\begin{align}
+V_{IJ}&=\frac{\sum_{tuv}E^{il}_{t}E^{jm}_uE^{kn}_v}{\sqrt{\pi}}\int\mathrm{d}^3\r\,  \frac{\partial^t\partial^u\partial^v}{\partial P_x^t\partial P_y^u\partial P_z^v} \frac{\mathrm{e}^{-pr_P^2}}{r_C} \nn\\
+%
+&= \frac{\sum_{tuv}E^{il}_{t}E^{jm}_uE^{kn}_v}{\sqrt{\pi}}\frac{\partial^t\partial^u\partial^v}{\partial P_x^t\partial P_y^u\partial P_z^v}\int\mathrm{d}^3\r\,   \frac{\mathrm{e}^{-pr_P^2}}{r_C} \nn\\
+&= \frac{\sum_{tuv}E^{il}_{t}E^{jm}_uE^{kn}_v}{\sqrt{\pi}}\frac{\partial^t\partial^u\partial^v}{\partial P_x^t\partial P_y^u\partial P_z^v}\left[\frac{2\pi}{p}F_0(pR_{PC}^2)\right],
+\end{align}
+where the result of the one center Coulomb integral\textemdash\eq{onecenterv}\textemdash were inserted and the order of integration and differentiation were swapped in accordance with Leibniz's rule \cite{boas,integrals}\comment{p236,p21}.
+
+Defining the {\bf Hermite integrals} 
+\begin{align}
+R_{tuv}^n(p,R_{PC})\equiv (-2p)^n\pder{^{t+u+v}F_n(pR_{PC}^2)}{P_x^t\partial P_y^u \partial P_z^v},
+\end{align}
+we can rewrite the complete electron-nucleus Coulomb integral in its final form as \cite{taylor}\comment{p817}
+\begin{align}
+V_{IJ}=\frac{2\pi}{p}\sum_{t=0}^{i+l}\sum_{u=0}^{j+m}\sum_{v=0}^{k+n}E_{t}^{il}E^{jm}_uE^{kn}_vR^0_{tuv}(p,R_{PC}).
+\end{align}
+Differentiation of the Boys function leads to the three recurrence relations which we\textemdash together with $R^n_{000}=(-2p)F_n$\textemdash will use to compute the $R^n_{tuv}$ values:
+\begin{align}
+R_{t+1,uv}^n  &= tR^{n+1}_{t-1,uv}  + x_{PC}R^{n+1}_{tuv}, \label{eq:rec1}\\
+R_{t,u+1,v}^n &= uR^{n+1}_{t,u-1,v} + y_{PC}R^{n+1}_{tuv}, \text{ and } \label{eq:rec2}\\
+R_{tu,v+1}^n  &= vR^{n+1}_{tu,v-1}  + z_{PC}R^{n+1}_{tuv}. \label{eq:rec3}
+\end{align}
+In the source code of the Hartree-Fock program, this is implemented in the class \inlinecc{HermiteGaussianIntegral}. Once again, the coefficients are stored in a rank 4 tensor called \inlinecc{m_coefficients}. An excerpt of the method computing $R_{tuv}^n$s is shown here:
+\begin{lstlisting}[language={[std]c++}]
+void HermiteGaussianIntegral::setupCoefficients(int         t,
+                                                int         u,
+                                                int         v,
+                                                double      p,
+                                                arma::vec   PC) {
+    // ...
+    arma::field<arma::cube>& R = m_coefficients;
+    BoysFunction&            F = m_boysFunction;
+
+    double x = p * arma::dot(m_PC, m_PC);
+    R(0)(0,0,0) = F.computeAndApplyDownwardRecurrence(x, m_tuv+1);
+
+    double minusTwoPPowerM = 1;
+    for (int m = 1; m < m_tuv+1; m++) {
+        minusTwoPPowerM *= (-2*p);
+        R(m)(0,0,0) = minusTwoPPowerM * F[m];
+    }
+
+    for (int tuv = 1; tuv < m_tuv+1;     tuv++)
+    for (int n   = 0; n   < m_tuv+1-tuv; n  ++)
+    for (int t   = 0; t   < m_t+1;       t  ++)
+    for (int u   = 0; u   < m_u+1;       u  ++)
+    for (int v   = 0; v   < m_v+1;       v  ++) {
+        if (t + u + v != tuv  ||  t + u + v == 0) {
+            continue;
+        }
+        int tuvMax = max(t, max(u, v));
+
+        double newCoefficient = 0;
+        if (tuvMax == t) {
+            newCoefficient = (t-1)    * getCoefficient(n+1,t-2,u,v) +
+                             m_PC(0)  * getCoefficient(n+1,t-1,u,v);
+        } else if (tuvMax == u) {
+            newCoefficient = (u-1)    * getCoefficient(n+1,t,u-2,v) +
+                             m_PC(1)  * getCoefficient(n+1,t,u-1,v);
+        } else if (tuvMax == v) {
+            newCoefficient = (v-1)    * getCoefficient(n+1,t,u,v-2) +
+                             m_PC(2)  * getCoefficient(n+1,t,u,v-1);
+        }
+        R(n)(t,u,v) = newCoefficient;
+    }
+}
+\end{lstlisting}
+The \inlinecc{m_tuv} variable holds the sum $t+u+v$, and \inlinecc{maxIndex} represents $m_\text{max}\equiv t+u+v+1$. This is the highest order $R_{000}^{m_\text{max}}$ we need to compute directly by $R^n_{000}=(-2p)F_n$ (by downward recurrence on $F_{m_\text{max}}$) before applying the recurrence relations of \eq{rec1}-(\ref{eq:rec3}).
+
+Finally, the full electron-nucleus interaction integrals are computed in the Hartree-Fock code as 
+\begin{lstlisting}[language={[std]c++}]
+double ElectronNucleusIntegrator::computeIntegral(
+                                              GaussianPrimitive* primitive1,
+                                              GaussianPrimitive* primitive2) {
+
+    HermiteGaussianIntegral& R = m_hermiteGaussianIntegral;
+    HermiteGaussian&         E = m_hermiteGaussian;
+    R.setupCoefficients(primitive1, primitive2, m_nucleusPosition);
+    E.setupCoefficients(primitive1, primitive2);
+    //...
+    double integral = 0;
+    for (int t = 0; t < tLimit; t++)
+    for (int u = 0; u < uLimit; u++)
+    for (int v = 0; v < vLimit; v++) {
+        double Eproduct = 1;
+        Eproduct *= E.getCoefficientDimension(x1,x2,t,0);
+        Eproduct *= E.getCoefficientDimension(y1,y2,u,1);
+        Eproduct *= E.getCoefficientDimension(z1,z2,v,2);
+        integral += Eproduct * R.getCoefficient(0,t,u,v);
+    }
+    return integral * 2*M_PI / p;
+}
+\end{lstlisting}
+
+\subsection{Electron-electron exchange integrals}
+The electron-electron exchange integrals are on the form 
+\begin{align}
+V_{ABCD} = \int\mathrm{d}^3\r_1\int\mathrm{d}^3\r_2\,\frac{g_A^\alpha(\r_1;{\bf A})g_B^\beta(\r_1;{\bf B})g_C^\gamma(\r_2;{\bf C})g_D^\delta(\r_2;{\bf D})}{|\r_1-\r_2|}.
+\end{align}
+As with the Coulomb integrals, we recognize a set of overlap distributions in the numerator which we can expand in terms of Hermite Gaussians
+as
+\begin{align}
+V_{ABCD}&=\int\mathrm{d}^3\r_1\int\mathrm{d}^3\r_2\,\frac{\Omega_{AB}^{\alpha +\beta}(\r_1;{\bf P})\Omega_{CD}^{\gamma+\delta}(\r_2;{\bf Q})}{r_{12}} \nn\\
+%
+&= \sum_{tuv}E^{AB}_{tuv}\sum_{\tau\mu\nu}E^{CD}_{\tau\mu\nu}\int\mathrm{d}^3\r_1\int\mathrm{d}^3\r_2\,\frac{\Lambda_{AB}^{\alpha +\beta}(\r_1;{\bf P})\Lambda_{CD}^{\gamma+\delta}(\r_2;{\bf Q})}{r_{12}}.
+\end{align}
+It turns out we can write the integration over $\r_1$ and $\r_2$ in terms of the Hermite integrals, as
+\begin{align}
+V_{ABCD}=\frac{2\pi^{\nicefrac{5}{2}}}{pq\sqrt{p+q}}\sum_{tuv}E_{tuv}^{AB}\sum_{\tau\mu\nu}E_{\tau\mu\nu}^{CD}(-1)^{\tau+\mu+\nu}R_{t+\tau,u+\mu,v+\nu}(\zeta,\R_{PQ}),
+\end{align}
+where with $\zeta=pq/(p+q)$, $p=\alpha+\beta$, $q=\gamma+\delta$, $\R_{PQ}={\bf P}-{\bf Q}$, and ${\bf P}$ (${\bf Q}$) is the "center of mass" between ${\bf A}$ and ${\bf B}$ (${\bf C}$ and ${\bf D}$) (for details, see e.g.\ Helgaker and Taylor, McMurchie and Davidson, or Boys \cite{taylor,mcmurchie,boys}).
+
+In the source code, the \inlinecc{ElectronElectronIntegrator} class sets up two Hermite Gaussian expansions\textemdash one for the ${\bf A}, {\bf B}$ overlap and one for the ${\bf C}, {\bf D}$ overlap\textemdash and a single Hermite integral expansion. The implementation is straightforward, the heavy lifting is done in the \inlinecc{HermiteGaussian} and \inlinecc{HermiteGaussianIntegral} classes:
+\begin{lstlisting}[language={[std]c++}]
+double ElectronElectronIntegrator::computeIntegral(
+                                              GaussianPrimitive* primitive1,
+                                              GaussianPrimitive* primitive2,
+                                              GaussianPrimitive* primitive3,
+                                              GaussianPrimitive* primitive4) {
+    HermiteGaussian&         E12 = m_hermiteGaussian12;
+    HermiteGaussian&         E34 = m_hermiteGaussian34;
+    HermiteGaussianIntegral& R   = m_hermiteGaussianIntegral
+
+    E12.setupCoefficients(primitive1, primitive2);
+    E34.setupCoefficients(primitive3, primitive4);
+    setupHermiteGaussianIntegral(primitive1, primitive2, 
+                                 primitive3, primitive4);
+    // ...
+    double integral = 0;
+    for (int t  = 0; t  < tuvLimits[0]; t ++)
+    for (int u  = 0; u  < tuvLimits[1]; u ++)
+    for (int v  = 0; v  < tuvLimits[2]; v ++)
+    for (int t_ = 0; t_ < tuvLimits[3]; t_++)
+    for (int u_ = 0; u_ < tuvLimits[4]; u_++)
+    for (int v_ = 0; v_ < tuvLimits[5]; v_++) {
+        double Eproduct = 1;
+        Eproduct *= E12.getCoefficientDimension(x1,x2,t,0);
+        Eproduct *= E12.getCoefficientDimension(y1,y2,u,1);
+        Eproduct *= E12.getCoefficientDimension(z1,z2,v,2);
+
+        Eproduct *= E34.getCoefficientDimension(x3,x4,t_,0);
+        Eproduct *= E34.getCoefficientDimension(y3,y4,u_,1);
+        Eproduct *= E34.getCoefficientDimension(z3,z4,v_,2);
+
+        double R = R.getCoefficient(0, t+t_, u+u_, v+v_);
+        double sign = ((t_ + u_ + v_) % 2) == 0 ? 1 : -1;
+        integral += Eproduct * R * sign;
+    }
+    double p1       = primitive1->exponent() + primitive2->exponent();
+    double p2       = primitive3->exponent() + primitive4->exponent();
+    return m_2sqrtPiToThe5 * integral / (p1*p2*sqrt(p1+p2));
+}
+\end{lstlisting}
+The variables \inlinecc{xn},\inlinecc{yn}, and \inlinecc{zn} represent the exponent of the $x$, $y$, and $z$ term in primitive $n$. The limits of the sum \inlinecc{x1+x2+1}, \inlinecc{y1+y2+1}, and so on. 
+
+\subsubsection{The ContractedIntegrator class}
+Having presented the integrators for the Gaussian primitives, the integrals over the contracted Gaussians is trivial: we simply take a linear combination of the primitive integrals. 
+
+\subsection{The RestrictedHartreeFockSolver class \label{rhfs}}
+For brevity, only the restricted case is presented in the following. As we derive in section \ref{HF}, the restricted Hartree-Fock formalism expanded in a basis $\{\phi_i\}_i$ orbitals lead to the Roothan-Hall (RH) equations. The RH equations take the form 
+\begin{align}
+FC=\bm{\varepsilon}SC, \label{eq:RH}
+\end{align}
+where $F$ is the Fock matrix with eigenvalues $\bm{\varepsilon}$, $S$ is the overlap matrix relative to the orbitals, and $C$ the coefficient matrix representing the expansion of the new Hartree-Fock orbitals in the $\{\phi_i\}_i$ basis. The Fock matrix depends crucially on the coefficient matrix, $F=F(C)$, meaning we must solve the non-linear RH equations by employing some linearization scheme. The universally used scheme is the fixed-point iterative scheme referred to as self-consistent field iterations (SCF), wherein an initial guess is chosen for $C$ and the Fock matrix computed. Secondly, the RH equations are solved and a new (hopefully improved) estimate for $C$ is produced. This is then re-inserted into $F(C)$, giving an updated Fock matrix for which the RH equations are solved once again. This is reapeated until convergence is achieved. 
+
+\subsubsection{Diagonalization of the Fock matrix}
+The overlap matrix, $S$, contains the overlap integrals of all combinations of basis functions. If the basis set is orthonormal, $S=\mathds{1}$, we may simply ignore it and solve the Roothan-Hall equations at every iteration like an ordinary eigenvalue equation. However, the contracted Gaussian basis is in general not orthonormal and so we must transform \eq{RH} into an equation we are able to solve using normal linear algebra tools. In theory we could simply compute $S^{-1}$ and apply it to \eq{RH} from the left, leaving us with
+\begin{align}
+S^{-1}F{\bf C}_k=\varepsilon_k S^{-1}S{\bf C}_k =\varepsilon_k C_k,
+\end{align}
+for each eigenvector indexed in $k$. However, $S^{-1}F$ is in general not Hermitian leading to potential difficulties. Instead, we will take a different route.
+
+We will apply a coordinate transformation which renders $S$ an identity matrix, solve the equation, and then transform back to the original basis. Applying a basis change to a matrix constitutes a similarity transform, thus we require a matrix $V$ such that \cite{lay}
+\begin{align}
+V^\dagger S V = \mathds{1}.
+\end{align}
+The dagger superscript denotes here the Hermitian conjugate, $V^\dagger = (V^*)^T$. The same transformation needs to be applied to the Fock matrix, but $F$ does of course not become diagonal as a result. Let us now left multiply the RH equation by $V^\dagger$, considering for the moment the equation for only a single eigenvector-eigenvalue pair:
+\begin{align}
+V^\dagger F{\bf C}_k &=\varepsilon_k V^\dagger S {\bf C}_k \nn\\
+%
+V^\dagger F \underbrace{VV^{-1}}_{\mathds{1}}{\bf C}_k &=\varepsilon_k V^\dagger S\underbrace{VV^{-1}}_{\mathds{1}} {\bf C}_k \nn\\
+%
+\underbrace{V^\dagger F V}_{F'}\underbrace{V^{-1}{\bf C}_k}_{{\bf C}_k'} &= \varepsilon_k \underbrace{V^\dagger S V}_{\mathds{1}} \underbrace{V^{-1}{\bf C}_k}_{{\bf C}_k'}.
+\end{align}
+This is called a whitening transform. Note carefully that $\varepsilon$ is just a number, thus is guaranteed to commute with $V^\dagger$. Defining the transformed eigenvector ${\bf C}_k'\equiv V^{-1}{\bf C}_k$, and the coordinate transformed Fock matrix $F'\equiv V^\dagger F V$, we find the transformed RH equation (which is now a regular eigenvalue problem)
+\begin{align}
+F'{\bf C}_k' = \varepsilon_k {\bf C}_k'.
+\end{align}
+
+This leaves us still with the problem of finding a suitable matrix $V$. It turns out that $S$ is guaranteed to be positive definite, meaning the set of matrices for which $V^\dagger S V=\mathds{1}$ holds is infinite. We will choose $V=Us^{-\nicefrac{1}{2}}$, with $U$ being the matrix of eigenvectors of $S$ (the columns) and $s$ holds the inverse square root of the eigenvalues on the diagonal \cite{thijssen}\comment{p37}. We note that 
+\begin{align}
+V^\dagger S V &= (Us^{-\nicefrac{1}{2}})^\dagger S Us^{-\nicefrac{1}{2}} \nn\\
+&= (s^{-\nicefrac{1}{2}})^\dagger \underbrace{U^\dagger S U}_{s} s^{-\nicefrac{1}{2}} \nn\\
+&= s^{-\nicefrac{1}{2}} s s^{-\nicefrac{1}{2}} = \mathds{1},
+\end{align}
+since $U$ diagonalizes $S$ in the sense that $U^\dagger S U=s$. Note also that $s^{-\nicefrac{1}{2}}$ is real and diagonal, so $(s^{-\nicefrac{1}{2}})^\dagger = s^{-\nicefrac{1}{2}}$.
+
+The implementation of the diagonalization of $S$ and the creation of the transformation matrix $V$ is done once, at the start of the SCF iterations. This is handled by the \inlinecc{HartreeFock} super-class, since the method is shared for both the restricted and un-restricted formalisms. 
+\begin{lstlisting}[language={[std]c++}]
+void HartreeFock::diagonalizeOverlapMatrix() {
+    vec s;
+    mat U;
+    arma::eig_sym(s, U, m_overlapMatrix);
+    m_transformationMatrix = U * arma::diagmat(1.0 / sqrt(s));
+}
+\end{lstlisting}
+
+\subsubsection{Diagonalizing the Fock matrix}
+Using the \inlinecc{m_transformationMatrix}, the Fock matrix can now be diagonalized by the \inlinecc{RestrictedHartreeFock} class as
+\begin{lstlisting}[language={[std]c++}]
+void RestrictedHartreeFock::diagonalizeFockMatrix() {
+    const mat& V       = m_transformationMatrix;
+    const mat& F       = m_fockMatrix;
+    mat&       Ftilde  = m_fockMatrixTilde;
+    mat&       C       = m_coefficientMatrix;
+    mat&       Ctilde  = m_coefficientMatrixTilde;
+
+    Ftilde = V.t() * F * V;
+    arma::eig_sym(m_epsilon, Ctilde, Ftilde);
+    C = V * Ctilde.submat(0,
+                          0,
+                          m_numberOfBasisFunctions - 1,
+                          m_numberOfElectrons / 2  - 1);
+}
+\end{lstlisting}
+Since we are not interested in the virtual Hartree-Fock orbitals in the present work, we grab only the slice of the \inlinecc{m_coefficientMatrix} which corresponds to occupied orbitals.
+
+\subsubsection{Setting up the Fock matrix and computing the energy}
+Before we can diagonalize it, we first need to construct the Fock matrix. The elements of the Fock matrix consist of one-body and two-body integrals,
+\begin{align}
+F_{pq} &= \langle p|\hat h|q\rangle + \sum_{r=1}^L\sum_{s=1}^L\sum_{k=1}^{\nicefrac{N}{2}}C_{rk}C_{sk}\big(2\langle pr|\hat w|qs\rangle - \langle pq|\hat w|sq\rangle \big) \nn\\
+%
+&= \langle p|\hat h|q\rangle + \sum_{r=1}^L\sum_{s=1}^L D_{sr}\big(2\langle pr|\hat w|qs\rangle - \langle pq|\hat w|sq\rangle \big),
+\end{align}
+where $L$ denotes the basis size, $N$ the number of electrons, $D$ the density matrix, and the one-body and two-body integrals are defined by (c.f.\ chapter \ref{HF})
+\begin{align}
+\langle p|\hat h|q\rangle = \int\mathrm{d}^3\r\, \phi^*_p(\r)\left[ -\frac{\nabla^2}{2}-\sum_{A=1}^M \frac{Z_A}{|\r-\r_A|}\right]\phi_q(\r),
+\end{align}
+and
+\begin{align}
+\langle pq|\hat w|rs\rangle &= \int\mathrm{d}^3\r_1\int\mathrm{d}^3\r_2\, \phi_q^*(\r_1)\phi_q^*(\r_2)\frac{1}{|\r_1-\r_2|}\phi_q(\r_1)\phi_s(\r_2).
+\end{align}
+This is implemented in the Hartree-Fock framework as
+\begin{lstlisting}[language={[std]c++}]
+void RestrictedHartreeFock::computeFockMatrix() {
+    for(int p = 0; p < m_numberOfBasisFunctions; p++)
+    for(int q = 0; q < m_numberOfBasisFunctions; q++) {
+        m_fockMatrix(p,q) = m_oneBodyMatrixElements(p,q);
+
+        for(int r = 0; r < m_numberOfBasisFunctions; r++)
+        for(int s = 0; s < m_numberOfBasisFunctions; s++) {
+            m_fockMatrix(p,q) += 0.5 * 
+                                 m_densityMatrix(s,r) *
+                                 twoBodyMatrixElementsAntiSymmetric(p,q,r,s);
+        }
+    }
+}
+\end{lstlisting}
+with the anti-symmetric matrix elements being $2\langle pq|\hat w|rs\rangle - \langle pq|\hat w|sr\rangle$.
+
+After setting up and diagonalizing the Fock matrix, we can compute the Hartree-Fock energy, given by
+\begin{align}
+E_\text{HF}=\sum_{p=1}^L\sum_{q=1}^L D_{pq} \langle p|\hat h|q\rangle + \frac{1}{2}\sum_{pqrs}D_{pq}D_{rs}\big[\langle pr|\hat w|qs\rangle - \frac{1}{2}\langle pr|\hat w|sq\rangle \big].
+\end{align}
+This is straight forwardly implemented as
+\begin{lstlisting}[language={[std]c++}]
+void RestrictedHartreeFock::computeHartreeFockEnergy() {
+    m_hartreeFockEnergy = 0;
+
+    for (int p = 0; p < m_numberOfBasisFunctions; p++)
+    for (int q = 0; q < m_numberOfBasisFunctions; q++) {
+        m_hartreeFockEnergy += m_densityMatrix(p,q) * 
+                               m_oneBodyMatrixElements(p,q);
+
+        for (int r = 0; r < m_numberOfBasisFunctions; r++)
+        for (int s = 0; s < m_numberOfBasisFunctions; s++) {
+            m_hartreeFockEnergy += 0.25 * m_densityMatrix(p,q) * 
+                                          m_densityMatrix(s,r) *
+                                   twoBodyMatrixElementAntiSymmetric(p,q,r,s);
+        }
+    }
+    m_hartreeFockEnergy += m_nucleusNucleusInteractionEnergy;
+}
+\end{lstlisting}
+
+\subsubsection{Updating the density matrix and possible convergence problems}
+Similar to other iterative schemes, the Hartree-Fock SCF iterations sometimes suffer from convergence problems. Naive, straight forward, SCF iterations in fact has very problematic convergence properties, and one usually attempts to \emph{help} it somehow \cite{kvaal}\comment{p57}. The most commonly used such fix is called \emph{direct inversion in the iterative subspace} (DIIS) or Pulay mixing and essentially uses the errors from the $m$ previous iterations to extrapolate to a coefficient matrix $C$ which hopefully minimizes said error \cite{pulay}. A simpler scheme, which we implement in the present work, is called mixing: instead of updating the density fully at each iteration, a weighted average of the old and the newly computed $D$ is taken to be the new density \cite{thijssen}\comment{p72}. A mixing factor $a$ is introduced and the updated density matrix is taken equal 
+\begin{align}
+D=aD_\text{old}+(1-a)D_\text{new},
+\end{align}
+where $D_\text{new}=2C_\text{new}C_{\text{new}}^\dagger$. In the program, this is implemented as
+\begin{lstlisting}[language={[std]c++}]
+void RestrictedHartreeFock::computeDensityMatrix() {
+    if (m_smoothing) {
+        double a = m_smoothingFactor;
+        mat densityMatrixTmp = 2 * m_coefficientMatrix *
+                                   m_coefficientMatrix.t();
+        m_densityMatrix      =        a  * m_densityMatrix + 
+                               (1.0 - a) * densityMatrixTmp;
+    } else {
+        m_densityMatrix = 2 * m_coefficientMatrix * m_coefficientMatrix.t();
+    }
+}
+\end{lstlisting}
+
+
+%3-21G 
+%3-21++G
+%H - Ne: J.S. Binkley, J.A. Pople, W.J. Hehre, J. Am. Chem. Soc 102 939 (1980)
+%\cite{binkley1980}
+%
+%
+%6-31G
+%H - He: W.J. Hehre, R. Ditchfield and J.A. Pople, J. Chem. Phys. 56,
+%Li - Ne: 2257 (1972).  
+%Li and B come from J.D. Dill and J.A. Pople, J. Chem. Phys. 62, 2921 (1975).
+%\cite{hehre1972}
+%\cite{dill1975}
+%
+%6-311G
+%G-311++G**
+%G-311++G(2d,2p)
+%H, Li - Ne: R. Krishnan, J.S. Binkley, R. Seeger and J.A. Pople, J. Chem. %Phys. 72, 650 (1980)
+%\cite{krishnan1980}
+%
+%cc-pVTZ
+%aug-cc-pVQZ
+%T.H. Dunning, Jr. J. Chem. Phys. 90, 1007 (1989).
+%\cite{dunning1989}
+%
+%STO-6G
+%W.J. Hehre, R.F. Stewart and J.A. Pople, J. Chem. Phys. 51, 2657 (1969).
+%\cite{hehre1969}
+
+\end{document}
+
+
+%\begin{lstlisting}[language={[std]c++}]
+%\end{lstlisting}

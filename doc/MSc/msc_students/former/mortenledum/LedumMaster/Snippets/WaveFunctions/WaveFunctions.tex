@@ -1,0 +1,605 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+
+
+\renewcommand{\R}{{\bf R}}
+\renewcommand{\r}{{\bf r}}
+\newcommand{\p}{{\bf p}}
+\newcommand{\q}{{\bf q}}
+\renewcommand{\H}{\mathcal{H}}
+\newcommand{\psit}{\left|\psi(t)\right\rangle}
+
+
+%Salasnich: Quantum Physics of Light and Matter
+%Wheeler,Zurek: Quantum Theory and Measurement
+%Born: "Zur Quantenmechanik der Stossvorgänge," Zeitschrift für Physik, 37, 863-67 (1926). Translation to english by Wheeler, Zurek
+%Weinberg: lectures on quantum mechanics
+%Helgaker++: Molecular Electronic Sctructure Theory
+%Gross,Runge,Heinonen: Many-particle Theory
+%Kato article: \url{http://refhub.elsevier.com/S0009-2614(13)01451-6/h0095}
+%Katriel,Davidson: \url{http://www.pnas.org/content/77/8/4403}
+%Hammond: Monte Carlo Methods in Ab Initio Quantum Chemistry
+%Weissbluth: Atoms and Molecules
+
+\chapter{Wave functions \label{wavefunctions}}
+In ordinary quantum mechanics, the wave function is the primary quantity of interest. It constitutes the \emph{solution} of the Schrödinger equation and encodes within it all information about the state of the isolated quantum system in question. Mathematically speaking, the wave function is the complex valued spatial projection of the abstract state vector which is a unitary vector in some separable Hilbert space \cite{kvaal,salasnich}\comment{p8}\comment{p8}. Formally, it is the solution to the Schrödinger equation, $\hat H \psi_k=E_k\psi_k$, and it has a probabilistic interpretation originally after German physicist M. Born, which states that the magnitude squared is a probability density, i.e. \cite{Born1926,wheeler,weinberg}\comment{p24}
+\begin{align}
+\mathrm{d}P(\r) = \left|\psi(\r)\right|^2 \mathrm{d}^3\r. 
+\end{align} 
+The probability $\mathrm{d}P(\r)$ denotes here the probability of finding the particle described by the wave function in an infinitesimal volume $\mathrm{d}^3\r$ around the position $\r$. 
+
+Even though we are unable (in the overwhelming majority of cases) to find closed form solutions to the Schrödinger equation, we may nevertheless write down a set of conditions we know the exact solution must adhere to. In the following section, we will go through properties of the exact wave function which are most relevant for atomic and molecular systems. Thereafter, we will consider the most common bases used to form approximate wave functions for many-body quantum systems.
+
+\section{Properties of the exact wave function \label{wfproperties}}
+In the words of Helgaker and co-workers: Even though we are forced to make approximations in the solution of the Schrödinger equation, such... \cite{helgaker}\comment{p108} 
+\begin{shadequote}[r]{T. Helgaker, P. Jørgensen, and J. Olsen}
+Approximations should not be made in a haphazard manner. Rather we should seek to retain in our wave function as many symmetries and properties of the exact solution as possible. Indeed, some of the characteristics of the exact wave function are so important that we should try to incorporate them at each level of theory, and a few are so fundamental that they are introduced into our models without thought.
+\end{shadequote}Some of the most fundamental properties involve anti-symmetry and square integrability. These are normally relatively easily accounted for. However, there are more subtle ones which may be easily missed without a thorough analysis of the known properties of the exact wave function. We present here a(n incomplete) list of properties and conditions for the exact solution of the Schrödinger equation.
+%such approximations should not be made in a "haphazard manner." Instead we should try to incorporate as many properties of the exact wave function as feasible in our approximate guess. Some of these properties are incorporated almost without thought, 
+
+\subsubsection*{Eigenfunction of the number operator, $\hat N$}
+The exact wave function is a function of the spatial and spin degrees of freedom of the particles it describes. For an atomic or molecular system, under the Born-Oppenheimer approximation, the wave function depends only parametrically on the positions of the nuclei, $\Psi=\Psi(\r_1,\r_2,\dots,\r_N,\sigma_1,\sigma_2,\dots,\sigma_N;\r_A,\r_B,\dots,\r_C)$. The approximation we choose should thus be an eigenfunction of the number operator, $\hat N|\psi\rangle=N|\psi\rangle$. The number operator is defined under second quantization as $\hat N = \sum_q c_q^\dagger c_q$, where the sum is taken to run over all possible single particle states \cite{kvaal}\comment{p24}. 
+
+\subsubsection*{Totally anti-symmetric under exchange of particles}
+A fermionic wave function must be totally anti-symmetric w.r.t. exhange of two particles \cite{griffiths}. In accordance with this, we must choose the approximating wave function to be an eigenfunction of the permutation operator, $\hat P_{ij}$, which interchanges particles $i$ and $j$. We must also demand that the eigenvalue is $-1$, i.e. $\hat P_{ij} |\psi\rangle = -1|\psi\rangle$. 
+
+Both of the aforementioned conditions are satisfied if we take the approximation to be an $N \times N$ (or a linear combination of) Slater determinant(s) filled with single electron orbitals.
+
+\subsubsection*{Square integrability and normalization}
+For a bound state, the exact wave function is square integrable and normalized to unity, $\langle \Psi|\Psi\rangle = 1$ \cite{helgaker}\comment{p108}. This means that the exact wave function is finite almost everywhere\footnote{Mathematically, it is finite except possibly on a set of measure zero such that the integral over space is not affected by the divergent value.} w.r.t. the $\mathcal{L}^2$ norm. A sufficient and natural way to ensure this holds for the approximating wave function is to build it from finite single-electron orbitals, i.e. populate the Slater determinant(s) with spin-orbitals which are themselves parts of $\mathcal{L}^2$. 
+
+\subsubsection*{Size-extensivity}
+The exact wave function is size-extensive in that a system of non-interacting subsystems have the same total energy as the sum of the energies of the subsystems \cite{helgaker}\comment{p109}. It is thus reasonable to demand of the approximate wave function that (in some chosen calculational scheme) the energy found by calculating the total energy of a system of non-interacting subsystems to exactly coincide with the energies of the subsystems themselves. In practice, we may check such a condition by separating subsystems by a large distance and comparing the calculated energy with the energy resulting from calculating the energies of the subsystems individually. 
+
+\subsubsection*{Eigenfunction of the total spin and spin projection operators, $\hat S^2$ and $\hat S_z$}
+In non-relativistic theory, the exact wave function is an eigenfunction of the total spin operator $\hat S^2$ and the spin projection operator $\hat S_z$ \cite{gross}\comment{p67}. It would be natural to demand that the approximating wave function also be an eigenfunction of these two operators. Taking the approximation to be a single Slater determinant, populated with spin-orbitals of definite spin projection automatically means the total wave function is an eigenfunction of $\hat S_z$. However, single determinants are not \emph{necessarily} eigenfunctions of $\hat S^2$ \cite{szabo}\comment{p100}. Linear combinations of determinants may be formed which by construction are eigenfunctions of $\hat S^2$ \cite{helgaker}\comment{p51}. Such wave functions are called spin-adapted. 
+
+\subsubsection*{Asymptotic behaviour of the electronic density}
+Katriel and Davidson \cite{katriel} showed that the electron density decays exponentially as
+\begin{align}
+\rho(\r)\approx \exp\left( -2\sqrt{2I}r \right),
+\end{align}
+in the limit of large $r$. Here $I$ denotes the first ionization potential of the molecule, i.e. the energy needed in order to remove the least tightly bound electron. Since the ionization potential is not known before the solution to the Schrödinger equation is found, an a priori treatment of the long-range exponential decay of the density is impossible \cite{helgaker}\comment{p110}. 
+
+\newcommand{\z}{{\bf z}}
+\subsubsection*{Virial theorem}
+The exact wave function obeys the \emph{virial theorem}, which states that (for a Coulombic potential $\hat V$) \cite{weissbluth}\comment{p570}
+\begin{align}
+\langle \hat T \rangle &= -\frac{1}{2}\langle \hat V\rangle. \label{eq:virial}
+\end{align}
+A simple proof\footnote{More precisely, a heuristic (not entirely rigorous) justification.} by dimensional analysis due to Weinberg for the one-particle case illustrates the condition: Since the square of the wave function has to integrate over space to a probability, it must have dimensions of $\text{Length}^{\nicefrac{-3}{2}}$ \cite{weinberg}\comment{p190}. Letting $a$ denote the chosen length scale, we can express the wave function as $\psi(\r)=a^{\nicefrac{-3}{2}}f(\r/a)$, with $\z\equiv\r/a$ and $f(\z)$ being a dimensionless function of a dimensionless argument. Changing integration variables in the expressions for $\langle \hat V\rangle$ and $\langle \hat T\rangle$,
+\begin{align}
+\langle \psi|\hat V|\psi\rangle = \langle \hat V\rangle_\psi&= \frac{\int \mathrm{d}^3\r \, V(\r) |\psi(\r)|^2}{\int \mathrm{d}^3\r \,|\psi(\r)|^2}, \ \ \text{ and}\\
+%
+\langle \psi|\hat T|\psi\rangle = \langle \hat T \rangle_\psi &= \frac{\int \mathrm{d}^3\r \, \frac{\hbar^2}{2m}\left(|\pder{\psi}{x}|^2+|\pder{\psi}{y}|^2+|\pder{\psi}{z}|^2\right)}{\int \mathrm{d}^3\r \,|\psi(\r)|^2},
+\end{align}
+from $\r\rightarrow \z=\r/a$ gives a single factor of $a^{-1}$ in the former and $a^{-2}$ in the latter integral. For the denominators, the integration measure $\mathrm{d}^3\r$ carries dimensions of $a^3$ which exactly cancel the $(a^{\nicefrac{-3}{2}})^2=a^{-3}$ from the wave function squared (by neccessity, since the integral represents a probability). In the $\langle V\rangle$ integral, the same happens in the numerator, and we are left with only the Coulomb potential $a^{-1}$ contribution. The numerator in the $\langle T \rangle$ integral has dimensions of $a^{-2}$, since each coordinate differentiation carries a single inverse $a$.
+
+As the exact wave function is a variational minimum of the Hamiltonian, the expectation value of $\langle H\rangle_\psi$ (note carefully that this is true only when evaluated \emph{at the exact wave function} [ground or excited states]) must be independent of variations in $\psi$. Namely, they must be independent of variations of $a$ since $\psi(\r)=a^{\nicefrac{-3}{2}}f(\z)$ \cite{weinberg}\comment{p190}. The derivative of $\langle \hat T\rangle_\psi + \langle \hat V \rangle_\psi$ taken at the exact wave function must vanish, giving \eq{virial}.
+
+The virial theorem generalizes to $N$ particles in the same form as \eq{virial}.
+
+\subsubsection{Cusp conditions \label{cuspconds}}
+In general, when charged particles approach each other the Coulombic $1/r$ term of the interaction energy diverges. In order for the energy to remain finite, the wave function needs to obey very specific sets of conditions dictating the behaviour of the discontinuous derivatives at the collision points. First described by Kato, such \emph{cusp}\footnote{The word \emph{cusp}\textemdash from the latin \emph{cuspis}, meaning a point\textemdash describes "a pointed end where two curves meet."} \emph{conditions} describe known properties of the quantum system and wave function at the divergent points of the inter-electron and electron-nucleus Coulomb potentials \cite{kato}. These two cases will be described in depth in sections \ref{section:eecusp} and \ref{section:encusp}. 
+
+
+
+\subsection{Electron-nucleus cusp \label{section:encusp}}
+%"This is valid in a non-relativistic treatment within the Born–Oppenheimer approximation, and assuming point-like nuclei." \url{https://en.wikipedia.org/wiki/Kato_theorem}
+We will now consider in some detail the issue of the cusp condition arising from the singular Coulombic potential at the position of point-like nuclei. 
+
+Let us consider a system of a single atom of charge $+Z$ with $N$ bound electrons. It will be useful in the following to define the \emph{local energy}, $E_\text{local}$, as a spatially dependent measure of the "instantaneous" energy of a system. We take
+\begin{align}
+E_\text{local}(\R) \equiv \frac{1}{\Psi(\R)}\hat H\Psi(\R)
+\end{align}
+to be the local energy, and note that for any eigenfunction $\Phi(\R)$ of $\hat H$, the local energy is constant for all configurations $\R=\{\r_1,\r_2,\dots,\r_N,\sigma_1,\sigma_2,\dots,\sigma_N\}$ \cite{hjorth-jensen}. This is simply a trivial result of the Schrödinger equation, since $\hat H\Phi(\R)=E\Phi(\R)$ we find that
+\begin{align}
+E_\text{local}(\R)=\frac{1}{\Phi(\R)}\hat H\Phi(\R) = \frac{1}{\Phi(\R)}E\Phi(\R)=E. \label{eq:rads}
+\end{align}
+We cannot normally find an approximate wave function for which $E_\text{local}(\R)=E$ holds, but we should at least make sure that it is \emph{well behaved}. There are certain critical electronic configurations for which the Coulombic potential diverges. Keeping the local energy finite at these points leads to what is known as cusp conditions on the wave function. 
+
+\newcommand{\Rdo}{\pder{\tilde R}{r}}
+\newcommand{\Rd}[1]{\pder{^#1\tilde R}{r^#1}}
+
+The first critical configuration we will consider is the class of electronic positions for which $|\r_i-\r_A|\rightarrow 0$ for some electron $i$ and nucleus $A$. Since the electron-nucleus Coulomb potential diverges there must be a corresponding divergent term in the laplacian which exactly cancels it. Let us consider the Born-Oppenheimer Hamiltonian for a single electron in the presence of a charge-$Z$ atom,
+\begin{align}
+\hat H(\r) &= -\frac{\nabla^2}{2} - \frac{Z}{|\r|},
+\end{align}
+where we take the atom to be situated at the origin. The \emph{radial} Schrödinger equation can be written as \cite{thijssen}\comment{p156}
+\begin{align}
+\left[\pder{^2}{r^2} + \frac{2}{r}\pder{}{r} + \frac{2Z}{r} - \frac{l(l+1)}{r^2} + 2E \right]R(r) = 0.
+\end{align}
+For $l=0$ states, we note that the two $1/r$ terms must exactly cancel if the local energy is to remain finite when $r\rightarrow 0$. This means that 
+\begin{align}
+E_\text{local}(\r\rightarrow0)=\lim_{r\rightarrow0} \left\{\frac{1}{R(r)}\left(\frac{2}{r}\pder{}{r} +\frac{2Z}{r} + \text{ finite terms} \right)R(r)\right\},
+\end{align}
+and the exact wave function obeys \cite{hammond}\comment{p156}
+\begin{align}
+\lim_{r\rightarrow0}\left\{ \frac{1}{R(r)} \pder{R}{r}\right\}=-Z.
+\end{align}
+We see that a wave function of s-type symmetry ($l=0$) which does not vanish at $r=0$ must be exponential in $r$ in the limit of $r\rightarrow0$. What happens if $l\not=0$ or $R(0)=0$? It turns out that considering the latter issue automatically resolves the first, so let us take the case of $R(0)=0$ \cite{hammond}\comment{p157}. We may factor the leading $r$ dependence out of $R(r)$, and define $\tilde R(r)\equiv r^mR(r)$, so that $\tilde R(0)\not=0$. Three applications of the derivative product rule gives 
+\begin{align}
+\pder{}{r}R(r) &= \pder{}{r}\left[ \tilde R(r) r^m \right] = \Rdo r^m + m\tilde R(r)r^{m-1},
+\end{align}
+and
+\begin{align}
+\pder{^2}{r^2}R(r) &= \pder{^2}{r^2}\left[\tilde R(r) r^m\right] = \Rd{2} r^m + 2\Rdo mr^{m-1}+m(m-1)\tilde R(r)r^{m-2}.
+\end{align}
+Insertion into the radial Schrödinger equation, \eq{rads}, we find that
+\begin{align}
+& \Rd{2}r^m+\Rdo \frac{2(m+1)}{r}r^m + \tilde R(r)\frac{m(m+1)}{r^2}r^m + \nn\\
+& \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \tilde R(r)\frac{2Z}{r}r^m-\tilde R(r) \frac{l(l+1)}{r^2}r^m + 2E\tilde R(r)r^m=0.
+\end{align}
+If the local energy is to remain finite once again, we need the inverse powers of $r$ to cancel, which for $1/r^2$ yields $m=l$. Furthermore, for the $1/r$ terms, we have the condition 
+\begin{align}
+\lim_{r\rightarrow0}\left\{ \frac{1}{\tilde R(r)} \pder{\tilde R}{r}\right\}=-\frac{Z}{l+1}.
+\end{align}
+
+%   The first critical configuration we will consider is the class of electronic positions for which $|\r_i-\r_A|\rightarrow 0$ for some electron $i$ and nucleus $A$. Since the electron-nucleus Coulomb potential diverges there must be a corresponding divergent term in the laplacian which exactly cancels it. Let us consider the Born-Oppenheimer Hamiltonian for a system of $N$ electrons in the presence of a single charge-$Z$ atom:
+%   \begin{align}
+%   \hat H(\R) &= \sum_{i=1}^N -\frac{\nabla^2_i}{2} + \sum_{i=1}^N\sum_{j=i+1}^N \frac{1}{|\r_i-\r_j|} - \sum_{i=1}^N \frac{Z}{|\r_i-\r_A|}.
+%   \end{align}
+%   Let us for simplicity take the position of nucleus, $\r_A$, to be the origin. We assume for the moment that all inter-electronic distances $r_{ij}$ are finite and non-zero. Writing out the radial Schrödinger equation and focusing on the terms originating from the first particle, we find
+%   \begin{align}
+%   \left[\pder{^2}{r^2_1} + \frac{2}{r_1}\pder{}{r_1} + \frac{2Z}{r_1^2} - \frac{l(l+1)}{r_1^2} + 2E + \sum_{i=2}^N F\left(r_i,\pder{}{r_i},\pder{^2}{r_i^2}\right)\right]R(r_1,r_2,\dots,r_N) = 0,
+%   \end{align}
+%   where $F$ is simply the remaining terms in the Hamiltonian containing inter-electronic interactions, electron-nucleus interactions, and the kinetic energy operators for electrons $i=2,3,\dots,N$.
+
+
+\subsection{Electron-electron cusp \label{section:eecusp}}
+In the limit of two colliding electrons $r_{12}\rightarrow 0$, another cusp condition is found. It turns out that the corresponding radial equation for the inter-electronic separation carries the same dependence on $r_{12}$ as the in the electron-nucleus case. With the only difference being the $-Z/r$ potential being replaced by a repulsive $1/r_{12}$ and kinetic term being twice as large \cite{thijssen}\comment{p380}. 
+
+We can write down the divergent parts of the local energy as
+\begin{align}
+E_\text{local}(\r_{12}\rightarrow0)&=\lim_{r_{12}\rightarrow0} \left\{\frac{1}{R(r_{12})}\left(\frac{2}{r_{12}}\pder{}{r_{12}} - \frac{2}{r_{12}} -\right.\right.\nn\\
+& \phantom{-----} \left.\left. \frac{l(l+1)}{r_{12}^2} + \text{ finite terms} \right)R(r_{12})\right\},
+\end{align}
+where $l=1$ if the spin-projections of electrons $1$ and $2$ are equal, and $l=0$ otherwise \cite{hjorth-jensen}\comment{p478}. A derivation analogue to the previous one reveals a corresponding cusp condition: 
+\begin{align}
+\lim_{r_{12}\rightarrow0}\left\{\pder{R}{r_{12}}\right\} = -\frac{R(r_{12})}{2(l+1)}.
+\end{align}
+This can be satisfied by a term in the wave function proportional to 
+\begin{align}
+R(r_{12})\propto \left\{ \mat{lcr}{
+  \displaystyle\exp\left(\frac{r_{12}}{2}\right) & \text{ if } & \sigma_i=\sigma_j \\
+  \\
+  \displaystyle\exp\left(\frac{r_{12}}{4}\right) & \text{ if } & \sigma_i\not=\sigma_j
+}\right..
+\end{align}
+
+\subsection{Higher order coalescence conditions}
+In a system of $N+M$ charged particles, $N$ electrons and $M$ nuclei there will in general be a lot of such cusp conditions or \emph{coalescence points}, where two or more electrons or nuclei coalesce with each other. Assuming all nuclei have the same charge $Z$, and disregarding nucleus-nucleus coalescence (recall that the Born-Oppenheimer wave function depends only parametrically on the positions of the nuclei), leaves us with: $r_{ij}\rightarrow0$, $r_{ia}\rightarrow0$, $r_{ij}\rightarrow0$ and simulaneously $r_{ik}\rightarrow$, $r_{ia}\rightarrow0$ and simulaneously $r_{ak}\rightarrow$, etc. The $i,j,k,\dots$ indices here denote electronic coordinates, while $a,b,c,\dots$ denote nucleonic coordinates.
+
+We will not consider higher order conditions in the present work, but refer the reader to e.g.\ \cite{hammond,assaraf}\comment{c5.3-5.4}\comment{c2}.
+
+\section{Jastrow factor \label{section:jastrow}} 
+Multiple functional forms which account explicitly for the electron-electron cusp condition described in section \ref{section:eecusp} are used in the literature. Some examples include the Boys-Handy function, the double exponential, or the Gaussian geminal form \cite{hammond}\comment{p173}. However, the most commonly used form is the Jastrow factor, sometimes called the Padé-Jastrow factor. Although originally proposed by Bijl in 1940, the form is commonly attributed to American physicist R. Jastrow \cite{anderson,bijl,jastrow}\comment{anderson p46}.
+
+The two-body Jastrow factor used in the current work has the form
+\begin{align}
+J(\R)=\exp\left[\sum_{i=1}^N\sum_{j=i+1}^N \frac{a_{ij}r_{ij}}{1+\beta r_{ij}} \right],
+\end{align}
+where $\beta>0$ is a tunable parameter and $a$ depends on the relative spin-projections of electrons $i$ and $j$ as \cite{hjorth-jensen}
+\begin{align}
+a_{ij}=\left\{\mat{lcr}{
+  \nicefrac{1}{4} & \text{ if } & \sigma_i=\sigma_j    \\
+  \nicefrac{1}{2} & \text{ if } & \sigma_i\not=\sigma_j
+} \right. .
+\end{align}
+
+In general, it is possible to add higher order polynomials terms to the exponent resulting in \cite{hammond}
+\begin{align}
+J(\R)=\exp\left[\sum_{i=1}^N\sum_{j=i+1}^N \frac{a_1r_{ij}+a_2r_{ij}^2+\dots}{1+\beta_1 r_{ij} + \beta_2 r_{ij}^2 + \dots} \right].
+\end{align}
+For optimized $\beta_k$ values this may yield a more precise approximation to the true wave function, but it comes at the cost of more difficult computations and parameter optimizations.
+
+\section{Orbitals}
+As noted in section \ref{section:slater}, the Slater determinant\textemdash populated with eigenfunctions of the one-electron operator $\hat h$\textemdash is an exact solution for a non-interacting $N$-electron problem. But Slater determinants are also used as wave function ansatzes for interacting systems. The question of which functions should occupy the determinants however is a fairly non-trivial one. It turns out\textemdash somewhat surprisingly\textemdash that the chief concern is that of computational efficiency.
+
+Before diving in, we detail briefly the \emph{spherical harmonics}.
+
+\subsection{Spherical and solid harmonics}
+The spherical harmonics are a set of functions defined on the surface of a sphere. They are complete in the sense that they span the space of complex-valued continuous functions on the unit sphere, $\text{span}\{Y_l^m(\theta,\phi)\}=C(\mathbb{S})$, and the space of complex-valued square integrable functions on $\mathbb{S}$, $\text{span}\{Y^m_l(\theta,\phi)\}=L^2(\mathbb{S})$ \cite{atkinson}\comment{p8}. The surface of the unit sphere is here denoted by $\mathbb{S}=\{\r=(x,y,z):|\r|^2=1\}$. The spherical harmonics thus naturally arise as an expansion basis for functions defined on the sphere. 
+
+Even more importantly, the spherical harmonics are eigenfunctions of the both the total angular momentum operator, $\hat {\bf L}^2$, and the $z$-projection of the angular momentum, $\hat L_z$ \cite{hassani}\comment{338}. For QM problems involving \emph{central potentials}\textemdash i.e.\ $V_\text{ext}=V_\text{ext}(r)$\textemdash the spherical harmonics are solutions to the angular part of the time independent Schrödinger equation (arising from separation of variables). 
+
+Formally, the spherical harmonics are functions of $\theta$ and $\phi$: $Y^m_l(\theta,\phi)$ proprotional to $P^{|m|}_l(\theta)\mathrm{e}^{\mathrm{i}m\phi}$ (up to a normalization constant), where $P^{|m|}_l$ satisfies 
+\begin{align}
+-\frac{1}{\sin\theta}\der{}{\theta}\left( \sin\theta \der{P_l^{|m|}}{\theta} \right) + \frac{m^2}{\sin^2\theta}P^{|m|}_l = l(l+1)P_l^{|m|}.
+\end{align}
+The parameters $l$ and $m$ are both integers, with $l\ge0$ and $-l\ge m \ge l$. The polynomials $P^m_l$ are known as the associated Legendre functions. Explicit expressions for the normalized spherical harmonics can be written out as
+\begin{align}
+Y^m_l(\theta,\phi) = \sqrt{\frac{(2l+1)}{4\pi}\frac{(l-m)!}{(l+m)!}}\mathrm{e}^{\mathrm{i}m\phi}P_l^m(\cos\theta).
+\end{align}
+
+
+The combination $r^l Y_l^m$ is a homogenous polynomial\footnote{A homogenous polynomial is a polynomial in which all terms have the same degree, i.e.\ $x^2+xy+y^2$ or $x^3+y^3+z^3+x^2z$.} of order $l$ in the cartesian unit vector \cite{weinberg,atkinson}\comment{p37,p19}. The combinations $r^lY^m_l$ which are also \emph{harmonic} (i.e.\ solve the Laplace equation, $\nabla^2r^lY^m_l=0$) are called the \emph{solid harmonics} (up to a normalization), and can be made real by taking linear combinations of $\pm m$ terms. The first few real solid harmonics, $S_l^m(x,y,z)$ are shown in \tab{solidharmonics}. 
+
+\begin{table}[p]
+\centering
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{l X  r}
+\hline
+\hline
+\\[-0.9em]
+{\bf Real solid}  & {\bf Azimuthal, magnetic}       & \\ 
+{\bf harmonic}    & {\bf quantum numbers}, $(l,m)$  & {\bf Expression} \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+$S_0^0$    & \ \ \ \ \ \ \ \ \ \ \ \ 0, 0 & $\displaystyle 1$ \\
+\\[-0.5em]
+
+$S_1^{-1}$ & \ \ \ \ \ \ \ \ \ \ \ \ 1, -1 & $\displaystyle y$ \\
+\\[-0.5em]
+$S_1^0$    & \ \ \ \ \ \ \ \ \ \ \ \ 1, 0 & $\displaystyle z$ \\
+\\[-0.5em]
+$S_1^1$    & \ \ \ \ \ \ \ \ \ \ \ \ 1, 1 & $\displaystyle x$ \\
+\\[-0.5em]
+
+$S_2^{-2}$    & \ \ \ \ \ \ \ \ \ \ \ \ 2, -2 & $\displaystyle \sqrt{3}xy$ \\
+\\[-0.5em]
+$S_2^1$       & \ \ \ \ \ \ \ \ \ \ \ \ 2, 1 & $\displaystyle \sqrt{3}yz$ \\
+\\[-0.5em]
+$S_2^0$       & \ \ \ \ \ \ \ \ \ \ \ \ 2, 0 & $\displaystyle -\frac{1}{2}(x^2+y^2)+z^2$ \\
+\\[-0.5em]
+$S_2^{-1}$    & \ \ \ \ \ \ \ \ \ \ \ \ 2, 1 & $\displaystyle \sqrt{3}xz$ \\
+\\[-0.5em]
+$S_2^{-2}$    & \ \ \ \ \ \ \ \ \ \ \ \ 2, 2 & $\displaystyle \frac{\sqrt{3}}{2}(x-y)(x+y)$ \\
+\\[-0.5em]
+
+$S_3^{-3}$    & \ \ \ \ \ \ \ \ \ \ \ \ 3, -3 & $\displaystyle -\frac{1}{2}\sqrt{\frac{5}{2}}(-3x^2+y^2)y$ \\
+\\[-0.5em]
+$S_3^2$       & \ \ \ \ \ \ \ \ \ \ \ \ 3, -2 & $\displaystyle \sqrt{15}xyz$ \\
+\\[-0.5em]
+$S_3^{1}$     & \ \ \ \ \ \ \ \ \ \ \ \ 3, -1 & $\displaystyle -\frac{1}{2}\sqrt{\frac{3}{2}}(x^2+y^2-4z^2)y$ \\
+\\[-0.5em]
+$S_3^0$       & \ \ \ \ \ \ \ \ \ \ \ \ 3, 0 & $\displaystyle -\frac{3}{2}(x^2+y^2)z+z^3$ \\
+\\[-0.5em]
+$S_3^{-1}$    & \ \ \ \ \ \ \ \ \ \ \ \ 3, 1 & $\displaystyle -\frac{1}{2}\sqrt{\frac{3}{2}}(x^2+y^2-4z^2)x$ \\
+\\[-0.5em]
+$S_3^{-2}$    & \ \ \ \ \ \ \ \ \ \ \ \ 3, 2 & $\displaystyle \frac{1}{2}\sqrt{15}(x-y)(x+y)z$ \\
+\\[-0.5em]
+$S_3^{-3}$    & \ \ \ \ \ \ \ \ \ \ \ \ 3, 3 & $\displaystyle \frac{1}{2}\frac{\sqrt{5}}{2}(x^2-3y^2)x$ \\
+\\[-0.5em]
+\hline
+\end{tabularx}
+\caption{Examples of the first few \emph{normalized real solid harmonics}, $S^m_l(x,y,z)=r^lY^m_l(\theta,\phi)$. We note that the solid harmonics of order $l$ are simply linearly independent homogenous polynomials in $x$, $y$, and $z$, of order $l$.  \label{tab:solidharmonics}}
+\end{table}
+
+The real solid harmonics are often a more convenient form to work with, simply because they are real and defined in terms of cartesian coordinates. Please note that the solid harmonics span (the real-valued part of) $L^2(\mathbb{S})$ in the same way the spherical harmonics do, so we can do this without any loss of generality or applicability.
+
+\subsection{Hydrogenic orbitals}
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{hydrogenOrbitals1.pdf}
+\includegraphics[width=0.49\textwidth]{hydrogenOrbitals2.pdf}
+\vspace{-60pt}
+\caption{The first six hydrogenic orbitals for $Z=1$, $R_{nl}(r)$. The general expression for $R_{nl}(r)$ is given in \eq{hydrogenanalytic}. Explicit expressions for these orbitals are given in \tab{hydrogenorbitals}. \label{fig:hydrogenorbital}}
+\end{figure}
+The non-interacting hydrogen-like Hamiltonian 
+\begin{align}
+\hat H = -\frac{\nabla^2}{2} - \frac{Z}{|\r-\r_A|},
+\end{align}
+with $\r_A={\bf 0}$ being the position of a single nucleus of charge $+Z$, has normalized \emph{radial} eigenfunctions 
+\begin{align}
+R_{nl}(r)=\sqrt{\left(\frac{2Z}{n}\right)^3 \frac{(n-l-1)!}{2n[(n+l)!]^3}} \exp\left[-\frac{Zr}{n}\right]\left(\frac{2Zr}{n}\right)^l L_{n-l-1}^{2l+1}\left(\frac{2Zr}{n}\right). \label{eq:hydrogenanalytic}
+\end{align}
+The $L^\alpha_n$ here denotes the (generalized) Laguerre polynomials\footnote{The (generalized) Laguerre polynomials are the solutions to the differential equation
+\begin{align}
+x\der{^2y(x)}{x^2}+\left(1+\alpha-x\right)\der{y(x)}{x}+ny(x)=0,
+\end{align}
+with $n$ a non-negative integer and $\alpha$ an arbitrary real constant \cite{rottmann}. An explicit expression for the polynomials themselves can be found by the so-called Rodrigues formula:
+\begin{align}
+L_n^\alpha(x) = x^{-\alpha}\frac{1}{n!}\left(\der{}{x}-1\right)^nx^{n+\alpha}.
+\end{align}}. In order to produce the full spin-orbitals, we need to append the spherical harmonic $Y_l^m(\theta,\phi)$ for appropriate quantum numbers $l$ (the azimuthal quantum number) and $m$ (the magnetic quantum number) in addition to a spin function, $\chi(\sigma)$. The corresponding eigenvalues depend famously only on the principal quantum number $n$, as \cite{griffiths}\comment{149}
+\begin{align}
+E=-\frac{Z^2}{2n^2}. 
+\end{align} 
+The first six radial orbitals are shown in \fig{hydrogenorbital}, with explicit expressions for the first ten being shown in \tab{hydrogenorbitals}.
+Figure \ref{fig:hydrogenorbital3d} shows a few examples of the full orbitals, i.e.\ the radial functions multiplied by spherical harmonics.
+
+\begin{table}
+\centering
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{l X  r}
+\hline
+\hline
+\\[-0.9em]
+{\bf Radial}  & {\bf Principal, azimuthal}     & \\ 
+{\bf orbital} & {\bf quantum numbers}, $(n,l)$ & {\bf Expression} \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+$R_{10}$ & \ \ \ \ \ \ \ \ \ \ \ \ 1, 0 & $\displaystyle 2\sqrt{Z^3}\mathrm{e}^{-Zr}$ \\
+\\[-0.5em]
+$R_{20}$ & \ \ \ \ \ \ \ \ \ \ \ \ 2, 0 & $\displaystyle \sqrt{\frac{Z^3}{2}}\left(1-\frac{Zr}{2}\right)\mathrm{e}^{-Zr/2}$ \\
+\\[-0.5em]
+$R_{21}$ & \ \ \ \ \ \ \ \ \ \ \ \ 2, 1 & $\displaystyle \sqrt{\frac{Z^5}{24}} r \mathrm{e}^{-Zr/2}$ \\
+\\[-0.5em]
+$R_{30}$ & \ \ \ \ \ \ \ \ \ \ \ \ 3, 0 & $\displaystyle \frac{2\sqrt{Z^3}}{\sqrt{27}} \left( 1-\frac{2Zr}{3}+\frac{2Z^2r^2}{27}\right) \mathrm{e}^{-Zr/3}$ \\
+\\[-0.5em]
+$R_{31}$ & \ \ \ \ \ \ \ \ \ \ \ \ 3, 1 & $\displaystyle \frac{8\sqrt{Z^5}}{27\sqrt{6}} \left( 1-\frac{Zr}{6}\right)r \mathrm{e}^{-Zr/3}$ \\
+\\[-0.5em]
+$R_{32}$ & \ \ \ \ \ \ \ \ \ \ \ \ 3, 2 & $\displaystyle \frac{4\sqrt{Z^7}}{81\sqrt{30}} r^2 \mathrm{e}^{-Zr/3}$ \\
+\\[-0.5em]
+$R_{40}$ & \ \ \ \ \ \ \ \ \ \ \ \ 4, 0 & $\displaystyle \frac{\sqrt{Z^3}}{4} \left(1-\frac{3Zr}{4} + \frac{Z^2r^2}{8}-\frac{Z^3r^3}{192}\right)  \mathrm{e}^{-Zr/4}$ \\
+\\[-0.5em]
+$R_{41}$ & \ \ \ \ \ \ \ \ \ \ \ \ 4, 1 & $\displaystyle \frac{\sqrt{5Z^5}}{16\sqrt{3}} \left(1-\frac{Zr}{4} + \frac{Z^2r^2}{80}\right)r  \mathrm{e}^{-Zr/4}$ \\
+\\[-0.5em]
+$R_{42}$ & \ \ \ \ \ \ \ \ \ \ \ \ 4, 2 & $\displaystyle \frac{\sqrt{Z^7}}{64\sqrt{5}} \left(1-\frac{Zr}{12}\right)r^2  \mathrm{e}^{-Zr/4}$ \\
+\\[-0.5em]
+$R_{43}$ & \ \ \ \ \ \ \ \ \ \ \ \ 4, 3 & $\displaystyle \frac{\sqrt{Z^9}}{768\sqrt{35}} r^3  \mathrm{e}^{-Zr/4}$ \\
+\\[-0.5em]
+\hline
+\end{tabularx}
+\caption{Explicit analytical expressions for the first few hydrogenic radial wave functions, $R_{nl}(r)$ \cite{griffiths}\comment{p154}. The first six\textemdash $R_{10}$ to $R_{32}$\textemdash are shown for $Z=1$ in \fig{hydrogenorbital}. \label{tab:hydrogenorbitals}}
+\end{table}
+
+\vspace{600pt}
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{H100.png}
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{H210.png}
+\includegraphics[width=0.49\textwidth,trim=150 150 150 150, clip]{H311.png}
+\includegraphics[width=0.49\textwidth,trim=300 300 300 300, clip]{H420.png}
+\caption{Examples of full hydrogenic orbitals, $\psi_{nlm}(r,\theta,\phi)=R_{nl}(r)Y^m_l(\theta,\phi)$: $\psi_{100}$ (top left), $\psi_{210}$ (top right), $\psi_{311}$ (bottom left), and $\psi_{420}$ (bottom right). The relative scaling is not accurate. Each plot is sliced in the $x$-$y$-plane and a colormap showing the density is inset. The outer contour shows the isosurface of each orbital at $|\psi_{nlm}|^2=10^{-5}$. \label{fig:hydrogenorbital3d}}
+\end{figure}
+
+In many ways, the hydrogenic orbitals appear to be \emph{natural} orbitals to work with. They obey\textemdash crucially\textemdash the electron-nucleus cusp condition of section \ref{section:encusp}. They also fall off exponentially as per the correct long range limit. However\textemdash as noted by Helgaker and co-workers\textemdash because of some key deficiencies, they turn out to not be very useful as basis functions \cite{helgaker}\comment{221}. Firstly, they do not span the entire one-electron Hilbert space. In order for \emph{completeness} to be achieved, the unbounded positive energy continuum states need to be appended to the set. Secondly, they spread out and become very \emph{diffuse} very qucikly for increasing $n$ because of the inverse term in the exponential. This means a (very) large number of terms need to be considered in order to obtain a flexible description of the core regions of the many-body wave function. 
+
+In addition to this, integral evaluation with the hydrogenic orbitals turns out to be unfeasibly slow compared to more efficient basis sets. 
+
+\subsection{Slater type orbitals}
+It is possible to create a complete set of hydrogen-like orbitals by considering instead of the $2Z/n$ factor, a constant exponential term $\mathrm{e}^{-\zeta r}$, with $\zeta\in\mathbb{R}$. These orbitals are sometimes known as the Laguerre fuctions. However, the single constant exponent means it becomes exceedingly difficult to approximate orbitals of widely different nature. With a chosen large exponent, the compact core orbitals may be well approximated. But convergence for the more wide-spread diffuse valence orbitals will be horribly slow, and vice versa.
+
+
+The Slater type orbitals (STO) are a related set of orbitals which use \emph{variable} exponents. Introduced by American physicist J. C. Slater in 1930, they have the same exponential decay but forego the nodal structure of the hydrogenic orbitals \cite{slater2}. Building on the previous work of American physicist C. M. Zener\textemdash who had noted that the radial nodes of the generalized hydrogenic orbitals in general had little impact on the Hartree-Fock-like integrals used to construct variational wave functions\textemdash Slater proposed a much simpler polynomial radial structure \cite{zener}. In addition to this, once variable exponents are introduced, the orthogonality of the Laguerre polynomials are lost. Since the orthogonality alone is the reason for the complicated nodal structure, it does not make much sense to keep the Laguerre polynomials in the wave function once this is lost \cite{helgaker}\comment{p225}. 
+
+Slater instead proposed a much simpler polynomial structure: $r^{n-1}$. The general expression for the normalized STO with exponent $\zeta$ is given by \cite{cramer}\comment{p134}
+\begin{align}
+R_n(r;\zeta)=\frac{(2\zeta)^{n+\nicefrac{1}{2}}}{[(2n)!]^{\nicefrac{1}{2}}} (2\zeta r)^{n-1}\mathrm{e}^{-\zeta r}.
+\end{align}
+These $R_n(r)$s are obviously radial functions only, and need to be paired with e.g.\ the spherical or solid harmonics in order to produce a full one-electron wave function.  
+
+The variable exponent STOs are complete under certain conditions on the $\zeta$ and the sequence of $n$-s used, see \cite{klahn}. In short, the STOs remedy some of the weaknesses of the hydrogenic orbitals. However, it turns out that the most important property of a basis set is the ability to perform efficient integrations on them. Ultimately thus, we will end up working with a basis set intrinsicly \emph{less suited} to the task (arguing from a physical interpretation point of view) because the neccessary integrals are possible to evaluate very quickly.
+
+Please note that this picture may be set to change in the not so distant future, as a lot of work is being put into making integral evaluation of STOs more feasible, see e.g.\ \cite{rico,ema}.
+
+\subsection{Gaussian type orbitals \label{section:gaussianorbitals}}
+The basis sets used in most modern electronic structure calculations are comprised of Gaussian distributions, $\exp(-\alpha r^2)$. This is also the basis sets we will chiefly employ in the present work. Although the radial decay is proportional to $\mathrm{e}^{-r^2}$ (qualitatively wrong, the correct [long range] behaviour is $\sim \mathrm{e}^{-r}$) the Gaussians nevertheless have the upper hand due to the ease with which many-center integrals in terms of them can be performed. The Gaussian basis functions were first introduced in the context of electronic structure calculations by Boys in 1950 as an alternative to STO-like functions \cite{boys}.
+
+A general (normalized) Cartesian Gaussian type orbital (GTO) is given as 
+\begin{align}
+g^\alpha_{i j k}(x,y,z) \equiv \left(\frac{2\alpha}{\pi}\right)^{\nicefrac{3}{4}}
+\left[ \frac{(8\alpha)^{i+j+k}(i!j!k!)}{(2i)!(2j)!(2k)!} \right]^{\nicefrac{1}{2}} x^iy^jz^k \mathrm{e}^{-\alpha(x^2+y^2+z^2)},
+\end{align}
+where $i$, $j$, and $k$ are non-negative integers and $\alpha$ determines the width according to the variance $\sigma^2=1/(2\alpha)$ \cite{cramer}\comment{p167}. We will denote these functions by {\bf Gaussian primitives}. The coordinates $x$, $y$, and $z$ are in general given w.r.t.\ a nucleus, i.e.\ $x=\tilde x-x_A$ for some nucleus index $A$. The global coordinate $\tilde x$ denotes a coordinate w.r.t.\ the global origin. We will largely ignore this, except when we explicitly need to include it in our calculations, in which case we will write out the Gaussian primitives as 
+\begin{align}
+g^\alpha_{ijk}(x,y,z;\r_A)= (x-x_A)^i(y-y_A)^j(z-z_A)^k\mathrm{e}^{-\alpha[(x-x_A)^2+(y-y_A)^2+(z-z_A)^2]}, 
+\end{align}
+where we omitted the normalization for brevity. 
+
+With $i=j=k=0$, the primitive has spherical symmetry and is a so-called s-type GTO. If $i$ ($j$) [$k$] is one, while the other two indices vanish, the Gaussian has axial symmetry along the $x$ ($y$) [$z$] direction. This is known as a p-type GTO. More generally, the sum $i+j+k\equiv l$ denotes the angular momentum of any GTO, and as usual we denote $l=0$ as s, $l=1$ as p, $l=2$ as d, $l=3$ as f, and so on. 
+
+\subsubsection{Contracted Gaussian functions}
+In practical calculations, a number of these functions will be used for each atomic center. The Gaussians do not look much like the \emph{true} molecular orbitals (which resemble hydrogenic wave functions), but this is remedied by taking linear combinations of GTOs for each orbital \cite{helgaker}\comment{p237}. We will call the linear combinations {\bf contracted Gaussians},
+\begin{align}
+G(\r) = \sum_{a=1}^{L} d_{a} g^{\alpha_{a}}_{i_aj_ak_a}(x,y,z).
+\end{align}
+A key fault of the Gaussians is that any Gaussian of s-type symmetry (orbitals with $l=0$) fails to satisfy the electron-nucleus cusp condition described in section \ref{section:encusp}. As the derivative at $r=0$ of any s-type primitive vanishes, even linear combinations will not remedy this fault. However, we can get \emph{close} in a sense by taking combinations of more and more primitives of varying exponents $\alpha$. Even if at the limit of infinite primitives, the origin derivative still vanishes%\footnote{For any $\phi(r)\propto \mathrm{e}^{-ar}$, we can construct a sequence of $\{(g^{\alpha_k}_{000})_k\}_k$ such that $g_k\rightarrow \phi$ point-wise with $g_k$ strictly increasing in $k$ [citation needed, but this is probably true right? This might be too pedantic to include \emph{even for me}], and so we can interchange the order of $\lim_{k\rightarrow\infty}$ and $\mathrm{d}/\mathrm{d}r$ by Fubini's derivative theorem, and differentiate term-wise in the sum \cite{mcdonald}. And so \begin{align}\der{}{r}\left(\lim_{k\rightarrow\infty}\sum_{k}g_k\right)=\lim_{k\rightarrow\infty}\left(\der{}{r}\sum_k g_k\right) = \lim_{k\rightarrow\infty} \left(\sum_k \der{}{r}g_k\right) = 0.\end{align}}
+, we can still construct a combination such that the integrals involved in the self-consistent field (SCF) methods become arbitrarily close to their STO counterparts.
+
+Since SCF theories are in practice solved via the weak integral formulation and application of the Galerkin method (see e.g.\ Langtangen \cite{matinf5620}), the overall form of the orbitals are more important than their failure to accurately capture the physics at very small $r$. 
+
+We note before going on that a contracted Gaussian is uniquely determined by an array of coefficients, ${\bf d}=\{d_a\}_a$, an array of exponents, $\bm{\alpha}=\{\alpha_a\}_a$, and the coefficients $i$, $j$, and $k$. 
+
+\subsubsection{Number of Cartesian Gaussian primitives of angular momentum $l$}
+\newcolumntype{Y}{>{\raggedleft\arraybackslash}X}
+\begin{table}
+\centering
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{1.0\textwidth}{l l Y Y}
+\hline
+\hline
+\\[-0.9em] 
+{\bf Angular}                      &            & {\bf }                 & {\bf Linearly independent }\\
+{\bf momentum,} $l$ & {\bf Type} & {\bf Total primitives} & {\bf combinations} \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+$0$ & s & $1$    & $1$ \\
+$1$ & p & $3$    & $3$ \\
+$2$ & d & $6$    & $5$ \\
+$3$ & f & $10$   & $7$ \\
+$4$ & g & $15$   & $9$ \\
+$5$ & h & $21$   & $11$ \\
+$6$ & i & $28$   & $13$ \\
+$7$ & k & $36$   & $15$ \\
+$8$ & l & $45$   & $17$ \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{The number of Gaussian primitives of total angular momentum $l$, $(l+1)(l+2)/2$, and the number of linearly independent homogenous harmonic polynomials of order $l$, $2l+1$.\label{tab:harmonic}}
+\end{table}
+For p-type orbitals ($l=1$), the hydrogenic or Slater type orbitals\textemdash when paired with the appropriate $l=1$ spherical or solid harmonics\textemdash are three-fold degenerate. The same is true of the Gaussian primitives. This means that any p-type orbital produces three distinct (contracted) Gaussian functions: one for (linear combinations of) $g^\alpha_{100}(\r)=x\mathrm{e}^{-\alpha r^2}$, one for (linear combinations of) $g^\alpha_{010}=y\mathrm{e}^{-\alpha r^2}$, and finally one for (linear combinations of) $g^\alpha_{001}=z\mathrm{e}^{-\alpha r^2}$. In terms of the \emph{real solid harmonics}, this corresponds naturally to the Slater type orbitals 
+\begin{align}
+S_{1}^m(x,y,z)\psi(r)=\left\{\mat{lrl}{
+	\displaystyle y\mathrm{e}^{-\zeta r} & \text{ for } & m=-1 \\
+	\displaystyle z\mathrm{e}^{-\zeta r} & \text{ for } & m=\phantom{+}0 \\
+	\displaystyle x\mathrm{e}^{-\zeta r} & \text{ for } & m=+1 
+} \right..
+\end{align}
+
+For higher angular momentum values, there are in general $(l+1)(l+2)/2$ possible combinations\footnote{The problem is identical to the combinatorial problem: "Given $N$ indistinguishable objects, how many possible ways can we distribute them into $M$ distinguishable bins?" For three "bins" and $l$ "ojects," this is \begin{align}
+{N+M-1\choose M-1}={l+3-1\choose3-1}={l+2\choose l}=\frac{(l+1)(l+2)}{2}.
+\end{align} } of $i$, $j$, and $k$ which gives $i+j+k=l$. However, there are only $2l+1$ linearly independent spherical (or real solid) harmonics of degree $l$. Essentially, this is just stating the fact that there exist $D_\text{H}(d,v)$ linearly independent homogenous polynomials of degree $d$ in $v$ variables, but only $D_\text{HH}(d,v)$ linearly independent \emph{harmonic} homogenous polynomials, where \cite{hochstadt}\comment{p343}
+\begin{align}
+D_\text{H}(d,v) = {v+d-1 \choose v-1}, \ \ \text{ while } \ \  D_\text{HH}(d,v) = \frac{2d+v-2}{d}{d+v-3 \choose d-1}.
+\end{align}
+Examples of the dimensions of the spaces of homogenous ($D_\text{H}$) and homogenous harmonic ($D_\text{HH}$) polynomials are shown in \tab{harmonic}, for degree $l$ in $3$ variables. Since the spherical (real solid) harmonics span the space of complex-valued (real-valued) spherical functions, using a basis that is larger than that of the harmonic homogenous polynomials is essentially a waste of computational effort \cite{atkinson}\comment{p60}. In this sense the Cartesian Gaussians are \emph{over-complete}, and it is possible to construct from the $(l+1)(l+2)/2$ Gaussians of degree $l$ a more compact set of $2l+1$ linearly independent Gaussian combinations which are sufficient for the expansion of any function on $\mathbb{S}$ \cite{helgaker}\comment{p237}. 
+
+As an example, consider the $l=2$, d-type, Gaussian primitives. The three functions $g^\alpha_{110}(\r)=xy\mathrm{e}^{-\alpha r^2}$, $g^\alpha_{101}(\r)=xz\mathrm{e}^{-\alpha r^2}$, and $g^\alpha_{011}(\r)=yz\mathrm{e}^{-\alpha r^2}$ coincide with the corresponding \emph{harmonic} set (as can be seen from the solid harmonics of \tab{solidharmonics}). However, there are three more d-type Cartesian primitives, but only two additional spherical harmonics. Instead of the primitives $g^\alpha_{200}(\r)=x^2\mathrm{e}^{-\alpha r^2}$, $g^\alpha_{020}(\r)=y^2\mathrm{e}^{-\alpha r^2}$, and $g^\alpha_{002}(\r)=z^2\mathrm{e}^{-\alpha r^2}$, we can form the linear combinations 
+\begin{align}
+\bar g^\alpha_1(\r) &= g^\alpha_{200}-g^\alpha_{020} \nn\\
+%
+&= \left(x^2-y^2\right)\mathrm{e}^{-\alpha r^2} \label{eq:barg1}\\
+%
+\bar g^\alpha_2(\r) &= 2g^\alpha_{002}-g^\alpha_{200}-g^\alpha_{020}\nn\\
+%
+&= \left[3z^2-\left(x^2+y^2+z^2\right)\right]\mathrm{e}^{-\alpha r^2}. \label{eq:barg2}
+\end{align}
+We note that these are exactly the same combinations as the solid harmonics of degree $l=2$ (up to a normalization, which we have omitted from the expressions of \eq{barg1}-(\ref{eq:barg2})). A last linear combination may be formed by taking $g^\alpha_{200}(\r)+g^\alpha_{020}(\r)+g^\alpha_{002}(\r)=(x^2+y^2+z^2)\mathrm{e}^{-\alpha r^2}$, but we note that this has spherical symmetry and thus is really an s-type orbital \cite{cramer}\comment{p167}.
+
+As can be seen by \tab{harmonic}, this is especially important for higher angular momentum numbers $l>3$. As we primarily use f-type ($l=3$) or lower angular momentum primitives in the present work, we choose to keep the larger sets of $D_\text{H}(l,3)$ Gaussians. 
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{G000.png}
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{G100.png}
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{G201.png}
+\includegraphics[width=0.49\textwidth,trim=250 250 250 250, clip]{G002m020m200.png}
+\caption{Examples of Gaussian orbitals with $\alpha=1.0$, $G_{ijk}(x,y,z)=x^iy^jz^k\mathrm{e}^{-\alpha r^2}$: $G_{000}$ (top left), $G_{100}$ (top right), $G_{201}$ (bottom left), and $G_{002}-G_{020}-G_{200}$ (bottom right). The latter combination is one of the five linearly independent set of d-type Gaussian orbitals (there are a total of six Gaussian primitives with $l=2$\textemdash $G_{200}$, $G_{020}$, $G_{002}$, $G_{110}$, $G_{101}$, and $G_{011}$\textemdash but the set is linearly dependent: a linearly independent set may be formed by taking $G_{110}$, $G_{101}$, $G_{011}$, $G_{200}-G_{020}$, and $G_{002}-G_{020}-G_{200}$). Each plot is sliced in the $x$-$y$-plane and a colormap showing the density is inset. The outer contour shows the isosurface of each orbital at $|G_{ijk}|^2=10^{-5}$. \label{fig:gaussianorbitals3d}}
+\end{figure}
+
+\subsection{Some properties of Gaussians \label{section:gaussproperties}}
+\subsubsection{Cartesian Gaussians}
+Before we go on, we will state some properties of the Gaussians which will be crucial for us in the implementation of the Hartree-Fock machinery in section \ref{HFI}. First of all, each Cartesian primitive factorizes in the Cartesian coordinates, 
+\begin{align}
+g^\alpha_{ijk}(\r)=g^\alpha_i(x)g^\alpha_j(y)g^\alpha_k(z),
+\end{align}
+where $g_i^\alpha(x)\equiv x^i\mathrm{e}^{-\alpha x^2}$ and similarly for $y$ and $z$ \cite{taylor}\comment{p792}. Please note that this is \emph{not} true for either of the hydrogenic, Slater type, or spherical harmonic Gaussians\footnote{The spherical harmonic Gaussian primitives account for the angular dependency in the wave function by appending to the Gaussian function spherical harmonics $Y^m_l(\theta,\phi)$.}. The \emph{Gaussian components} adhere to the simple recurrence relation 
+\begin{align}
+xg_i^\alpha(x)=g_{i+1}^\alpha(x), \label{eq:recurrence1}
+\end{align}
+and from this it is immideately clear that differentiation w.r.t.\ $x$ yields \cite{integrals}\comment{p4}
+\begin{align}
+\pder{g_i^\alpha(x;\r_A)}{x_A}&=\pder{}{x_A}\left((x-x_A)^i\mathrm{e}^{-\alpha (x-x_A)^2}\right) = -\pder{g_i^\alpha(x;\r_A)}{x} \nn\\
+&= 2\alpha g_{i+1}^\alpha(x;\r_A)-ig_{i-1}^\alpha(x;\r_A). \label{eq:cartesiandiff}
+\end{align}
+Note that we have briefly re-inserted the $\r_A$ back into the primitive at this point because of the explicit dependence on the nucleonic position. 
+
+\renewcommand{\P}{{\bf P}}
+\subsubsection{Hermite Gaussians \label{hermitegauss}}
+The Cartesian Gaussians can be written in terms of {\bf Hermite Gaussians}\textemdash products of exponentials and Hermite polynomials\footnote{The Hermite polynomials are a family of orthogonal real-valued polynomials, solutions of the Hermite differential equation \cite{hochstadt}
+\begin{align}
+\pder{^2H_n(x)}{x^2}-\der{H_n(x)}{x}+nH_n(x)=0.
+\end{align} 
+An explicit formula for the $n$-th Hermite polynomial can be written down as \cite{rottmann}
+\begin{align}
+H_n(x)=(-1)^n\mathrm{e}^{x^2}\der{^n}{x^n}\mathrm{e}^{x^2}.
+\end{align}}\textemdash which are defined as follows: \cite{mcmurchie}
+\begin{align}
+\Lambda_{tuv}^\alpha(\r;\P)=\left(\pder{}{P_x}\right)^t\left(\pder{}{P_y}\right)^u\left(\pder{}{P_z}\right)^v \mathrm{e}^{-\alpha |\r-\P|^2}.
+\end{align}
+The $\P=(P_x,P_y,P_z)$ simply denotes \emph{some} real-valued vector representing a point in space. It is clear that the Hermite Gaussians also factorize in Cartesian coordinates, with
+\begin{align}
+\Lambda_t^\alpha(x;P_x)=\left(\pder{}{P_x}\right)^t\mathrm{e}^{-\alpha (x-P_x)^2},
+\end{align}
+and similar for $y$ and $z$ coordinates, such that $\Lambda^\alpha_{tuv}(\r;\P)=\Lambda_t^\alpha(x;P_x)\Lambda_u^\alpha(y;P_y)\Lambda_v^\alpha(z;P_z)$. It is possible to use the Hermite Gaussians themselves as basis functions, but for our purposes we consider them only as intermediates involved in the neccessary integrals. Since they are defined in terms of derivatives they will\textemdash not surprisingly\textemdash lead to tremendous simplifications in that regard. Differentiation of the Hermite Gaussians naturally leads to a recurrence relation similar to \eq{recurrence1}, 
+\begin{align}
+\pder{\Lambda_t^\alpha(x;P_x)}{P_x}=-\pder{\Lambda^\alpha_t(x;P_x)}{x}=\Lambda_{t+1}^\alpha(x;P_x),
+\end{align}
+and it can be shown that left-multiplying by $x_p$ yields \cite{taylor}\comment{p794}
+\begin{align}
+x_p\Lambda_t^\alpha(x;P_x) = \frac{1}{2\alpha}\Lambda_{t+1}^\alpha(x;P_x) + t\Lambda_{t-1}^{\alpha}(x;P_x). \label{eq:lefthermite}
+\end{align}
+
+Let now $\r_p=\r-\P$ denote the vectorial difference w.r.t.\ $\P$, such that $\Lambda_t^\alpha(x_p;P_x)=(\partial/\partial P_x)^t\mathrm{e}^{-\alpha x_p^2}$ with $\r_p=(x_p,y_p,z_p)$. Now, we may consider $\Lambda_t^\alpha(x_p;P_x)$ as a product of two Hermite polynomials, $H_t(x_p)$ and $H_0(x_p)=1$, multiplied by an exponential factor. From this consideration it follows trivially that the integral 
+\begin{align}
+\int_{-\infty}^\infty\mathrm{d}x\,\Lambda_t^\alpha(x_p;P_x) &= \int_{-\infty}^\infty\mathrm{d}x\, H_t(x_p)H_0(x_p)\mathrm{e}^{-\alpha x_p^2} \nn\\
+%
+&\stackrel{t\not=0}{=} 0, \label{eq:hermite1}
+\end{align}
+since the Hermite polynomials are orthogonal w.r.t.\ the weight function $w(x)=\mathrm{e}^{-x^2/2}$ \cite{rottmann}\comment{p98}. The coordinate transformation $x_p\mapsto x_p/\sqrt{2\alpha}$ gives the correct scaling such that the integrand becomes $H_t(x_p)H_0(x_p)w(x_p)$ only changed by a constant pre-factor which does not change the conclusion of \eq{hermite1}. In the case of $t=0$, the integral is simply 
+\begin{align}
+\int_{-\infty}^\infty\mathrm{d}x\,\Lambda_0^\alpha(x_p;P_x)&=\int_{-\infty}^\infty\mathrm{d}x\,\mathrm{e}^{-\alpha x_p^2} = \sqrt{\frac{\pi}{\alpha}},
+\end{align}
+and in general
+\begin{align}
+\int_{-\infty}^\infty\mathrm{d}x\,\Lambda_t^\alpha(x_p;P_x) =\delta_{t0} \sqrt{\frac{\pi}{\alpha}}.
+\end{align}
+
+
+\subsubsection{Gaussian product rule \label{section:gaussprod}}
+The property which turns out to be most crucial for our use is the fact that a product of Gaussians centered at different points yield again a Gaussian. This is known as the \emph{Gaussian product rule} and can be stated as 
+\begin{align}
+\mathrm{e}^{-\alpha (x-A_x)^2}\mathrm{e}^{-\beta (x-A_x)^2} = \mathrm{e}^{-\mu x_{AB}^2}\mathrm{e}^{-p x_p^2},
+\end{align} 
+where $p\equiv\alpha + \beta$, $x_{AB}\equiv A_x-B_x$, $\mu\equiv \alpha \beta /p$, and $\P$ denotes the "center of mass," \cite{thijssen}\comment{p66}
+\begin{align}
+\P\equiv\frac{\alpha {\bf A} + \beta {\bf B}}{\alpha + \beta}=\frac{\alpha {\bf A} + \beta {\bf B}}{p}.
+\end{align}	
+
+The product of Cartesian Gaussian primitives is known as an {\bf overlap distribution}, \cite{integrals}\comment{p10}
+\begin{align}
+\Omega_{ij}(x)\equiv g_i^\alpha(x;A_x)g_j^\beta(x;B_x)= K_{AB}x_A^ix_B^j \mathrm{e}^{-px_P^2}. \label{eq:overlapdistr}
+\end{align}
+These overlap distributions can then be expanded in terms of Hermite Gaussians, greatly simplifying the evaluation of so called \emph{two-center integrals}. We will expand on this when the Hartree-Fock implementation is discussed in section \ref{HFI}.
+
+\section{Gaussian basis sets}
+\subsubsection{STO-nG basis sets}
+One approach to constructing viable contracted orbital basis sets is to approximate Slater type orbitals. This may be done by applying a least-squares fit of $L$ primitives to a given STO. Such contracted Gaussians are normally denoted {\bf STO-nG}, with n being the number of primitives used. The STO-3G basis sets of Hehre and co-workers have long been considered an efficient comprimise between efficiency and accuracy\textemdash useful for running preliminary simulations before bringing out the proverbial big guns \cite{hehre,cramer,taylor}. Examples of such fittings\footnote{All curve fitting in the present work is done in {\sc Matlab} using the LAD (\emph{least absolute deviations}, as opposed to the more familiar \emph{least squared deviations}) approach and the trust-region algorithm proposed by Moré and co-workers \cite{charnes1955optimal,koenker1978regression,more1983computing}.} can be seen in \fig{sto24g}, where all of STO-1G through STO-7G are shown. Normally, the highest number of primitives used is six. From \fig{stoerror} we see that the mean absolute error compared to the Slater orbital, $\varepsilon$, scales approximately as 
+\begin{align}
+\varepsilon(\text{n})\sim \sqrt{\frac{1}{10^\text{n}}}.
+\end{align}
+We note that the overall function shape of STO-3G already closely resembles the actual STO. At higher values of n, they become indistinguishable without extremely close inspection. From the insets of \fig{sto24g} we note that the Gaussians always satisfy $\mathrm{d}/\mathrm{d}r \sum_k g_k^\alpha(r)\big|_{r=0}\not=0$, so in the limit of very small $r$ the STO-nG and the STO digress. 
+
+\begin{SCfigure}
+\centering
+%\includegraphics[width=0.98\textwidth,trim=0 200 0 0, clip]{sto2g.pdf}
+\includegraphics[width=0.45\textwidth,trim=0 200 0 200, clip]{stongerror.pdf}
+%\includegraphics[width=0.49\textwidth,trim=0 0 0 200, clip]{sto4g.pdf}
+%\includegraphics[width=0.49\textwidth,trim=0 0 0 200, clip]{sto7g.pdf}
+\caption{Example showing the average absolute error relative to the 1s STO  for each of the STO-nG approximations with different number of primitives $n$ shown in \fig{sto24g}. The s-type STO has exponent $\zeta=\sqrt[3]{\pi}\approx1.4646$, arbitrarily chosen simply to ensure $\text{STO}(r)\rightarrow1$ as $r\rightarrow0$. \label{fig:stoerror}}
+\end{SCfigure}
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.90\textwidth,trim=10 200 0 200, clip]{sto2g.pdf}
+%\includegraphics[width=0.49\textwidth,trim=0 200 0 0, clip]{stongerror.pdf}
+\includegraphics[width=0.49\textwidth,trim=0 0 0 200, clip]{sto4g.pdf}
+\includegraphics[width=0.49\textwidth,trim=0 0 0 200, clip]{sto7g.pdf}
+\caption{Example showing a STO-nG fit with different number of primitives to the 1s STO which we were trying to approximate. The s-type STO has exponent $\zeta=\sqrt[3]{\pi}\approx1.4646$, arbitrarily chosen simply to ensure $\text{STO}(r)\rightarrow1$ as $r\rightarrow0$. \label{fig:sto24g}}
+\end{figure}
+
+\subsubsection{Split-valence basis sets}
+The electrons mostly involved in chemical bonding in any given atom are the ones occupying the highest principal quantum number ($n$) states. These are known as {\bf valence electrons}, as opposed to the remaining {\bf core electrons} \cite{zumdahl}\comment{p563}. Because the former are much more important to the chemical properties of atoms, it is common to provide multiple basis functions to represent the valence orbitals. Orbitals sets for which this is done are called split-valence.
+
+
+\subsubsection{Single and multiple-$\zeta$ basis sets \label{poplebasis}}
+The STO-nG basis sets are known as \emph{minimal} or \emph{single-}$\zeta$, in that for each electron there is only a single basis function. For example a minimal \ce{H} basis only has a single orbital of s-type symmetry ($l=0$). It does not require much imagination to realize that this offers little in the way of flexibility w.r.t.\ representing atomic and molecular orbitals. In order to add such flexibiliy it is common to add more contracted Gaussians for each electron present. 
+
+One way to achieve this is to \emph{de-contract} the \mbox{STO-nG} basis sets. For example, take the \mbox{STO-2G} basis and use each primitive of the contracted Gaussians as a contracted orbital in its own right \cite{cramer}\comment{p171}. This makes the single-$\zeta$ \mbox{STO-2G} basis set into a double-$\zeta$ basis, in which each atomic orbital is represented by two distinct contracted Gaussian functions.
+
+A fundamentally different approach is taken by e.g.\ Pople and co-workers in their widely used family of basis sets \cite{hehre1972}. Instead of using the Slater type orbitals as a starting point, the primitive exponents and contraction coefficients are instead optimized in variational manner by SCF iteration. The resulting sets are denoted \mbox{C-V${}_1$V${}_2$G}, where C represents the number of primitives used in the single contracted function representing each core electronic orbital. V${}_1$ and V${}_2$ denote the number of primitives used in either of the two valence contracted Gaussians. An example is the \mbox{3-21G} set, where each core orbital is allotted a single contracted function consisting of three primitives. Next, a contracted function of two primitives \emph{and} a contracted function of a single primitive is used to represent each valence orbital. 
+
+As an instructive example, consider the electronic structure of \ce{B}. Of the five electrons in the boron atom, two occupy the 1s states essentially, forming a \ce{He} core. The outermost electrons inhabit the 2s atomic orbitals. This is denoted \mbox{\ce{B}: 1s${}^2$2s${}^2$2p} or more frequently \mbox{[\ce{He}]2s${}^2$2p} \cite{griffiths}. In the \mbox{6-31G} boron basis set of Dill and Pople, the core 1s orbital is represented by one contracted Gaussian of six primitives \cite{dill1975}. The 2s valence orbital is given one contracted of three primitives, and one of a single primitive. The same is done for each of the three different 2p orbitals, yielding two contracted functions for each. In total this gives 22 primitives across 9 total contracted basis functions.
+
+\subsubsection{Polarized, diffuse, and correlation-consistent basis sets}
+Instead of merely adding more Gaussian functions representing the electron orbitals present in any given atom, even more flexibility may be added by considering also orbitals which are not occupied. For example, trying to represent molecular bonding in \ce{H2} with a minimal basis set would be impossible because there is no way to engineer a higher electron density in between the atoms with only s-type orbitals. An orbital of p-type symmetry or higher is needed in order to achive this. Pople and co-workers' notation adds one or more *s to denote the presence of such {\bf polarizing functions}. For example, the 6-31G** basis set adds three single primitive contracted 2p orbitals to \ce{H} (6-31G* only adds polarization to heavier atoms, making 6-31G and 6-31G* identical for \ce{H}). 
+
+The same philosophy is applied for {\bf diffuse functions}, which have significantly smaller exponents than the most wide-spread valence Gaussians. Such basis functions are neccessary to obtain an adequate description of e.g.\ negative ions, highly excited states, or loosely bonded (non-covalent, i.e.\ van der Waals bonds or similar) molecular structures \cite{cramer}\comment{p176}. In the Pople family, addition of diffuse orbitals is denoted by prepending one or more +s to the trailing G, e.g.\ 6-31++G** which adds a single diffuse 1s function of one primitive to \ce{H} (again, 6-31+G** only adds diffuse functions to heavier atoms, making it identical to 6-31G** for \ce{H}).
+
+Lastly, we discuss briefly the correlation-consistent Dunning familiy of basis sets \cite{dunning1989}. Correlation-consistent means the exponents and contraction coefficients are variationally optimized for post-Hartree-Fock methods, involving dynamic electron correlations. The notation used by Dunning and co-workers is cc-pVNZ, where N can be D (double $\zeta$), T (triple $\zeta$), Q (quadruple $\zeta$), and so on. The cc-pV stands for correlation-consistent polarized, valence only: polarizing functions are added (more for higher $\zeta$ sets), and the basis only describes valence orbitals. For a complete description the cc-pVNZ basis needs to be paired with a corresponding basis set for the core orbitals. Some complete sets are used, denoted cc-pCVXZ, with X signifying the $\zeta$ number for core electrons. Whenever diffuse basis functions are added, aug (for augmented) is prepended resulting in aug-cc-pVNZ. 
+
+
+
+
+
+
+
+
+\end{document}
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
+ 
+% \lstinputlisting[firstline=1,lastline=2, float=p!, caption={}, label=lst:1]{<code>.m}
+

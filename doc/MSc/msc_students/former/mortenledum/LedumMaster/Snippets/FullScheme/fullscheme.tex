@@ -1,0 +1,87 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+\chapter{Validation: ANN potentials in MD\textemdash the full framework}
+It is now time to put all the pieces together, and demonstrate the full workflow of the multiscale modelling framework. Please note carefully that this may be regarded as nothing more than a \emph{preview}, as time did nor permit a thorough regime of tests to be ran with \emph{ab initio} data.  In the following, molecular dynamics simulations will be performed using the LAMMPS\footnote{LAMMPS is an acronym for \emph{Large-scale Atomic/Molecular Massively Parallel Simulator}, the name of an open source massively parallel molecular dynamics code base written in \CC{}. It is available for download at \url{http://lammps.sandia.gov/index.html}.} program \cite{plimpton1995fast}. Neither MD simulations, nor the usage of LAMMPS will be discussed in any significant detail in the present work. For information on the former, the book by Frenkel and Smit provides an excellent reference \cite{frenkel}. For the latter, the Masters theses of Stende and Treider provide (in some detail) an accessible introduction to the usage of the LAMMPS code \cite{stende,treider}. Using the ANN potentials in LAMMPS necessitates extending the LAMMPS code with a new \inlinecc{pair_style}. The developed extension can be found on the author's github site, \url{github.com/mortele}, along with the run scripts used to set up the simulations.
+
+\phantom{-}
+
+\newcommand{\rc}{r_\text{cut}}
+It is natural to first test whether or not the ANN potential trained according to some classical effective potential parametization can reproduce the results of said potential. For this we will use one of the simplest possible MD potentials, namely the Lennard-Jones (LJ) "12-6" potential \cite{Jones463}. In terms of the two parameters $\epsilon$ and $\sigma$\textemdash describing the depth of the potential and the length at which it vanishes, respectively\textemdash the LJ potential takes the form
+\begin{align}
+V_\text{LJ}(r) &= 4\epsilon \left[\left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6\right]. 
+\end{align}
+For the moment we will deviate from the atomic units used elsewhere in this thesis, and scale our units according to $\epsilon=\sigma=1$. In practical MD simulations\textemdash  to avoid the naive $\mathcal{O}(N^2)$ scaling with the number of particles $N$\textemdash partitioning schemes are used which limit the range of the interactions to a finite cutoff $r_\text{cut}$. This introduces a discontinuity in the energy at $\rc$, which can be removed by shifting the entire potential by $V_\text{LJ}(\rc)$ (note that such a shift does not affect the dynamics as the dynamics all derive from the gradient of the potential which remains unchanged under a shift). A shift makes the potential continuous, but leaves the first derivative discontinuous. This means we need to choose a $\rc$ large enough that the potential has \emph{died out}, and become flat. A standard choice for the $\epsilon=\sigma=1$ LJ potential is $\rc=2.5$, which we will adopt here. The value of the 
+potential derivative\textemdash the force\textemdash at this cutoff is $F(\rc)=-0.039$, which we deem sufficiently small for our purposes.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrain1.pdf}
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrain2.pdf}
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrain3.pdf}
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrain.pdf}
+%\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrain4.pdf}
+\caption{The ANN output after 80\,000 epochs of training. The training data is a shifted Lennard-Jones potential with cutoff at $2.5\sigma$. The raw network output is shown and compared to the LJ data (top left and top right), and the same comparison is made for the gradient (bottom left and bottom right). We note that the $\nabla V(r)-\nabla \text{NN}(r)$ difference is approximately one to two orders of magnitude larger than the corresponding $V(r)-\text{NN}(r)$ gap.  \label{fig:longtrain}}
+\end{figure}
+
+A 10\,000 sample data set of $V_\text{LJ}(r)$ values between $0.88\le r \le 2.5$ were computed and fed into an ANN of two layers with 20 neurons in each. The training was allowed to run for 80\,000 epochs. Training results are shown in \fig{longtrain}, where we note that the error in the gradient exceeds the error in the potential by one to two orders of magnitude. This is simply because the NN is not trained on the gradient directly\footnote{A possible extension to the work done in this thesis is implementation of such a training scheme involving the potential \emph{and} the gradient. This is sometimes called the Combined Function and Derivative Approximation (CFDA), see e.g.\ Pukrittayakamee and co-workers \cite{pukrittayakamee2009simultaneous}}. The evolution of the cost function over the training epochs is shown in \fig{longtrainmeta}. 
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtraincost.pdf}
+\caption{Evolution of the training and validation cost across 80\,000 epochs of training. We note no signs of over-training. The smoothing procedure described in section \ref{abinittrain} is used in order to make clear the behaviour of the cost, $C$, as a function of the epoch number. \label{fig:longtrainmeta}}
+\end{SCfigure}
+
+
+
+
+
+As a first test, we consider a Lennard-Jones liquid at temperature (in LJ units) $T=0.2$. We set up a LAMMPS simulation with 4\,000 atoms starting in a face centered cubic lattice configuration (in a simulation bos of size $10\times10\times10$ with periodic boundary conditions), and then allow it time to melt. 10\,000 time steps are done initially for thermalization, with 10\,000 subsequent time steps performed for measurements (at time step $\mathit{\Delta}t=0.001$, again in LJ units). For a simple comparison, we consider the pair correlation function (or radial distribution function) $g(r)$. The pair correlation function at distance $r$ is defined as the (particle) number density at a distance $r$ from an particles, averaged over all particles (and normalized such that $g(r)\rightarrow1$ as $r$ becomes large) \cite{frenkel}. For the LJ liquid, $g(r)$ is essentially zero up until \emph{around} the zero point of the potential, at $r=1$. A peak occurs at the minimum of the potential, before it falls off towards unity. A comparison of the pair correlation function computed with the ANN approximation and the LJ potential directly is shown in \fig{ljpair}. We note that they appear to coincide almost perfectly. 
+
+Another test of the validity of the ANN potential as utilized in MD simulations is to consider the energy. In order to do a \emph{direct} comparison with the ordinary LJ potential, we consider the \emph{single-particle (potential) energy}, $\varepsilon$, defined as 
+\begin{align}
+\varepsilon_i = \sum\limits_{\substack{j=1 \\ j\neq i}}^N V(r_{ij}) = \sum_{j=1}^i V(r_{ij}) + \sum_{j=i+1}^N V(r_{ij}). 
+\end{align}
+The single-particle energy is related to the full potential energy $E_\text{p}$ by 
+\begin{align}
+\sum_{i=1}^N\varepsilon_i = \sum_{i=1}^N\sum\limits_{\substack{j=1 \\ j\neq i}}^N V(r_{ij}) = 2\sum_{i=1}^N\sum_{j=i+1}^N V(r_{ij}) = 2E_\text{p},
+\end{align}
+since the sum over the single-particle energy counts every interaction twice.
+
+Picking an arbitrary atomic index\footnote{For the record: index 2412.} and following the corresponding atom during the MD time evolution results in the single-particle energies shown in \fig{singlepart}. We note that the energies of the LJ and ANN potentials mirror each other for about the first 2\,000 but later drift apart. After a sufficiently long time, the two appear completely uncorrelated. This does not mean\textemdash crucially\textemdash that the total energy drifts. It means just that the energy in the ANN simulation is distributed differently across the particles than in the corresponding LJ simulation. A simple test shows that the total energy \emph{does} drift slightly when using the ANN potential, but the variations are on the same order as the corresponding drift in the energy of the LJ potential simulations. 
+
+A snapshot of the simulation (after 10\,000 time steps) is shown in Fig.\ (\ref{fig:singleovito}, left), with the particle we are computing the energy for indicated.   
+
+
+\begin{SCfigure}
+\centering
+\includegraphics[width=0.49\textwidth,trim=0 200 0 200, clip]{longtrainpair.pdf}
+\caption{The pair correlation function, $g(r)$, calculated during a MD simulation with LAMMPS. A total of 4\,000 atoms are simulated, using a standard shifted Lennard-Jones potential with cutoff at $2.5\sigma$, and an ANN potential trained on the LJ data.\label{fig:ljpair}}
+\end{SCfigure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.79\textwidth,trim=0 200 0 200, clip]{singlepart.pdf}
+\caption{Example time evolution of the \emph{one-atom energy}, $\varepsilon$. The ANN potential mimics its LJ counterpart perfectly for more than 1\,500 time steps, but eventually the subtle gradient differences push the curves apart. After a significantly longer time, the two curves will appear completely un-correlated due to the amplifying effect of propagating gradient differences.  \label{fig:singlepart}}
+\end{figure}
+
+Next, let us briefly consider the solid state of the Lennard-Jones system. For low tempratures, $T<T_\text{melt}$, the face centered cubic (FCC) lattice is a stable configuration of the Lennard-Jones system. It it thus interesting to verify that this structure is indeed stable also when running the simulations with the ANN potential. A quick test shows qualitatively that this holds. Shown in Fig.\ (\ref{fig:singleovito}, right) is a snapshot taken of the ANN solid, after 1\,000 time steps (with 10\,000 thermalization steps ran prior). We note the characteristic symmetry lines indicating the crystalline structure is preserved.
+
+
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=0.49\textwidth,trim=0 0 0 0, clip]{singleovito.png}
+\includegraphics[width=0.49\textwidth,trim=0 0 0 0, clip]{fcc.png}
+\caption{A snapshot of the atom for which the single particle energy $\varepsilon$ is shown in \fig{singlepart} (left) and a sample configuration for a solid, with $T<T_\text{melt}$ calculated with the ANN potential (right). Particles are shaded according to their distance from the center of the simulation box. The total number of atoms is 4\,000 in both cases, but the right hand side plot has three periodic images showing in $x$, $y$, and $z$-directions. \label{fig:singleovito}}
+\end{figure}
+
+
+\end{document}
+
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
