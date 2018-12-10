@@ -1,0 +1,1250 @@
+\chapter{Computational Results and Analysis}
+\label{analysis}
+%%% Analysis (20 pages)
+%%% Analysis of the own solution to the problem with respect to the criteria
+
+
+
+
+\section{Validation of the simulator}
+\label{sec:validationSimu}
+The aim of this chapter is to give a critical survey of the applicability of the Hartree-Fock method and many-body perturbation theory.
+We apply the theory to studies of quantum dots with several electrons. 
+We present several results for these systems and compare our calculations with exact diagonalization results where possible.  
+We present also several validations and 
+benchmarks of the developed codes. 
+%objectives of those tests is to check that parts of the code have been implemented correctly. 
+%Unfortunately those are not sufficient to assume that our simulator gives correct results. At least they help to believe it.
+
+\subsection{Reproducing the non-interacting ground state energy}
+A first simple test consists in checking if the simulator reproduces the exact ground state energy for a QD with non-interacting particles. It is done by switching off the interaction (possible by setting \citecode{includeCoulombInteractions = false} in the input parameter file), or by zeroing the confinement strength $\lambda$ (also accessible from the \citecode{parameters.inp}). The expected energy is the sum over each occupied single harmonic oscillator orbital with the definite energy $\epsilon_{n m_l}=2n+ |m_l|+1$.
+The results of this test are summarized in table~\ref{table:nonInteractEnergies} and correspond exactly to the ground state energy of particles trapped in a harmonic oscillator when neglecting the electron interaction.
+\begin{table}[ht]
+\centering      % used for centering table
+\begin{tabular}{l|c|c|c|c}  % centered columns (4 columns)
+\toprule[1pt]  
+%heading
+\multicolumn{1}{c|}{Basis} &\multicolumn{4}{c}{Particles in the Quantum dot} \\
+\multicolumn{1}{c|}{Size} & \multicolumn{1}{|c|}{2}& \multicolumn{1}{|c}{6} & \multicolumn{1}{|c|}{12}& \multicolumn{1}{|c}{20}\\ [0.7ex]  % inserting body of the table
+\multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{|c|}{($R^f=0$)}& \multicolumn{1}{|c}{($R^f=1$)} & \multicolumn{1}{|c|}{($R^f=2$)}& \multicolumn{1}{|c}{($R^f=3$)}\\ [0.7ex]  % inserting body of the table
+\hline                    % inserts single horizontal line
+ 0 & 2 $\hbar \omega$ & 10 $\hbar \omega$ & 28 $\hbar \omega$ & 60 $\hbar \omega$ \\
+1 & 2 $\hbar \omega$ & 10 $\hbar \omega$ & 28 $\hbar \omega$ & 60 $\hbar \omega$ \\
+2 & 2 $\hbar \omega$ & 10 $\hbar \omega$ & 28 $\hbar \omega$ & 60 $\hbar \omega$ \\
+\vdots & \vdots &\vdots &\vdots &\vdots \\
+12 & 2 $\hbar \omega$ & 10 $\hbar \omega$ & 28 $\hbar \omega$ & 60 $\hbar \omega$  \\
+\hline   
+\hline  
+\end{tabular}
+ \caption{Ground state energy of quantum dots with non-interacting particles.}
+\label{table:nonInteractEnergies} 
+\end{table} 
+
+\subsection{Checking the two-body interaction matrix with \textsc{OpenFCI} results}
+\label{sec:checkDirectTerm}
+Another test consists in comparing the Coulomb interaction matrix computed analytically in our simulator (the analytical expression is detailled in appendix~\ref{app:rontani}) to the numerical computation developed by S. Kvaal in his Configuration interaction simulator called ``\textsc{OpenFCI}''~\cite{Kvaal2008}.
+
+The two-body interaction $V_{\alpha \beta \gamma \delta}$ is stored as a matrix and acts on two couples of single orbitals ($| \alpha \rangle, \, | \beta \rangle)$, ($\, | \gamma \rangle, \, | \delta \rangle$):
+\begin{align*}
+ V_{\alpha \beta \gamma \delta} &= \langle \alpha (r_i) \beta (r_j) | V(r_{ij}) | \gamma(r_i) \delta(r_j) \rangle_{as}\\
+&= \underbrace{\langle \alpha (r_i) \beta (r_j) |V(r_{ij})| \gamma(r_i) \delta(r_j) \rangle}_{\begin{smallmatrix}
+  \text{Direct term}
+\end{smallmatrix}} - \underbrace{\langle \alpha (r_i) \beta (r_j) |V(r_{ij})| \gamma(r_j) \delta(r_i) \rangle,}_{\begin{smallmatrix}
+  \text{Exchange term}
+\end{smallmatrix}}
+\end{align*}
+where $V(r_{ij})=1/r_{ij}$ is the Coulomb interaction operator acting on particles $i$ and $j$.
+
+It is actually possible to compare the direct term of each simulator by comparing the results of the functions that generate them: \citecode{anisimovas()} in our simulator and \citecode{singleElement()} in \textsc{OpenFCI}.
+\begin{src}
+double anisimovas (const int n1, const int m1, const int n2, const int m2, 
+                   const int n3, const int m3, const int n4, const int m4);
+\end{src} in our class \citecode{CoulombMatrix} with its equivalent in \textsc{OpenFCI}
+\begin{src}
+double QdotInteraction::singleElement(int N1, int m1, int N2, int m2,
+                                      int N1pr, int m1pr, int N2pr, int m2pr);
+\end{src}
+It should be noted that the quantum numbers called in both functions do not exactly correspond. Indeed if the state $| \alpha \rangle$ corresponds to both states $| n_1\,m_1\rangle$ from \citecode{anisimovas()} and $| N_1\,m_1\rangle$ from \citecode{singleElement()}, the quantum number $N$ is here defined by $N=2n+|m|$. Therefore it is possible to call the function in \textsc{OpenFCI} using the quantum numbers as defined in our simulator as follow
+\begin{src}
+singleElement(2*n1+abs(m1), m1, 2*n2+abs(m2), m2,
+              2*n3+abs(m3), m3, 2*n4+abs(m4), m4);
+\end{src}
+
+Several outputs of the functions have been computed and compared (see table \ref{table:DirectTerms}). The difference between the results of the functions is of the order of $10^{-15}$ or lower, showing an excellent agreement to numerical precision. The computation of these direct terms based on numerical integrations in \textsc{OpenFCI} is much faster than using our analytical expression, so a modification of the code has been made in order to build the Coulomb matrix of interactions by reading the values from a file previously obtained by running the \citecode{tabulate()} function of \textsc{OpenFCI} (see~\cite{siteSimen} for more information).
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}{c|c|c|c|c|c|c|c|c|c|c}  % centered columns (4 columns)
+\toprule[1pt]
+\multicolumn{8}{c}{Quantum numbers} & \multicolumn{2}{|c|}{Direct terms } & Difference \\
+n1 & m1 & n2 & m2 & n3 & m3 & n4 & m4 & singleElement() & anisimovas() &    \\
+\hline                    % inserts single horizontal line
+0 & -2 & 0 & -2 & 0 & -2 & 0 & -2 &  +0.71600465852496875 & +0.716004658524967640 &   1.11e-15   \\
+0 & -2 & 0 & -1 & 0 & -2 & 0 & -1 &  +0.75394678572885431 & +0.753946785728855317 &   9.99e-16   \\
+0 & -2 & 0 & -1 & 0 & -1 & 0 & -2 &  +0.30353701763109730 & +0.303537017631097860 &   5.55e-16   \\
+0 & -2 & 0 & 0 & 0 & -2 & 0 & 0 &  +0.74415526903108020 & +0.744155269031077759 &   2.44e-15   \\
+0 & -2 & 0 & 0 & 0 & -1 & 0 & -1 &  +0.27694591420398728 & +0.276945914203986898 &   3.89e-16   \\
+0 & -2 & 0 & 0 & 0 & 0 & 0 & -2 &  +0.11749820037332800 & +0.117498200373328198 &   1.94e-16   \\
+0 & -2 & 0 & 1 & 0 & -2 & 0 & 1 &  +0.75394678572885809 & +0.753946785728855317 &   2.78e-15   \\
+0 & -2 & 0 & 1 & 0 & -1 & 0 & 0 &  +0.27694591420398728 & +0.276945914203986898 &   3.89e-16   \\
+0 & -2 & 0 & 1 & 0 & 0 & 0 & -1 &  +0.16616754852239221 & +0.166167548522392211 &   0.00e+00   \\
+0 & -2 & 0 & 1 & 0 & 1 & 0 & -2 &  +0.14687275046666059 & +0.146872750466660123 &   4.72e-16   \\
+0 & -2 & 0 & 2 & 0 & -2 & 0 & 2 &  +0.71600465852497219 & +0.716004658524967640 &   4.55e-15   \\
+0 & -2 & 0 & 2 & 0 & -1 & 0 & 1 &  +0.30353701763109858 & +0.303537017631097860 &   7.22e-16   \\
+0 & -2 & 0 & 2 & 0 & 0 & 0 & 0 &  +0.11749820037332819 & +0.117498200373328198 &   0.00e+00   \\
+0 & -2 & 0 & 2 & 0 & 1 & 0 & -1 &  +0.14687275046666051 & +0.146872750466660123 &   3.89e-16   \\
+0 & -2 & 0 & 2 & 0 & 2 & 0 & -2 &  +0.12851365665832831 & +0.128513656658326258 &   2.05e-15   \\
+0 & -1 & 0 & -2 & 0 & -2 & 0 & -1 &  +0.30353701763109730 & +0.303537017631097749 &   4.44e-16   \\
+0 & -1 & 0 & -2 & 0 & -1 & 0 & -2 &  +0.75394678572885442 & +0.753946785728855317 &   8.88e-16   \\
+0 & -1 & 0 & -1 & 0 & -2 & 0 & 0 &  +0.27694591420398728 & +0.276945914203986842 &   4.44e-16   \\
+0 & -1 & 0 & -1 & 0 & -1 & 0 & -1 &  +0.86165346940440823 & +0.861653469404406013 &   2.22e-15   \\
+0 & -1 & 0 & -1 & 0 & 0 & 0 & -2 &  +0.27694591420398728 & +0.276945914203986898 &   3.89e-16   \\
+0 & -1 & 0 & 0 & 0 & -2 & 0 & 1 &  +0.27694591420398728 & +0.276945914203986842 &   4.44e-16   \\
+0 & -1 & 0 & 0 & 0 & -1 & 0 & 0 &  +0.93998560298662536 & +0.939985602986624479 &   8.88e-16   \\
+0 & -1 & 0 & 0 & 0 & 0 & 0 & -1 &  +0.31332853432887497 & +0.313328534328874808 &   1.67e-16   \\
+0 & -1 & 0 & 0 & 0 & 1 & 0 & -2 &  +0.16616754852239229 & +0.166167548522392211 &   8.33e-17   \\
+0 & -1 & 0 & 1 & 0 & -2 & 0 & 2 &  +0.30353701763109858 & +0.303537017631097749 &   8.33e-16   \\
+0 & -1 & 0 & 1 & 0 & -1 & 0 & 1 &  +0.86165346940440690 & +0.861653469404406013 &   8.88e-16   \\
+0 & -1 & 0 & 1 & 0 & 0 & 0 & 0 &  +0.31332853432887491 & +0.313328534328874808 &   1.11e-16   \\
+0 & -1 & 0 & 1 & 0 & 1 & 0 & -1 &  +0.23499640074665628 & +0.234996400746656397 &   1.11e-16   \\
+0 & -1 & 0 & 1 & 0 & 2 & 0 & -2 &  +0.14687275046666051 & +0.146872750466660123 &   3.89e-16   \\
+0 & -1 & 0 & 2 & 0 & -1 & 0 & 2 &  +0.75394678572885776 & +0.753946785728855317 &   2.44e-15   \\
+0 & -1 & 0 & 2 & 0 & 0 & 0 & 1 &  +0.27694591420398717 & +0.276945914203986898 &   2.78e-16   \\
+0 & -1 & 0 & 2 & 0 & 1 & 0 & 0 &  +0.16616754852239229 & +0.166167548522392211 &   8.33e-17   \\
+0 & -1 & 0 & 2 & 0 & 2 & 0 & -1 &  +0.14687275046666059 & +0.146872750466660123 &   4.72e-16   \\
+
+\hline   
+\hline  
+\end{tabular}
+}
+ \caption{Comparison of a few Direct terms $\langle n_1 \,m_1,n_2 \,m_2 |V(r_{ij})| n_3 \,m_3,n_4 \,m_4 \rangle$ computed using numerical integration within \textsc{OpenFCI}, or computed from an analytical expression within our simulator}
+\label{table:DirectTerms} 
+\end{table}
+
+% Max differenceD= 4.77e-15   \\
+% Max differenceEx= 2.12e-314
+
+\subsection{Comparison of MBPT results with a similar numerical experiment}
+In a similar study of quantum dots by Waltersson~\cite{Waltersson2007}, many-body perturbation theory (MBPT) and many-body perturbation correction to the Hartree-Fock energy are performed on an open-shell system. Whereas closed-shell and open-shell systems may not yield the same results, we try here to compare and observe our results with these calculations.
+Therefore we aim at reproducing a study of the convergence of the second order perturbation correction to the Hartree-Fock energy as a function of the basis size. In his open-shell model, Waltersson represents the basis size either by $max(n)$ or $max(|m_l|)$, whereas in our closed-shell model both $max(n)$ and $max(|m_l|)$ depend on the value of the maximum shell number $R^b$ which are here
+\begin{align}
+ &max(n) = floor(R^b/2), \\
+&max(|m_l|) = R^b.
+\end{align} 
+ The convergence of the second order many-body perturbation correction as a function of the basis size by Waltersson is given in figure~\ref{fig:waltMBPT} while our reproduction is given in figure~\ref{fig:waltMBPT_repro}.
+
+
+%%% (script) gnu_WaltMBPT
+\begin{figure}
+\centering
+\scalebox{0.68}{\includegraphics{IMAGES/WaltMBPT}}
+\caption{\label{fig:waltMBPT} Second-order perturbation theory correction to the energy as a function of $max(n)$ (squares) and $max(|m_l|)$ (circles) for the two electron dot with the confinement strength $\hbar \omega=6 \, meV$.~\cite{Waltersson2007}}
+\end{figure}
+\begin{figure}
+\centering
+\scalebox{1}{\input{IMAGES/waltMBPT.tex}}
+\caption{\label{fig:waltMBPT_repro} Second-order perturbation theory correction to the energy as a function of $max(n)$ (squares) and $max(|m_l|)$ (circles) for the two electron dot with the confinement strength $\hbar \omega=6 \, meV$ which translates into a dimensionless confinement strength of $\lambda=1.406$ using the same material characteristics of GaAs than Waltersson in~\cite{Waltersson2007}.}
+\end{figure}
+The two figures look similar in shape and values. However, the results from Waltersson are slightly shifted to lower values when the size of the basis increases which could represent a better correction to the positive Hartree-Fock energy. This shift probably results from the different shell models.
+
+\section{Restrictions to the closed-shell model}
+
+
+\subsection{Limits of the model through a theoretical approximation}
+\label{sec:ModelFockDarwin}
+
+In this section we will show the theoretical limit of our closed-shell model as function of the strength of the external magnetic field. This is supposed to provide a theoretical upper bound to the external magnetic field, above which the electronic structure is not anymore correctly represented by the particles filling all the shells up to the Fermi level, but possibly by a new structure where the total spin or total angular momentum might differ from zero.
+
+When neglecting the repulsions between the particles, the eigenenergies $\epsilon_{n \, m_l}$ as a function of the magnetic field $B$ can be solved analytically for a parabolic confining potential $V(r)=1/(2m^*\omega_0^2 r^2)$ leading to a spectrum known as the Fock-Darwin states \cite{Fock1928, Kutzelnigg2003}
+\begin{align}
+ \epsilon_{n \, m_l} &= (2n+|m_l|+1) \; \hbar \omega - \frac{1}{2}\hbar \omega_c \, m_l\\
+&= (2n+|m_l|+1) \; \hbar \omega_0 \sqrt{1+\frac{\omega_c^2}{4\omega_0^2}} -\frac{1}{2}\hbar \omega_c \, m_l
+\end{align} 
+where $\hbar \omega_0$ is the electrostatic confinement strength, and $\omega_c=e\,B/m^*$ is the cyclotron frequency. Each state $|n,m_l \rangle$ is spin-degenerate.
+
+
+Rewriting the eigenenergies in units of $\hbar \omega_0$, $\epsilon_{n \, m_l}$ becomes dimensionless and we obtain
+\begin{align}
+ \epsilon_{n \, m_l} &= (2n+|m_l|+1)  \sqrt{1+\frac{(\omega_c/ \omega_0)^2}{4}} -\frac{1}{2}(\omega_c /\omega_0) \, m_l\\
+&= (2n+|m_l|+1)  \sqrt{1+(\frac{e B}{2m^* \omega_0})^2} -\frac{e B}{2m^* \omega_0} \, m_l
+\end{align} 
+These eigenenergies are plotted in figure \ref{fig:fockDarwin1} as function of the magnetic field. The orbital degeneracies at $B=0$ are lifted in a magnetic field. As $B$ increases, a single-particle state with a positive or negative angular momentum ($m_l$) shifts to lower or higher energy, respectively. The lowest energy state $|n,m_l \rangle=|0,0 \rangle$ is a two-fold spin degenerate (The Zeeman spin-splitting in a magnetic field is neglected). The next state has a double orbital degeneracy, $\epsilon_{0,1}=\epsilon_{0,-1}$. This degeneracy forms the second shell, which can contain up to four electrons when we include the two-fold spin degeneracy. It will be filled for $N=6$. The third shell has a triple-orbital degeneracy formed by $|1,0 \rangle$, $|0,2 \rangle$ and $|0,-2 \rangle$ so that it can hold up to six electrons. This shell leads to the magic number $N=12$.
+
+
+%%% (script) FockDarwin/gnu_FockDArwin.sh
+\begin{figure}
+\centering
+\scalebox{0.6}{\input{IMAGES/FockFDarwin01.tex}}
+\caption{\label{fig:fockDarwin1} Spectrum of Fock-Darwin orbitals for a system of seven non-interacting particles with typical values for GaAs: confinement energy $\hbar \omega_0=5meV$, relative permittivity $\epsilon_r=12$, effective mass $m^*=0.067m_e$.}
+\end{figure}
+
+When the magnetic field is increased, the electron occupying the highest energy state is forced into different orbitals states. As an example, consider a seven non-interacting electrons system. The transitions for the state of the $7^{th}$ electron is indicated in figure~\ref{fig:fockDarwin1} by a thicker line. At low $B$, the highest occupied state is $|0,2 \rangle$, which decreases in energy with $B$. At some point it crosses the increasing energy state $|0,-1 \rangle$. With a slightly higher magnetic field, $|0,2 \rangle$ has now a lower energy than $|0,-1 \rangle$. This forces the electrons to switch states and it ends up with two electrons in state $|0,2 \rangle$ and only one in state $|0,-1 \rangle$. For $\hbar \omega_0=3meV$ this occurs at $B\simeq 2.1 \,T$. The seventh electron makes a second transition into the state $|0,3 \rangle$ at $2 \, T$. Similar transitions are also seen for different numbers of particles and with an increasing number of crossings for larger systems. After the last crossing the electrons occupy states forming the so-called, lowest orbital Landau level. These states are characterized by the quantum numbers $(0,m_l)$ with $m_l \geq 0$.
+
+Considering such transitions, we see that increasing the magnetic field will change the shell structure of our system and we may wonder what happens to the closed-shell model.
+The closed-shell system is described by a single Slater determinant. Therefore any new configuration implying the occupation of a state with an energy higher than the Fermi level would break it.
+Since our simulator is based on a single Slater determinant, our shell structure is initialized and kept with particles occupying the lowest states identical to those with a zero magnetic field.
+Therefore any transition from an occupied state to an ``excited'' state (non-occupied state when $B$ was low or null) will mark the end of the model. In this case the total angular momentum $M$ or total spin $S$ may change from zero to a positive value, the single particle energies associated with the new occupied states will switch to a higher value, and our complete computation of the ground state with constant non-interacting eigenenergies, zero total angular momentum and zero total spin fails.
+
+Figures \ref{fig:fockDarwin06} and \ref{fig:fockDarwin12} display with thick lines the different transitions of states when the magnetic field is increased respectively for a six- and twelve-particle quantum dot. For the six-particle dot we see for example that the two electrons in the $3^{rd}$ shell (figure~(\ref{fig:fockDarwin06})) are in the state $| 0,-1\rangle$ without magnetic field, but switch to the state $| 0,3\rangle$ when the magnetic field exceeds $2.1 \;T$, whereas electrons in the first and second shell stay respectively in the states $| 0,0\rangle$ and$| 0,1\rangle$, even under a high magnetic field.
+%%% (script) FockDarwin/gnu_FockDArwin.sh
+\begin{figure}
+\centering
+\scalebox{0.8}{\input{IMAGES/FockFDarwin06.tex}}
+\caption{\label{fig:fockDarwin06} Spectrum of Fock-Darwin orbitals for a system with six non-interacting particles and using typical values for GaAs: confinement energy $\hbar \omega_0=5meV$, relative permittivity $\epsilon_r=12$.}
+\end{figure}
+
+\begin{figure} %%% (script) FockDarwin/gnu_FockDArwin.sh
+\centering
+\scalebox{0.8}{\input{IMAGES/FockFDarwin12.tex}}
+\caption{\label{fig:fockDarwin12} Spectrum of Fock-Darwin orbitals for a system with twelve non-interacting particles and using typical values for GaAs: confinement energy $\hbar \omega_0=5meV$, relative permittivity $\epsilon_r=12$.}
+\end{figure}
+
+Therefore a theoretical study of the Fock-Darwin orbitals predicts that our model should be restricted to a maximum $B$ field of $2.1\,T$ for a six-particle dot, and $1.2\,T$ for a twelve-particle dot. In the quantum dot model the parameter is not $B$ but the dimensionless confinement strength parameter $\lambda$, which is related to $B$ by the following expression (see section~\ref{sec:scaling})
+\begin{equation}
+\lambda (B)=\frac{1}{a_0^*} \left( \frac{4 \hbar^2 }{4 \omega_0^2 m^* + e^2 B} \right)^{1/4}
+\end{equation} 
+Considering a material like GaAs (with typical values $\hbar \omega_0 =5meV$, $m^*=0.067m_e$ and $\epsilon_r=12 \;\Rightarrow \; a_0^*=9.47 \e{-9}m$), this gives $\lambda \geq 1.543$ for a six-particle dot, and $\lambda \geq 1.575$ for a twelve-particle dot, and no lower bound for $\lambda$ (i.e.\ no upper bound for $B$) in the case of a two-particle dot as summarized in table~\ref{table:FockDarwin}.
+\begin{table}[ht]
+\centering      % used for centering table
+\begin{tabular}{l|c|c}  % centered columns (4 columns)
+\toprule[1pt]  
+%heading
+\multicolumn{1}{c|}{Nb. of } &\multicolumn{1}{c|}{Maximum} &\multicolumn{1}{c}{Minimum confinement} \\
+\multicolumn{1}{c|}{electrons} &\multicolumn{1}{c|}{$B$ field} &\multicolumn{1}{c}{strenght $\lambda$}\\ [0.7ex]  % inserting body of the table
+\hline                    % inserts single horizontal line
+2 & $\infty$ & 0 \\
+6 & 2.1 T & $1.543$ \\
+12 & 1.2 T & $1.575$ \\
+20 & 0.85 T & $1.583$ \\
+\hline   
+\hline  
+\end{tabular}
+ \caption{Restriction on $\lambda$ and $B$ for a valid closed-shell model}
+\label{table:FockDarwin} 
+\end{table} 
+Note that a refrigerator magnet has a magnetic field of about $5\;mT$, magnetic resonance imaging (MRI) field strengths range from $1.5 \; T$ to $3 \; T$, while an NMR spectrometer works with a field strength of $11.7\; T$. Higher strengths can be achieved: for example $16\;T$ are necessary to levitate a frog and the strongest continuous magnetic field yet produced in a laboratory is about $45\; T$~\cite{wiki:MagneticField}.
+This gives a rough idea of the domain of application of the closed shell model for the simulation in laboratory experiments.
+
+However, the above analysis does not take into account the repulsion between the electrons. This repulsion will change the shell structure and obviously the limitations on $B$ and $\lambda$ mentioned previously. As seen in section~\ref{sec:scaling} the characteristic length $l$ decreases with an increasing magnetic field, indicating that the confinement becomes stronger for larger $B$. This is also observed as a shrinking of the wavefunctions~\cite{fewElectronQDExperiment}. The effect is that when $B$ is increased, two electrons occupying the same state will be pushed closer together. The decreasing distance between the electrons will increase the Coulomb interactions which may change the electron configuration.  This would cause a breakdown of the closed-shell model and eventually may result in wrong 
+predictions by our Hartree-Fock technique.
+Numerical calculations which include the electron interactions are then necessary to build an accurate shell structure as a function of the magnetic field. This is done in the next section using full configuration interaction.
+
+\subsection{Limits of the closed-shell model better approximated with full configuration interaction}
+\label{sec:breakingModel}
+
+It was a rough approximation to neglect the Coulomb interaction as we did in the previous study of the Fock-Darwin orbitals.
+A more realistic study of the reliability of the closed-shell model requires to take these interactions into account. However, as discussed in chapter~\ref{HF}, only numerical methods are able to provide approximations to the ground state energy of a general quantum dot. Among \textit{ab initio} methods, full configuration interaction provides normally the best approximation to the ground state because it considers almost all possible excitations within a given space.
+
+In this section results of full configuration interaction are produced and discussed in order to find the real limits of the closed shell model when including the electron-electron interactions.
+
+With a two-electron quantum dot, it is likely that the ground state remains characterized by the two electrons lying in the first shell $(n,m_l)=(0,0)$ when increasing the magnetic field up to the maximum values achievable in laboratory.
+
+For 6 electrons, the closed-shell model with the six electrons occupying the first levels $(n,m_l)=\left\{(0,0),(0,1),(0,-1)\right\}$ might not always be the optimal electron configuration as the magnetic field increases.
+ This is what we tried to show by using the \textsc{OpenFCI} (full configuration interaction) simulator and running it for different electron configurations. Taking as minimum input parameters the number of particles $N$, the total angular momentum $M$, the total spin $S$ and the confinement strength $\lambda$, this simulator computes the first minimum eigenenergies (the lowest one being the ground state energy of the system) using large scale diagonalisation.
+%%% (script) matlab script in ../qdot/OpenFCI_RESULTS/matlab2tikz.m > ../qdot/OpenFCI_RESULTS/myFile.tikz
+% \begin{figure}
+%  \centering
+% \input{../qdot/OpenFCI_RESULTS/myMatlabFile.tikz}
+% \caption{\label{fig:OpenFCI} Ground state energies for a six-particle QD computed using \textbf{OpenFCI} as a function of the total spin $S$ ans total angular momentum $M$. Each plot corresponds to a given value of the confinement strength $\lambda=1,\,2,\,5,\,10\,\text{and }20$. One can observe that the lowest energy is not always obtained for $(M,S)=(0,0)$ as the confinement strength increases.}
+% \end{figure}
+
+\CaptionLabel{
+	\figtikzMixedHeightParaScaled{0.45}
+	{../qdot/OpenFCI_RESULTS/E_matR5L0p1}{../qdot/OpenFCI_RESULTS/E_matR5L0p1.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L0p5}{../qdot/OpenFCI_RESULTS/E_matR5L0p5.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L1}{../qdot/OpenFCI_RESULTS/E_matR5L1.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L2}{../qdot/OpenFCI_RESULTS/E_matR5L2.tikz}
+	}
+{Ground state energies for a six-particle QD computed using \textsc{OpenFCI} as a function of the total spin $S$ and total angular momentum $M$. Each plot corresponds to a given value of the confinement strength $\lambda=0.1,\,0.5,\,1 \text{ and }2$. Up to the dimensionless confinement strength $\lambda=2$, the lowest energy state is obtained for the configuration $(M,S)=(0,0)$, validating thereby the closed-shell model up to $\lambda=2$.}
+{fig:OpenFCI}
+
+
+\CaptionLabel{
+	\figtikzMixedHeightParaScaled{0.45}
+	{../qdot/OpenFCI_RESULTS/E_matR5L5}{../qdot/OpenFCI_RESULTS/E_matR5L5.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L10}{../qdot/OpenFCI_RESULTS/E_matR5L10.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L20}{../qdot/OpenFCI_RESULTS/E_matR5L20.tikz}
+	{../qdot/OpenFCI_RESULTS/E_matR5L50}{../qdot/OpenFCI_RESULTS/E_matR5L50.tikz}
+	}
+{Ground state energies for a six-particle QD computed using \textsc{OpenFCI} as a function of the total spin $S$ and total angular momentum $M$. Each plot corresponds to a given value of the confinement strength $\lambda=5,\,10,\,20 \text{ and }50$. One can observe that the lowest energy is not anymore obtained for $(M,S)=(0,0)$ as the confinement strength increases. This is a demonstration that the closed-shell model breaks at least from $\lambda=20$ and that we cannot trust it anymore for confinement strength higher than $\lambda=10$.}
+{fig:OpenFCIbis}
+
+
+\CaptionLabel{
+	\figtikzMixedHeightParaScaled{0.45}
+	{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L11}{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L11.tikz}
+	{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L12}{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L12.tikz}
+	{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L13}{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L12.tikz}
+	{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L15}{../qdot/OpenFCI_RESULTS/particles06QD/E_matR5L15.tikz}
+	}
+{Ground state energies for a six-particle QD computed using \textsc{OpenFCI} as a function of the total spin $S$ and total angular momentum $M$. Each plot corresponds to a given value of the confinement strength $\lambda=11,\,12,\,13 \text{ and }15$. This figure shows that the first change in the electronic configuration from $(M,S)=(0,0)$ occurs for $13 < \lambda \leq 15$. We can conclude that the closed-shell model cannot be trusted for $\lambda \geq 13$.}
+{fig:OpenFCIter}
+
+Figures~\ref{fig:OpenFCI},~\ref{fig:OpenFCIbis} and~\ref{fig:OpenFCIter} show the ground state energies of a \textbf{six-particle} quantum dot for various combinations of $M$ and $S$, each plot corresponding to different confinement strength $\lambda=\{0.1,0.5,1,2\}$ in figure~\ref{fig:OpenFCI} and $\lambda=\{5,10,20,50\}$ in figure~\ref{fig:OpenFCIbis} respectively from top to bottom. By finding the exact minimum through all possible combinations of ($M,S$) \ref{fig:OpenFCI} and~\ref{fig:OpenFCIbis}, we discovered that $(M,S)=(0,0)$ is the lowest ground state energy for a six-particle dot up to a confinement strength $\lambda=10$, whereas with $\lambda=15$, the prefered electron configuration exhibits  $(M,S)=(1,2)$.
+
+
+%Since \textbf{OpenFCI} does not explicitly provide the quantum numbers of the occupied states, it is not 
+In spite of  the trend of the ground state energy in the 3D plots  as a function of $M$ and $S$, it might not be easy to distinguish which combination ($M,S$) gives the lowest energy. Tables~\ref{table:GSfci} and~\ref{table:GSfci2} list the energies corresponding to each combination and the lowest energy for each value of the confinement strength $\lambda$ is highlighted in bold face.
+
+
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}{c|c|c|c|c|c|c|c|c}  % centered columns (4 columns)
+\toprule[1pt]
+\multicolumn{1}{c|}{ } & \multicolumn{1}{c|}{ } &\multicolumn{7}{c}{Energy in unit of $\hbar \omega$ of a \textbf{six-particle} dot obtained for each combination of ($M$,$S$ and $\lambda$)} \\
+$\lambda$ & $M$ & $S=0$& $S=1$ & $S=2$ & $S=3$ & $S=4$ & $S=5$ & $S=6$  \\
+\hline                    % inserts single horizontal line
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{0.1} & 0 & \textbf{11.1978891344}& $-$& 13.0565458509& $-$& 13.0306198232& $-$& 14.8617426362\\ 
+& 1 & 12.161788636& $-$& 12.1228998086& $-$& 13.9619523669& $-$& 15.8438291847\\ 
+& 2 & 13.0541409412& $-$& 13.0543696462& $-$& 13.0479092548& $-$& 16.8150801525\\ 
+& 3 & 12.1565732709& $-$& 12.1286041835& $-$& 13.9783634734& $-$& 15.8336957766\\ 
+& 4 & 13.0808492317& $-$& 13.0642360558& $-$& 14.9084543531& $-$& 16.8102750026\\ 
+& 5 & 14.0377732477& $-$& 14.0097760564& $-$& 13.9937294856& $-$& 15.8342807494\\ 
+& 6 & 13.0936355988& $-$& 14.9480199174& $-$& 14.944795351& $-$& 16.8159076585\\ 
+& 7 & 14.0939135823& $-$& 14.0386678117& $-$& 15.8883056992& $-$& 17.7896003155\\ 
+& 8 & 14.9868752972& $-$& 14.9897402773& $-$& 16.8362996072& $-$& 18.7685556996\\ 
+& 9 & 15.941652286& $-$& 15.9381674099& $-$& 17.8024364205& $-$& 17.7820000116\\ 
+& 10 & 16.8929103322& $-$& 16.8993329996& $-$& 16.8911751901& $-$& 18.7560481367\\ 
+& 11 & 17.8934864395& $-$& 17.8470437348& $-$& 17.8557578353& $-$& 19.7384254286\\ 
+& 12 & 18.8059869671& $-$& 18.8084023637& $-$& 18.8153875945& $-$& 20.7254199174\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{0.5} & 0 & \textbf{15.5617751019}& $-$& 16.966166432& $-$& 16.871772355& $-$& 18.1622424979\\ 
+& 1 & 16.4044292865& $-$& 16.2537138896& $-$& 17.5752283136& $-$& 19.0834975974\\ 
+& 2 & 16.9555562338& $-$& 16.9636785505& $-$& 16.9488349783& $-$& 19.9589980355\\ 
+& 3 & 16.3909605917& $-$& 16.279069572& $-$& 17.6459810924& $-$& 19.0380846039\\ 
+& 4 & 17.077692629& $-$& 17.0081494281& $-$& 18.345626646& $-$& 19.9390056216\\ 
+& 5 & 17.8923198765& $-$& 17.7746900892& $-$& 17.7147205056& $-$& 19.0403232195\\ 
+& 6 & 17.1345648299& $-$& 18.5115121013& $-$& 18.5052825396& $-$& 19.9636653826\\ 
+& 7 & 18.1412125077& $-$& 17.9027034622& $-$& 19.2596187485& $-$& 20.8466577601\\ 
+& 8 & 18.6823740646& $-$& 18.6940902667& $-$& 20.0384606413& $-$& 21.765094962\\ 
+& 9 & 19.4781018652& $-$& 19.4754973684& $-$& 20.8935077402& $-$& 20.8207439572\\ 
+& 10 & 20.272873974& $-$& 20.3068987984& $-$& 20.2841911217& $-$& 21.6997487647\\ 
+& 11 & 21.2895239718& $-$& 21.0858286183& $-$& 21.1290221438& $-$& 22.623042277\\ 
+& 12 & 21.9075379553& $-$& 21.9160281905& $-$& 21.9475742808& $-$& 23.5741455919\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{1} & 0 & \textbf{20.2571791113}& $-$& 21.2789981289& $-$& 21.1483419586& $-$& 22.0022205941\\ 
+& 1 & 20.9749296631& $-$& 20.7598331889& $-$& 21.6538800561& $-$& 22.8661695662\\ 
+& 2 & 21.2599579854& $-$& 21.2821095699& $-$& 21.2792687299& $-$& 23.6550135103\\ 
+& 3 & 20.9671026881& $-$& 20.8035334518& $-$& 21.7707471281& $-$& 22.7866733195\\ 
+& 4 & 21.4667705078& $-$& 21.359594087& $-$& 22.2749375665& $-$& 23.6214565309\\ 
+& 5 & 22.150155073& $-$& 21.9721573278& $-$& 21.884399932& $-$& 22.7881516577\\ 
+& 6 & 21.5630576706& $-$& 22.5351676942& $-$& 22.5364737402& $-$& 23.663506028\\ 
+& 7 & 22.5942511253& $-$& 22.1780128424& $-$& 23.1282803854& $-$& 24.4604431194\\ 
+& 8 & 22.8188269396& $-$& 22.8406352537& $-$& 23.7672441229& $-$& 25.3487993204\\ 
+& 9 & 23.4647807574& $-$& 23.4774102878& $-$& 24.5237438226& $-$& 24.437111507\\ 
+& 10 & 24.1348663101& $-$& 24.1974193667& $-$& 24.1850198476& $-$& 25.2140293553\\ 
+& 11 & 25.1712359394& $-$& 24.8418490148& $-$& 24.9187878288& $-$& 26.0851798722\\ 
+& 12 & 25.5513885819& $-$& 25.5581213564& $-$& 25.6071999655& $-$& 27.0164861198\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{2} & 0 & \textbf{28.0329550231}& $-$& 28.6765243777& $-$& 28.5433569395& $-$& 28.9829490384\\ 
+& 1 & 28.5875104818& $-$& 28.3590590553& $-$& 28.8329004272& $-$& 29.7800781342\\ 
+& 2 & 28.6493239207& $-$& 28.6775309794& $-$& 28.7364010594& $-$& 30.4662810353\\ 
+& 3 & 28.5996827157& $-$& 28.4274289424& $-$& 28.9932495629& $-$& 29.644371783\\ 
+& 4 & 28.9358749584& $-$& 28.8071713271& $-$& 29.2994140078& $-$& 30.4045371792\\ 
+& 5 & 29.4418369302& $-$& 29.2587757025& $-$& 29.1463913256& $-$& 29.6368235281\\ 
+& 6 & 29.0891272881& $-$& 29.6336201736& $-$& 29.6403711077& $-$& 30.4767147494\\ 
+& 7 & 30.2288380451& $-$& 29.5200135448& $-$& 30.0805742171& $-$& 31.1766133172\\ 
+& 8 & 30.0290919414& $-$& 30.0780756092& $-$& 30.5833574696& $-$& 32.0854456593\\ 
+& 9 & 30.5051303098& $-$& 30.5382881767& $-$& 31.2206550065& $-$& 31.1827194217\\ 
+& 10 & 31.0686354739& $-$& 31.149558625& $-$& 31.1891682104& $-$& 31.804014365\\ 
+& 11 & 32.0668783868& $-$& 31.6399906569& $-$& 31.7814747312& $-$& 32.6329816775\\ 
+& 12 & 32.2950020122& $-$& 32.2812570977& $-$& 32.3335540202& $-$& 33.5602013595\\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Ground state energies in units of $\hbar \omega$ obtained with \textsc{OpenFCI} which implements the full configuration interaction method (with the maximum shell number $R=5$). The ground state energy for each value of the confinement strength $\lambda=\{0.1,\,0.5,\,1,\,2\}$ is boldfaced, showing the lowest energy configuration with respect to the total angular momentum $M$ and total spin $S$.}
+\label{table:GSfci} 
+\end{table} 
+\clearpage
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}{c|c|c|c|c|c|c|c|c}  % centered columns (4 columns)
+\toprule[1pt]
+\multicolumn{1}{c|}{ } & \multicolumn{1}{c|}{ } &\multicolumn{7}{c}{Energy in unit of $\hbar \omega$ of a six-particle dot obtained for each combination of ($M$,$S$ and $\lambda$)} \\
+$\lambda$ & $M$ & $S=0$& $S=1$ & $S=2$ & $S=3$ & $S=4$ & $S=5$ & $S=6$  \\
+\hline                    % inserts single horizontal line
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{5} & 0 & \textbf{46.4816466894}& $-$& 46.8289419415& $-$& 46.7729495876& $-$& 46.9796295496\\ 
+& 1 & 46.821461584& $-$& 46.6822362309& $-$& 46.8843337823& $-$& 47.7848726408\\ 
+& 2 & 46.8201453068& $-$& 46.8249059264& $-$& 46.9848775309& $-$& 48.4486722898\\ 
+& 3 & 46.8779563634& $-$& 46.7912636224& $-$& 47.0478259205& $-$& 47.4454818065\\ 
+& 4 & 47.1987202116& $-$& 47.0226098251& $-$& 47.2249177042& $-$& 48.3011580081\\ 
+& 5 & 47.5068819564& $-$& 47.3915579062& $-$& 47.2320124154& $-$& 47.4490465265\\ 
+& 6 & 47.4707134722& $-$& 47.6406084941& $-$& 47.6225860534& $-$& 48.4409476451\\ 
+& 7 & 48.1568096159& $-$& 47.7204807904& $-$& 47.9994772522& $-$& 49.4379811615\\ 
+& 8 & 48.1984357789& $-$& 48.2999644817& $-$& 48.4746160616& $-$& 50.1957421823\\ 
+& 9 & 48.5541561686& $-$& 48.59619815& $-$& 49.0445852679& $-$& 49.0600386679\\ 
+& 10 & 49.1359494783& $-$& 49.1738310071& $-$& 49.3040250889& $-$& 49.5922406417\\ 
+& 11 & 49.9574758125& $-$& 49.5945573352& $-$& 49.7675922721& $-$& 50.5562628698\\ 
+& 12 & 50.3406681585& $-$& 50.2685117969& $-$& 50.2883288438& $-$& 51.5769349731\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{10} & 0 & \textbf{73.0673544574}& $-$& 73.3937354921& $-$& 73.2756230049& $-$& 73.7604409912\\ 
+& 1 & 73.5223189729& $-$& 73.1969130995& $-$& 73.314432723& $-$& 74.6926730698\\ 
+& 2 & 73.369959718& $-$& 73.3430190975& $-$& 73.505676967& $-$& 75.1294284718\\ 
+& 3 & 73.4328685759& $-$& 73.3935786445& $-$& 73.7640234958& $-$& 73.5827509737\\ 
+& 4 & 73.7779468448& $-$& 73.6422706745& $-$& 73.7622908159& $-$& 75.2480804704\\ 
+& 5 & 74.4201391726& $-$& 73.9923135684& $-$& 73.8249480462& $-$& 74.1676534336\\ 
+& 6 & 74.275657278& $-$& 74.3145190656& $-$& 74.2719444082& $-$& 75.4031376911\\ 
+& 7 & 75.2365149728& $-$& 74.5014772184& $-$& 74.7022012351& $-$& 76.7150715151\\ 
+& 8 & 75.065712931& $-$& 75.1754875658& $-$& 75.1587445552& $-$& 77.2589383227\\ 
+& 9 & 75.5338734086& $-$& 75.5425839372& $-$& 76.3604025086& $-$& 75.5927771225\\ 
+& 10 & 76.2182975427& $-$& 76.2458499788& $-$& 76.2016020677& $-$& 77.0332670376\\ 
+& 11 & 77.446936995& $-$& 76.7277275927& $-$& 76.8120478435& $-$& 78.1695584306\\ 
+& 12 & 77.5889257943& $-$& 77.4613580659& $-$& 77.4947139477& $-$& 79.31688644\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{20} & 0 & 122.433260001& $-$& 122.513927462& $-$& 122.412603516& $-$& 125.245351666\\ 
+& 1 & 124.83102857& $-$& \textbf{122.325695478}& $-$& 122.349574793& $-$& 126.305882321\\ 
+& 2 & 122.651699164& $-$& 122.652094474& $-$& 122.656796984& $-$& 125.06124293\\ 
+& 3 & 122.724689893& $-$& 122.704445685& $-$& 125.162233987& $-$& 122.655970732\\ 
+& 4 & 123.274569702& $-$& 123.144311312& $-$& 123.155865954& $-$& 126.791966535\\ 
+& 5 & 126.304835917& $-$& 123.524537031& $-$& 123.307211571& $-$& 125.717615043\\ 
+& 6 & 124.131186017& $-$& 124.096504504& $-$& 124.112622923& $-$& 127.11380913\\ 
+& 7 & 127.556372534& $-$& 124.437366492& $-$& 124.571606214& $-$& 128.454779116\\ 
+& 8 & 125.334635172& $-$& 125.480351924& $-$& 125.316900883& $-$& 128.563403526\\ 
+& 9 & 126.083358337& $-$& 126.001938857& $-$& 128.767780557& $-$& 125.791509155\\ 
+& 10 & 127.141726105& $-$& 127.175867638& $-$& 126.930157706& $-$& 128.98634957\\ 
+& 11 & 131.023783431& $-$& 127.831188112& $-$& 127.842559193& $-$& 131.765377421\\ 
+& 12 & 129.313935266& $-$& 128.962957408& $-$& 128.970840663& $-$& 132.806412758\\ 
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{50} & 0 & 266.841126092& $-$& 266.750910329& $-$& 266.526734173& $-$& 277.147035697\\ 
+& 1 & 274.228755187& $-$& 266.208423455& $-$& \textbf{266.157018073}& $-$& 277.62841964\\ 
+& 2 & 267.147031866& $-$& 267.194265882& $-$& 267.023748867& $-$& 271.5724201\\ 
+& 3 & 267.147365528& $-$& 267.057824922& $-$& 273.347485885& $-$& 266.753856556\\ 
+& 4 & 268.599530467& $-$& 268.252383419& $-$& 268.218253995& $-$& 276.629703425\\ 
+& 5 & 275.976226157& $-$& 268.916913575& $-$& 268.334355515& $-$& 278.64440077\\ 
+& 6 & 270.45288965& $-$& 270.396270638& $-$& 270.458488948& $-$& 279.926665828\\ 
+& 7 & 277.94909902& $-$& 270.902043113& $-$& 271.210761746& $-$& 281.122638855\\ 
+& 8 & 273.150436294& $-$& 273.492671773& $-$& 273.101699304& $-$& 280.003137843\\ 
+& 9 & 274.583720663& $-$& 274.417711384& $-$& 280.223263543& $-$& 273.854144798\\ 
+& 10 & 277.220770836& $-$& 277.175271179& $-$& 276.687664537& $-$& 280.205053778\\ 
+& 11 & 287.375386311& $-$& 278.435414894& $-$& 278.391012402& $-$& 289.407892825\\ 
+& 12 & 282.30352042& $-$& 281.17733536& $-$& 280.970785713& $-$& 289.947408632 \\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Ground state energies in units of $\hbar \omega$ obtained with \textsc{OpenFCI} which implements the full configuration interaction method (with the maximum shell number $R=5$). The ground state energy for each value of the confinement strength $\lambda=\{5,\,10,\,20,\,50\}$ is boldfaced, showing the lowest energy configuration with respect to the total angular momentum $M$ and total spin $S$.}
+\label{table:GSfci2} 
+\end{table} 
+\clearpage
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}{c|c|c|c|c|c|c|c|c}  % centered columns (4 columns)
+\toprule[1pt]
+\multicolumn{1}{c|}{ } & \multicolumn{1}{c|}{ } &\multicolumn{7}{c}{Energy in unit of $\hbar \omega$ of a six-particle dot obtained for each combination of ($M$,$S$ and $\lambda$)} \\
+$\lambda$ & $M$ & $S=0$& $S=1$ & $S=2$ & $S=3$ & $S=4$ & $S=5$ & $S=6$  \\
+\hline                    % inserts single horizontal line
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{11} & 0 & \textbf{78.143195073} & $-$ & 78.413381482 & $-$ & 78.313931985 & $-$ & 78.969623622 \\
+& 1 & 78.712832202 & $-$ & 78.244926651 & $-$ & 78.336027604 & $-$ & 79.924885843 \\
+& 2 & 78.429726984 & $-$ & 78.401027036 & $-$ & 78.526842185 & $-$ & 80.233679779 \\
+& 3 & 78.495978621 & $-$ & 78.470202649 & $-$ & 78.961969108 & $-$ & 78.595911825 \\
+& 4 & 78.842138362 & $-$ & 78.729075331 & $-$ & 78.814661711 & $-$ & 80.477073212 \\
+& 5 & 79.667256553 & $-$ & 79.066249937 & $-$ & 78.912363711 & $-$ & 79.377156886 \\
+& 6 & 79.392872079 & $-$ & 79.409142326 & $-$ & 79.375032229 & $-$ & 80.641855045 \\
+& 7 & 80.532580259 & $-$ & 79.629358838 & $-$ & 79.802617965 & $-$ & 81.968771076 \\
+& 8 & 80.207571918 & $-$ & 80.316653671 & $-$ & 80.271088646 & $-$ & 82.477310161 \\
+& 9 & 80.715571857 & $-$ & 80.706306048 & $-$ & 81.713423473 & $-$ & 80.701437675 \\
+& 10 & 81.414817055 & $-$ & 81.446423472 & $-$ & 81.362609720 & $-$ & 82.412650789 \\
+& 11 & 82.845941833 & $-$ & 81.944130787 & $-$ & 82.010984011 & $-$ & 83.581918646 \\
+& 12 & 82.840631132 & $-$ & 82.697400291 & $-$ & 82.734429127 & $-$ & 84.733613844 \\
+
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{12} & 0 & \textbf{83.167708584} & $-$ & 83.394193093 & $-$ & 83.303740571 & $-$ & 84.156600106 \\
+& 1 & 83.881409398 & $-$ & 83.240872661 & $-$ & 83.313514747 & $-$ & 85.132918037 \\
+& 2 & 83.437378073 & $-$ & 83.410427035 & $-$ & 83.509490136 & $-$ & 85.297706724 \\
+& 3 & 83.507358020 & $-$ & 83.490277525 & $-$ & 84.138461310 & $-$ & 83.571238814 \\
+& 4 & 83.863297552 & $-$ & 83.762128115 & $-$ & 83.823591310 & $-$ & 85.679797042 \\
+& 5 & 84.893845201 & $-$ & 84.093502988 & $-$ & 83.944788679 & $-$ & 84.566628964 \\
+& 6 & 84.457542775 & $-$ & 84.457589780 & $-$ & 84.432637253 & $-$ & 85.856187641 \\
+& 7 & 85.810237363 & $-$ & 84.705736390 & $-$ & 84.857914806 & $-$ & 87.194074485 \\
+& 8 & 85.304914828 & $-$ & 85.414959288 & $-$ & 85.347083513 & $-$ & 87.663225340 \\
+& 9 & 85.848424314 & $-$ & 85.822908124 & $-$ & 87.048635983 & $-$ & 85.777393353 \\
+& 10 & 86.570487591 & $-$ & 86.605228217 & $-$ & 86.490101785 & $-$ & 87.765581961 \\
+& 11 & 88.229997119 & $-$ & 87.118791595 & $-$ & 87.173065337 & $-$ & 88.976696821 \\
+& 12 & 88.061974379 & $-$ & 87.900242635 & $-$ & 87.938543965 & $-$ & 90.128654898 \\
+
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{13} & 0 & \textbf{88.151505022} & $-$ & 88.344328182 & $-$ & 88.257577395 & $-$ & 89.326338416 \\
+& 1 & 89.033058061 & $-$ & 88.197386078 & $-$ & 88.257291889 & $-$ & 90.321520824 \\
+& 2 & 88.406631105 & $-$ & 88.383064086 & $-$ & 88.462011769 & $-$ & 90.330196713 \\
+& 3 & 88.479619296 & $-$ & 88.466751712 & $-$ & 89.298397953 & $-$ & 88.516500173 \\
+& 4 & 88.851639268 & $-$ & 88.754730627 & $-$ & 88.800436095 & $-$ & 90.862030864 \\
+& 5 & 90.104399883 & $-$ & 89.085924916 & $-$ & 88.935726594 & $-$ & 89.740601801 \\
+& 6 & 89.483225708 & $-$ & 89.472470474 & $-$ & 89.455809279 & $-$ & 91.051419446 \\
+& 7 & 91.073352679 & $-$ & 89.742146874 & $-$ & 89.880653364 & $-$ & 92.396900798 \\
+& 8 & 90.368739460 & $-$ & 90.481168561 & $-$ & 90.395396440 & $-$ & 92.823919873 \\
+& 9 & 90.943614219 & $-$ & 90.905029823 & $-$ & 92.369007344 & $-$ & 90.827942565 \\
+& 10 & 91.695847699 & $-$ & 91.732671823 & $-$ & 91.592274306 & $-$ & 93.077104797 \\
+& 11 & 93.602413719 & $-$ & 92.262446130 & $-$ & 92.307361308 & $-$ & 94.357271821 \\
+& 12 & 93.260556659 & $-$ & 93.078253978 & $-$ & 93.115930138 & $-$ & 95.505968804 \\
+
+\hline                    % inserts single horizontal line
+\multirow{13}{*}{15} & 0 & 98.030368353 & $-$ & 98.175943830 & $-$ & 98.089020148 & $-$ & 99.627578422 \\
+& 1 & 99.298992309 & $-$ & \textbf{98.026884251} & $-$ & 98.070911523 & $-$ & 100.653451690 \\
+& 2 & 98.265358634 & $-$ & 98.249612566 & $-$ & 98.299715129 & $-$ & 100.324678925 \\
+& 3 & 98.341455866 & $-$ & 98.329682836 & $-$ & 99.581785412 & $-$ & 98.339262951 \\
+& 4 & 98.756777622 & $-$ & 98.656448463 & $-$ & 98.684658346 & $-$ & 101.180676624 \\
+& 5 & 100.489379141 & $-$ & 98.996614532 & $-$ & 98.832723557 & $-$ & 100.054283015 \\
+& 6 & 99.455054715 & $-$ & 99.431922968 & $-$ & 99.428397280 & $-$ & 101.399088100 \\
+& 7 & 101.565816782 & $-$ & 99.731093247 & $-$ & 99.857712159 & $-$ & 102.751758487 \\
+& 8 & 100.425553944 & $-$ & 100.545499985 & $-$ & 100.431859839 & $-$ & 103.089812111 \\
+& 9 & 101.055134783 & $-$ & 100.998311122 & $-$ & 102.966578977 & $-$ & 100.873025038 \\
+& 10 & 101.882958568 & $-$ & 101.921395902 & $-$ & 101.741972578 & $-$ & 103.483331676 \\
+& 11 & 104.321280076 & $-$ & 102.485133898 & $-$ & 102.516690762 & $-$ & 105.084891895 \\
+& 12 & 103.608899864 & $-$ & 103.381455766 & $-$ & 103.413959297 & $-$ & 106.217617700 \\
+\hline                    % inserts single horizontal line
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Ground state energies in units of $\hbar \omega$ obtained with \textsc{OpenFCI} which implements the full configuration interaction method (with the maximum shell number $R=5$). The ground state energy for each value of the confinement strength $\lambda=\{11,\,12,\,13,\,15\}$ is boldfaced, showing the lowest energy configuration with respect to the total angular momentum $M$ and total spin $S$.}
+\label{table:GSfci3} 
+\end{table} 
+\clearpage
+
+The tables clearly show that the closed-shell model looks valid for a confinement strength in the range $\lambda=0.1 \rightarrow 13$ and breaks at least for $\lambda \geq 15$. These values can be either translated into a possible range of the applied external magnetic field, or into the size of the quantum dot itself, or even into a combination of both the size of the quantum dot and the magnetic field.
+These results obviously predominate the ones obtained in section~\ref{sec:ModelFockDarwin} which neglected the electron-electron 
+interactions.
+
+% % % note 7/06/2009 + test in Simen/bin, notes 19/05
+
+
+
+\section{Convergence, stability and accuracy of the Hartree-Fock Algorithm}
+\label{sec:scalingSimulator}
+
+\subsection{Importance of the model space}
+\label{subsec:errorGrowth}
+%Hartree-Fock approximation to the ground state energies $E_0^{HF}$ as a function of the size of the basis set $R^b$, for 3 differentes values of the confinement strenght $\lambda=0.5,1$ or $2$.
+
+
+
+%%% (script) gnu_HF_Rbnew.sh > (data) qdot/RESULTS/processedData/HF_Rbnew.csv
+\begin{figure}
+\centering
+\scalebox{0.7}{\input{IMAGES/HF_Rb01new.tex}}
+\caption{\label{fig:HF_R01new} Hartree-Fock approximation to the ground state energy of a two-particle quantum dot, with a confinement strength $\lambda=1$}
+\end{figure}
+
+
+Figure~\ref{fig:HF_R01new} presents the results of the simulator, providing the Hartree-Fock approximation to the ground state energy of a two-particle quantum dot where the charge carriers are confined by a dimensionless confinement strength $\lambda=1$. In two dimensions, the exact ground state energy of such a system is known to be equal to $E_0=3$ in units of $\hbar \omega$, as shown in chapter~\ref{model}. Therefore we see easily that Hartree-Fock provides an approximation to the exact energy with a difference of $5.33\%$.
+
+Figure~\ref{fig:HFconvergence} presents the convergence plots (left plots) of the Hartree-Fock approximation to the ground state energy for quantum dots with different numbers of particles (2, 6, 12 and 20 particles) as a function of the maximum shell number in the basis set $(R^b)$ and for different values of the confinement strength $\lambda$. We see from these results that the Hartree-Fock approximation 
+converges to its best approximation with a basis set of a few shells above the Fermi level. For the case of a two-electron quantum dot (top of figure~\ref{fig:HFconvergence}), we see that the Hartree-Fock approaximation has achieved its convergence limit with a basis set up to the $4^{th}$ shell. For a six-particle quantum dot, the limit seems to be achieved from the $5^{th}$ shell and from the $7^{th}$ shell for a 12-particle quantum dot.
+
+%%% (script) gnu_HF_Rbnew.sh > (data) qdot/RESULTS/processedData/HF_Rbnew.csv
+%\figtikzVertical{IMAGES/HF_Rb02new.tex}{IMAGES/HF_Rb06new.tex}{IMAGES/HF_Rb12new.tex}{IMAGES/HF_Rb20new.tex}{Hartree-Fock approximation to the ground state energy of quantum dots with 2, 6, 12 and 20 trapped particles as a function of the size of the basis set, and for different values of the confinement strength $\lambda=0, 0.5,1$ or 2. As the number of particles in the dot increases, the minimum model space includes all the shells occupied by particles. This explains for example why for 20 particles, the first energies are obtained only from $R^b=3$.}{fig:convergence}
+
+% \figtikzFourScaled{0.6}
+% {IMAGES/HF_Rb02new.tex}{IMAGES/HF_RelErr02new.tex}{IMAGES/HF_Rb06new.tex}{IMAGES/HF_RelErr06new.tex}
+% {Hartree-Fock approximation to the ground state energy of quantum dots with 2, 6, 12 and 20 trapped particles as a function of the size of the basis set, and for different values of the confinement strength $\lambda=0, 0.5,1$ or 2. As the number of particles in the dot increases, the minimum model space includes all the shells occupied by particles. This explains for example why for 20 particles, the first energies are obtained only from $R^b=3$.}
+% {fig:convergence}
+% 
+% \figtikzFourScaled{0.6}
+% {IMAGES/HF_Rb12new.tex}{IMAGES/HF_RelErr12new.tex}{IMAGES/HF_Rb20new.tex}{IMAGES/HF_RelErr20new.tex}
+% {Hartree-Fock relative error $(E^{HF}(R^b)-E^{HF}_{min})/E^{HF}_{min}$ as a function of the size of the basis set for quantum dots with 2, 6,  12 and 20 trapped particles, and for different values of the confinement strength $\lambda=0,0.5,1$ or 2. Exponential dependence in $R^b$ can be observed in the cases where the relative error is not exactly zero.}
+% {fig:relErr}
+
+
+\CaptionLabel{
+	\figtikzHeightParaScaled{0.55}
+	{IMAGES/HF_Rb02new.tex}{IMAGES/HF_RelErr02new.tex}
+	{IMAGES/HF_Rb06new.tex}{IMAGES/HF_RelErr06new.tex}
+	{IMAGES/HF_Rb12new.tex}{IMAGES/HF_RelErr12new.tex}
+	{IMAGES/HF_Rb20new.tex}{IMAGES/HF_RelErr20new.tex}
+	}
+{(Left) Hartree-Fock approximation to the ground state energy of quantum dots with 2, 6, 12 and 20 trapped particles as a function of the size of the basis set, and for different values of the confinement strength $\lambda=0, 0.5,1$ or 2. As the number of particles in the dot increases, the minimum model space includes all the shells occupied by particles. This explains for example why for 20 particles, the first energies are obtained only from $R^b=3$.\newline (Right) Hartree-Fock relative error $(E^{HF}(R^b)-E^{HF}_{min})/E^{HF}_{min}$ as a function of the size of the basis set for the same quantum dots. An exponential dependence in $R^b$ can be observed in the cases where the relative error is not exactly zero.}
+{fig:HFconvergence}
+
+When increasing the size of the quantum dot one shell at a time, the convergence limit $E^{HF}(R^b_{max})$ doesn't seem to be achieved with a linear increase in the size of the basis set. 
+Then another interesting plot should show how the Hartree-Fock limit is scaled with the size of the basis set.
+This is displayed in the right plots of figure~\ref{fig:HFconvergence}), where the relative error $\left( E^{HF}(R^b)-E^{HF}_{min}\right) /E^{HF}_{min}$ is given as a function of the maximum shell number in the basis set $(R^b)$. The plots display amost linear curves, implying a quasi-exponential dependence in $R^b$.
+%%% (script) gnu_HF_RelErr.sh > (data) qdot/RESULTS/processedData/HF_RelErr.csv
+% 
+% \begin{figure}
+% \centering
+% \input{IMAGES/HF_RelErr20new.tex}
+% \caption{\label{fig:HF_R01newdfd} Hartree-Fock approximation to the}
+% \end{figure}
+
+%\figtikzVertical{IMAGES/HF_RelErr02new.tex}{IMAGES/HF_RelErr06new.tex}{IMAGES/HF_RelErr12new.tex}{IMAGES/HF_RelErr20new.tex}{Hartree-Fock relative error $(E^{HF}(R^b)-E^{HF}_{min})/E^{HF}_{min}$ as a function of the size of the basis set for quantum dots with 2, 6,  12 and 20 trapped particles, and for different values of the confinement strength $\lambda=0,0.5,1$ or 2. Exponential dependence in $R^b$ can be observed in the cases where the relative error is not exactly zero.}{fig:relErr}
+
+We also remark in the case of the 20-particle quantum dot (bottom of figure~\ref{fig:HFconvergence}) that Hartree-Fock stops improving its limit when increasing the basis set in the case of the ``high'' confinement strength $\lambda=2$. This is our first observation of the breakdown of the Hartree-Fock approach for a high number of particles within a strong confinement strength (i.e.\ for a GaAs quantum dot, $\lambda=2$ would correspond to $\hbar \omega_0=2.96 \, meV$).
+
+\subsection{Importance of the interaction strength}
+We discussed the ranges of the confinement strength $\lambda$ that would make sense physically through an experimental approximation using large scale diagonalization~\ref{sec:breakingModel}. From a computational point of view, it is also interesting to study the convergence of the Hartree-Fock algorithm with respect to the confinement strength and to observe how fast the iterative process is converging.
+
+To do so we look at the ``convergence history'' of a simulation, meaning that we look at the improvement in the approximated energy as function of the number of  iterations. This could be done by plotting the energy difference expressed by
+\begin{equation*}
+\delta (iter)= \abs{E^{HF}(iter)-E^{HF}(iter-1)}.
+\end{equation*}
+However since the self-consistency in our simulator depends on the convergence of the eigenenergies and not on the total energy, it seems more natural to plot the following relative energy difference
+\begin{equation*}
+\delta (iter)= \frac{1}{nbStates} \left( \sum_{n\,m_l} \abs{\epsilon_{n\,m_l}(iter)-\sum_{n\,m_l} \epsilon_{n\,m_l}(iter-1)} \right),
+\end{equation*}
+where $\epsilon_{n\,m_l}$ is the eigenenergy of the system of the single orbital $|n\,m_l \rangle$.
+
+For a higher resolution than the machine resolution (e.g.\ $\epsilon \leq 2\e{-16}$), we may experience potential losses of numerical precision. We stopped the iterative process at the maximum number of iterations (here fixed to 1000). 
+
+
+
+Assuming the following form of the convergence over iterations
+\begin{equation*}
+\delta (iter) \simeq 10^{- \beta \, iter},
+\end{equation*}
+a possibly more intuitive way to look at the ``convergence history'' would be to write:
+\begin{equation*}
+\log\delta (iter) \simeq - \beta \, iter,
+\end{equation*}
+where $\beta$ is a constant depending on the parameters ($R^b$, $R^f$ and $\lambda$). In this case we can interpret the plot saying that, at this iteration, you improve the precision on the relative energy difference with $\beta$ digits compared to the previous iteration.
+
+Figure~\ref{fig:HFiterationProcess} is therefore plotting the variations of the eigenenergies produced by the Hartree-Fock iterative process in a semilog form on the $y-axis$ as a function of iterations. From top to bottom are plotted different quantum dots composed of 2, 6, 12 and 20 particles respectively. Each plot compares different confinement strengths ($\lambda=\{1,2,5\}$) and different basis set ($R^b= \{ 4,8 \}$). For each dot the complete convergence history is given on the left and a zoom on the first iterations is plotted on the right. For each curve, $\beta$ is computed by linear regression and indicates the number of digits with which the precision is improved from one iteration to the next one. For the strange behaviour observed for some configurations of parameters, the linear regression is performed on the first iterations only where the iterative process is actually converging.
+
+\CaptionLabel{
+	\figtikzMixedHeightParaScaled{0.45}
+	{../qdot/RESULTS/processedData/iterLargeb0}{../qdot/RESULTS/processedData/iterb0.tikz}
+	{../qdot/RESULTS/processedData/iterLargeb1}{../qdot/RESULTS/processedData/iterb1.tikz}
+	{../qdot/RESULTS/processedData/iterLargeb2}{../qdot/RESULTS/processedData/iterb2.tikz}
+	{../qdot/RESULTS/processedData/iterLargeb3}{../qdot/RESULTS/processedData/iterb3.tikz}
+	}
+{Convergence history of the Hartree-Fock iterative process. From top to bottom are plotted QDots with 2, 6, 12 and 20 particles respectively. Each plot compares different confinement strengths ($\lambda=\{1,2,5\}$) and different basis set ($R^b= \{ 4,8 \}$). For each dot the complete convergence history is given on the left and a zoom on the first iterations is plotted on the right. For each curve, $\beta$ is computed and indicates the number of digits that improves the precision from one iteration to the next one.}
+{fig:HFiterationProcess}
+
+These plots show already several behaviours of the iterative process. First, increasing 
+the confinement strength $\lambda$ always results in slower convergence steps between iterations.%increasing the number of particle in the dot doesn't affect it so much. Secondly, the graphs (in the zoomed parts over the first iteration) clearly exhibits linear convergence in $\beta$. For example, in the case of the two-electron quantum dot, with $\lambda=1$, the linear regression found $\beta=-1.1$ which means that after each iteration, the eigenenergies have improved by 1 digit approximately, while in the same plot, the curve with a confinement strength of $\lambda=5$ improves the precision by only half a digit at a time over iterations. It should also be noted that if the simulation precision had been fixed to $10^{-12}$ instead of $10^-20$, almost all the simulations would have converged and stopped the Hartree-Fock process, thus avoiding any strange behaviour as for example the case ($\lambda=5, \, R^b=8$) in all quantum dots. Such behaviour could be due to the eigenvalue solver getting into trouble when approaching machine precision.
+Finally, we note also the non-converging configurations ($\lambda=5, \, R^b=8$ for the 12-particle dot, but not for the 20-particle dot, $\lambda=2, \, R^b=8$ for the 20-particle dot while a higher confinement strength $\lambda=5, \, R^b=8$ seems to converge after two converging descents). We were looking for some limits of parameters from which Hartree-Fock would not converge anymore. However we see here that we can have a converging process for a given configuration, and a non-converging process with a lower confinement strength keeping other parameters fixed. This was not really expected and could be due to an implementation issue, rather difficult to identify.
+
+
+Studying the ``convergence history'' also tells us about a phenomenon to take into account when dealing with the stability of the simulator. In most of the plots of figure~\ref{fig:HFiterationProcess} we observe a plateau with small oscillations for high iteration numbers. Since the simulations have been performed with a very high resolution of $\epsilon=10^{-20}$, we expected to observe such a plateau around the machine precision (i.e.\ numerical precision $\simeq 2\e{-16}$). And we of course expect machine precision to prevent our results to be known up to a given number of digits.
+
+However a closer look at these plateaux (figure~\ref{fig:HFiterativePrecision}) reveals that the limit of convergence will occur for much lower precision as the interaction strength is increased. In a sense, one could say that increasing the interaction strength will ``lower the machine precision''.
+It is difficult to see how this process happens in the iterative scheme. It seems that errors are added at each iteration proportionally to the interaction strength.
+Figure~\ref{fig:HFiterativePrecision}.
+\begin{figure}
+\centering
+\scalebox{0.7}{\input{../qdot/RESULTS/processedData/iterb3zoom.tikz}}
+\caption{\label{fig:HFiterativePrecision} Zoom over the limit of convergence of the Hartree-Fock iterative process.}
+\end{figure}
+
+To comprehend this particular case might be complicated, but understanding this process could be helped by studying another problem: the ``cancellation error'' or ``round-off error'' in the finite difference method. Let us compute and compare the exact second derivative of $u(x)=e^{x}$ for $x=1$, to the numerical second derivative of $u(x)$ using the finite difference method
+\begin{equation}
+u''(x)\longrightarrow (\delta^2 u)_j = \frac{u_{j+1}-u_{j}+u_{j-1}}{h^2},
+\end{equation}
+where $h$ is the spacing between discrete values of $x$.
+\begin{figure}
+\centering
+\scalebox{0.7}{\input{../qdot/RESULTS/processedData/roundOffError.tikz}}
+\caption{\label{fig:roundoff} Round-off error of the second derivative of $e^(x)$ for $x=1$ using the finite difference method.}
+\end{figure}
+We note from figure \ref{fig:roundoff} that the accuracy of the derivative improves from $h=10^{0}$ to $2\, 10^{-4}$ approximately. With values of $h$ lower than $h_{limit}=2\,10^{-4}$, this simple scheme starts diverging. It can be shown that the finite difference method will not converge if $h \leq \sqrt{\epsilon}$ where $\epsilon$ is the machine precision~\cite{Goldberg1991,fadnavis1998}. If now we take a value of $h$ slightly below $h_{limit}$, we will add errors to the computation of the second derivative; an error which will be inversely proportional to $h$.
+
+Our simulation can be affected in the same way when making a substraction, and according to the plots previously discussed, it might be related to the parameter $\lambda$.
+
+Thinking of a substraction proportional to $\lambda$, the two-body interaction element $V_{\alpha \beta \gamma \delta}$, in which we substract the exchange term from the direct term, would logically appear to be responsible for the round-off error. Errors and growth of errors due to the iterative scheme will occur when the direct term is close in value to the exchange term. Since the interaction is directly proportional to the confinement strength $\lambda$, the error too will become proportional to $\lambda$. These errors then enter the eigenvalue solver of the Hartree-Fock algorithm in a non-trivial way which might be responsible for the strange behaviour we observed for some configurations of parameters.
+
+It was important to look at the convergence history which tells us a lot about the convergence, the accuracy and the stability of the Hartree-Fock algorithm. Three parameters seem to dominate the behaviour of the simulator: the strength of the interaction which obviously dictates the choice of the precision and the maximum number of iterations  imposed to the self-consistent scheme. Indeed we may get some wrong and unexpected behaviour of the simulator when asking for a too high precision in the self-consistent scheme. However one cannot fix these values once for all since the convergence speed and the final accuracy obviously depend on the confinement strength characterized by the dimensionless parameter $\lambda$.
+
+
+\section{Scaling of the simulator with parallelization}
+\label{sec:MPI}
+Our simulator is implemented in a way that it computes, writes to file and reads from file the two-body interaction matrices either in the harmonic oscillator basis (i.e.\ what we call here the Coulomb matrix), or in the Hartree-Fock basis (i.e.\ the basis made of the Hartree-Fock orbitals after the convergence of the self-consistent process).
+
+We noticed above that building these big matrices is the weakest point of the simulator in terms of efficiency, just before the computation of the perturbation theory corrections. Using parallelization with MPI, the computation of the elements of these interaction matrices and the sum performed in the perturbation theory corrections have been equally shared among the number of processors and this section aims at studying the efficiency of this parallelization, or in other words, it observes the scaling of the complete simulator according to the number of processors used.
+
+Table \ref{table:scalingMPI} compares the duration of different configurations as a function of the number of processors when the simulations were launched on the supercomputer of the University of Oslo called \textbf{TITAN}.
+The study has just been performed over 2 small sizes of quantum dots, respectively two-electron and six-electron dots. Therefore the effect of the size of the dot doesn't look significative here, but it seems negligible compared to the influence of the basis size.
+Moreover the duration is not completely proportional to the number of processors, but not far to be. We did not expect to have a complete linear relationship between the number of processors used and the duration of the overall simulation since the Hartree-Fock algorithm itself is not parallelized. However it improves a lot the speed of the complete simulation and confirms the usefulness of parallelizing the code.
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}[c]{c|c|c||c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}    &\multicolumn{1}{c|}{$\lambda$}        & \multicolumn{1}{c||}{Basis size} & \multicolumn{9}{c}{Duration of the simulation (in minutes) wrt the nb. of processors below}\\
+\multicolumn{1}{c|}{} &\multicolumn{1}{c|}{} & \multicolumn{1}{c||}{($R^b$)}    & \multicolumn{1}{c|}{1} & \multicolumn{1}{c|}{9}& \multicolumn{1}{c|}{19}& \multicolumn{1}{c|}{49}& \multicolumn{1}{c|}{99}& \multicolumn{1}{c|}{199}& \multicolumn{1}{c|}{299}& \multicolumn{1}{c|}{399}& \multicolumn{1}{c}{499}\\
+\hline
+\multirow{6}{*}{2} &                      & 2 & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & 0.01 & $\leq 0.01$ & $\leq 0.01$ & 0.01  \\ \cline{3-12}
+		   &                      & 4 & 1.13 & 0.14 & 0.07 & 0.03 & 0.03 & 0.01 & 0.01 & 0.01 & 0.01  \\ \cline{3-12}
+		   & \multirow{-3}{*}{1}  & 7 & 751.32 & 83.65 & 37.78 & 17.73 & 9.08 & 4.96 & 3.49 & 2.64 & 2.36  \\ \cline{2-12}
+		   &                      & 2 & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$  \\ \cline{3-12}
+		   &                      & 4 & 1.16 & 0.15 & 0.09 & 0.04 & 0.04 & 0.02 & 0.03 & 0.02 & 0.02  \\ \cline{3-12}
+		   & \multirow{-3}{*}{10} & 7 & 751.45 & 84.28 & 38.18 & 18.03 & 10.45 & 5.24 & 3.91 & 3.1 & 2.38  \\ \hline
+\multirow{6}{*}{6} &                      & 2 & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & 0  \\ \cline{3-12}
+		   &                      & 4 & 1.24 & 0.15 & 0.08 & 0.04 & 0.03 & 0.01 & 0.02 & 0.01 & 0.01  \\ \cline{3-12}
+		   & \multirow{-3}{*}{1}  & 7 & 777.02 & 86.9 & 36.75 & 18.33 & 9.22 & 5.13 & 3.71 & 2.8 & 2.22  \\ \cline{2-12}
+		   &                      & 2 & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$ & $\leq 0.01$  \\ \cline{3-12}
+		   &                      & 4 & 1.23 & 0.19 & 0.13 & 0.08 & 0.07 & 0.06 & 0.07 & 0.06 & 0.06  \\ \cline{3-12}
+		   & \multirow{-3}{*}{10} & 7 & 740.45 & 82.73 & 40.17 & 18.51 & 9.7 & 5.68 & 4.3 & 3.42 & 2.83  \\ \hline
+\end{tabular}
+}
+ \caption{Simulation duration (in minutes) for different configurations of parameters as a function of the number of processors used on the supercomputer \citecode{TITAN}.}
+\label{table:scalingMPI} 
+\end{table} 
+
+
+\section{Comparison of \textit{ab initio} methods applied to quantum dots}
+\label{sec:compTechniquesSection}
+In this section we discuss the reliability of two many-body techniques (Hartree-Fock and many-body perturbation theory) by comparing their approximations to the ground state energy of quantum dots with the ``exact'' ground state energy. Since it is not possible to compute an exact energy for any value of the confinement strength $\lambda$ and any number of particles trapped in the quantum dot, we will assume the results from configuration interaction as ``exact'' and we will therefore compute the relative error of each approximated ground state with respect to the CI energy. The relative error is simply defined by
+\begin{equation}
+ \epsilon^{method}=\frac{E^{method}-E^{CI}}{E^{CI}},
+\end{equation} 
+where $E^{CI}$ is the ground state energy obtained using full configuration interaction and computed thanks to \textsc{OpenFCI}. The quantity $E^{method}$ is the approximation to the ground state energy either using the Hartree-Fock method or many-body perturbation theory, or a combination of these techniques. The parameters used to compute the ``exact'' ground state are listed in tables~\ref{tab:comparisonMethods02eHF}, \ref{tab:comparisonMethods06eHF}, \ref{tab:comparisonMethods12eHF}, \ref{tab:comparisonMethods02ePT}, \ref{tab:comparisonMethods06ePT} and \ref{tab:comparisonMethods12ePT} with the relative errors of each method and for each configuration of the parameters.
+
+In order to simplify the notations, we introduce short keywords in the plots to denote the various techniques: \textbf{HF} refers to the Hartree-Fock method alone while MBTP(HF)-$2^{nd}$ order refers to the Hartree-Fock energy corrected with a $2^{nd}$ order many-body perturbation correction computed in the new Hartree-Fock (HF) basis set. Similarly MBTP(HF)-$3^{rd}$ order refers to the Hartree-Fock energy corrected with the $2^{nd}$ and $3^{rd}$ order many-body perturbation corrections computed in the new Hartree-Fock basis set.
+When computing the ground state energy using the many-body perturbation theory directly from the Harmonic oscillator (HO) basis set, we denote by MBTP(HO)-$1^{st}$ order, MBTP(HO)-$2^{nd}$ order and MBTP(HO)-$3^{rd}$ order the MPBT energy correcting the non-interacting ground state energy respectively with up to the $1^{st}$, $2^{nd}$ and $3^{rd}$ order corrections.
+
+\subsection{Quadratic error growth for HF and MPBT}
+Figure \ref{fig:ComparisonTechniquesQD} summarizes most of the simulations performed in order to compare the behaviour of all methods. It is difficult to compare the different methods from these first plots but it gives some ideas about the general trend of the techniques implemented.
+
+%%% script gnu_OpenFCI_FixedAxis.sh getting data from ..qdot/RESULTS/processedData/openFCIerror.csv
+%%%% DATA in OpenOffice: all_e-14_R4_R8_TER.ods
+\CaptionLabel{
+	\figtikzSixParaScaled{0.55}
+	{IMAGES/comparisonMethods/allFixedAxis_02e_R4.tex}{IMAGES/comparisonMethods/allFixedAxis_02e_R8.tex}
+	{IMAGES/comparisonMethods/allFixedAxis_06e_R4.tex}{IMAGES/comparisonMethods/allFixedAxis_06e_R8.tex}
+	{IMAGES/comparisonMethods/allFixedAxis_12e_R4.tex}{IMAGES/comparisonMethods/allFixedAxis_12e_R8.tex}
+	}
+{Comparison of several \textit{ab initio} methods for computing the ground state energy of quantum dots with two, six and 12 electrons respectively from top to bottom. The plots display the error on the ground state energy performed with each method  with respect to the configuration interaction energy obtained using \textsc{OpenFCI}, as a function of the confinement strength $\lambda$. Left plots are calculations performed with a basis size defined by $R^b=4$, the right plots with $R^b=8$.}
+{fig:ComparisonTechniquesQD}
+
+We observe that all the methods exhibit approximately the same scaling with respect to the confinement strength.
+Since the data are plotted in logscale, we see clearly a power law. We denote by $\beta$ the slope of the logscale plot, which corresponds to the approximated error growth given by
+\begin{equation}
+\epsilon^{method}\propto \left( E^{method} \right)^{\beta}
+\end{equation} 
+The different values of $\beta$ are valid only for the linear part of the logscale plots. For each configuration, $\beta$ is given on the plot itself, and for most of them indicates $\beta \simeq 2$, meaning that the error of the methods increases almost quadratically with $\lambda$.
+
+If the error grows similarly among the different methods as a function of $\lambda^2$, each method display however a different accuracy for a given  $\lambda$. Figure~\ref{fig:ZoomQuadraticPart} zooms on the quadratic part for the same previous configurations and highlights the difference in accuracy between the methods.
+
+%%% script gnu_OpenFCI_ZoomLinear.sh getting data from ..qdot/RESULTS/processedData/openFCIerror.csv
+%%%% DATA in OpenOffice: all_e-14_R4_R8_TER.ods
+\CaptionLabel{
+	\figtikzSixParaScaled{0.55}
+	{IMAGES/comparisonMethods/zoomQuadratic_02e_R4.tex}{IMAGES/comparisonMethods/zoomQuadratic_02e_R8.tex}
+	{IMAGES/comparisonMethods/zoomQuadratic_06e_R4.tex}{IMAGES/comparisonMethods/zoomQuadratic_06e_R8.tex}
+	{IMAGES/comparisonMethods/zoomQuadratic_12e_R4.tex}{IMAGES/comparisonMethods/zoomQuadratic_12e_R8.tex}
+	}
+{Comparison of several \textit{ab initio} methods for computing the ground state energy of quantums dots with two, six and 12 electrons respectively from top to bottom. The plots display a zoom on the quadratic growth of the error when $\lambda$ is relatively small ($\lambda < 0.05$), showing different accuracies with respect to the method, the number of particles and the size of the basis.}
+{fig:ZoomQuadraticPart}
+
+
+\subsection{Accuracy depending on the number of particles}
+\label{sec:accuracyNbElectrons}
+ Table~\ref{tab:relativeAccuracyMethods} indicates the shifts in accuracy for each method with respect to the most accurate one.
+We see that the Hartree-Fock method corrected by second and third order perturbation correction obtains the best accuracy for two-electron  and six-electron QD, but the order changes when it comes to a 12-electron QD, the same method exhibits the worst performance. This shows a clear dependence on the accuracy of the methods with respect to the number of particles in the system. Stated differently, 
+HF gives a lower accuracy compared to MPBT as the number of particles increases in the dot.
+ 
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}[c]{c|c|r l} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{Basis size} & \multicolumn{2}{c}{Relative error shift between each method}\\
+\multicolumn{1}{c|}{} & \multicolumn{1}{c|}{($R^b$)}    & \multicolumn{2}{c}{($\epsilon_{min}$ indicates the lowest relative error among the methods)} \\
+\hline
+\multirow{8}{*}{2}&  	& MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\
+		& 	&    MBTP(H0)-$2^{nd}$order and MBTP(H0)-$3^{rd}$order  & $\rightarrow 6.6 \, \epsilon_{min}$ \\ 
+		& 	&    HF							& $\rightarrow 12.6 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&    MBTP(HO)-$1^{st}$ order		& $\rightarrow 20.7 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    MBTP(H0)-$2^{nd}$order and MBTP(H0)-$3^{rd}$order  & $\rightarrow 2.5 \, \epsilon_{min}$ \\ 
+		&	&    HF							& $\rightarrow 8.5 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{8}	&    MBTP(HO)-$1^{st}$ order		& $\rightarrow 12.7 \, \epsilon_{min}$ \\ \cline{2-4}
+\hline
+\multirow{8}{*}{6} &	& MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    HF& $\rightarrow 9.8 \, \epsilon_{min}$ \\ 
+		&	&    MBTP(H0)-$2^{nd}$order and MBTP(H0)-$3^{rd}$order  & $\rightarrow 40.9\, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&    MBTP(HO)-$1^{st}$ order		& $\rightarrow 54.1 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    HF& $\rightarrow 1.3 \, \epsilon_{min}$ \\ 
+		&	&   MBTP(H0)-$2^{nd}$order and MBTP(H0)-$3^{rd}$order  & $\rightarrow 5.3\, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{8}	&    MBTP(HO)-$1^{st}$ order		& $\rightarrow 7.9 \, \epsilon_{min}$ \\ \cline{2-4}
+\hline
+\multirow{8}{*}{12}& 	& MBTP(HO)-$2^{nd}$order and MBTP(HO)-$3^{rd}$order  & $\rightarrow \epsilon_{min}$ \\ 
+		&	&    MBTP(HO)-$1^{st}$ order  & $\rightarrow 1.3\, \epsilon_{min}$ \\ 
+		&	&    HF							& $\rightarrow 1.8 \, \epsilon_{min}$ \\ 
+	& \multirow{-4}{*}{4}	&   MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order & $\rightarrow 2 \, \epsilon_{min}$ \\ \cline{2-4}
+		&	& MBTP(HO)-$2^{nd}$order and MBTP(HO)-$3^{rd}$order   & $\rightarrow \epsilon_{min}$ \\ 
+		&	&  MBTP(HO)-$1^{st}$ order	   & $\rightarrow 1.6 \, \epsilon_{min}$ \\
+		&	&    HF							& $\rightarrow 2.3 \, \epsilon_{min}$ \\
+	& \multirow{-4}{*}{8}	&    MBTP(HF)-$2^{nd}$order and MBTP(HF)-$3^{rd}$order & $\rightarrow 2.8\, \epsilon_{min}$ \\ 
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Classification of the methods with respect to their relative accuracy in the range of $\lambda$ that exhibits a quadractic error growth. The performance of each method shows a dependence to the number of particles in the dot. MBPT obtains a better accuracy than HF as the number of particles increases.}
+\label{tab:relativeAccuracyMethods}
+\end{table} 
+
+\subsection{Limit of validity or break of the methods}
+\label{sec:limitBreak}
+
+A quick study of the full configuration ground state of a two-electron QD, similar to the one done in section~\ref{sec:breakingModel} reveals that the closed-shell model starts breaking in the range $\lambda \in [ 50;100]$,  since the lowest ground state energy for various total angular momentum $M=\{0:12\}$, $S=\{0,2\}$ is achieved for $(M,S)_{\lambda=100}^{2\text{e}^{-}}=(1,2)$ for $\lambda=100$ while it is still $(M,S)_{\lambda=50}^{2\text{e}^{-}}=(0,0)$ for $\lambda=50$.
+Recall that the break of the closed-shell model of a six-electron dot occurs in the range $\lambda \in [13,15]$. Unfortunately we don't know for which value of $\lambda$ the closed-shell model breaks in the case of the twelve-electron dot, but we know that this happens at least before the break of the six-electron QD, then before $\lambda=15$. A similar study should be done for the 12-electron case, however it will require much more time and resources to compute it using full configuration interaction.
+
+Therefore another interesting part to discuss on the plots of figure \ref{fig:ComparisonTechniquesQD} concerns the behaviour of the methods while approaching large values of $\lambda$, e.g.\ approaching the limits of the closed shell. A zoom in the region $\lambda=[0.1,50]$ is given in figure~\ref{fig:ZoomGarbagePart} and reports the error of each method.
+
+%%% script gnu_OpenFCI_ZoomGarbage.sh getting data from ..qdot/RESULTS/processedData/openFCIerror.csv
+%%%% DATA in OpenOffice: all_e-14_R4_R8_TER.ods
+\CaptionLabel{
+	\figtikzSixParaScaled{0.55}
+	{IMAGES/comparisonMethods/zoomGarbage_02e_R4.tex}{IMAGES/comparisonMethods/zoomGarbage_02e_R8.tex}
+	{IMAGES/comparisonMethods/zoomGarbage_06e_R4.tex}{IMAGES/comparisonMethods/zoomGarbage_06e_R8.tex}
+	{IMAGES/comparisonMethods/zoomGarbage_12e_R4.tex}{IMAGES/comparisonMethods/zoomGarbage_12e_R8.tex}
+	}
+{Comparison of several \textit{ab initio} methods for computing the ground state energy of quantums dots with 2, 6 and 12 electrons respectively from top to bottom for large confinement strength $\lambda$. The plots display a zoom for $\lambda$ approaching the limit of the closed-shell model.}
+{fig:ZoomGarbagePart}
+
+
+It is only in this region that the $2^{nd}$ and $3^{rd}$ order perturbation corrections either in the Harmonic oscillator or in the basis set of Hartree-Fock orbitals start showing different accuracies. However they give results at the opposite of our expectations. Indeed while the $3^{rd}$ correction is supposed to improve the accuracy, we see that the error is here increasing compared to the $2^{nd}$ order correction in most of the cases. A possible explanation could be that this signals a slower convergence in terms of the interaction and that higher-order corrections are needed.
+%The most probable explanation for this strange behaviour might be a wrong implementation of the $3^{rd}$ correction term in our simulator.
+
+Other differences are based on the evolution of each method while $\lambda$ approaches critical values. We remark that the second (and third order) perturbation corrections blow up above $\lambda=10$, while the first-order perturbation theory correction tends smoothly toward a linear error growth while all other methods starts oscillating more or less, showing signs of instability. We didn't expect the methods to get a lower error growth when approaching the limit of the closed-shell model. Since this phenomenon seems more and more important as the number of electrons increases, this could  be due to the smaller and smaller Hilbert space we used to compute the ``exact'' full configuration interaction energy in a short time ($R=5$ for 2 electrons, $R=4$ for 6 electrons and $R=3$ for 12 electrons). On the contrary, an accurate study should include more and more shells as the size of the system increases.
+
+
+While the instability of the $2^{nd}$ order correction has been predicted and discussed in the literature~\cite{Raimes1972}, we see here that up to $\lambda=50$ which is already above the limit of the closed-shell model, the many-body perturbation corrections in the Hartree-Fock basis oscillates but does not blow up as with the harmonic oscillator basis. This may be due to the optimized eigenstates of the Hartree-Fock basis compared to the harmonic oscillator states, but this might not be true anymore as  $\lambda$ further increases.
+
+Finally we see that the Hartree-Fock approach as well as MBPT and the combinations of these methods actually give really high relative errors before they actually reach the limit of the closed-shell model. The relative errors are listed in tables~\ref{tab:comparisonMethods02eHF}, \ref{tab:comparisonMethods06eHF}, \ref{tab:comparisonMethods12eHF}, \ref{tab:comparisonMethods02ePT}, \ref{tab:comparisonMethods06ePT} and \ref{tab:comparisonMethods12ePT}. These errors are however underestimated; first because configuration interaction is also an approximation to the true ground state energy, and secondly, as we just mentioned, because our truncation of the Hilbert space was really rough, which translates into a bigger inaccuracy of our  CI calculations.
+
+
+
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{HF}& \multicolumn{2}{c|}{HF+MBPT(HF)-$2^{nd}$order}& \multicolumn{2}{c|}{HF+MBPT(HF)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{2} & &$1E-7$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ &  \\& &$1E-7$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ &  \\
+& &$5E-7$ & $2.000000626657$ & $2.00E-14$ & $2.000000626657$ & $0.00E+00$ & $2.000000626657$ & $0.00E+00$ & $2.000000626657$ &  \\
+& &$1E-6$ & $2.000001253314$ & $8.99E-14$ & $2.000001253314$ & $4.88E-15$ & $2.000001253314$ & $4.88E-15$ & $2.000001253314$ &  \\
+& &$5E-6$ & $2.000006266568$ & $2.30E-12$ & $2.000006266564$ & $1.70E-13$ & $2.000006266564$ & $1.70E-13$ & $2.000006266563$ &  \\
+& &$1E-5$ & $2.000012533131$ & $9.21E-12$ & $2.000012533114$ & $6.80E-13$ & $2.000012533114$ & $6.80E-13$ & $2.000012533112$ &  \\
+& &$5E-5$ & $2.000062665444$ & $2.30E-10$ & $2.000062665018$ & $1.69E-11$ & $2.000062665018$ & $1.70E-11$ & $2.000062664984$ &  \\
+& &$1E-4$ & $2.000125330363$ & $9.20E-10$ & $2.000125328658$ & $6.78E-11$ & $2.000125328658$ & $6.78E-11$ & $2.000125328523$ &  \\
+& &$5E-4$ & $2.000626630801$ & $2.30E-08$ & $2.000626588186$ & $1.70E-09$ & $2.000626588196$ & $1.70E-09$ & $2.000626584794$ &  \\
+& &$1E-3$ & $2.001253209074$ & $9.20E-08$ & $2.001253038639$ & $6.79E-09$ & $2.001253038713$ & $6.82E-09$ & $2.001253025058$ &  \\
+& &$5E-3$ & $2.006263945539$ & $2.29E-06$ & $2.006259689492$ & $1.70E-07$ & $2.006259698750$ & $1.75E-07$ & $2.006259347655$ &  \\
+& &$1E-2$ & $2.012522647963$ & $9.13E-06$ & $2.012505647870$ & $6.85E-07$ & $2.012505721857$ & $7.22E-07$ & $2.012504269056$ &  \\
+& &$5E-2$ & $2.062404808005$ & $2.22E-04$ & $2.061984602154$ & $1.78E-05$ & $2.061993767625$ & $2.22E-05$ & $2.061947942318$ &  \\
+& &$1E-1$ & $2.124295000418$ & $8.54E-04$ & $2.122637920311$ & $7.38E-05$ & $2.122710367477$ & $1.08E-04$ & $2.122481353547$ &  \\
+& &$2E-1$ & $2.246574506683$ & $3.19E-03$ & $2.240132733855$ & $3.09E-04$ & $2.240697184146$ & $5.61E-04$ & $2.239439975058$ &  \\
+& &$3E-1$ & $2.366923700288$ & $6.70E-03$ & $2.352838529008$ & $7.11E-04$ & $2.354688569748$ & $1.50E-03$ & $2.351166061395$ &  \\
+& &$4E-1$ & $2.485425861700$ & $1.12E-02$ & $2.461091716210$ & $1.27E-03$ & $2.465339980045$ & $3.00E-03$ & $2.457973187497$ &  \\
+& &$5E-1$ & $2.602161579782$ & $1.64E-02$ & $2.565209233355$ & $1.96E-03$ & $2.573230325859$ & $5.09E-03$ & $2.560187735597$ &  \\
+& &$1E+0$ & $3.161921401726$ & $4.92E-02$ & $3.033418457765$ & $6.57E-03$ & $3.086386629747$ & $2.41E-02$ & $3.013626129397$ &  \\
+& &$2E+0$ & $4.185136950885$ & $1.21E-01$ & $3.787264741771$ & $1.44E-02$ & $4.063355183669$ & $8.83E-02$ & $3.733597603174$ &  \\
+& &$5E+0$ & $6.775965715485$ & $2.70E-01$ & $5.365438495287$ & $6.00E-03$ & $6.729277440105$ & $2.62E-01$ & $5.333416434792$ &  \\
+& &$1E+1$ & $9.192744506771$ & $2.45E-01$ & $8.802994301904$ & $1.92E-01$ & $9.120632575845$ & $2.35E-01$ & $7.383537264058$ &  \\
+& &$5E+1$ & $27.433561900391$ & $4.98E-01$ & $26.776022625443$ & $4.62E-01$ & $26.585406735688$ & $4.52E-01$ & $18.314898304163$ & \multirow{-22}{3cm}{$(M,S)^{GS}=(0,0)$ for $R=5$, $M\in[0:12]$ and $S\in[0:2]$}  \\ \cline{10-11}
+& \multirow{-23}{*}{4} &$1E+2$ & $49.760800203239$ & $6.81E-01$ & $48.840671584843$ & $6.50E-01$ & $48.142443831938$ & $6.26E-01$ & $29.601244919262$ & \multirow{-1}{3cm}{$(M,S)^{GS}=(1,2)$} \\ \cline{2-11}
+
+& &$1E-7$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ &  \\
+& &$5E-7$ & $2.000000626657$ & $2.00E-14$ & $2.000000626657$ & $5.11E-15$ & $2.000000626657$ & $5.11E-15$ & $2.000000626657$ &  \\
+& &$1E-6$ & $2.000001253314$ & $8.99E-14$ & $2.000001253314$ & $9.99E-15$ & $2.000001253314$ & $9.99E-15$ & $2.000001253314$ &  \\
+& &$5E-6$ & $2.000006266568$ & $2.29E-12$ & $2.000006266563$ & $2.65E-13$ & $2.000006266563$ & $2.65E-13$ & $2.000006266563$ &  \\
+& &$1E-5$ & $2.000012533131$ & $9.16E-12$ & $2.000012533110$ & $1.06E-12$ & $2.000012533110$ & $1.06E-12$ & $2.000012533112$ &  \\
+& &$5E-5$ & $2.000062665442$ & $2.29E-10$ & $2.000062664931$ & $2.66E-11$ & $2.000062664931$ & $2.66E-11$ & $2.000062664984$ &  \\
+& &$1E-4$ & $2.000125330354$ & $9.16E-10$ & $2.000125328310$ & $1.06E-10$ & $2.000125328310$ & $1.06E-10$ & $2.000125328523$ &  \\
+& &$5E-4$ & $2.000626630573$ & $2.29E-08$ & $2.000626579481$ & $2.66E-09$ & $2.000626579470$ & $2.66E-09$ & $2.000626584794$ &  \\
+& &$1E-3$ & $2.001253208163$ & $9.15E-08$ & $2.001253003833$ & $1.06E-08$ & $2.001253003743$ & $1.07E-08$ & $2.001253025058$ &  \\
+& &$5E-3$ & $2.006263922999$ & $2.28E-06$ & $2.006258822370$ & $2.62E-07$ & $2.006258811115$ & $2.67E-07$ & $2.006259347655$ &  \\
+& &$1E-2$ & $2.012522558992$ & $9.09E-06$ & $2.012502194407$ & $1.03E-06$ & $2.012502104834$ & $1.08E-06$ & $2.012504269056$ &  \\
+& &$5E-2$ & $2.062402810851$ & $2.21E-04$ & $2.061901184611$ & $2.27E-05$ & $2.061890439468$ & $2.79E-05$ & $2.061947942318$ &  \\
+& &$1E-1$ & $2.124288043470$ & $8.51E-04$ & $2.122318018663$ & $7.70E-05$ & $2.122236352485$ & $1.15E-04$ & $2.122481353547$ &  \\
+& &$2E-1$ & $2.246553680531$ & $3.18E-03$ & $2.238953114069$ & $2.17E-04$ & $2.238363039452$ & $4.81E-04$ & $2.239439975058$ &  \\
+& &$3E-1$ & $2.366889332103$ & $6.69E-03$ & $2.350382041577$ & $3.33E-04$ & $2.348581651218$ & $1.10E-03$ & $2.351166061395$ &  \\
+& &$4E-1$ & $2.485382115832$ & $1.12E-02$ & $2.457033632929$ & $3.82E-04$ & $2.453171703485$ & $1.95E-03$ & $2.457973187497$ &  \\
+& &$5E-1$ & $2.602114062463$ & $1.64E-02$ & $2.559293672584$ & $3.49E-04$ & $2.552460563728$ & $3.02E-03$ & $2.560187735597$ &  \\
+& &$1E+0$ & $3.161908943210$ & $4.92E-02$ & $3.015743447990$ & $7.03E-04$ & $2.981766772533$ & $1.06E-02$ & $3.013626129397$ &  \\
+& &$2E+0$ & $4.185004164083$ & $1.21E-01$ & $3.739173812344$ & $1.49E-03$ & $4.135774696713$ & $1.08E-01$ & $3.733597603174$ &  \\
+& &$5E+0$ & $6.775808076626$ & $2.70E-01$ & $5.212459550317$ & $2.27E-02$ & $4.820347271993$ & $9.62E-02$ & $5.333416434792$ &  \\
+& &$1E+1$ & $12.039973698080$ & $6.31E-01$ & $11.622115727277$ & $5.74E-01$ & $11.342226056905$ & $5.36E-01$ & $7.383537264058$ &  \\
+& &$5E+1$ & $22.966747273068$ & $2.54E-01$ & $22.735888141372$ & $2.41E-01$ & $22.696860293494$ & $2.39E-01$ & $18.314898304163$ & \multirow{-22}{3cm}{$(M,S)^{GS}=(0,0)$ for $R=5$, $M\in[0:12]$ and $S\in[0:2]$}  \\ \cline{10-11}
+& \multirow{-23}{*}{8}  &$1E+2$ & $38.120267705447$ & $2.88E-01$ & $37.780344127957$ & $2.76E-01$ & $37.700193736724$ & $2.74E-01$ & $29.601244919262$ & \multirow{-1}{3cm}{$(M,S)^{GS}=(1,2)$} \\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a two-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods02eHF} 
+\end{table} 
+\end{landscape}
+
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{HF}& \multicolumn{2}{c|}{HF+MBPT(HF)-$2^{nd}$order}& \multicolumn{2}{c|}{HF+MBPT(HF)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{6} & &$1E-7$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ &  \\
+& &$5E-7$ & $10.000006109906$ & $0.00E+00$ & $10.000006109906$ & $9.95E-15$ & $10.000006109906$ & $9.95E-15$ & $10.000006109906$ &  \\
+& &$1E-6$ & $10.000012219811$ & $4.00E-14$ & $10.000012219810$ & $1.01E-14$ & $10.000012219810$ & $1.01E-14$ & $10.000012219811$ &  \\
+& &$5E-6$ & $10.000061099016$ & $1.08E-12$ & $10.000061099004$ & $1.10E-13$ & $10.000061099004$ & $1.10E-13$ & $10.000061099005$ &  \\
+& &$1E-5$ & $10.000122197937$ & $4.32E-12$ & $10.000122197889$ & $4.40E-13$ & $10.000122197889$ & $4.40E-13$ & $10.000122197893$ &  \\
+& &$5E-5$ & $10.000610985844$ & $1.08E-10$ & $10.000610984654$ & $1.12E-11$ & $10.000610984654$ & $1.12E-11$ & $10.000610984766$ &  \\
+& &$1E-4$ & $10.001221962092$ & $4.31E-10$ & $10.001221957331$ & $4.48E-11$ & $10.001221957331$ & $4.48E-11$ & $10.001221957779$ &  \\
+& &$5E-4$ & $10.006109426662$ & $1.08E-08$ & $10.006109307623$ & $1.12E-09$ & $10.006109307626$ & $1.12E-09$ & $10.006109318814$ &  \\
+& &$1E-3$ & $10.012217893980$ & $4.31E-08$ & $10.012217417803$ & $4.47E-09$ & $10.012217417826$ & $4.47E-09$ & $10.012217462554$ &  \\
+& &$5E-3$ & $10.061051127218$ & $1.07E-06$ & $10.061039218756$ & $1.11E-07$ & $10.061039221609$ & $1.11E-07$ & $10.061040334895$ &  \\
+& &$1E-2$ & $10.122006554490$ & $4.27E-06$ & $10.121958901199$ & $4.40E-07$ & $10.121958924256$ & $4.37E-07$ & $10.121963352201$ &  \\
+& &$5E-2$ & $10.606237585801$ & $1.02E-04$ & $10.605043121040$ & $1.02E-05$ & $10.605046227528$ & $9.91E-06$ & $10.605151307825$ &  \\
+& &$1E-1$ & $11.203164005504$ & $3.90E-04$ & $11.198377948795$ & $3.69E-05$ & $11.198404863749$ & $3.45E-05$ & $11.198791644206$ &  \\
+& &$2E-1$ & $12.370396017420$ & $1.43E-03$ & $12.351280581510$ & $1.18E-04$ & $12.351523995048$ & $9.85E-05$ & $12.352740173584$ &  \\
+& &$3E-1$ & $13.504544464008$ & $2.97E-03$ & $13.461851176111$ & $2.04E-04$ & $13.462746122656$ & $1.37E-04$ & $13.464591945533$ &  \\
+& &$4E-1$ & $14.608605661990$ & $4.90E-03$ & $14.533634757963$ & $2.60E-04$ & $14.535884428949$ & $1.05E-04$ & $14.537409076271$ &  \\
+& &$5E-1$ & $15.685501416282$ & $7.14E-03$ & $15.570250047282$ & $2.60E-04$ & $15.574818078556$ & $3.32E-05$ & $15.574301411949$ &  \\
+& &$1E+0$ & $20.748402254288$ & $2.12E-02$ & $20.337553481742$ & $1.02E-03$ & $20.375264152845$ & $2.88E-03$ & $20.316754002510$ &  \\
+& &$2E+0$ & $29.876173541426$ & $5.35E-02$ & $28.614309748677$ & $8.96E-03$ & $28.860853512576$ & $1.77E-02$ & $28.360088424685$ &  \\
+& &$5E+0$ & $53.691824552566$ & $1.13E-01$ & $50.763459667051$ & $5.27E-02$ & $51.415859614987$ & $6.63E-02$ & $48.220896992378$ & \multirow{-20}{3cm}{Computations with only $R=4$, $(M,S)=(0,0)$}  \\ \cline{10-11}
+& &$1E+1$ & $91.190697218117$ & $2.48E-01$ & $83.796753131214$ & $1.47E-01$ & $85.839785051119$ & $1.75E-01$ & $73.067354457427$ &  lowest GS for $R=5$, $(M,S)=(0,0)$\\ \cline{10-11}
+& &$5E+1$ & $373.166706573103$ & $3.98E-01$ & $336.364762441183$ & $2.61E-01$ & $343.866968316472$ & $2.89E-01$ & $266.841126091951$ &  \\
+& \multirow{-23}{*}{4}  &$1E+2$ & $723.570709199507$ & $4.28E-01$ & $648.354721946766$ & $2.80E-01$ & $665.070975971614$ & $3.13E-01$ & $506.530170970484$ & \multirow{-2}{3cm}{lowest GS for $R=5$, $(M,S)=(1,4)$}\\ \cline{2-11}
+
+
+& &$1E-7$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ &  \\
+& &$5E-7$ & $10.000006109906$ & $0.00E+00$ & $10.000006109906$ & $9.95E-15$ & $10.000006109906$ & $9.95E-15$ & $10.000006109906$ &  \\
+& &$1E-6$ & $10.000012219811$ & $4.00E-14$ & $10.000012219810$ & $3.00E-14$ & $10.000012219810$ & $3.00E-14$ & $10.000012219811$ &  \\
+& &$5E-6$ & $10.000061099015$ & $9.70E-13$ & $10.000061098998$ & $7.30E-13$ & $10.000061098998$ & $7.30E-13$ & $10.000061099005$ &  \\
+& &$1E-5$ & $10.000122197932$ & $3.85E-12$ & $10.000122197864$ & $2.94E-12$ & $10.000122197864$ & $2.94E-12$ & $10.000122197893$ &  \\
+& &$5E-5$ & $10.000610985729$ & $9.63E-11$ & $10.000610984030$ & $7.36E-11$ & $10.000610984030$ & $7.36E-11$ & $10.000610984766$ &  \\
+& &$1E-4$ & $10.001221961630$ & $3.85E-10$ & $10.001221954835$ & $2.94E-10$ & $10.001221954835$ & $2.94E-10$ & $10.001221957779$ &  \\
+& &$5E-4$ & $10.006109415140$ & $9.63E-09$ & $10.006109245263$ & $7.35E-09$ & $10.006109245259$ & $7.35E-09$ & $10.006109318814$ &  \\
+& &$1E-3$ & $10.012217848026$ & $3.85E-08$ & $10.012217168587$ & $2.94E-08$ & $10.012217168558$ & $2.94E-08$ & $10.012217462554$ &  \\
+& &$5E-3$ & $10.061050005063$ & $9.61E-07$ & $10.061033032599$ & $7.26E-07$ & $10.061033029056$ & $7.26E-07$ & $10.061040334895$ &  \\
+& &$1E-2$ & $10.122002197025$ & $3.84E-06$ & $10.121934375205$ & $2.86E-06$ & $10.121934347371$ & $2.87E-06$ & $10.121963352201$ &  \\
+& &$5E-2$ & $10.606152586930$ & $9.44E-05$ & $10.604471080231$ & $6.41E-05$ & $10.604468100180$ & $6.44E-05$ & $10.605151307825$ &  \\
+& &$1E-1$ & $11.202922249993$ & $3.69E-04$ & $11.196270198560$ & $2.25E-04$ & $11.196257347877$ & $2.26E-04$ & $11.198791644206$ &  \\
+& &$2E-1$ & $12.369968767796$ & $1.39E-03$ & $12.343990196237$ & $7.08E-04$ & $12.343959746947$ & $7.11E-04$ & $12.352740173584$ &  \\
+& &$3E-1$ & $13.504208965361$ & $2.94E-03$ & $13.447246826392$ & $1.29E-03$ & $13.445612822036$ & $1.41E-03$ & $13.464591945533$ &  \\
+& &$4E-1$ & $14.608357065775$ & $4.88E-03$ & $14.509802433838$ & $1.90E-03$ & $14.507104502585$ & $2.08E-03$ & $14.537409076271$ &  \\
+& &$5E-1$ & $15.684819018465$ & $7.10E-03$ & $15.535086837586$ & $2.52E-03$ & $15.554143298097$ & $1.29E-03$ & $15.574301411949$ &  \\
+& &$1E+0$ & $20.719248175282$ & $1.98E-02$ & $20.201229121983$ & $5.69E-03$ & $20.218329788077$ & $4.84E-03$ & $20.316754002510$ &  \\
+& &$2E+0$ & $29.553893712856$ & $4.21E-02$ & $27.982294512087$ & $1.33E-02$ & $28.151482969245$ & $7.36E-03$ & $28.360088424685$ &  \\
+& &$5E+0$ & $44.249048160124$ & $8.24E-02$ & $42.999900804541$ & $1.08E-01$ & $42.943908735317$ & $1.09E-01$ & $48.220896992378$ & \multirow{-20}{3cm}{Computations with only $R=4$, $(M,S)=(0,0)$}  \\ \cline{10-11}
+& &$1E+1$ & $152.918469535500$ & $1.09E+00$ & $97.968877514451$ & $3.41E-01$ & $127.568792185046$ & $7.46E-01$ & $73.067354457427$ & lowest GS for $R=5$, $(M,S)=(0,0)$\\ \cline{10-11}
+& &$5E+1$ & $227.685682577638$ & $1.47E-01$ & $216.399780989799$ & $1.89E-01$ & $207.709314596807$ & $2.22E-01$ & $266.841126091951$ &  \\
+& \multirow{-23}{*}{8} &$1E+2$ & $439.532217979911$ & $1.32E-01$ & $413.447621224150$ & $1.84E-01$ & $396.851566567381$ & $2.17E-01$ & $506.530170970484$ & \multirow{-2}{3cm}{lowest GS for $R=5$, $(M,S)=(1,4)$}\\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a six-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods06eHF} 
+\end{table} 
+\end{landscape}
+
+
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{HF}& \multicolumn{2}{c|}{HF+MBPT(HF)-$2^{nd}$order}& \multicolumn{2}{c|}{HF+MBPT(HF)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{12} & &$1E-7$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ &  \\
+& &$5E-7$ & $28.000022882772$ & $5.00E-14$ & $28.000022882772$ & $5.71E-14$ & $28.000022882772$ & $5.71E-14$ & $28.000022882774$ &  \\
+& &$1E-6$ & $28.000045765540$ & $1.96E-13$ & $28.000045765539$ & $2.18E-13$ & $28.000045765539$ & $2.18E-13$ & $28.000045765545$ &  \\
+& &$5E-6$ & $28.000228827509$ & $4.91E-12$ & $28.000228827495$ & $5.41E-12$ & $28.000228827495$ & $5.41E-12$ & $28.000228827646$ &  \\
+& &$1E-5$ & $28.000457654546$ & $1.96E-11$ & $28.000457654489$ & $2.16E-11$ & $28.000457654489$ & $2.16E-11$ & $28.000457655095$ &  \\
+& &$5E-5$ & $28.002288253834$ & $4.91E-10$ & $28.002288252424$ & $5.41E-10$ & $28.002288252424$ & $5.41E-10$ & $28.002288267575$ &  \\
+& &$1E-4$ & $28.004576460432$ & $1.96E-09$ & $28.004576454794$ & $2.16E-09$ & $28.004576454794$ & $2.16E-09$ & $28.004576515396$ &  \\
+& &$5E-4$ & $28.022880412872$ & $4.90E-08$ & $28.022880271860$ & $5.41E-08$ & $28.022880271853$ & $5.41E-08$ & $28.022881786724$ &  \\
+& &$1E-3$ & $28.045756103306$ & $1.96E-07$ & $28.045755538941$ & $2.16E-07$ & $28.045755538888$ & $2.16E-07$ & $28.045761597478$ &  \\
+& &$5E-3$ & $28.228591777300$ & $4.86E-06$ & $28.228577605242$ & $5.36E-06$ & $28.228577598505$ & $5.36E-06$ & $28.228728882585$ &  \\
+& &$1E-2$ & $28.456712525178$ & $1.92E-05$ & $28.456655526319$ & $2.12E-05$ & $28.456655471930$ & $2.12E-05$ & $28.457259680513$ &  \\
+& &$5E-2$ & $30.264911808725$ & $4.43E-04$ & $30.263429009206$ & $4.92E-04$ & $30.263421756722$ & $4.92E-04$ & $30.278318327442$ &  \\
+& &$1E-1$ & $32.484376480755$ & $1.60E-03$ & $32.478202624544$ & $1.79E-03$ & $32.478141067399$ & $1.79E-03$ & $32.536480931004$ &  \\
+& &$2E-1$ & $36.797055408932$ & $5.27E-03$ & $36.771062499380$ & $5.97E-03$ & $36.770542250789$ & $5.99E-03$ & $36.992010607447$ &  \\
+& &$3E-1$ & $40.961183077452$ & $9.84E-03$ & $40.901512484210$ & $1.13E-02$ & $40.899775842855$ & $1.13E-02$ & $41.368445666447$ &  \\
+& &$4E-1$ & $45.000567680461$ & $1.47E-02$ & $44.894701107258$ & $1.70E-02$ & $44.890807609895$ & $1.71E-02$ & $45.670810879121$ &  \\
+& &$5E-1$ & $48.936365417564$ & $1.94E-02$ & $48.773724150896$ & $2.27E-02$ & $48.766733218374$ & $2.28E-02$ & $49.905865978617$ &  \\
+& &$1E+0$ & $67.569930222732$ & $3.90E-02$ & $67.024446498457$ & $4.68E-02$ & $66.992675350455$ & $4.72E-02$ & $70.312502175757$ &  \\
+& &$2E+0$ & $102.292196585864$ & $6.16E-02$ & $100.826555465561$ & $7.51E-02$ & $100.737427532380$ & $7.59E-02$ & $109.010808418516$ &  \\
+& &$5E+0$ & $200.826644244514$ & $8.08E-02$ & $196.562566888881$ & $1.00E-01$ & $196.552202980407$ & $1.00E-01$ & $218.488098056035$ &  \\
+& &$1E+1$ & $359.443501215690$ & $9.56E-02$ & $353.978643401936$ & $1.09E-01$ & $353.780127476716$ & $1.10E-01$ & $397.443249829703$ &  \\
+& &$5E+1$ & $1,621.747795925120$ & $1.11E-01$ & $1,594.575953000710$ & $1.26E-01$ & $1,593.292329511550$ & $1.26E-01$ & $1,823.602313382110$ &  \\
+& \multirow{-23}{*}{4} &$1E+2$ & $3,198.533123735590$ & $1.13E-01$ & $3,144.658909324040$ & $1.28E-01$ & $3,142.089310529960$ & $1.29E-01$ & $3,605.813353473020$ & \multirow{-23}{3cm}{Computations with only $R=3$, $(M,S)=(0,0)$}  \\  \cline{2-11}
+
+& &$1E-7$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ &  \\
+& &$5E-7$ & $28.000022882772$ & $5.35E-14$ & $28.000022882772$ & $6.43E-14$ & $28.000022882772$ & $6.43E-14$ & $28.000022882774$ &  \\
+& &$1E-6$ & $28.000045765539$ & $2.04E-13$ & $28.000045765538$ & $2.46E-13$ & $28.000045765538$ & $2.46E-13$ & $28.000045765545$ &  \\
+& &$5E-6$ & $28.000228827504$ & $5.08E-12$ & $28.000228827475$ & $6.13E-12$ & $28.000228827475$ & $6.13E-12$ & $28.000228827646$ &  \\
+& &$1E-5$ & $28.000457654526$ & $2.03E-11$ & $28.000457654409$ & $2.45E-11$ & $28.000457654409$ & $2.45E-11$ & $28.000457655095$ &  \\
+& &$5E-5$ & $28.002288253339$ & $5.08E-10$ & $28.002288250403$ & $6.13E-10$ & $28.002288250403$ & $6.13E-10$ & $28.002288267575$ &  \\
+& &$1E-4$ & $28.004576458452$ & $2.03E-09$ & $28.004576446710$ & $2.45E-09$ & $28.004576446710$ & $2.45E-09$ & $28.004576515396$ &  \\
+& &$5E-4$ & $28.022880363596$ & $5.08E-08$ & $28.022880070043$ & $6.13E-08$ & $28.022880070061$ & $6.13E-08$ & $28.022881786724$ &  \\
+& &$1E-3$ & $28.045755907335$ & $2.03E-07$ & $28.045754733030$ & $2.45E-07$ & $28.045754733171$ & $2.45E-07$ & $28.045761597478$ &  \\
+& &$5E-3$ & $28.228587100883$ & $5.02E-06$ & $28.228557725086$ & $6.06E-06$ & $28.228557742903$ & $6.06E-06$ & $28.228728882585$ &  \\
+& &$1E-2$ & $28.456694897827$ & $1.98E-05$ & $28.456577306641$ & $2.40E-05$ & $28.456577450118$ & $2.40E-05$ & $28.457259680513$ &  \\
+& &$5E-2$ & $30.264652314968$ & $4.51E-04$ & $30.261697622438$ & $5.49E-04$ & $30.261716167559$ & $5.48E-04$ & $30.278318327442$ &  \\
+& &$1E-1$ & $32.483931929728$ & $1.62E-03$ & $32.472063225263$ & $1.98E-03$ & $32.472219432147$ & $1.98E-03$ & $32.536480931004$ &  \\
+& &$2E-1$ & $36.796754408665$ & $5.28E-03$ & $36.749159304656$ & $6.56E-03$ & $36.750303251535$ & $6.53E-03$ & $36.992010607447$ &  \\
+& &$3E-1$ & $40.957264235247$ & $9.94E-03$ & $40.850593827221$ & $1.25E-02$ & $40.856383632075$ & $1.24E-02$ & $41.368445666447$ &  \\
+& &$4E-1$ & $44.981509722895$ & $1.51E-02$ & $44.793597600008$ & $1.92E-02$ & $44.805605335578$ & $1.89E-02$ & $45.670810879121$ &  \\
+& &$5E-1$ & $48.883234063775$ & $2.05E-02$ & $48.593529883188$ & $2.63E-02$ & $48.617043675475$ & $2.58E-02$ & $49.905865978617$ &  \\
+& &$1E+0$ & $66.912244170015$ & $4.84E-02$ & $65.870798169807$ & $6.32E-02$ & $66.038258669640$ & $6.08E-02$ & $70.312502175757$ &  \\
+& &$2E+0$ & $98.067797155616$ & $1.00E-01$ & $94.893535047153$ & $1.30E-01$ & $96.145512858464$ & $1.18E-01$ & $109.010808418516$ &  \\
+& &$5E+0$ & $290.237582802627$ & $3.28E-01$ & $269.034180902363$ & $2.31E-01$ & $261.549657366640$ & $1.97E-01$ & $218.488098056035$ &  \\
+& &$1E+1$ & $561.833857484633$ & $4.14E-01$ & $472.763584640851$ & $1.90E-01$ & $18.347844959507$ & $9.54E-01$ & $397.443249829703$ &  \\
+& &$5E+1$ & $1,178.795947280830$ & $3.54E-01$ & $1,120.250610293640$ & $3.86E-01$ & $1,139.154117277190$ & $3.75E-01$ & $1,823.602313382110$ &  \\
+& \multirow{-23}{*}{8} &$1E+2$ & $2,279.692075613080$ & $3.68E-01$ & $2,160.771693088170$ & $4.01E-01$ & $2,201.068248999480$ & $3.90E-01$ & $3,605.813353473020$ & \multirow{-23}{3cm}{Computations with only $R=3$, $(M,S)=(0,0)$}  \\ 
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a 12-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods12eHF} 
+\end{table} 
+\end{landscape}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           MBPT (HO)           %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{MBPT(HO)-$1^{st}$order}& \multicolumn{2}{c|}{MBPT(HO)-$2^{nd}$order}& \multicolumn{2}{c|}{MBPT(HO)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{2}& &$1E-7$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & \\
+& &$5E-7$ & $2.000000626657$ & $3.49E-14$ & $2.000000626657$ & $9.99E-15$ & $2.000000626657$ & $9.99E-15$ & $2.000000626657$ & \\
+& &$1E-6$ & $2.000001253314$ & $1.45E-13$ & $2.000001253314$ & $4.51E-14$ & $2.000001253314$ & $4.51E-14$ & $2.000001253314$ & \\
+& &$5E-6$ & $2.000006266568$ & $3.61E-12$ & $2.000006266566$ & $1.15E-12$ & $2.000006266566$ & $1.15E-12$ & $2.000006266563$ & \\
+& &$1E-5$ & $2.000012533131$ & $1.45E-11$ & $2.000012533122$ & $4.62E-12$ & $2.000012533122$ & $4.62E-12$ & $2.000012533112$ & \\
+& &$5E-5$ & $2.000062665444$ & $3.61E-10$ & $2.000062665215$ & $1.15E-10$ & $2.000062665215$ & $1.15E-10$ & $2.000062664984$ & \\
+& &$1E-4$ & $2.000125330363$ & $1.45E-09$ & $2.000125329446$ & $4.62E-10$ & $2.000125329446$ & $4.62E-10$ & $2.000125328523$ & \\
+& &$5E-4$ & $2.000626630801$ & $3.61E-08$ & $2.000626607881$ & $1.15E-08$ & $2.000626607890$ & $1.15E-08$ & $2.000626584794$ & \\
+& &$1E-3$ & $2.001253209074$ & $1.44E-07$ & $2.001253117385$ & $4.61E-08$ & $2.001253117459$ & $4.62E-08$ & $2.001253025058$ & \\
+& &$5E-3$ & $2.006263945539$ & $3.60E-06$ & $2.006261651873$ & $1.15E-06$ & $2.006261661131$ & $1.15E-06$ & $2.006259347655$ & \\
+& &$1E-2$ & $2.012522647963$ & $1.43E-05$ & $2.012513466119$ & $4.57E-06$ & $2.012513540105$ & $4.61E-06$ & $2.012504269056$ & \\
+& &$5E-2$ & $2.062404808005$ & $3.48E-04$ & $2.062173825512$ & $1.10E-04$ & $2.062182990983$ & $1.14E-04$ & $2.061947942318$ & \\
+& &$1E-1$ & $2.124295000418$ & $1.34E-03$ & $2.123363888315$ & $4.16E-04$ & $2.123436335481$ & $4.50E-04$ & $2.122481353547$ & \\
+& &$2E-1$ & $2.246574506683$ & $5.01E-03$ & $2.242792725798$ & $1.50E-03$ & $2.243357176090$ & $1.75E-03$ & $2.239439975058$ & \\
+& &$3E-1$ & $2.366923700288$ & $1.06E-02$ & $2.358286512449$ & $3.03E-03$ & $2.360136553189$ & $3.82E-03$ & $2.351166061395$ & \\
+& &$4E-1$ & $2.485425861700$ & $1.76E-02$ & $2.469845248267$ & $4.83E-03$ & $2.474093512102$ & $6.56E-03$ & $2.457973187497$ & \\
+& &$5E-1$ & $2.602161579782$ & $2.60E-02$ & $2.577468933253$ & $6.75E-03$ & $2.585490025756$ & $9.88E-03$ & $2.560187735597$ & \\
+& &$1E+0$ & $3.161921401726$ & $7.95E-02$ & $3.056561595695$ & $1.42E-02$ & $3.109529767677$ & $3.18E-02$ & $3.013626129397$ & \\
+& &$2E+0$ & $4.185136950885$ & $2.07E-01$ & $3.719618108148$ & $3.74E-03$ & $3.995708550047$ & $7.02E-02$ & $3.733597603174$ & \\
+& &$5E+0$ & $6.775965715485$ & $5.50E-01$ & $3.347757146059$ & $3.72E-01$ & $4.711596090878$ & $1.17E-01$ & $5.333416434792$ & \\
+& &$1E+1$ & $9.192744506771$ & $9.68E-01$ & $-5.142112788917$ & $1.70E+00$ & $-4.824474514976$ & $1.65E+00$ & $7.383537264058$ & \\
+& &$5E+1$ & $27.433561900391$ & $2.53E+00$ & $-427.215647186034$ & $2.43E+01$ & $-427.406263075788$ & $2.43E+01$ & $18.314898304163$ &  \multirow{-22}{3cm}{$(M,S)^{GS}=(0,0)$ for $R=5$, $M\in[0:12]$ and $S\in[0:2]$}  \\ \cline{10-11}
+& \multirow{-23}{*}{4} &$1E+2$ & $49.760800203239$ & $3.30E+00$ & $-1,840.194002475680$ & $6.32E+01$ & $-1,840.892230228590$ & $6.32E+01$ & $29.601244919262$ & \multirow{-1}{3cm}{$(M,S)^{GS}=(1,2)$} \\ \cline{2-11}
+
+
+& &$1E-7$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & $0.00E+00$ & $2.000000125331$ & \\
+& &$5E-7$ & $2.000000626657$ & $3.49E-14$ & $2.000000626657$ & $4.88E-15$ & $2.000000626657$ & $4.88E-15$ & $2.000000626657$ & \\
+& &$1E-6$ & $2.000001253314$ & $1.45E-13$ & $2.000001253314$ & $3.00E-14$ & $2.000001253314$ & $3.00E-14$ & $2.000001253314$ & \\
+& &$5E-6$ & $2.000006266568$ & $3.61E-12$ & $2.000006266565$ & $7.25E-13$ & $2.000006266565$ & $7.25E-13$ & $2.000006266563$ & \\
+& &$1E-5$ & $2.000012533131$ & $1.45E-11$ & $2.000012533118$ & $2.91E-12$ & $2.000012533118$ & $2.91E-12$ & $2.000012533112$ & \\
+& &$5E-5$ & $2.000062665442$ & $3.61E-10$ & $2.000062665130$ & $7.28E-11$ & $2.000062665130$ & $7.28E-11$ & $2.000062664984$ & \\
+& &$1E-4$ & $2.000125330354$ & $1.45E-09$ & $2.000125329105$ & $2.91E-10$ & $2.000125329105$ & $2.91E-10$ & $2.000125328523$ & \\
+& &$5E-4$ & $2.000626630573$ & $3.61E-08$ & $2.000626599343$ & $7.27E-09$ & $2.000626599331$ & $7.27E-09$ & $2.000626584794$ & \\
+& &$1E-3$ & $2.001253208163$ & $1.44E-07$ & $2.001253083234$ & $2.91E-08$ & $2.001253083143$ & $2.90E-08$ & $2.001253025058$ & \\
+& &$5E-3$ & $2.006263922999$ & $3.60E-06$ & $2.006260798101$ & $7.23E-07$ & $2.006260786846$ & $7.17E-07$ & $2.006259347655$ & \\
+& &$1E-2$ & $2.012522558992$ & $1.43E-05$ & $2.012510051031$ & $2.87E-06$ & $2.012509961457$ & $2.83E-06$ & $2.012504269056$ & \\
+& &$5E-2$ & $2.062402810851$ & $3.48E-04$ & $2.062088448305$ & $6.81E-05$ & $2.062077703161$ & $6.29E-05$ & $2.061947942318$ & \\
+& &$1E-1$ & $2.124288043470$ & $1.34E-03$ & $2.123022379487$ & $2.55E-04$ & $2.122940713309$ & $2.16E-04$ & $2.122481353547$ & \\
+& &$2E-1$ & $2.246553680531$ & $5.01E-03$ & $2.241426690483$ & $8.87E-04$ & $2.240836615866$ & $6.24E-04$ & $2.239439975058$ & \\
+& &$3E-1$ & $2.366889332103$ & $1.06E-02$ & $2.355212932990$ & $1.72E-03$ & $2.353412542631$ & $9.55E-04$ & $2.351166061395$ & \\
+& &$4E-1$ & $2.485382115832$ & $1.76E-02$ & $2.464381107007$ & $2.61E-03$ & $2.460519177563$ & $1.04E-03$ & $2.457973187497$ & \\
+& &$5E-1$ & $2.602114062463$ & $2.60E-02$ & $2.568931212534$ & $3.42E-03$ & $2.562098103678$ & $7.46E-04$ & $2.560187735597$ & \\
+& &$1E+0$ & $3.161908943210$ & $7.95E-02$ & $3.022410712821$ & $2.91E-03$ & $2.988434037364$ & $8.36E-03$ & $3.013626129397$ & \\
+& &$2E+0$ & $4.185004164083$ & $2.07E-01$ & $3.583014576652$ & $4.03E-02$ & $3.979615461021$ & $6.59E-02$ & $3.733597603174$ & \\
+& &$5E+0$ & $6.775808076626$ & $5.50E-01$ & $2.493985074207$ & $5.32E-01$ & $2.101872795883$ & $6.06E-01$ & $5.333416434792$ & \\
+& &$1E+1$ & $12.039973698080$ & $9.68E-01$ & $-8.557201076326$ & $2.16E+00$ & $-8.837090746698$ & $2.20E+00$ & $7.383537264058$ & \\
+& &$5E+1$ & $22.966747273068$ & $2.53E+00$ & $-512.592854371255$ & $2.90E+01$ & $-512.631882219133$ & $2.90E+01$ & $18.314898304163$ & \multirow{-22}{3cm}{$(M,S)^{GS}=(0,0)$ for $R=5$, $M\in[0:12]$ and $S\in[0:2]$}  \\ \cline{10-11}
+& \multirow{-23}{*}{8} &$1E+2$ & $38.120267705447$ & $3.30E+00$ & $-2,181.702831216570$ & $7.47E+01$ & $-2,181.782981607800$ & $7.47E+01$ & $29.601244919262$ &  \multirow{-1}{3cm}{$(M,S)^{GS}=(1,2)$} \\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a two-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods02ePT} 
+\end{table} 
+\end{landscape}
+
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{MBPT(HO)-$1^{st}$order}& \multicolumn{2}{c|}{MBPT(HO)-$2^{nd}$order}& \multicolumn{2}{c|}{MBPT(HO)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{6} & &$1E-7$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & \\
+& &$5E-7$ & $10.000006109906$ & $4.99E-14$ & $10.000006109906$ & $4.00E-14$ & $10.000006109906$ & $4.00E-14$ & $10.000006109906$ & \\
+& &$1E-6$ & $10.000012219811$ & $2.30E-13$ & $10.000012219812$ & $1.80E-13$ & $10.000012219812$ & $1.80E-13$ & $10.000012219811$ & \\
+& &$5E-6$ & $10.000061099016$ & $5.88E-12$ & $10.000061099051$ & $4.51E-12$ & $10.000061099051$ & $4.51E-12$ & $10.000061099005$ & \\
+& &$1E-5$ & $10.000122197937$ & $2.35E-11$ & $10.000122198074$ & $1.80E-11$ & $10.000122198074$ & $1.80E-11$ & $10.000122197893$ & \\
+& &$5E-5$ & $10.000610985844$ & $5.88E-10$ & $10.000610989272$ & $4.51E-10$ & $10.000610989272$ & $4.51E-10$ & $10.000610984766$ & \\
+& &$1E-4$ & $10.001221962092$ & $2.35E-09$ & $10.001221975805$ & $1.80E-09$ & $10.001221975805$ & $1.80E-09$ & $10.001221957779$ & \\
+& &$5E-4$ & $10.006109426662$ & $5.87E-08$ & $10.006109769452$ & $4.50E-08$ & $10.006109769455$ & $4.50E-08$ & $10.006109318814$ & \\
+& &$1E-3$ & $10.012217893980$ & $2.35E-07$ & $10.012219264969$ & $1.80E-07$ & $10.012219264992$ & $1.80E-07$ & $10.012217462554$ & \\
+& &$5E-3$ & $10.061051127218$ & $5.84E-06$ & $10.061085367457$ & $4.48E-06$ & $10.061085370310$ & $4.48E-06$ & $10.061040334895$ & \\
+& &$1E-2$ & $10.122006554490$ & $2.32E-05$ & $10.122143341441$ & $1.78E-05$ & $10.122143364498$ & $1.78E-05$ & $10.121963352201$ & \\
+& &$5E-2$ & $10.606237585801$ & $5.51E-04$ & $10.609620968271$ & $4.21E-04$ & $10.609624074760$ & $4.22E-04$ & $10.605151307825$ & \\
+& &$1E-1$ & $11.203164005504$ & $2.07E-03$ & $11.216502589201$ & $1.58E-03$ & $11.216529504155$ & $1.58E-03$ & $11.198791644206$ & \\
+& &$2E-1$ & $12.370396017420$ & $7.38E-03$ & $12.422047789038$ & $5.61E-03$ & $12.422291202576$ & $5.63E-03$ & $12.352740173584$ & \\
+& &$3E-1$ & $13.504544464008$ & $1.50E-02$ & $13.616635599511$ & $1.13E-02$ & $13.617530546057$ & $1.14E-02$ & $13.464591945533$ & \\
+& &$4E-1$ & $14.608605661990$ & $2.41E-02$ & $14.800266020621$ & $1.81E-02$ & $14.802515691607$ & $1.82E-02$ & $14.537409076271$ & \\
+& &$5E-1$ & $15.685501416282$ & $3.44E-02$ & $15.972939052367$ & $2.56E-02$ & $15.977507083641$ & $2.59E-02$ & $15.574301411949$ & \\
+& &$1E+0$ & $20.748402254288$ & $9.37E-02$ & $21.671943370641$ & $6.67E-02$ & $21.709654041743$ & $6.86E-02$ & $20.316754002510$ & \\
+& &$2E+0$ & $29.876173541426$ & $2.14E-01$ & $32.248147804911$ & $1.37E-01$ & $32.494691568810$ & $1.46E-01$ & $28.360088424685$ & \\
+& &$5E+0$ & $53.691824552566$ & $4.74E-01$ & $57.402327489498$ & $1.90E-01$ & $58.054727437434$ & $2.04E-01$ & $48.220896992378$ & \multirow{-20}{3cm}{Computations with only $R=4$, $(M,S)=(0,0)$}  \\ \cline{10-11}
+& &$1E+1$ & $91.190697218117$ & $8.09E-01$ & $77.411181569731$ & $5.94E-02$ & $79.454213489636$ & $8.74E-02$ & $73.067354457427$ & lowest GS for $R=5$, $(M,S)=(0,0)$\\ \cline{10-11}
+& &$5E+1$ & $373.166706573103$ & $1.33E+00$ & $-748.683028521954$ & $3.81E+00$ & $-741.180822646665$ & $3.78E+00$ & $266.841126091951$ &  \\
+& \multirow{-23}{*}{4}  &$1E+2$ & $723.570709199507$ & $1.43E+00$ & $-4,246.713397970430$ & $9.38E+00$ & $-4,229.997143945580$ & $9.35E+00$ & $506.530170970484$ & \multirow{-2}{3cm}{lowest GS for $R=5$, $(M,S)=(1,4)$}\\ \cline{2-11}
+
+
+& &$1E-7$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & $0.00E+00$ & $10.000001221981$ & \\
+& &$5E-7$ & $10.000006109906$ & $4.99E-14$ & $10.000006109906$ & $3.00E-14$ & $10.000006109906$ & $3.00E-14$ & $10.000006109906$ & \\
+& &$1E-6$ & $10.000012219811$ & $2.30E-13$ & $10.000012219812$ & $1.60E-13$ & $10.000012219812$ & $1.60E-13$ & $10.000012219811$ & \\
+& &$5E-6$ & $10.000061099015$ & $5.88E-12$ & $10.000061099046$ & $4.02E-12$ & $10.000061099046$ & $4.02E-12$ & $10.000061099005$ & \\
+& &$1E-5$ & $10.000122197932$ & $2.35E-11$ & $10.000122198054$ & $1.61E-11$ & $10.000122198054$ & $1.61E-11$ & $10.000122197893$ & \\
+& &$5E-5$ & $10.000610985729$ & $5.88E-10$ & $10.000610988786$ & $4.02E-10$ & $10.000610988786$ & $4.02E-10$ & $10.000610984766$ & \\
+& &$1E-4$ & $10.001221961630$ & $2.35E-09$ & $10.001221973859$ & $1.61E-09$ & $10.001221973859$ & $1.61E-09$ & $10.001221957779$ & \\
+& &$5E-4$ & $10.006109415140$ & $5.87E-08$ & $10.006109720789$ & $4.02E-08$ & $10.006109720785$ & $4.02E-08$ & $10.006109318814$ & \\
+& &$1E-3$ & $10.012217848026$ & $2.35E-07$ & $10.012219070316$ & $1.61E-07$ & $10.012219070288$ & $1.61E-07$ & $10.012217462554$ & \\
+& &$5E-3$ & $10.061050005063$ & $5.84E-06$ & $10.061080501129$ & $3.99E-06$ & $10.061080497586$ & $3.99E-06$ & $10.061040334895$ & \\
+& &$1E-2$ & $10.122002197025$ & $2.32E-05$ & $10.122123876129$ & $1.59E-05$ & $10.122123848295$ & $1.59E-05$ & $10.121963352201$ & \\
+& &$5E-2$ & $10.606152586930$ & $5.51E-04$ & $10.609134335466$ & $3.76E-04$ & $10.609131355414$ & $3.75E-04$ & $10.605151307825$ & \\
+& &$1E-1$ & $11.202922249993$ & $2.07E-03$ & $11.214556057981$ & $1.41E-03$ & $11.214543207298$ & $1.41E-03$ & $11.198791644206$ & \\
+& &$2E-1$ & $12.369968767796$ & $7.38E-03$ & $12.414261664157$ & $4.98E-03$ & $12.414231214867$ & $4.98E-03$ & $12.352740173584$ & \\
+& &$3E-1$ & $13.504208965361$ & $1.50E-02$ & $13.599116818529$ & $9.99E-03$ & $13.597482814172$ & $9.87E-03$ & $13.464591945533$ & \\
+& &$4E-1$ & $14.608357065775$ & $2.41E-02$ & $14.769121521097$ & $1.59E-02$ & $14.766423589843$ & $1.58E-02$ & $14.537409076271$ & \\
+& &$5E-1$ & $15.684819018465$ & $3.44E-02$ & $15.924275771860$ & $2.25E-02$ & $15.943332232371$ & $2.37E-02$ & $15.574301411949$ & \\
+& &$1E+0$ & $20.719248175282$ & $9.37E-02$ & $21.477290248615$ & $5.71E-02$ & $21.494390914709$ & $5.80E-02$ & $20.316754002510$ & \\
+& &$2E+0$ & $29.553893712856$ & $2.14E-01$ & $31.469535316807$ & $1.10E-01$ & $31.638723773964$ & $1.16E-01$ & $28.360088424685$ & \\
+& &$5E+0$ & $44.249048160124$ & $4.74E-01$ & $52.535999438849$ & $8.95E-02$ & $52.480007369626$ & $8.83E-02$ & $48.220896992378$ & \multirow{-20}{3cm}{Computations with only $R=4$, $(M,S)=(0,0)$}  \\ \cline{10-11}
+& &$1E+1$ & $152.918469535500$ & $8.09E-01$ & $57.945869367135$ & $2.07E-01$ & $87.545784037730$ & $1.98E-01$ & $73.067354457427$  & lowest GS for $R=5$, $(M,S)=(0,0)$\\ \cline{10-11}
+& &$5E+1$ & $227.685682577638$ & $1.33E+00$ & $-1,235.315833586860$ & $5.63E+00$ & $-1,244.006299979860$ & $5.66E+00$ & $266.841126091951$ & \\
+& \multirow{-23}{*}{8} &$1E+2$ & $439.532217979911$ & $1.43E+00$ & $-6,193.244618230070$ & $1.32E+01$ & $-6,209.840672886840$ & $1.33E+01$ & $506.530170970484$ &  \multirow{-2}{3cm}{lowest GS for $R=5$, $(M,S)=(1,4)$}\\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a six-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods06ePT} 
+\end{table} 
+\end{landscape}
+
+
+
+\begin{landscape}
+\begin{table}[ht]
+\centering      % used for centering table
+{\tiny
+\begin{tabular}[c]{c|c|c|c|c|c|c|c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{$\sharp \; e^{-}$}  & \multicolumn{1}{c|}{$R^b$} & \multicolumn{1}{c|}{$\lambda$} & \multicolumn{2}{c|}{MBPT(HO)-$1^{st}$order}& \multicolumn{2}{c|}{MBPT(HO)-$2^{nd}$order}& \multicolumn{2}{c|}{MBPT(HO)-$3^{rd}$order}& \multicolumn{2}{c}{Full CI}\\
+\multicolumn{1}{c|}{}  & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error} & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} &\multicolumn{1}{c|}{rel. error}& \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c}{parameters}\\
+\hline
+\multirow{56}{*}{12} & &$1E-7$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & \\
+& &$5E-7$ & $28.000022882772$ & $3.21E-14$ & $28.000022882774$ & $2.50E-14$ & $28.000022882774$ & $2.50E-14$ & $28.000022882774$ & \\
+& &$1E-6$ & $28.000045765540$ & $1.39E-13$ & $28.000045765548$ & $1.11E-13$ & $28.000045765548$ & $1.11E-13$ & $28.000045765545$ & \\
+& &$5E-6$ & $28.000228827509$ & $3.53E-12$ & $28.000228827724$ & $2.75E-12$ & $28.000228827724$ & $2.75E-12$ & $28.000228827646$ & \\
+& &$1E-5$ & $28.000457654546$ & $1.41E-11$ & $28.000457655403$ & $1.10E-11$ & $28.000457655403$ & $1.10E-11$ & $28.000457655095$ & \\
+& &$5E-5$ & $28.002288253834$ & $3.53E-10$ & $28.002288275275$ & $2.75E-10$ & $28.002288275275$ & $2.75E-10$ & $28.002288267575$ & \\
+& &$1E-4$ & $28.004576460432$ & $1.41E-09$ & $28.004576546194$ & $1.10E-09$ & $28.004576546194$ & $1.10E-09$ & $28.004576515396$ & \\
+& &$5E-4$ & $28.022880412872$ & $3.52E-08$ & $28.022882556758$ & $2.75E-08$ & $28.022882556751$ & $2.75E-08$ & $28.022881786724$ & \\
+& &$1E-3$ & $28.045756103306$ & $1.41E-07$ & $28.045764677986$ & $1.10E-07$ & $28.045764677933$ & $1.10E-07$ & $28.045761597478$ & \\
+& &$5E-3$ & $28.228591777300$ & $3.50E-06$ & $28.228805968749$ & $2.73E-06$ & $28.228805962013$ & $2.73E-06$ & $28.228728882585$ & \\
+& &$1E-2$ & $28.456712525178$ & $1.39E-05$ & $28.457568384542$ & $1.08E-05$ & $28.457568330153$ & $1.08E-05$ & $28.457259680513$ & \\
+& &$5E-2$ & $30.264911808725$ & $3.29E-04$ & $30.286099804477$ & $2.57E-04$ & $30.286092551993$ & $2.57E-04$ & $30.278318327442$ & \\
+& &$1E-1$ & $32.484376480755$ & $1.23E-03$ & $32.567844313365$ & $9.64E-04$ & $32.567782756221$ & $9.62E-04$ & $32.536480931004$ & \\
+& &$2E-1$ & $36.797055408932$ & $4.35E-03$ & $37.118267444379$ & $3.41E-03$ & $37.117747195788$ & $3.40E-03$ & $36.992010607447$ & \\
+& &$3E-1$ & $40.961183077452$ & $8.73E-03$ & $41.651269393041$ & $6.84E-03$ & $41.649532751687$ & $6.79E-03$ & $41.368445666447$ & \\
+& &$4E-1$ & $45.000567680461$ & $1.39E-02$ & $46.166850159352$ & $1.09E-02$ & $46.162956661990$ & $1.08E-02$ & $45.670810879121$ & \\
+& &$5E-1$ & $48.936365417564$ & $1.96E-02$ & $50.665009743311$ & $1.52E-02$ & $50.658018810789$ & $1.51E-02$ & $49.905865978617$ & \\
+& &$1E+0$ & $67.569930222732$ & $4.91E-02$ & $72.894489927834$ & $3.67E-02$ & $72.862718779832$ & $3.63E-02$ & $70.312502175757$ & \\
+& &$2E+0$ & $102.292196585864$ & $9.65E-02$ & $116.046861620514$ & $6.45E-02$ & $115.957733687333$ & $6.37E-02$ & $109.010808418516$ & \\
+& &$5E+0$ & $200.826644244514$ & $1.75E-01$ & $235.051267287627$ & $7.58E-02$ & $235.040903379153$ & $7.58E-02$ & $218.488098056035$ & \\
+& &$1E+1$ & $359.443501215690$ & $2.22E-01$ & $398.549578696396$ & $2.78E-03$ & $398.351062771176$ & $2.28E-03$ & $397.443249829703$ & \\
+& &$5E+1$ & $1,621.747795925120$ & $2.70E-01$ & $138.629658327638$ & $9.24E-01$ & $137.346034838477$ & $9.25E-01$ & $1,823.602313382110$ & \\
+& \multirow{-23}{*}{4} &$1E+2$ & $3,198.533123735590$ & $2.77E-01$ & $-4,106.036271230580$ & $2.14E+00$ & $-4,108.605870024660$ & $2.14E+00$ & $3,605.813353473020$ & \multirow{-23}{3cm}{Computations with only $R=3$, $(M,S)=(0,0)$}  \\  \cline{2-11}
+
+& &$1E-7$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & $0.00E+00$ & $28.000004576555$ & \\
+& &$5E-7$ & $28.000022882772$ & $3.21E-14$ & $28.000022882774$ & $2.14E-14$ & $28.000022882774$ & $2.14E-14$ & $28.000022882774$ & \\
+& &$1E-6$ & $28.000045765539$ & $1.39E-13$ & $28.000045765548$ & $8.93E-14$ & $28.000045765548$ & $8.93E-14$ & $28.000045765545$ & \\
+& &$5E-6$ & $28.000228827504$ & $3.53E-12$ & $28.000228827709$ & $2.25E-12$ & $28.000228827709$ & $2.25E-12$ & $28.000228827646$ & \\
+& &$1E-5$ & $28.000457654526$ & $1.41E-11$ & $28.000457655347$ & $8.98E-12$ & $28.000457655347$ & $8.98E-12$ & $28.000457655095$ & \\
+& &$5E-5$ & $28.002288253339$ & $3.53E-10$ & $28.002288273860$ & $2.24E-10$ & $28.002288273860$ & $2.24E-10$ & $28.002288267575$ & \\
+& &$1E-4$ & $28.004576458452$ & $1.41E-09$ & $28.004576540536$ & $8.98E-10$ & $28.004576540536$ & $8.98E-10$ & $28.004576515396$ & \\
+& &$5E-4$ & $28.022880363596$ & $3.52E-08$ & $28.022882415312$ & $2.24E-08$ & $28.022882415329$ & $2.24E-08$ & $28.022881786724$ & \\
+& &$1E-3$ & $28.045755907335$ & $1.41E-07$ & $28.045764112201$ & $8.97E-08$ & $28.045764112342$ & $8.97E-08$ & $28.045761597478$ & \\
+& &$5E-3$ & $28.228587100883$ & $3.50E-06$ & $28.228791824108$ & $2.23E-06$ & $28.228791841925$ & $2.23E-06$ & $28.228728882585$ & \\
+& &$1E-2$ & $28.456694897827$ & $1.39E-05$ & $28.457511805978$ & $8.86E-06$ & $28.457511949455$ & $8.86E-06$ & $28.457259680513$ & \\
+& &$5E-2$ & $30.264652314968$ & $3.29E-04$ & $30.284685340374$ & $2.10E-04$ & $30.284703885494$ & $2.11E-04$ & $30.278318327442$ & \\
+& &$1E-1$ & $32.483931929728$ & $1.23E-03$ & $32.562186456954$ & $7.90E-04$ & $32.562342663839$ & $7.95E-04$ & $32.536480931004$ & \\
+& &$2E-1$ & $36.796754408665$ & $4.35E-03$ & $37.095636018735$ & $2.80E-03$ & $37.096779965614$ & $2.83E-03$ & $36.992010607447$ & \\
+& &$3E-1$ & $40.957264235247$ & $8.73E-03$ & $41.600348685342$ & $5.61E-03$ & $41.606138490195$ & $5.75E-03$ & $41.368445666447$ & \\
+& &$4E-1$ & $44.981509722895$ & $1.39E-02$ & $46.076324456775$ & $8.88E-03$ & $46.088332192345$ & $9.14E-03$ & $45.670810879121$ & \\
+& &$5E-1$ & $48.883234063775$ & $1.96E-02$ & $50.523563333035$ & $1.24E-02$ & $50.547077125322$ & $1.28E-02$ & $49.905865978617$ & \\
+& &$1E+0$ & $66.912244170015$ & $4.91E-02$ & $72.328704286727$ & $2.87E-02$ & $72.496164786560$ & $3.11E-02$ & $70.312502175757$ & \\
+& &$2E+0$ & $98.067797155616$ & $9.65E-02$ & $113.783719056084$ & $4.38E-02$ & $115.035696867396$ & $5.53E-02$ & $109.010808418516$ & \\
+& &$5E+0$ & $290.237582802627$ & $1.75E-01$ & $220.906626259943$ & $1.11E-02$ & $213.422102724219$ & $2.32E-02$ & $218.488098056035$ & \\
+& &$1E+1$ & $561.833857484633$ & $2.22E-01$ & $341.971014585657$ & $1.40E-01$ & $-112.444725095687$ & $1.28E+00$ & $397.443249829703$ & \\
+& &$5E+1$ & $1,178.795947280830$ & $2.70E-01$ & $-1,275.834444440860$ & $1.70E+00$ & $-1,256.930937457310$ & $1.69E+00$ & $1,823.602313382110$ & \\
+& \multirow{-23}{*}{8} &$1E+2$ & $2,279.692075613080$ & $2.77E-01$ & $-9,763.892682304570$ & $3.71E+00$ & $-9,723.596126393260$ & $3.70E+00$ & $3,605.813353473020$ & \multirow{-23}{3cm}{Computations with only $R=3$, $(M,S)=(0,0)$}  \\ 
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Relative errors of several \textit{ab initio} many-body techniques with respect to the full configuration interaction energy taken here as reference for the ground state energy of a 12-particle dot. From left to right, we give the approximated ground state and the relative error respectively for: the Hartree-Fock method, the Hartree-Fock method corrected by a $2^{nd}$ and $3^{rd}$-order correction in the HF basis, the energy given by many-body perturbation theory in the harmonic oscillator basis up to first, second and third order, and finally the configuration interaction energy with the parameters used to compute them.}
+\label{tab:comparisonMethods12ePT} 
+\end{table} 
+\end{landscape}
+
+
+
+\subsection{Short comparison to the variational Monte Carlo method}
+
+We briefly compare our previous results with a few runs of the variational Monte Carlo (VMC) simulator developed by Rune Albrigtsen.
+The details of the simulations performed are given in appendix~\ref{app:vmc}. The idea is to compare (even for a few simulations) the approximated energy of  VMC to the FCI ground state and to the other methods.  Table~\ref{tab:compVMC} indicates that the energies computed with VMC are  lower than the FCI ground state for quantum dots with 2, 6 and 12 electrons and with a confinement strength $\lambda=1$.
+
+These VMC calculations, as our Hartree-Fock implementation, use the closed-shell Slater determinant as an ansatz for the ground state. The lower energy obtained with VMC could be due to a breakdown of the method considering $\lambda=1$ as a large interaction strength. However we have seen in section~\ref{sec:breakingModel} that $\lambda=1$ is still far from the breaking limit ($\lambda_{limit}^{2e^-} \geq 50$, $\lambda_{limit}^{6e^-} \geq 13$), and that increasing the model space of FCI usually increases this limit.
+
+Therefore, FCI calculations should be run over a much larger space in order to decide the nature of the ground state and study the breaking of the VMC calculations according to the new ``exact'' energies.
+
+\begin{table}[ht]
+\centering      % used for centering table
+{\scriptsize
+\begin{tabular}[c]{c|c|c|c} 
+\toprule[1pt]
+\multicolumn{1}{c|}{}    &\multicolumn{1}{c|}{2-electron QD}   &\multicolumn{1}{c|}{6-electron QD} &\multicolumn{1}{c}{12-electron QD} \\
+\multicolumn{1}{c|}{}    & \multicolumn{1}{c|}{energy ($\hbar \omega$)}& \multicolumn{1}{c|}{energy ($\hbar \omega$)} & \multicolumn{1}{c|}{energy ($\hbar \omega$)} \\
+\hline
+Full CI &3.013626  & 20.316754 & 70.312502 \\
+VMC & 3.0025 $\pm 1.2 \,10^{-4}$ & 20.1909 $\pm 3.6 \,10^{-4}$ & 65.79$\pm 1.9 \,10^{-3}$  \\
+HF & 3.16908  & 20.744840 & 66.912244 \\
+HF+MBPT(HF)-$2^{nd}$order & 3.015743 & 20.337553 &65.870798  \\
+MBPT(HO)-$1^{st}$order & 3.253314 & 22.219812 &73.765549  \\
+MBPT(HO)-$2^{nd}$order &3.022410  & 21.477290 & 72.328704 \\
+\toprule[1pt]
+\end{tabular}
+}
+ \caption{Comparison of approximation to the ground state energy of quantum dots with $\lambda=1$.}
+\label{tab:compVMC} 
+\end{table} 
+
+This short comparison with the VMC results let us think that some of our previous conclusions may be altered by the accuracy of the FCI calculations within a too small Hilbert space. If the FCI method in a very small space becomes less accurate than the Hartree-Fock method, and closer to the MBPT results, we would conclude wrongly that MBPT performs better than Hartree-Fock (which we may have done in section~\ref{sec:accuracyNbElectrons}).
+
+This shows the importance of the FCI accuracy with respect to the size of the model space.
+

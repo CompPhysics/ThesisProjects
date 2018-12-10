@@ -1,0 +1,462 @@
+% Chapter Template
+
+\stepcounter{section}
+
+\chapter{Many Body Quantum Theory} % Main chapter title
+
+\label{Chapter1} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Chapter 2. \emph{Many Body Quantum Theory}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%----------------------------------------------------------------------------------------
+%	Theory
+%----------------------------------------------------------------------------------------
+
+\paragraph{A brief review} The aim of this chapter is to introduce some of the  fundamental concepts relevant to this thesis, with an emphasis on many-body theory and the formalism of second quantization.
+
+
+\section{Many-body Theory}
+
+Many-body theory is the framework which to date best describes and
+predicts phenomena relating to interacting quantum systems. The main
+body of the theory was developed by physicists such as Fermi, Pauli
+and Dirac in the late 1920s. As the Davisson-Germer electron
+diffraction experiment confirmed the particle wave duality of matter
+in 1927 \cite{Giuliani2005} and the discovery of half integer spin was
+made by Goudsmit and Uhlenbeck in 1925 \cite{Giuliani2005}, these
+results found their rationale in the theoretical work of Pauli, Fermi
+and Dirac \cite{Giuliani2005}. Dirac introduced the 
+\emph{Second Quantization Formalism} in 1927 \cite{ShavittBartlett2009}.
+
+Important contributions have been made continuously over the
+years. Feynman introduced the diagrammatic formalism in
+1949 \cite{ShavittBartlett2009}, prior to the advent of many-body
+perturbation theory, introduced by Brueckner and Levinson in
+1955 \cite{ShavittBartlett2009}.  The subsequent decades have seen an
+explosion in the development of various so-called first principle
+methods\footnote{With first principle or {\em ab initio} methods, we
+mean methods that allow, with a given Hamiltonian, for either exact
+solutions of the many-body problem or approximative solutions which
+can be improved upon systematically}, including several Monte Carlo
+methods, Green's function methods, full configuration interaction
+theory and many other many-body approaches. In this thesis, we will in particular pay
+attention to coupled cluster theory. This method was originally
+introduced in order to solve the nuclear many-body problem by Coester
+and Kümmel \cite{Kummel}.  Coupled cluster theory, with its various
+approximations, has during the last five decades provided highly
+accurate predictions for a wide range of interacting quantum systems
+and has become one of the standard many-body methods in quantum
+chemistry and nuclear physics, providing precise benchmarks for
+systems up to hundreds of interacting electrons or nucleons.
+
+Coupled cluster theory offers a range of methods for approximating energies and
+properties of systems. When choosing which method to utilize, one has
+to consider the trade off between performance and accuracy. While some
+approximations  may in principle provide us with very precise results, they may
+have computational requirements beyond what is currently
+achievable. With these considerations, the so-called 
+CCSD(T) (Coupled Cluster Singles and Doubles with Perturbative
+Triples) is considered to be the "gold standard" of coupled cluster theory, as it is
+both efficient and highly accurate.\footnote{The author was not able
+to pinpoint exactly where this concept of "gold-standard" originated,
+but a search on Google Scholar with the keywords "coupled cluster gold
+standard" clearly shows that this terminology is commonly used within
+the quantum chemistry community.}
+
+In the following sections we will briefly review some of the essential elements of quantum many-body theory and
+introduce notations used in the rest of this thesis. Since a great  number of in-depth and
+excellent modern textbooks are written on these topics, the aim here 
+is merely to introduce concepts and theory that will be utilized in
+later parts of this thesis. For an extensive introduction to the basic elements of many-body theory, 
+the reader is referred to some of the many books on the
+subject. \cite{ShavittBartlett2009, Szabo, Harris, GrossRungeHeinonen,Thijssen}.
+
+
+%-----------------------------------
+%	The Fundamental postulates of Quantum Mechanics
+%-----------------------------------
+\section{The Postulates of Quantum Mechanics}
+
+The mathematical framework of quantum mechanics is rooted in several
+fundamental postulates. We will here briefly state these.
+
+\paragraph{(1) The Wave Function}
+The state of a quantum mechanical system is fully specified in time and space by a wave function $\vert \Psi(x,t) \rangle$. Born's Statistical Interpretation \cite{Griffiths2005} suggests that the probability of finding the system in the volume element $dx$ at time $t$ is defined by $\Psi(x,t)^* \Psi(x,t) dx$. Another important property is that the wave function should be normalized to one in the full occupied space $\Omega$ \cite{Griffiths2005}, that is
+
+$$ \int_\Omega \Psi(\mathbf{x},t)^* \Psi(\mathbf{x},t) d\Omega = 1. $$
+
+Here the variable $\mathbf{x}$ can represent one or more-dimensional systems and include for example spin degrees of freedom. 
+\paragraph{(2) Observables} For any measurable quantity, such as energy, momentum, or spin, there exists a corresponding linear, Hermitean operator. Such operators are commonly denoted with a hat; $\hat{A}$
+
+\paragraph{(3) Measurement} A measurement of any observables linked with the operator $\hat{A}$ acting on a given system, will result in a value $a$, corresponding to the eigenvalues of the equation
+
+$$ \hat{A} \vert \Psi \rangle = a \vert \Psi \rangle. $$
+
+\paragraph{(4) Average measurement} For a system in the state $\vert \Psi \rangle$, we define the average measurement of $\hat{A}$ by
+
+ $$ \int_{\Omega} \Psi(\mathbf{x},t)^* \hat{A} \Psi(\mathbf{x},t) d\Omega \equiv \langle  \Psi \vert  \hat{A} \vert \Psi \rangle  =  \langle{ A} \rangle.$$
+Here we have assumed that the wave function is normalized.
+The average measurement is \emph{not the most likely result}, merely the average of a multitude of measurements on identical systems. 
+
+\paragraph{(5) Time evolution} The system will evolve in time in accordance with the time independent Schrödinger equation
+
+\begin{equation}
+\hat{H} \vert \Psi(x,t) \rangle = i\hbar \frac{\partial}{\partial t} \vert \Psi(x,t) \rangle .
+\label{eqn:tisl}
+\end{equation}
+
+While the more general requirement of a wave function is that it fulfills the time dependent Schrödinger equation, we may also seek stationary solutions to the \emph{time independent} Schrödinger equation
+
+\begin{equation}
+\hat{H} \vert \Psi(x) \rangle = \epsilon \vert \Psi(x) \rangle,
+\label{eqn:tusl}
+\end{equation}
+
+where $\Psi $ no longer has any dependence on $t$, and $\epsilon$ is considered the eigevalues of $\hat{H}$. Such a state may describe for example the ground state, in which case $\epsilon$ represents the ground state energy.
+
+\paragraph{(6) The Pauli Exclusion Principle} For systems composed of half-integer particles (fermions), the total wave function has to be antisymmetric. As a consequence of the this principle, when using a single-particle basis to build a many-body state, no two indistinguishable \emph{fermions} can occupy the same quantum state. 
+
+While not all textbooks list the Pauli principle as a separate postulate, many experiments have been conducted in order to test the validity of the postulate, with at present no deviations, within experimental uncertainties, from the postulate\footnote{In "Foundations of Physics" (1957) by Lindsay and Margenau \cite{lindsay} it is even claimed that \emph{"There is no way of deducing Pauli’s principle; its validity has to be inferred from its results [...]"}}. Most of this thesis does rely on the Pauli Principle being true, so for all intents and purposes we may as well take it to be a fundamental postulate.
+
+
+
+%-----------------------------------
+%	The many body wave function
+%-----------------------------------
+
+\section{The Many Body Wave Function}
+A single particle may in isolation be completely described by a wave function in Hilbert space. We will refer to this single particle state by
+
+$$ \phi_i(\bold{x}), $$
+
+where $\bold{x}$ now contains all the relevant spacial quantum numbers as well as spin degrees of freedom. Additional quantum numbers needed to specify a given state are included in the subscript $i$.
+
+In the presence of other particles it will make sense to define a wave
+function that describes the system as a whole $\Phi$, and it is
+reasonable to assume that this function relies on each constituent single particle
+state. For a system of $N$ particles, we then have an $N$-body wave
+function of the form
+\begin{equation}
+\Phi \equiv \Phi(\psi_0(\bold{x}_0), \phi_1(\bold{x}_1), \phi_2(\bold{x}_2) ... \phi_N(\bold{x}_N)). 
+\label{eqn:tisldef}
+\end{equation}
+
+Since every single particle state has an associated Hilbert space, the system's state space will be a tensor product of each single particle state space
+\begin{equation}
+\mathcal{H}_0 \otimes \mathcal{H}_1 \otimes \mathcal{H}_2 \otimes ...  \otimes \mathcal{H}_N.
+\label{eqn:systemspace}
+\end{equation}
+
+It is however possible for a subspace of the above to be sufficient. We may also refer to the totality of these spaces as the \emph{Fock space} \cite{ShavittBartlett2009}.
+
+This may lead us to guess that the system's wave function is a product of single particle states
+\begin{equation}
+\Phi_h  = \phi_0 \otimes \phi_1 \otimes ...  \otimes \phi_N = \phi_0(\bold{x}_0) \phi_1(\bold{x}_1) ... \phi_N(\bold{x}_N).
+\label{eqn:hartreeprod}
+\end{equation}
+
+The subscript $h$ denotes that the above product is the so called \emph{Hartree product} or \emph{Hartree function}. It may also be written as
+\begin{equation}
+\prod _{i} \phi _j(\mathbf{x_i}.)
+\label{eqn:hartree3}
+\end{equation}
+
+\section{Antisymmetry}
+
+The Hartree product lacks one important feature that is needed to
+properly describe fermionic systems, namely the antisymmetrization
+described in postulate six in the previous subsection. The Hartree
+product is \emph{completely uncorrelated}, meaning that the
+probability of finding fermions simultaneously at locations
+$x_0,x_1,...$ is given by
+$$|\phi_i(x_0)\phi_j(x_1)...|^2 dx_0 dx_1 ... = |\phi_i(x_0)|^2 dx_0 |\phi_j(x_1)|^2 dx_2 ...$$.
+
+This is just the product of each constituent particle wave function squared. The motion of these particles is in effect independent of each other.
+
+In this thesis we will focus on electronic many-body systems, with an emphasis on the infinite electron gas in three dimensions.
+Electrons are thus our constituent particles. Electrons are identical and indistinguishable spin $1/2$ fermions \cite{Griffiths2005}. 
+
+Although it does not immediately solve the antisymmetrization issue,
+we may assume that each way of permuting the Hartree
+function is an equally valid representation of the system, implying that
+also a linear combination of such permuted Hartree products is a valid
+representation of the system, that is
+\begin{equation}
+ \Phi_p = \frac{1}{\sqrt{N!}} \sum_{\pi}^{N!} \hat{P}_{\pi} \Psi_h.
+\label{eqn:hartreeperm}
+\end{equation}
+
+The subscript $p$ refers to a given set of permutations and $N!$ serves as a normalizing constant. The operator $\hat{P}_{\pi}$ is the permutation operator, performing all $N!$ possible permutations of the Hartree product. 
+
+The Pauli Exclusion Principle is an interpretation of experimental facts, such as the pairing tendency of electrons, and the relation between stability and particle count in a variety of systems. It is commonly stated as \emph{no two indistinguishable fermions may occupy the same quantum state}. When applied on the permuted Hartree function, we see that this principle does not apply in its current form.
+
+To mend this shortcoming of the permuted Hartree function we require
+that interchanging two particles should also change the sign of the
+resulting function. Thus, an odd number of permutations should result
+in a sign change, while an even number of permutations should not. We
+may express this by
+\begin{equation}
+ \Phi_{SD} = \frac{1}{\sqrt{N!}} \sum_{\pi}^{N!} \hat{P}_{\pi} (-)^{n(\pi)}\Psi_h \equiv \sqrt{N!} \mathcal{A} \Psi_h.
+\label{eqn:slaterdet}
+\end{equation}
+
+The subscript $SD$ now denotes the so-called Slater determinant. The
+antisymmetrizer $\mathcal{A}$ is introduced to ease upcoming
+manipulations. One important property of the antisymmetrizer is that
+it commutes with the Hamiltonian \cite{hh4480}
+\begin{equation}
+ \big[ \mathcal{A}, \hat{H} \big] = \mathcal{A}\hat{H} - \hat{H}\mathcal{A} = 0.
+\label{eqn:antisymm_commute}
+\end{equation}
+
+Another one is that its square is simply itself \cite{hh4480}, that is
+\begin{equation}
+ \mathcal{A}^2 =  \mathcal{A}. 
+\label{eqn:antisymm_square}
+\end{equation}
+Furthermore, conjugation results in
+\begin{equation}
+ \mathcal{A}^\dagger =  \mathcal{A}. 
+\label{eqn:antisymm_conjugate}
+\end{equation}
+Another common representation of the Slater determinant is \cite{ShavittBartlett2009}
+\begin{equation}
+\Phi_{SD} (\mathbf{x_1},\mathbf{x_2},...,\mathbf{x_N}) =  \
+\frac{1}{\sqrt{N!}}
+ \begin{vmatrix}
+  \psi_1(\mathbf{x_1}) & \psi_2(\mathbf{x_1}) & \cdots & \psi_N(\mathbf{x_1}) \\
+  \psi_1(\mathbf{x_2}) & \psi_2(\mathbf{x_2}) & \cdots & \psi_N(\mathbf{x_2}) \\
+  \vdots               & \vdots               & \ddots & \vdots               \\
+  \psi_1(\mathbf{x_N}) & \psi_2(\mathbf{x_N}) & \cdots & \psi_N(\mathbf{x_N}) \\
+ \end{vmatrix}.
+\label{eqn:slaterlinalg}
+\end{equation}
+
+
+\section{The Hamiltonian}
+
+In classical mechanics, the total energy of a particle is called the \emph{Hamiltonian}, and is written as \cite{Griffiths2005}
+\begin{equation}
+H(x,p) = \frac{p^2}{2m} + V(x),
+\label{eqn:classical_hamiltonian}
+\end{equation}
+where $p$ is the momentum, $x$ is the position, $m$ is the mass and
+$V(x)$ is the potential acting on a given particle.  By substituting
+$p \rightarrow \frac{\hbar}{i} \frac{\partial}{\partial x}$, we find
+the corresponding single-particle quantum mechanical Hamiltonian to
+be \cite{Griffiths2005}
+\begin{equation}
+\hat{H} = -\frac{\hbar^2}{2m} \frac{\partial^2}{\partial x^2} + V(x).
+\label{eqn:quantum_hamiltonian}
+\end{equation}
+
+\section{Operators and matrix elements}
+
+The form of the potential $V(x)$ in (\ref{eqn:quantum_hamiltonian}) will
+be of special interest to us when working with many-body systems. For
+interacting systems, it is not sufficient for this operator to have a
+dependency on the coordinates of one particle at the time, since some
+parts of the potential energy are attributed to forces between the
+particles. Such forces normally depend on the distance between the
+particles, in other words two sets of coordinates at a time. In this
+context, it makes sense to separate terms that relate to a common
+potential from the terms that relate to multiple particles that
+interact. For a particle present in the system we may therefore write
+\begin{equation}
+\hat{V}(x_i) = \hat{v}(x_i) + \sum_j \hat{v}(x_i, x_j) + \sum_{j<k, jk \neq i} \hat{v}(x_i, x_j, x_k) + ... \equiv \hat{v}_i + \hat{v}_{ij} + \hat{v}_{ijk} + ...
+\label{eqn:potential_1}
+\end{equation}
+The first term now relates to the common potential or external
+potential felt by all particles, the second term relates to forces
+that act on two particles at a time, and the third relates to forces
+that involves three particles at a time. We could extend this to
+include four-body forces or more complicated ones, but in this thesis we will limit ourselves to at 
+most two-body interactions.
+We will define these interactions in more detail
+in \ref{Chapter2}.
+
+It is convenient to include the kinetic energy in the one-body force, allowing us to thereby define a one-body part of the full many-body Hamiltonian as 
+\begin{equation}
+\hat{h}_0(x_i) =  -\frac{\hbar^2}{2m} \frac{\partial^2}{\partial x_i^2} + v(x_i).
+\label{eqn:onebodyforce}
+\end{equation}
+We will assume that our system consists of identical particles such as electrons. There is then no need to assign any index 
+to the mass, since it will be the same for all particles.
+The reason why we define such a one-body operator is that it is common to define single-particle eigenbases 
+which are  eigenstates (and thereby eigenvalues)  of $\hat{h}_0$. With such a basis, we can in turn construct a (in principle infinite) set of orthogonal and normalized many-body Slater determinants. This basis of  Slater determinants will in turn
+allows to define the exact many-body state function. 
+
+We may now write our general many-body Hamiltonian
+\begin{equation}
+\hat{H} = \sum_i \hat{h}_0(x_i) + \sum_{i<j} v(x_i, x_j).
+\label{eqn:general_hamiltonian}
+\end{equation}
+
+For our Slater determinants to be a reasonable representation of our system, each Slater determinant must have an associated eigenenergy $\epsilon_{SD}$, so that the Schrödinger equation (see Eq. \ref{eqn_tusl})is fulfilled. The general expressions for these eigenvalues may be found by multiplying both sides of the Schrödinger equation by $\langle \Phi_{SD} \vert$, to find
+
+\begin{equation}
+\langle \Phi_{SD} \vert \hat{H} \vert \Phi_{SD} \rangle = \langle \Phi_{SD} \vert \epsilon_{SD} \vert \Phi_{SD} \rangle = \epsilon_{SD}  \langle \Phi_{SD} \vert \Phi_{SD} \rangle = \epsilon,
+\label{eqn:refee}
+\end{equation}
+
+since we have assumed that the Slater determinant is normalized so that $\langle \Phi_{SD} \vert \Phi_{SD} \rangle = 1$. This procedure allows us to find an expression for the eigenenergy associated with the Slater determinant, by evaluating the expectation value
+
+\begin{multline}
+\langle \Phi_{SD}  \vert [\sum_i \hat{h}_0(x_i) + \sum_{i<j} v(x_i, x_j)] \vert \Phi_{SD} \rangle = \\
+ \langle \Phi_{SD} \vert   \sum_i \hat{h}_0(x_i) \vert \Phi_{SD} \rangle + \langle \Phi_{SD} \vert  \sum_{i<j} v(x_i, x_j) \vert \Phi_{SD} \rangle.
+\label{eqn:TUSL_sol2}
+\end{multline}
+If the above Slater determinant is an ansatz for the ground state, the last equation defines what is normally called the reference energy. We will discuss this quantity in greater detail in later chapters.
+If we consider the form of the SD defined in (\ref{eqn:slaterdet}) and the properties of the antisymmetrizer, we find that
+\begin{multline}
+    \epsilon_{SD} = \langle \sqrt{N!} \mathcal{A} \phi _h | \hat{H} | \sqrt{N!} \mathcal{A} \phi _h \rangle = \\
+    N!\langle \phi _h | \mathcal{A}^{\dagger} \hat{H} \mathcal{A} \phi _h \rangle = N!\langle \phi _h | \hat{H}\mathcal{A}\phi _h \rangle = \\ 
+    N!\langle \phi _h |\hat{H} \Psi _0 \rangle  = N!\langle \phi _h |\hat{H} | \Phi _{SD} \rangle, 
+ \label{eqn:groundstate}
+\end{multline}
+where $\epsilon_{SD}$ will later define our so-called \emph{reference energy}, and be assigned the label $\epsilon_{ref}$. 
+Inserting our Hamiltonian we find that
+\begin{equation}
+\epsilon _{SD} = \langle \phi _h | \sum _i^N \hat{h}_0(\mathbf{x_i}) | \Phi _0\rangle + \frac{N!}{2}\langle \phi _h | \sum _{i,j\neq i}^N \hat{v}(\mathbf{x_i}, \mathbf{x_j}) | \Phi _{SD} \rangle,
+ \label{eqn:convinient_groundstate}
+\end{equation}
+and the problem is naturally separated in terms relating to the one-body 
+part and the two-body part. 
+
+\subsection{The one body problem}
+
+Since the one body operator only acts on one particle at a time, we find that
+\begin{equation}
+\hat{h}_0(\mathbf{x_i})\prod _{j=1}^N \phi _j (\mathbf{x_j}) = \Bigg( \prod _{j=1}^{N-1} \phi _j(\mathbf{x_j}) \Bigg) \hat{h}_0(\mathbf{x_i}) \phi _i(\mathbf{x_i}).
+ \label{eqn:onebody_2}
+\end{equation}
+We may write out the inner product as an integral over all quantum numbers for every particle $d\tau = \prod_i d\mathbf{x}_i$
+\begin{multline}
+N! \int d\tau \Bigg( \prod _{j=1}^N \phi _i^{*} (\mathbf{x_i}) \Bigg) \hat{h}_0(\mathbf{x_j}) \Bigg( \prod _{k=1}^N \phi _k (\mathbf{x_k}) \Bigg) = \\
+\prod _{i\neq j}^{N-1} \Big( \int d\mathbf{x_i} |\phi _i (\mathbf{x_i}) | ^2 \Big) \int d\mathbf{x_j} \big( \phi _j^{*}(\mathbf{x_j}) \hat{h}_0(\mathbf{x_j}) \phi _j(\mathbf{x_j}) \big).
+\label{eqn:onebody_inner}
+\end{multline}
+In the case of an orthonormal basis, it is apparent that the outcome of this integral is 
+depends only on how the one-body operator acts on the targeted state since
+\begin{equation}
+\prod _{i\neq j}^{N-1} \Big( \int d\mathbf{x_i} |\phi _i (\mathbf{x_i}) | ^2 \Big) = 1. 
+\label{eqn:orthogonal_onebody}
+\end{equation}
+For the terms beyond the unpermuted Hartree product we will either find that
+% for the case $j \neq i$ that
+\begin{equation}
+  \int d\mathbf{x_j} \big( \phi _j^{*}(\mathbf{x_j})\hat{h}_0(\mathbf{x_j})\phi _i(\mathbf{x_j})\big) = 0,
+\end{equation}
+or that
+\begin{equation}
+  \int d\mathbf{x_j} \big( \phi _j^{*}(\mathbf{x_j})\phi _i(\mathbf{x_j})\big) = 0.
+\end{equation}
+This means that the one-body contribution to the energy $\epsilon_h$ becomes
+
+\begin{equation}
+\epsilon_{h}  = \sum_i \langle \phi_i \vert \hat{h}_0 \vert \phi_i \rangle.
+\label{eqn:onebody_energy}
+\end{equation}
+
+\subsection{The two body problem}
+
+For the two body problem, we now seek a solution to
+\begin{equation}
+\epsilon_v = \frac{N!}{2}\sum _{i,j\neq i}^N \langle \phi_h | v_{ij} | \mathcal{A}\phi_h \rangle.
+ \label{eqn:two_body_inner}
+\end{equation}
+If we first consider only the unpermuted hartree product to the right we will find that
+\begin{multline}\label{two_body_integral_2}
+  \langle \phi _h | v_{ij} | \phi _h \rangle = \\
+  \prod _{k\neq (i,j)}^N \Big( \int d\mathbf{x_k}|\phi _k(\mathbf{x_k})|^2 \Big) 
+  \int d\mathbf{x_i}d\mathbf{x_j} \Big( \phi _i^{*}(\mathbf{x_i})\phi _j^{*}(\mathbf{x_j}) \hat{v} (\mathbf{x_i},\mathbf{x_j}) \phi _i(\mathbf{x_i})\phi _j(\mathbf{x_j}) \Big). \\ 
+\end{multline}
+The factor in front will vanish if our basis is properly normalized. For the singly permuted Hartree products we find instead
+\begin{multline}\label{two_body_integral_permut}
+  \langle \phi _h | v_{ij} | \hat{P} _{ij} \phi _h \rangle = \\ 
+  \int d\mathbf{x_i}d\mathbf{x_j} \Big( \phi _i^{*}(\mathbf{x_i})\phi _j^{*}(\mathbf{x_j}) \hat{v} (\mathbf{x_i},\mathbf{x_j})\phi _i(\mathbf{x_j})\phi _j(\mathbf{x_i}) \Big). \\
+\end{multline}
+
+The two-body operator's ability to bring the permuted states into alignment with the unpermuted states results in the above not necessarily being zero, so we will need to include it in the final energy evaluation. We may rewrite it as
+\begin{equation}
+ \epsilon _v = \frac{1}{2}\sum _{i,j\neq i} \langle \phi _h | \hat{v}_{ij} |(1 - \hat{P} _{ij})\phi _h\rangle = \frac{1}{2}\sum _{i,j\neq i}^N \Big( \langle ij | \hat{v} | ij \rangle  - \langle ij | \hat{v} | ji \rangle \Big).
+ \label{two_body_en_eq}
+\end{equation}
+Summarizing, the expectation value of our single Slater determinant is then
+\begin{equation}
+\epsilon_{SD} = \epsilon _h + \epsilon _v = \sum _i \langle i | \hat{h}_0(x_i) | i \rangle + \frac{1}{2}\sum _{i,j\neq i}^N \Big( \langle ij | \hat{v} | ij \rangle  - \langle ij | \hat{v} | ji \rangle \Big).
+\label{eqn:many_body_energy}
+\end{equation}
+
+
+
+
+%-----------------------------------
+%	The Aim of Many Body Quantum Theory
+%-----------------------------------
+
+\section{The Aim of Many Body Quantum Theory}
+
+At this point, we should note that while the Slater determinant fulfills the
+criterions laid out so far, we have still not defined the single-particle
+states. 
+
+Depending on the form of the Hamiltonian in the Schrödinger equation,
+we may or may not have some idea of the form of the single-particle states. In many
+systems, it is possible to separate the Hamiltonian into terms
+describing the interaction between the particles and terms associated
+with the constituent particles.
+
+\begin{equation}
+ \hat{H} = \hat{H}_{onebody} + \hat{H}_{interaction}
+\label{eqn:sephamilt}
+\end{equation}
+
+By ignoring the interaction terms, we may then try to solve the Schrödinger equation for the one-body problem.
+
+Consider for example a number of interacting fermions in a common
+potential. When solving the corresponding one body problem, one
+typically obtains a set of wave functions that fulfill the Schrödinger
+equation, where each constituent function corresponds to a given energy
+state with an associated eigenenergy. The number of states may be infinite. By letting this set of
+states populate the Slater determinant in different ways 
+we may construct an infinite number of Slater determinants, in
+effect spanning the Fock space defined in \ref{eqn:systemspace}.
+
+While the Fock space completely spans the space for the system's wave
+function, it is also possible for a subset of Slater determinants to do the
+same. Another possibility is that most of the system's wave function
+is contained in such a subset, so that a truncation of the Fock space
+may be made while retaining a decent approximation to the systems wave
+function.
+
+For example, in cases where
+\begin{equation}
+ \hat{H}_{onebody} \gg \hat{H}_{interaction},
+\label{eqn:lesserinteraction}
+\end{equation}
+we may expect to be able to represent most of the system's ground state
+wave function with a small subset of all Slater determinants. 
+
+This is in essence the aim of many-body theory: we seek the
+set of Slater determinants that gives the most accurate representation of the system's
+wave function.
+
+To obtain such a set we may choose a variety of paths, but common to
+all is the fact that the mathematical framework used so far would
+prove very tedious in deriving the upcoming expressions. We will
+therefore need to utilize the formalism commonly called 
+\emph{second quantization} or 
+\emph{the occupation number representation}, and for
+even more simplicity we will extend this to a diagrammatic formalism.
+
+In the next chapters we present some of the basic elements of second quantization.
+
+
+
+
+
+
+
+
+

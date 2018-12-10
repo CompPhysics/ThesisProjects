@@ -1,0 +1,496 @@
+\documentclass[twocolumn]{revtex4}
+\usepackage{graphicx,amsmath,amssymb,bm}
+
+\newcommand{\OP}[1]{{\bf\widehat{#1}}}
+
+\newcommand{\be}{\begin{equation}}
+
+\newcommand{\ee}{\end{equation}}
+
+\begin{document}
+\title{Thesis title: Thesis title: Time-evolution of  systems of quantum dots}
+\author{Sigve B\o e Skattum}
+\maketitle
+\section*{Aims}
+The aim of this thesis is to study the time evolution of a system of quantum dots (electrons confined in
+two dimensional traps) using the multi-configuration time-dependent Hartree-Fock method, as discussed in Ref.~\cite{mcthf}. The first step, based on a code developed by a fellow Master of Science student (Frank Olsen) is to 
+study the structure of quantum dots using large-scale diagonalization techniques. Thereafter, time-dependence via an external time-dependent field will be included.
+The large-scale diagonalization results for various quantum dots will also be benchmarked against
+virtually exact variational and diffusion Monte Carlo results.
+\subsection*{General introduction to possible physical systems}
+
+
+
+
+What follows here is a general introduction to systems of confined electrons in two or three dimensions.
+However, although the thesis will focus on such systems, the codes will be written so 
+that other systems of trapped 
+fermions or eventually bosons can be handled. Examples could be neutrons in a harmonic oscillator trap, see for example Ref.~\cite{bogner2011}, or ions in various traps \cite{yoram2008}.  
+
+Strongly confined electrons
+offer a wide variety of complex and subtle phenomena which pose severe 
+challenges to existing many-body methods.
+Quantum dots in particular, that is, electrons confined in semiconducting heterostructures,
+exhibit, due to their small size, discrete quantum levels. 
+The ground states of, for example, circular dots
+show similar shell structures and magic numbers 
+as seen for atoms and nuclei. These structures are particularly evident in
+measurements of the change in electrochemical potential due to the addition of
+one extra electron, 
+$\Delta_N=\mu(N+1)-\mu(N)$. Here $N$ is the number of electrons in the quantum dot, and
+$\mu(N)=E(N)-E(N-1)$ is the electrochemical potential of the system.
+Theoretical predictions of $\Delta_N$ and the excitation energy spectrum require
+accurate calculations of ground-state and of excited-state energies.
+Small confined systems, such as quantum dots (QD), have become very popular for experimental 
+study. Beyond their possible relevance for nanotechnology, they are highly tunable 
+in experiments and introduce level quantization and quantum interference in a controlled way. In a finite system, 
+there cannot, of course, be a true phase transition, but a cross-over between weakly and strongly correlated regimes is 
+still expected. There are several other fundamental differences between quantum dots and bulk systems: (a)\,Broken translational 
+symmetry in a QD reduces the ability of the electrons to delocalize. As a result, a Wigner-type cross-over 
+is expected for a smaller value of $r_s$\footnote{This is the so-called gas parameter $r_s=(c_d/a_B)(1/n)^d$, where $n$ is the electron density, $d$ is the spatial dimension, $a_B$ the effective Bohr radius and  $c_d$ a dimension dependent constant.}. (b)\,Mesoscopic fluctuations, inherent in any confined system, 
+lead to a rich interplay with the correlation effects. These two added features make strong correlation physics particularly 
+interesting in a QD. As clean 2D bulk samples with large $r_s$ are regularly fabricated these days in semiconductor 
+heterostructures, it seems to be just a matter of time before these systems are patterned into a QD, 
+thus providing an excellent probe of correlation effects.
+
+
+
+The above-mentioned quantum mechanical levels can, in turn, be tuned by means
+of, for example, the application of various external fields.  
+The spins of the electrons in quantum dots
+provide a natural basis for representing so-called qubits \cite{divincenzo1996}. The capability to manipulate
+and study such states is evidenced by several recent experiments \cite{exp1,exp2}.
+Coupled quantum dots are particularly interesting since so-called  
+two-qubit quantum gates can be realized by manipulating the 
+exchange coupling which originates from the repulsive Coulomb interaction 
+and the underlying Pauli principle.  For such states, the exchange coupling splits singlet and triplet states, 
+and depending on the shape of the confining potential and the applied magnetic field, one can allow
+for electrical or magnetic control of the exchange coupling. In particular, several recent experiments and 
+theoretical investigations have analyzed the role of effective spin-orbit interactions 
+in quantum dots \cite{exp5,exp6,pederiva2010,spinorbit} and their influence on the exchange coupling.
+
+A proper theoretical understanding of the exchange coupling, correlation energies, 
+ground state energies of quantum dots, the role of spin-orbit interactions
+and other properties of quantum dots as well, requires the development of appropriate and reliable  
+theoretical  few- and many-body methods. 
+Furthermore, for quantum dots with more than two electrons and/or specific values of the 
+external fields, this implies the development of few- and many-body methods where   
+uncertainty
+quantifications are provided.  
+For most methods, this means providing an estimate of the error due 
+to the truncation made in the single-particle basis and the truncation made in 
+limiting the number of possible excitations.
+For systems with more than three or four electrons,  {\em ab initio} methods that have 
+been employed in studies of quantum dots are
+ variational and diffusion Monte Carlo \cite{harju2005,pederiva2001, pederiva2003}, path integral approaches \cite{pi1999}, 
+large-scale diagonalization (full configuration 
+interaction) \cite{Eto97,Maksym90,simen2008,modena2000}, and to a very limited extent 
+coupled-cluster theory \cite{shavittbartlett2009,bartlett2007,bartlett2003,indians,us2011}. 
+Exact diagonalization studies are accurate for a very small number
+of electrons, but the number of basis functions needed to obtain a given
+accuracy and the computational cost grow very rapidly with electron number.
+In practice they have been used for up to eight electrons\cite{Eto97,Maksym90,modena2000}, but the accuracy is
+very limited for all except $N\le 3$ .  
+Monte Carlo methods have been applied up to $N=24$ electrons 
+\cite{pederiva2001,pederiva2003}. Diffusion Monte Carlo, with statistical and systematic errors, provide, in principle,
+exact benchmark solutions to various properties of quantum dots. However, 
+the computations start becoming rather time-consuming for larger systems.   
+Hartree\cite{Kum90}, restricted Hartree-Fock, spin- and/or space-unrestricted
+Hartree-Fock\cite{Fuj96,Mul96,Yan99} and
+local spin-density, and current density functional methods\cite{Kos97,Hir99,finns1,finns2}
+give results that are satisfactory for a qualitative understanding of some
+systematic properties. However, comparisons with exact results show
+discrepancies in the energies that are substantial
+on the scale of energy differences. 
+
+
+\subsection*{Specific tasks}
+
+
+In this paper we concentrate on two-electron quantum dot
+molecules. These molecules consist of laterally, closely coupled
+quantum dots. We treat correlation effects between the electrons
+properly by directly diagonalizing the Hamiltonian matrix in the
+many-body basis (exact diagonalization technique). This allows direct
+access to the ground state energy levels and all excited states for
+both spin-singlet and spin-triplet states. We study these levels as
+well as singlet-triplet splitting and magnetizations as a function of
+magnetic field and dot-dot separation. We also analyze the properties
+of many-body wave functions in detail.
+The magnetic field dependence of the ground state energy and
+singlet-triplet splitting in non-parabolic QDs have attracted recent
+interest.~\cite{EsaRECQD,Drouvelis,Drouvelis2,Drouvelis3,Szafran,Szafran2,Szafran3,Ugajin,AriPRL,Brodsky,Lee}
+Magnetizations in QDs have been measured indirectly with transport
+measurements~\cite{Oosterkamp} and recently with a direct technique
+with improved sensitivity.~\cite{Schwartz} For both measurements,
+semi-classical approaches cannot explain the results.  Also the
+magnetizations of nanoscale QDs do not show non-equilibrium currents
+and de Haas-van Alphen oscillations which are observed in 2DES and
+mesoscopic QDs.~\cite{Schwartz2} In the nanoscale QDs the quantum
+confinement and Coulomb interactions modify the system compared to the
+2DES.~\cite{Schwartz} Theoretically, magnetization (at zero
+temperature) is straightforward to calculate as the derivative of the
+total energy with respect to magnetic field.  Magnetizations have been
+calculated for a small number of electrons in a parabolic
+QD,~\cite{MaksymMAG} in a square dot with a repulsive
+impurity,~\cite{ShengXu} as well as for anisotropic
+QDs,~\cite{Drouvelis} and for self-assembled QDs and quantum
+rings.~\cite{Climente} The magnetization curves have been calculated
+using density-functional theory for rectangular QDs~\cite{EsaRECQD}
+and using the Hartree approximation for other types of non-circular
+QDs.~\cite{Magnusdottir2} A tight-binding model for 10-100 electrons
+in a single or two coupled QDs has been used to calculate
+magnetization curves.~\cite{Aldea}
+
+
+section{Model and method}  
+\label{Model}
+
+We model the two-electron QDM with the two-dimensional Hamiltonian
+\begin{equation}
+H = \sum _{i=1}^2\left ( \frac{ ( {- i {\hbar} \nabla_i}
+-\frac ec \mathbf{A})^2 }{2 m^{*}} + V_\mathrm{c}({\bf
+r}_{i}) \right ) +  \frac {e^{2}}{ \epsilon   r_{12} } \ ,
+\label{ham}
+\end{equation}
+where $V_\mathrm{c}$ is the external confinement potential
+taken to be
+\begin{equation}
+ V_\mathrm{c}({\bf r}) = \frac 12 m^* \omega_0^2 \min \left[
+ \sum_j^M ({\bf r} - {\bf L}_j)^2 \right] \ ,
+\label{Vc}
+\end{equation}
+where the coordinates are in two dimensions ${\bf r} = (x,y)$ and the ${\bf
+L}_j$'s (${\bf L}_j = (\pm L_x, \pm L_y)$) give the positions of the
+minima of the QDM potential, and $M$ is the number of minima. When
+${\bf L}_1=(0,0)$ (and $M=1$) we have a single parabolic QD. With
+$M=2$ and ${\bf L}_{1,2} = (\pm L_x,0)$ we get a double-dot
+potential. We also study four-minima QDM ($M=4$) with minima at four
+possibilities of $(\pm L_x,\pm L_y)$ (see Fig.~\ref{pot}).
+%
+\begin{figure}
+\includegraphics*[width=0.55\columnwidth]{MHelle_Fig1.pdf}
+\caption{Confinement potential of square-symmetric ($L_x=L_y=5$ nm)
+four-minima quantum dot molecule.}
+\label{pot}
+\end{figure}
+%
+ We study both square-symmetric ($L_x=L_y$) and rectangular-symmetric
+($L_x \neq L_y$) four-minima QDMs. The confinement
+potential can also be written using the absolute values of $x$ and $y$
+coordinates as
+\begin{eqnarray}
+V_\mathrm{c}(x,y) &=& \frac 12 m^* \omega_0^2 \times \nonumber\\ &&
+\left[ r^2 - 2 L_x |x| - 2 L_y |y| + L_x^2 + L_y^2 \right] \ .
+\label{Vc_auki}
+\end{eqnarray}
+For non-zero $L_x$ and $L_y$, 
+the perturbation to the parabolic potential comes from the linear
+terms of $L_x$ or $L_y$ containing also the absolute value of the
+associated coordinate.
+
+We use the GaAs material parameters $m^*/m_e=0.067$ and
+$\epsilon=12.4$, and the confinement strength $\hbar\omega_0=3.0$
+meV. This confinement corresponds to the harmonic oscillator length of
+$l_0 = \sqrt{\hbar/\omega_0 m^*} \approx 20$ nm. We concentrate on
+closely coupled QDMs where $L_{x,y} \leq l_0$. The magnetic field (in
+$z$ direction) is included in the symmetric gauge by the vector
+potential $\mathbf{A}$.  The Hamiltonian of Eq. (\ref{ham}) is
+spin-free, and the Zeeman energy can be included in the total energy
+afterwards ($E_Z = g^*\mu_B B S_Z$ with $g^* = -0.44$ for GaAs). We
+disregard the threefold splitting of each triplet state ($S_Z=0,\pm
+1$) and consider only the lowest energy one ($S_Z=1$).
+
+We drop the explicit spin-part of the wave function and expand the
+many-body wave function in symmetric functions for the spin-singlet state
+($S=0$) and anti-symmetric functions for the spin-triplet state ($S=1$).
+\begin{eqnarray}
+ \Psi_S({\bf r}_1,{\bf r}_2) = \sum_{i \leq j} \alpha_{i,j} \{ 
+ \phi_i({\bf r}_1)\phi_j({\bf r}_2) \nonumber \\
+ + (-1)^S \phi_i({\bf r}_2)\phi_j({\bf r}_1) \},
+\end{eqnarray}  
+where $\alpha_{i,j}$'s are complex coefficients. 
+The one-body basis functions $\phi_{i}({\bf r})$ are 2D Gaussians. 
+\begin{equation}
+\phi_{n_x,n_y}({\bf r}) = x^{n_x}y^{n_y} e^{-r^2/2}, 
+\end{equation}   
+where $n_x$ and $n_y$ are positive integers.  The complex coefficient
+vector $\alpha_l$ and the corresponding energy $E_l$ are found from
+the generalized eigenvalue problem where the overlap and Hamiltonian
+matrix elements are calculated analytically. The matrix is
+diagonalized numerically.
+
+
+The basis is suitable for closely coupled QDs. At large distances and
+at high magnetic field we expect less accurate results. The accuracy
+may also depend on the symmetry of the state.  At \emph{zero} magnetic
+field the \emph{parabolic} two-electron QD can be modeled with a very
+good precision by expanding the basis (in a given symmetry) in
+relative coordinates. In Fig.~\ref{virhe} we compare the energy of the
+very accurate solution and the one using our basis (for a parabolic
+QD) as a function of the basis size, where the maximum $n_x=n_y$
+ranges from 3 to 8.
+%
+The magnetization can be calculated as the derivative of the total
+energy with respect to magnetic field. It can be divided into to
+parts, paramagnetic and diamagnetic,
+\begin{eqnarray}
+  M = - \frac{\partial E}{\partial B} = \langle \Psi|\frac {e}{2 m^* c} L_z +
+g^* \mu_B S_z \ |\Psi \rangle \nonumber \\ - \frac{e^2}{8 m^* c^2} \langle \Psi|\sum_i r_i^2|\Psi \rangle B,
+\label{extent}
+\end{eqnarray}
+where the former is constant as a function of magnetic field, for a
+given angular momentum and spin state, and the latter depends linearly
+on magnetic field. The diamagnetic contribution to the magnetization
+is also a measure of the spatial extension of the ground
+state.~\cite{ShengXu}
+
+
+
+\section*{Progress plan and milestones}
+The aims and progress plan of this thesis are as follows
+\begin{itemize}
+\item Fall 2012: Develop first a Hartree-Fock code for electrons trapped in a single harmonic oscillator  
+in two dimensions.   This part entails developing a code for computing the Coulomb interaction
+in two dimensions in the laboratory system.
+\item The Hartree-Fock interaction is then used as input to the variational Monte Carlo code.
+The results will be compared with large scale diagonalization and coupled-cluster
+techniques for 2, 6, 12 and 20 
+electrons in a single harmonic oscillator well.
+\item Fall 2009: Write a code which solves the variational Monte-Carlo (VMC) problem
+      for quantum dots. Both closed-core and open shell quantum dots will be studied. 
+Construct  a Green's function Monte Carlo code
+      based on the Variational Monte Carlo code. 
+      The GFMC code receives as input the optimal 
+      variational energy and wave function from the VMC calculation and solves
+      in principle the Schr\"odinger equation exactly.
+      The Slater determinant used in the VMC calculation includes also
+      single-particle wave functions from Hartree-Fock calculations.
+ \item Fall 2010: The obtained ground states will in turn be used to define a as exact as possible 
+density functional for quantum dots
+using the adiabatic-connection method. The density functional can in turn be used to model
+systems with a large number of elctrons in quantum dots. Comparisons with a density functional derived from coupled-cluster methods will also be made in order to
+test the validity of the Monte Carlo approach.
+Possible applications are to mechanical studies of solar cells.
+\end{itemize}
+ 
+
+
+The thesis is expected to be handed in June 1 2013.
+
+
+\begin{thebibliography}{200}
+\bibitem{bogner2011} S. K. Bogner, R. J. Furnstahl, H. Hergert, M. Kortelainen, P. Maris, M. Stoitsov, and J. P. Vary, Phys.~Rev.~C {\bf 84}, 044306 (2011).
+\bibitem{yoram2008} Y. Alhassid, G. F. Bertsch, and L. Fang, Phys.~Rev.~Lett.~{\bf 100}, 230401 (2008).
+\bibitem{divincenzo1996} D.~Loss and D.~P.~DiVincenzo, Phys.~Rev.~A {\bf 57}, 120 (1998).
+\bibitem{exp1} R.~Hanson, L.~H.~Willems van Beveren, I.~T.~Vink, J.~M.~Elzerman, W.~J.~M. Naber, F.~H.~L.~Koppens, L.~P.~Kouwenhoven, and L.~M.~K.~Vandersypen, \prl {\bf 94}, 196802 (2005).
+\bibitem{exp2} H.-A.~Engel, V.~N.~Golovach, D.~Loss, L.~M.~K.~Vandersypen, J.~M.~Elzerman, R.~Hanson, and L.~P.~ Kouwenhoven, \prl {\bf 93}, 106804 (2004). 
+\bibitem{exp5} C.~Fasth, A.~Fuhrer, L.~Samuelson, V.~N.~Golovach, and D.~Loss, \prl {\bf 98}, 266801 (2007).
+\bibitem{exp6} S.~Roddaro {\em et al.}, \prl {\bf 101}, 18682 (2008).
+\bibitem{pederiva2010}A.~Ambrosetti, J.~M.~Escartin, E.~Lipparini, and F.~Pederiva, arXiv:1003.2433.
+\bibitem{spinorbit} F.~Baruffa, P.~Stano, and J.~Fabian, \prl {\bf 104}, 126401 (2010).
+\bibitem{harju2005} A.~Harju, J.~Low Temp.~Phys.~{\bf 140}, 181 (2005).
+\bibitem{bolton} F.~Bolton, Phys.~Rev.~B {\bf 54}, 4780 (1996).
+\bibitem{pederiva2001}F.~Pederiva, C.~J.~Umrigar, and E.~Lipparini, \prb {\bf 62}, 8120 (2000).
+\bibitem{pederiva2003}L.~Colletti, F.~Pederiva, and  E.~Lipparini,  Eur.~Phys.~J.~B {\bf 27}, 
+385 (2002).
+\bibitem{pi1999} M.~Harowitz, D.~Shin, and J.~Shumway, J.~Low.~Temp.~Phys.~{\bf 140}, 211 (2005).
+\bibitem{Eto97} M. Eto, Jpn. J. Appl. Phys. {\bf 36}, 3924 (1997).
+\bibitem{Maksym90} P.~A.~Maksym and T.~Chakraborty, Phys.~Rev.~Lett.~{\bf 65}, 108 (1990);
+D.~Pfannkuche, V.~Gudmundsson, and P.~A.~Maksym, Phys. Rev. B {\bf 47}, 2244 (1993);
+P.~Hawrylak and D.~Pfannkuche, Phys.~Rev.~Lett.~{\bf 70}, 485 (1993); J.J. Palacios,
+L.~Moreno, G.~Chiappe, E.~Louis, and C.~Tejedor, Phys.~Rev.~B {\bf 50}, 5760 (1994);
+T.~Ezaki, N.~Mori, and C.~Hamaguchi, Phys.~Rev.~B {\bf 56}, 6428 (1997).
+\bibitem{simen2008} S.~Kvaal, Phys.~Rev.~C {\bf 78}, 044330 (2008).
+\bibitem{simen2008b} S.~Kvaal, arXiv:0810.2644, unpublished.
+\bibitem{modena2000} M.~Rontani, C.~Cavazzoni, 
+D.~Belucci, and G.~Goldoni, J.~Chem.~Phys.~{\bf 124}, 124102 (2006).
+\bibitem{shavittbartlett2009} I.~Shavitt and R.\ J.\ Bartlett, {\em Many-body Methods in Chemistry and Physics},  
+(Cambridge University Press, Cambridge UK, 2009). 
+\bibitem{bartlett2007} R.\ J.\ Bartlett and M.\ Musia{\l}, \rmp {\bf 79}, 291 (2007).
+\bibitem{bartlett2003} T.~M.~Henderson, K.~Runge, and R.~J.~Bartlett, Chem.~Phys.~Lett.~{\bf 337}, 138 (2001); \prb {\bf 67}, 045320 (2003).
+\bibitem{indians} I.~Heidari, S.~Pal, B.~S.~Pujari, and D.~G.~Kanhere, J.~Chem.~Phys.~{\bf 127}, 
+114708 (2007).
+\bibitem{kvaal2009} S.~Kvaal, Phys.~Rev.~B {\bf 80}, 045321 (2009).
+\bibitem{Tar96} S. Tarucha, D.G. Austing, T. Honda, R.J. van der Hage, and L.P. Kouwenhoven,
+Phys. Rev. Lett. {\bf 77}, 3613 (1996); Jpn. J. Appl. Phys. {\bf 36}, 3917 (1997);
+S.~Sasaki, D.~G.~Austing, and S.~Tarucha, Physica B {\bf 256}, 157 (1998).
+\bibitem{Note_DMC}Diffusion Monte Carlo  
+calculations for $N=6$ and $N=12$, with $\omega=0.28$,
+have been published in Ref.~\onlinecite{pederiva2001}. All the other 
+results have been computed for this paper.
+\bibitem{Kum90} A.~Kumar, S.~E.~Laux, and F.~Stern, Phys.~Rev.~B {\bf 42}, 5166 (1990).
+\bibitem{Fuj96} M.~Fujito, A.~Natori, and H.~Yasunaga, Phys.~Rev.~B {\bf 53}, 9952 (1996).
+\bibitem{Mul96} H.~M.~Muller and S.~Koonin, Phys.~Rev.~B {\bf 54}, 14532 (1996).
+\bibitem{Yan99} C.~Yannouleas and U.~Landman, Phys. Rev. Lett. {\bf 82}, 5325 (1999).
+\bibitem{Kos97} M. Koskinen, M. Manninen, and S.M. Reimann, Phys. Rev. Lett. {\bf 79}, 1389 (1997).
+\bibitem{Hir99} K. Hirose and N. S. Wingreen, Phys. Rev. B {\bf 59}, 4604 (1999).
+\bibitem{finns1} P.~Gori-Giorgi, M.~Seidl, and G.~Vignale, \prl {\bf 103}, 166402 (2009).
+\bibitem{finns2} E.~R\"as\"anen, S.~Pittalis, J.~G.~Vilhena, M.~A.~L.~Marques, Int.~J.~Quantum Chem.~{\bf 110}, 2308 (2010). 
+\bibitem{helgaker2003} T.~U.~Helgaker, P.~J{\o}rgensen, and J.~Olsen,
+  \emph{Molecular Electronic Structure Theory. Energy and Wave Functions}, (Wiley, New York, USA, 2000).
+\bibitem{ccsdt-n} Y.~S.~Lee, S.~A.~Kucharski, and R.~J.~Bartlett, 
+J.~Chem.~Phys. {\bf 81}, 5906 (1984); {\it ibid} {\bf 82}, 761 (E) (1982);
+J.~Noga, R.~J.~Bartlett, and M. Urban, Chem.~Phys.~Lett.~{\bf 134}, 126 (1987).
+\bibitem{Deegan94} M.~J.~O.~Deegan and P.~J.~Knowles, Chem.~Phys.~Lett. \textbf{227}, 321 (1994).
+\bibitem{Kucharski98} S.~A.~Kucharski and R.~J.~Bartlett, J.~Chem.~Phys. \textbf{108}, 5243 (1998).
+\bibitem{crawford1998} T.~D.~Crawford and J.~F.~Stanton, Int.~J.~Quantum Chem.~{\bf 70}, 601 (1998).
+\bibitem{Taube08} A.~D.~Taube and R.~J.~Bartlett, J.~Chem.~Phys. \textbf{128}, 044110 (2008).
+\bibitem{taube2} A.~D.~Taube and R.~J.~Bartlett, J.~Chem.~Phys. {\bf 128}, 044111 (2008).
+
+\bibitem{hagen2008} G.~Hagen, T.~Papenbrock, D.~J. Dean, and M.~Hjorth-Jensen, 
+Phys.~Rev.~Lett.~{\bf 101}, 092502 (2008).
+\bibitem{hagen2009} G.~Hagen, T.~Papenbrock, D.~J.~Dean, M.~Hjorth-Jensen, and B.~Velamur Asokan, Phys.~Rev.~C {\bf 80}, 021306 (2009).
+\bibitem{hagen2010a}  G.~Hagen, T.~Papenbrock, and M.~Hjorth-Jensen, \prl {\bf 104}, 182501 (2010). 
+\bibitem{hagen2010b}  G. Hagen, T.~Papenbrock, D.~J.~Dean, M.~Hjorth-Jensen, Phys.~Rev.~C {\bf 82}, 034330 (2010).
+\bibitem{schneider2008}  R.~Schneider, Numer.~Math.~{\bf 113}, 433 (2009). 
+\bibitem{navratil1} P.~Navr\'atil and B.~R.~Barrett, Phys.~Rev.~C \textbf{57}, 562 (1998).
+\bibitem{navratil2} P.~Navr\'atil, J.P.~Vary, and B.~R.~Barrett, 
+Phys.~Rev.~Lett. \textbf{84}, 5728 (2000).
+\bibitem{Ash96} R.C. Ashoori, Nature {\bf 379}, 413 (1996);
+L.~P.~Kouwenhoven, T.~H.~Oosterkamp, M.~W.~Danoesastro, M.~Eto, D.~G.~Austing,
+T.~Honda and S.~Tarucha, Science {\bf 278}, 1788 (1997).
+\bibitem{taut1994} M.~Taut, J.~Phys.~A: Math.~Gen.~{\bf 27} 1045 (1994).
+\bibitem{mhj1995} M.~Hjorth-Jensen, T.~T.~S. Kuo, and E.~Osnes, Phys.~Rep.~{\bf 261}, 125 (1995).
+\bibitem{navratil2009}   P.~Navratil, S.~Quaglioni, I.~Stetcu, and B.~R.~Barrett, J.~Phys.~G {\bf 36}, 08310 (2009).
+\bibitem{navratildots} K.~Varga, P.~Navr\'atil, J.~Usukura, and Y.~Suzuki, \prb {\bf 63}, 205308 (2001).
+\bibitem{kvaal2007} S.~Kvaal, M.~Hjorth-Jensen, and H.~M\o ll Nilsen, \prb {\bf 76}, 085421 (2007).
+\bibitem{UWW88} C.~J.~Umrigar, K.~G.~Wilson and J.~W.~Wilkins, in {\it Computer
+Simulation Studies in Condensed Matter Physics: Recent Developments},
+edited by D.P. Landau and H.~B.~Sch\"uttler (Springer-Verlag, Berlin, 1988);
+Phys.~Rev.~Lett.~{\bf 60}, 1719 (1988).
+\bibitem{Umr93} C.~J.~Umrigar, Nightingale, and K.~J.~Runge, J.~Chem.~Phys.
+{\bf 99}, 2865 (1993).
+\bibitem{hdhk2010} M.~Hjorth-Jensen, D.~J.~Dean, G.~Hagen, and S.~Kvaal, J.~Phys.~G {\bf 37}, 064035 (2010).
+\bibitem{Chi98} C.~J.~Huang, C.~Filippi, and C.~J.~Umrigar, J.~Chem.~Phys.~{\bf 108},
+8838 (1998).
+\bibitem{kutzelnigg1991} W.~Kutzelnigg, Theor.~Chim.~Acta {\bf 80}, 349--386 (1991)
+\bibitem{klein1974} D.~J.~Klein, J.~Chem.~Phys. {\bf  61}, 786--98 (1974)
+\bibitem{hagen2011} G.~Hagen, M.~Hjorth-Jensen, S.~Kvaal and F.~Pederiva, unpublished.
+\bibitem{ghosal2007} A.~Ghosal, A.~D.~G\"{u}\c{c}l\"{u}, C.~J.~Umrigar, D.~Ullmo, and H.~U.~Baranger, Phys.~Rev.~B
+{\bf 76}, 085341 (2007).
+\bibitem{gustav2010} G.~R.~Jansen, M.~Hjorth-Jensen, G.~Hagen, and T.~Papenbrock, 
+Phys.~Rev.~C {\bf 83},  054306 (2011)
+
+
+\bibitem{QHE} T.~Chakraborty and P. Pietil\"ainen, {\sl The Quantum 
+{H}all Effects: Fractional and Integral}, (Springer, Berlin, 1995).
+\bibitem{kirja}  L. Jacak, P. Hawrylak, and A. W\'ojs, 
+{\sl Quantum Dots} (Springer, Berlin, 1998).
+\bibitem{MaksymChakra} P. A. Maksym and Tapash Chakraborty, 
+Phys. Rev. Lett. {\bf 65}, 108 (1990).
+\bibitem{Hoch} M. Hochgr\"afe, Ch. Heyn, and D. Heitmann,
+Phys. Rev. B {\bf 63}, 035303 (2001). 
+\bibitem{MeriPRL} M. Marlo, A. Harju, and R. M. Nieminen,
+Phys. Rev. Lett. {\bf 91}, 187401 (2003).
+\bibitem{Veikko} T. Chakraborty, V. Halonen, and P. Pietil\"ainen,
+Phys. Rev. B {\bf 43}, R14289 (1991). 
+\bibitem{Pfannkuche} D. Pfannkuche and R. R. Gerhardts, Phys. Rev. B
+{\bf 44}, R13132 (1991).
+\bibitem{Madhav} A. V. Madhav and T. Chakraborty, Phys. Rev. B {\bf
+49}, 8163 (1994).
+\bibitem{Magnusdottir} I. Magn\'{u}sd\'{o}ttir and V. Gudmundsson,
+Phys. Rev. B {\bf 60}, 16591 (1999).
+\bibitem{Ullrich} C. A. Ullrich and G. Vignale, Phys. Rev. B {\bf 61},
+2729 (2000). 
+\bibitem{ChakraPietil_FIR_PRL05} Tapash Chakraborty and Pekka
+Pietil\"ainen, Phys. Rev. Lett. {\bf 95}, 136603 (2005).
+\bibitem{AriPRL} A. Harju, S. Siljam\"aki, and R. M. Nieminen,
+Phys. Rev. Lett. {\bf 88}, 226804 (2002).
+\bibitem{Brodsky} M. Brodsky, N. B. Zhitenev, R. C. Ashoori,
+L. N. Pfeiffer, and K. W. West, Phys. Rev. Lett. {\bf 85}, 2356 (2000).
+\bibitem{LossDiVincenzo} D. Loss and D. P. DiVincenzo, Phys. Rev. A
+{\bf 57}, 120 (1998).
+\bibitem{Burkard_doubledot} G. Burkard, D. Loss, and D. P. DiVincenzo
+Phys. Rev. B {\bf 59}, 2070 (1999). 
+\bibitem{SchliemannLossMacDonald} John Schliemann, Daniel Loss, and
+A. H. MacDonald, Phys. Rev. B {\bf 63}, 085311 (2001).
+\bibitem{ScarolaDasSarma} V. W. Scarola and S. Das Sarma,
+Phys. Rev. A {\bf 71}, 032340 (2005).
+\bibitem{Lee} S. D. Lee, S. J. Kim, J. S. Kang, Y. B. Cho, J. B. Choi,
+Sooa Park, S.-R. Eric Yang, S. J. Lee, T. H. Zyung, cond-mat/0410044.
+\bibitem{HuttelKotthausPRB05} A. K. H\"uttel, S. Ludwig, H. Lorenz,
+K. Eberl, and J. P. Kotthaus, Phys. Rev. B {\bf 72} 081310(R) (2005).
+\bibitem{ElzermanPRB03} J. M. Elzerman, R. Hanson, J. S. Greidanus,
+L. H. Willems van Beveren, S. De Franceschi, L. M. K. Vandersypen,
+S. Tarucha, and L. P. Kouwenhoven,  Phys. Rev. B {\bf 67}, 161308(R) (2003). 
+\bibitem{JohnsonMarcusNature05} A. C. Johnson, J. R. Petta,
+J. M. Taylor, A. Yacoby, M. D. Lukin, C. M. Marcus, M. P. Hanson, and
+A. C. Gossard, Nature {\bf 435}, 925 (2005).
+\bibitem{KoppensKouwenhScience05} F. H. L. Koppens, J. A. Folk, J. M. Elzerman, R. Hanson, L. H. Willems van Beveren, I. T. Vink, H. P. Tranitz, W. Wegscheider, L. P. Kouwenhoven, and L. M. K. Vandersypen, Science {\bf 309}, 1346 (2005).
+\bibitem{ElzermanNature04} J. M. Elzerman, R. Hanson, L. H. Willems van
+Beveren, B. Witkamp, L. M. K. Vandersypen, and L. P. Kouwenhoven, Nature
+{\bf 430}, 431 (2004).
+\bibitem{HansonPRL05} R. Hanson, L. H. Willems van Beveren,
+I. T. Vink, J. M. Elzerman, W. J. M. Naber, F. H. L. Koppens,
+L. P. Kouwenhoven, and L. M. K. Vandersypen, Phys. Rev. Lett. {\bf
+94}, 196802 (2005).
+\bibitem{PettaSciExp05} J. R. Petta, A. C. Johnson, J. M. Taylor,
+E. A. Laird, A. Yacoby, M. D. Lukin, C. M. Marcus, M. P. Hanson, and
+A. C. Gossard, Science {\bf 309}, 2180 (2005).
+\bibitem{EsaRECQD} E. R\"as\"anen, A. Harju, M. J. Puska, and R. M.  
+Nieminen, Phys. Rev. B {\bf 69}, 165309 (2004).
+\bibitem{Drouvelis} P. S. Drouvelis, P. Schmelcher and F. K. Diakonos,
+J. of Phys.: Condens. Matter {\bf 16}, 3633 (2004).
+\bibitem{Drouvelis2} P. S. Drouvelis, P. Schmelcher and F. K. Diakonos,
+Phys. Rev. B {\bf 69}, 035333 (2004).
+\bibitem{Drouvelis3} P. S. Drouvelis, P. Schmelcher and F. K. Diakonos,
+Phys. Rev. B {\bf 69}, 155312 (2004).
+\bibitem{Szafran} B. Szafran, F. M. Peeters, S. Bednarek, and
+J. Adamowski, Phys. Rev. B {\bf 69}, 125344 (2004).
+\bibitem{Szafran2} B. Szafran, F. M. Peeters, S. Bednarek,
+Phys. Rev. B {\bf 70}, 205318 (2004).
+\bibitem{Szafran3} B. Szafran and F. M. Peeters,
+Phys. Rev. B {\bf 71}, 245314 (2005).
+\bibitem{Ugajin} R. Ugajin, Physica B {\bf 253}, 92 (1998).
+\bibitem{Oosterkamp} T. H. Oosterkamp, S. F. Godijn, M. J. Uilenreef,
+Y. V. Nazarov, N. C. van der Vaart, and L. P. Kouwenhoven,
+Phys. Rev. Lett. {\bf 80}, 4951 (1998).
+\bibitem{Schwartz} M. P. Schwarz, D. Grundler, M. Wilde, C. Heyn, and
+D. Heitmann, J. Appl. Phys. {\bf 91}, 6875 (2002).
+\bibitem{Schwartz2} M. P. Schwarz, D. Grundler, Ch. Heyn, D. Heitmann,
+D. Reuter, and A. Wieck, Phys. Rev. B {\bf 68}, 245315 (2003).
+\bibitem{MaksymMAG} P. A. Maksym and Tapash Chakraborty, Phys. Rev. B
+{\bf 45}, R1947 (1992).
+\bibitem{ShengXu} Weidong Sheng, and Hongqi Xu, Physica B {\bf 256-258},
+152 (1998).
+\bibitem{Climente} J. I. Climente, J. Planelles, and J. L. Movilla,
+Phys Rev. B {\bf 70}, 081301(R) (2004). 
+\bibitem{Magnusdottir2} I. Magn\'{u}sd\'{o}ttir and V. Gudmundsson,
+Phys. Rev. B {\bf 61}, 10229 (2000).
+\bibitem{Aldea} A. Aldea, V. Moldoveanu, M. Ni\c{t}\v{a}, A. Manolescu,
+V. Gudmundsson, and B. Tanatar, Phys. Rev. B {\bf 67}, 035324 (2003).
+\bibitem{HenriVortex} H. Saarikoski, A. Harju, M. J. Puska,
+R. M. Nieminen, Phys. Rev. Lett. {\bf 93}, 116802 (2004).
+\bibitem{PeetersVortex} M. B. Tavernier, E. Anisimovas, and
+F. M. Peeters, Phys. Rev. B {\bf 70}, 155321 (2004).
+\bibitem{TorebladVortex} M. Toreblad, M. Borgh, M. Koskinen,
+M. Manninen, and S. M. Reimann Phys. Rev. Lett. {\bf 93}, 090407 (2004).
+\bibitem{HenriVortex2} H. Saarikoski, S. M. Reimann, E. R\"as\"anen,
+A. Harju, and M. J. Puska, Phys. Rev. B {\bf 71}, 035421 (2005).
+\bibitem{HenriVortex3} H. Saarikoski and A. Harju,
+Phys. Rev. Lett. {\bf 94}, 246803 (2005).
+\bibitem{MeriPhysica} M. Marlo-Helle, A. Harju, and R. M. Nieminen,
+Physica E {\bf 26}, 286 (2005).
+\bibitem{JahnTeller} H. A. Jahn and E. Teller, Proc. R. Soc. London A
+{\bf 161}, 220 (1937).
+\bibitem{Jain} J. K. Jain and T. Kawamura, Europhys. Lett. {\bf 29},
+321 (1995).
+\bibitem{AriPhysica} A. Harju, B. Barbiellini, R. M. Nieminen, and
+V. A. Sverdlov, Physica B {\bf 255}, 145 (1998).
+
+
+
+
+\bibitem {ref1}  A.~M.~Teale, S.~Coriani, and T.~Helgaker, J.~Chem.~Phys.~{\bf 130},
+104111 (2009).
+
+
+\end{thebibliography}
+
+
+
+\end{document}
+
+
+
