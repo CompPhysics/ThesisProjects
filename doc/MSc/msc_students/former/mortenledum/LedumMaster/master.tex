@@ -1,0 +1,457 @@
+\documentclass[twoside,english]{uiofysmaster}
+% STUFF IS LOCATED IN /Users/morten/.texmf/tex/latex/uiofysmaster
+%
+% Check 
+% 
+% https://tex.stackexchange.com/questions/96976/install-custom-cls-using-tex-live-in-local-directory
+%
+% for how to fix placement.
+
+%Included packages ----------------------------------------------------------%
+\usepackage[utf8]{inputenc}                  % utf-8 encoding, æ, ø , å, etc.
+\usepackage{subfiles}
+%\usepackage{a4wide}                          % Adjust margins to better fit A4 format.
+\usepackage{array}                           % Matrices.
+\usepackage{amsmath}                         % Math symbols, and enhanced matrices.o
+\usepackage{amsfonts}                        % Math fonts.
+\usepackage{amssymb}                         % Additional symbols.
+%\usepackage{wasysym}                        % More additional symbols.
+\usepackage{mathrsfs}                        % Most additional symbols.
+%\usepackage[pdftex]{graphicx}                % Improved inclusion of .pdf-graphics files.
+\usepackage[outercaption,wide]{sidecap}      % Floats with captions to the right/left.
+\usepackage{cancel}                          % Visualize cancellations in equations.
+\usepackage{enumerate}                       % Change counters (arabic, roman, etc.).
+\usepackage{units}                           % Adds better looking fractions (nicefrac).
+\usepackage{floatrow}                        % Multi-figure floats.
+\usepackage{subfig}                          % Multi-figure floats.
+\usepackage[margin=1cm]{caption}             % Adds functionality to captions.
+\usepackage{bm}                              % Bolded text in math mode.
+\usepackage{combinedgraphics}                % Figures; let latex handle the text itself.
+\usepackage[framemethod=default]{mdframed}   % Make boxes.
+\usepackage{listings}                        % For including source code.
+\usepackage{soul}                            % Make vertical bars through text.
+\usepackage{nicefrac}                        % Nice fractions with \nicefrac.
+\usepackage{mathtools}                       % Underbrackets, overbrackets.
+\usepackage{wasysym}                         % \smiley{}-s!
+\usepackage{multicol}                        % Multiple text columns.
+\usepackage{capt-of}                         % Caption things which are not floats.
+%\usepackage[url=false]{biblatex}            % Citations (made easy).
+\usepackage{dsfont}
+\usepackage{booktabs}                        % Tables
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{multirow}% http://ctan.org/pkg/multirow
+\usepackage{hhline}% http://ctan.org/pkg/hhline
+\usepackage{siunitx}
+\usepackage[version=4]{mhchem}
+\usepackage{relsize}  % Resize parts of equations
+\usepackage[backend=biber,sorting=none,style=numeric-comp]{biblatex}
+\usepackage[version=4]{mhchem}
+\usepackage{ifxetex,ifluatex}
+\usepackage{etoolbox}
+\usepackage{tikz}
+\usepackage{framed}
+\usepackage{relsize}
+\usepackage[titletoc]{appendix}
+\usetikzlibrary{matrix}
+\usetikzlibrary{arrows.meta, calc, chains, positioning}
+
+\captionsetup{labelfont=bf}
+
+% Quotes --------------------------------------------------------------------- %
+% conditional for xetex or luatex
+\newif\ifxetexorluatex
+\ifxetex
+  \xetexorluatextrue
+\else
+  \ifluatex
+    \xetexorluatextrue
+  \else
+    \xetexorluatexfalse
+  \fi
+\fi
+%
+\ifxetexorluatex%
+  \usepackage{fontspec}
+  \usepackage{libertine} % or use \setmainfont to choose any font on your system
+  \newfontfamily\quotefont[Ligatures=TeX]{Linux Libertine O} % selects Libertine as the quote font
+\else
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{libertine} % or any other font package
+  \newcommand*\quotefont{\fontfamily{LinuxLibertineT-LF}} % selects Libertine as the quote font
+\fi
+
+\newcommand*\quotesize{60} % if quote size changes, need a way to make shifts relative
+% Make commands for the quotes
+\newcommand*{\openquote}
+   {\tikz[remember picture,overlay,xshift=-4ex,yshift=-2.5ex]
+   \node (OQ) {\quotefont\fontsize{\quotesize}{\quotesize}\selectfont``};\kern0pt}
+
+\newcommand*{\closequote}[1]
+  {\tikz[remember picture,overlay,xshift=4ex,yshift={#1}]
+   \node (CQ) {\quotefont\fontsize{\quotesize}{\quotesize}\selectfont''};}
+
+% select a colour for the shading
+\colorlet{shadecolor}{listingsbackgroundcolor}
+
+\newcommand*\shadedauthorformat{\emph} % define format for the author argument
+
+% Now a command to allow left, right and centre alignment of the author
+\newcommand*\authoralign[1]{%
+  \if#1l
+    \def\authorfill{}\def\quotefill{\hfill}
+  \else
+    \if#1r
+      \def\authorfill{\hfill}\def\quotefill{}
+    \else
+      \if#1c
+        \gdef\authorfill{\hfill}\def\quotefill{\hfill}
+      \else\typeout{Invalid option}
+      \fi
+    \fi
+  \fi}
+% wrap everything in its own environment which takes one argument (author) and one optional argument
+% specifying the alignment [l, r or c]
+%
+\newenvironment{shadequote}[2][l]%
+{\authoralign{#1}
+\ifblank{#2}
+   {\def\shadequoteauthor{}\def\yshift{-2ex}\def\quotefill{\hfill}}
+   {\def\shadequoteauthor{\par\authorfill\shadedauthorformat{#2}}\def\yshift{2ex}}
+\begin{snugshade}\begin{quote}\openquote}
+{\shadequoteauthor\quotefill\closequote{\yshift}\end{quote}\end{snugshade}}
+
+
+% Differentials -------------------------------------------------------------- %
+\newcommand{\dt}{\,\mathrm{d}t}
+\newcommand{\dx}{\,\mathrm{d}x}
+\newcommand{\dr}{\,\mathrm{d}r}
+
+% Derivatives ---------------------------------------------------------------- %
+\newcommand{\der} [2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}   % Derivative.
+\newcommand{\pder}[2]{\frac{\partial   #1}{\partial   #2}}   % Partial derivative.
+
+% Matrices ------------------------------------------------------------------- %
+\newcommand{\mat} [2]{\begin{matrix}[#1]  #2 \end{matrix}}   % Nothing enclosing it.
+\newcommand{\pmat}[2]{\begin{pmatrix}[#1] #2 \end{pmatrix}}  % Enclosing paren'theses.
+\newcommand{\bmat}[2]{\begin{bmatrix}[#1] #2 \end{bmatrix}}  % Enclosing square brackets.
+\newcommand{\vmat}[2]{\begin{vmatrix}[#1] #2 \end{vmatrix}}  % Enclosing vertical bars.
+\newcommand{\Vmat}[2]{\begin{Vmatrix}[#1] #2 \end{Vmatrix}}  % Enclosing double bars.
+
+% Number sets ---------------------------------------------------------------- %
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+
+% Manually set alignment of rows / columns in matrices (mat, pmat, etc.) ----- %
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+% References ----------------------------------------------------------------- %
+\newcommand{\Fig}[1]{Fig.\ \ref{fig:#1}}
+\newcommand{\fig}[1]{Fig.\ \ref{fig:#1}}
+\newcommand{\eq} [1]{Eq.\ (\ref{eq:#1})}
+\newcommand{\Eq} [1]{Eq.\ (\ref{eq:#1})}
+\newcommand{\tab}[1]{Table \ref{tab:#1}}
+\newcommand{\Tab}[1]{Table \ref{tab:#1}}
+
+% Paragraph formatting ------------------------------------------------------- %
+\setlength{\parindent}{5.5mm}
+\setlength{\parskip}  {0mm}
+
+% Code listings font --------------------------------------------------------- %
+\lstset{basicstyle=\scriptsize}
+\usepackage{ifxetex}
+\ifxetex
+  \usepackage{fontspec}
+  \newfontfamily\listingsfontfamily[Scale=0.85]{Droid Sans Mono}
+  \renewcommand{\listingsfont}{\listingsfontfamily}
+\fi
+
+\newcommand{\inlinecc}[1]{\lstinline[language={[std]c++}]{#1}}
+\newcommand{\inlinemember}[1]{\lstinline[language={Python},classoffset={4}, morekeywords={#1}, keywordstyle=\color{listingsmembercolor}, classoffset={0}]{#1}}
+\newcommand{\inlineclass}[1]{\lstinline[language={Python},classoffset={4}, morekeywords={#1}, keywordstyle=\color{listingsclasscolor}, classoffset={0}]{#1}}
+
+
+% Convenient shorthand notation ---------------------------------------------- %
+\newcommand{\nn}{\nonumber}
+\newcommand{\e}[1]{\cdot10^{#1}}
+\renewcommand{\i}{\hat{\imath}}
+\renewcommand{\j}{\hat{\jmath}}
+\renewcommand{\k}{\hat{k}}
+\usepackage{ifthen}
+\newcommand*\CC{\texttt{C}\kern-0.2ex\raisebox{0.2ex}{\scalebox{0.9}{+\kern-0.2ex+}}}
+
+% Caption position of tables at the top -------------------------------------- %
+\floatsetup[table]{capposition=top}
+
+% Black frame with white background ------------------------------------------ %
+\newmdenv[linecolor=black,backgroundcolor=white]{exframe}
+\newmdenv[linecolor=white,backgroundcolor=shadecolor]{shadeframe}
+
+% Including vector drawings from inkscape ------------------------------------ %
+\newenvironment{combFig}[5]{
+  \begin{figure}[#1] 
+    \centering 
+    \includecombinedgraphics[vecscale=#2, keepaspectratio]{#3} 
+    \caption{#4 \label{#5}}
+  \end{figure}
+  }
+
+  {
+}
+
+% Including pdf graphics ----------------------------------------------------- %
+\newenvironment{pdfFig}[5]{
+  \begin{figure}[#1] 
+    \centering 
+    \includegraphics[width= #2]{#3} 
+    \caption{#4 \label{#5}}
+  \end{figure}
+  }
+
+  {
+}
+
+
+% Set bibliography file and path for images.
+\graphicspath{{./images/}}
+\newcommand{\includepdfgraphics}[2]{\includecombinedgraphics[#1]{./images/#2}}
+
+
+\graphicspath{{/Users/morten/Documents/Master/Master/Figures/}}
+
+% ---------------------------------------------------------------------------- %
+% ---------------------------------------------------------------------------- %
+
+\renewcommand{\comment}[1]{\ignorespaces}
+%\addbibresource{/Users/morten/Documents/Master/Master/ref.bib}
+\addbibresource{ref.bib}
+
+
+\author{Morten Ledum}
+\title{A Computational Environment for Multiscale Modelling}
+%\title{A first principles approach to multi-scale problems in physics}
+%\title{A quantum Monte Carlo approach to multi-scale modelling using artificial neural networks}
+\date{December 2017}
+
+\makeatletter
+\newcommand{\@colophon}{\footnotesize This thesis was typeset with the \LaTeX{ }typesetting system.\\ Effort has been made to adhere to the ISO 80000-2:2009 standard on mathematics typesetting {\csname @fileswfalse\endcsname\cite{ISO80000}}.}
+\makeatother
+
+\begin{document}
+\newcommand{\mainfile}{}
+\maketitle
+
+\begin{abstract}
+We implement two different \emph{ab initio} electronic structure methods: Hartree-Fock (HF), and quantum variational Monte Carlo (VMC). Gaussian type orbitals are used for the HF method, while the VMC framework allows more general orbital bases (including the possibility of using the optmized HF orbitals). A thorough introduction to the underlying theory of both methods is presented, and the codes are tested on selected first row atoms and simple molecules. Ground state energies are found to be in good agreement with the litterature. 
+
+Secondly, a general function approximation scheme is implemented using artificial neural networks (ANN). The ANN implementation is based on the TensorFlow library developed by the Google Brain team. It is thoroughly tested on single and multivariable functions and subsequently shown to be able to approximate potential energy surfaces (PES) using data from the aforementioned \emph{ab initio} calculations.
+
+The ANN may then be used as a force field in molecular dynamics (MD) simulations\textemdash in place of ordinary parametrized effective MD potentials\textemdash thereby successfully bridging the quantum mechanical and the microscopic regimes. Whereas traditional MD potentials require hand crafting and tuning of a parametrized functional form, the present work implements a \emph{multiscale modelling} approach in which essentially no human intervention is needed. Such "parameter-free" multiscale modelling is preferable for obvious reasons: the results should be fundamentally independent of the human experimenter's ability to \emph{guess} an appropriate functional form.
+
+Lastly: Showcasing the full usage of the computational framework developed, we present a simple\textemdash proof of concept\textemdash MD simulation using an ANN trained to approximate a PES. 
+
+%Secondly, a method for parameterizing the Born-Oppenheimer energy hypersurfaces\textemdash obtained by \emph{ab initio} calculations\textemdash with artificial neural networks (ANN) is presented. The ANN calcuations are done using TensorFlow, and the resulting analytical inter-atomic potentials may be used directly in molecular dynamics simulations. We present a simple\textemdash proof of concept\textemdash MD simulation using the ANN potential for \ce{H2} in the gas state using LAMMPS.
+\end{abstract}
+
+
+%\begin{dedication}
+%  To someone
+%  \\\vspace{12pt}
+%  This is a dedication to my cat.
+%\end{dedication}
+
+\begin{acknowledgements}
+  I would like to thank my supervisors (in no particular order) Anders Malthe-Sørensen, Morten Hjorth-Jensen, and Anders Hafreager for their support during the years as a master student here at the physics department. Along with the rest of the community at the computational physics group, you have created a wonderful environment for learning that I will sorely miss. To Morten: thank you for taking me under your wing here at the computational physics group. It has been a pleasure to be your student and later your TA. I am proud to have taken some small part in teaching the introductory computational physics course with you these past several years. 
+
+  To my tireless \emph{room-mate} here in office V306, Håkon Kristiansen. It feels like we have been sitting here for decades, and I very much appreciate the company. I promise to stop asking you difficult questions you can't answer (at some point). Maybe one day the dream will come true and someone will pay us to just sit around and \emph{figure out} whatever is interesting to us that day.
+
+  I want to acknowledge the two people who have probably influenced me as a student the most. Anders Hafreager and Håvard Tveit Ihle, you both are an inspiration to me, showing what you can achieve through diligent hard work. Anders, thank you for teaching me how to write (less awful) code, and for helping me not fail QFT. I truly appreaciate the endless enthusiasm and the willingness to go out of your way to help regardless of the nature of the problem. Håvard, I am looking forward to floundering my way through your cosmology lectures this spring!
+
+  I also wish to thank the unlikely Johan, the interestingly true Icelandic bat-camel for all the stimulating distractions throughout the time working on this thesis.
+
+  Lastly, to Vilde: Thank you for the endless encouragement (and all the sushi!). Thank you for putting up with the largely absent and massively stressed out version of myself for long months.
+
+  \subsubsection*{Collaboration Details}
+  All the code developed for this thesis have been written from scratch by the author. The ANN code has been developed in partial collaboration with Stende \cite{stende} and Treider \cite{treider}, the HF program was written with a lot of inspiration taken from Dragly \cite{dragly}, and some ideas for the VMC code have been borrowed from an earlier program written by the author and Håvard Tveit Ihle.
+
+  \begin{flushright}
+  Morten Ledum \\ Oslo, December 2017
+  \end{flushright}
+
+\end{acknowledgements}
+
+\tableofcontents
+
+\chapter{Introduction \label{chap1}}
+After being deveolped and pioneered around the middle of the last century, computer modelling and numerical experiments have become ubiquitous in the natural sciences. The list of areas in which simulations have been used to produce significant new results encompass now pretty much all of them. Today computer simulations play as natural a part of the hard sciences as laboratory experiments and theory. In most cases all three are used in order to glean new scientific insight. Without massive scale computational efforts, the existence of e.g.\ the Higgs boson and gravitational waves would still be undetermined.
+
+%In particular, the advent of computers simulations have had a profound impact on researchers ability to 
+The advent of computer simulations during the last several decades have in particular made it possible to study moderately sized quantum mechanical systems from first principles. Our ability to solve\textemdash in closed form\textemdash the governing equations of quantum mechanics (QM) vanishes extremely quickly as the number of constituent particles exceed just a few. Because of this, numerics are used to augment the proverbial \emph{pen and paper}. It is nevertheless striking that the underlying theory for all of chemistry and most of physics have been known for almost a century but the problem preventing us from essentially \emph{solving} chemistry is almost purely computational: the equations resulting from the exact application of this theoretical framework are way too difficult to solve.
+
+Any approximative scheme which aims to solve the many-body Schrödinger equation from scratch subject to some (more or less) well-defined simplifications is called an \emph{ab initio} method. Working from first principles the aim of such algorithms is to extract information from a theoretical QM system in a reasonable amount of time. In order to accomplish this, a number of complicating intricacies need to be disregarded. The magnitude of the simplifications\textemdash essentially the number and importance of complicating factors dropped\textemdash determine both the efficacy and the efficiency of the method: More simplifications made allow solutions to be found for larger systems (albeit less precise solutions), whereas extremely precise solutions can be found for small systems if very few simplifications are employed.
+
+Despite tremendous increases in available numerical computational power in the latter half of the previous-, and the early parts of the current century, any such approximate scheme used is still heavily limited w.r.t.\ the system size. In practice, most methods are limited to systems of containing on the order of between $10^2$ (for high-precision methods such as configuration interaction, coupled cluster, diffusion Monte Carlo, etc.) and $10^5$ electrons (for faster Hartree-Fock and density functional methods) \cite{hu,bowler,vandevondele}. Extracting information from larger systems neccessitate the use of semi-classical or classical algorithms, such as molecular dynamics (MD). Using MD, the time evolution of up to around $10^7$ particles can feasibly be simulated over the order of nano seconds \cite{Zhao2013,Reddy}. Using computationally inexpensive two-body inter-atomic potentials and simulating for only a very short time, around $10^{12}$ particles can be modelled \cite{trillion}. Corresponding large-scale cosmological $N$-body simulations have been run for as many as $10^{11}$ particles \cite{angulo,kim}. For ensembles of particles larger than around $10^{12}$, simulating the individual constituents directly becomes too computationally expensive and we have to use continuum models.
+
+At the boundary between each domain, we are essentially forced into fundamentally differing simulations. As our models move from fine to more coarse-grained with increasing system size, the internal degrees of freedom of the constituent parts are \emph{frozen out}. MD freezes the electronic motion, treating the atomic structure as rigid and solid. Continuum models do away with the atomic motion all together\textemdash e.g.\ treating only a density field defined on some lattice\textemdash thereby freezing all direct inter-atomic interactions.
+
+Being able to preserve\textemdash in some way\textemdash the properties of the fine-grained model in the larger domain is of tremendous scientific value. Lessons learnt from the \emph{ab initio} QM simulations should ideally provide the fundamental basis for developing MD schemes. In the same way, the field equations of the continuum model should incorporate as much of the physics of the molecular simulations as possible. This is the heart of {\bf multiscale modelling}. By simultanously considering a system at different scales (modelling domains) we may hope to arrive at a scheme which preserves \emph{most} of the crucial QM properties, while simultaneously retaining \emph{most} of the efficiency of the coarse-grained models \cite{weinan}.
+
+\section{Quantum and classical dynamics}
+As previously noted, solving the Schrödinger equation (SE) exactly 
+by hand is impossible in the overwhelming majority of interesting cases. However, methods which can get close to the exact solution exists. Full Configuration Interaction (FCI) or direct diagonalization of the Hamiltonian is exact in the limit of an infinite orbital basis set but suffers from an exponential complexity scaling (in system \emph{and} basis size) \cite{helgaker}\comment{p525}. The related Configuration Interaction (CI) and Coupled Cluster (CC) approaches both truncate the FCI expansion of Slater determinants, thus gaining speed but loosing some accuracy \cite{kvaal,shavitt}\comment{ch6.3 ,ch 9}. Diffusion Monte Carlo (DMC) techniques can in principle provide the exact solution to the SE by imaginary-time evolution of an initial wave function guess \cite{hjorthjensen,hammond}\comment{p537,p87}. In practice, DMC methods are highly dependent on this ansatz and thus require as input the results of less accurate method but faster methods. One example may be the Variational Monte Carlo (VMC) method: conceptually simpler and faster than DMC, but not as accurate \cite{hammond,conroy,anderson}.
+
+The Hartree-Fock (HF) framework\textemdash which provides an efficient but not enormously accurate result\textemdash has seen extensive use since its inception in 1930 \cite{hartree,fock,szabo}. However, by far the most popular approximation is Density Functional Theory (DFT), developed by W. Kohn and L. J. Sham in 1965 \cite{kohnsham,martin}. Between 1980 and 2010, DFT was the most active field in physics with eight out of the top ten most cited papers being on the subject \cite{dftperspective}.
+
+Computational scaling of \emph{ab initio} QM models range from $\mathcal{O}(N!)$ in the extreme (FCI), via $\mathcal{O}(N^6)$ (CC with singles, doubles, and estimated connected triples) and $\mathcal{O}(N^4)$ (formal HF), to $\mathcal{O}(N^3)$ for Hartree-Fock with integral pre-screening and density fitting \cite{ratcliff}. 
+
+In the intermediate region between these methods and molecular dynamics, we find a range of hybrid models. Examples include Car-Parrinello MD\textemdash in which the valence electrons are included in the dynamics and treated in a semi-classical way\textemdash and Born-Oppenheimer MD, where the time independent Schrödinger equation is solved approximately at each time step \cite{carparrinello,bomd1,bomd2}. The computational complexity of such hybrids fall somewhere in the middle of the true \emph{ab initio} methods and plain MD. The latter has a naive scaling of $\mathcal{O}(N^2)$, but can be made linear by ingenious partitioning schemes. 
+
+
+\section{Machine learning and artificial neural networks \label{AI}}
+The term artificial intelligence (AI) describes machines which humans percieve as \emph{smart}. Narrow AI, machines focused sorely on a singular task and often achieving super-human performance, are found everywhere in the 21st century. It is remarkable that for example your phone can soundly beat you at the game of chess without breaking a sweat\footnote{If you happen to be a world-class chess player, substitute phone$\leftrightharpoons$laptop}. A computer's ability to beat the best chess players in the world was once a huge breakthrough in the field of AI, but it is easy to just think of this as a computer applying an algorithm to find the correct moves. As the father of the term artificial intelligence\textemdash American computer scientist John McCarthy\textemdash put it \cite{vardi2012artificial}
+\begin{shadequote}[r]{J. McCarthy}
+As soon as it works, no one calls it AI any more.
+\end{shadequote}
+
+While a computer beating a human at chess is impressive, it traditionally does so by sheer brute force calculational power. A human programmed search algorithm traverses vast trees of possible moves, evaluating each position using a human programmed evaluation function to try and find the optimal one. A different approach is taken in \emph{machine learning} (ML). As a subdiscipline of AI, the field of machine learning is focused on creating computers which automatically learn and improve their behaviour through experience \cite{Jordan255}. Very recently, researchers at Google Deep Mind were able to create a program which learns by playing itself \cite{1712.01815}. With the only input being the rules of the game and the conditions for victory, the AlphaZero algorithm was able to beat one of the world's top traditional (\emph{brute force}) chess engines\textemdash Stockfish\textemdash with less than 24 hours of reinforcement training \cite{stockfish}. 
+
+The most popular form of machine learning today is performed by a class of algorithms called artificial neural networks (ANN). Inspired by networks of biological neurons forming brains, the ANNs model a learning process by adjusting the weights connecting individual artificial neurons in the network structure.
+
+The chess example showcases beautifully the major problem inherent in the brute force algorithmic approach: the efficacy of the algorithm is fundamentally limited by the human programmers ability to evaluate a given board position. The machine learning approach\textemdash however\textemdash is not so limited, and essentially figures out the objectively best way to play by trial and error. We will see shortly that the analogue to the way MD potentials are ordinarily created is clear: finding the parameters of a pre-defined functional form limits the possible forms we can describe wheras a machine learning approach based on ANNs is in principle not so limited. 
+
+
+\section{Machine learning in molecular dynamics}
+Traditionally, MD simulations are performed with classical effective potentials which are parametrized to hopefully capture some of the underlying quantum physics. Such empirical model potentials are computationally cheap, and may perform adequately in isolated cases. A lot of hand-tuning of empirical, chemically motivated, parameters is however required in order to reproduce mesoscopic quantities within the MD framework (pair correlation functions, crystalline structure, etc.). As such, constructing effective potentials is a highly non-trivial and time-consuming task\textemdash that ultimately applies only to a small subset of atomic systems at best. Trying to employ a given potential for a 
+system it was not designed for may very well yield qualitatively wrong results. 
+
+In the spirit of multiscale modelling, developing "parameter free" MD schemes is very desirable. Foregoing the complicating, human labour intensive, and intrinsicly difficult step of empirical potential fitting, the method of Behler and Parrinello use instead machine learning \cite{behlerparrinello}. This and related models recently developed exploit the unbiased predictive power of \emph{ab initio} QM simulations to parameterize the effective potential automatically by use of artificial neural networks \cite{shen}. In this way human intervention is  shunned and the accuracy of the MD simulation is no longer fundamentally limited by the imagination and physical intuition of the experimenter. Despite being typically computationally more expensive than the traditionally parameterized effective potentials, ANNs still offer \emph{orders of magnitude} better performance than \emph{ab initio} or even hybrid models \cite{ratcliff,behler}.
+
+
+
+
+
+\section{Goals}
+The main goal of this thesis is to implement a fully functional (albeit simple) multiscale modelling framework for connecting quantum mechanics to microscopic molecular dynamics simulations. Quantum \emph{ab initio} training data will be generated at different levels of theory and used as training data for a feed-forward ANN. The fully trained ANN-potential-energy surface (PES) is then used in molecular dynamics simulations. 
+
+This goal is naturally split into a few intermediate objectives:
+\begin{itemize}
+  \item[{\bf (a)}]{\bf Develop \emph{ab initio} quantum simulation software}
+  \begin{itemize}
+  \item[{\bf (1)}]{\bf  Develop a Hartree-Fock code}\newline The first level of \emph{ab initio} theory\textemdash and the starting point for the others\textemdash is the Hartree-Fock scheme. We wish to write a completely general HF implementation for atoms and molecular systems using Gaussian type orbitals as bases. This will be done completely from scratch in \CC{}.
+  \item[{\bf (2)}] {\bf Develop a Variational Monte Carlo code} \newline Having solved the Hartree-Fock equations, the next level of theory we want to employ is the variational quantum Monte Carlo approach. The VMC framework should be general enough to both work with the results from HF simulations, and as a fully stand-alone code. This will also be done completely from scratch in \CC{}.
+  \item[{\bf (3)}]{\bf Develop a \emph{local density approximation}\textemdash density functional theory code} \newline Having developed a functioning HF program, we wish to extend it to also be able to handle density functional calculations at the LDA level. This primarily entails developing a framework for efficient numerical integration of the electronic density and derived quantities. This will be done from scratch in \CC{}, with the \inlinecc{dftlibs/numgrid} library specifically handling the integration grid setup \cite{numgrid}. 
+  \end{itemize}
+  \item[{\bf (b)}] {\bf Develop an ANN model for PES fitting}\newline Having developed various \emph{ab initio} frameworks for computing molecular energy, we wish to develop a method of fitting said data to PES for use in molecular dynamics simulations. This will be done using the TensorFlow framework, which we will interface from Python scripts.
+  \item[{\bf (c)}]{\bf Use the ANN-PES in simple MD simulations} \newline As a proof of concept and validation of the entire multiscale modelling scheme, we wish to implement the code necessary to run molecular dynamics simulations using the ANN potential surfaces.  This will be done using the MD package LAMMPS.
+\end{itemize}
+
+\section{Our contributions}
+Dozens of highly optimized, well-tested, and professional \emph{ab initio} QM code bases already exist. Developing code which is able to compete with such packages is unfortunately well outside the scope of the present work. The goal of developing \emph{ab initio} QM methods from scratch is to glean useful insight about the various methods, their inner workings, their strenghts, and potential pit-falls associated with their use.
+ 
+For the ANN and the training process, we employ the TensorFlow (TF) library. We manually set up and feed the NN data for the training, but the optimization, backpropagation, and automatic differentiation is all handled by TF.
+
+For the molecular dynamics modelling, the LAMMPS library is used. In order to evaluate the ANN and it's derivatives, the custom LAMMPS extension of Stende and Treider is used \cite{stende,treider}. 
+
+All in all about 16\,000 significant lines of code\footnote{As counted by the \lstinline{cloc} program which counts \emph{significant} lines of code, leaving out blank lines, comment lines, etc. \cite{cloc}} was developed for the present work of which about 85\% is written in \CC{}, about 10\% in Python, with the remaining few percentages written in a mix of {\sc Matlab}, Mathematica, and Julia. 
+
+Bridging quantum mechanics and molecular dynamics with machine learning techniques is not a new concept: researchers have been using ANNs for potential-energy surface fitting for at least two decades. We do not offer any fundamental contributions to this field. We do however note that\textemdash to the best of our knowledge\textemdash the coupling of quantum Monte Carlo, ANNs, and MD simulations is a relatively novel approach. 
+
+\section{Developed source code}
+All programs developed in conjunction with the present work is freely available on the author's github site, \inlinecc{github.com/mortele}, under a \emph{"do whatever you want with it"} public licence. (Re)Using any parts of it is highly encouraged.
+
+
+\section{Structure of the thesis}
+This thesis is split into four parts. The first part, \emph{foundational theory} presents an overview of classical mechanics (very briefly) and quantum mechanics as relevant for molecular dynamics and electronic structure calculations. Part one lays the groundwork and establishes most of the notation used later in part two: \emph{Advanced theory}. Here, the different approximative schemes for solving the quantum equations of motion are presented. Alongside  the theory of artificial neural networks.
+
+The penultimate part contains information w.r.t.\ the concrete implementation of frameworks described in part two. Key parts of each code base are outlined in detail. Also contained in part three are validation tests of each implementation. Lastly, results for the full work-flow utilizing all the deveolped programs are presented.
+
+The thesis ends with part four, containing conclusions and prospect for future work.
+
+\nocite{ISO80000}
+\nocite{stende}
+\nocite{treider}
+\nocite{dragly}
+
+\part{Foundational theory}
+
+\subfile{Snippets/QuantumMechanics/QuantumMechanics}
+\subfile{Snippets/WaveFunctions/WaveFunctions}
+
+\part{Advanced theory}
+\subfile{Snippets/Hartree-Fock/Hartree-Fock}
+\subfile{Snippets/DFT/DFT}
+\subfile{Snippets/VMC/VMC}
+\subfile{Snippets/NN/NN}
+
+\part{Implementation and results}
+\subfile{Snippets/HFImplementation/HFImplementation}
+\subfile{Snippets/VMCImplementation/VMCImplementation}
+\subfile{Snippets/NNImplementation/NNImplementation}
+\chapter{Implementation and validation: Density Functional Theory\label{DFTT}}
+In order to retain \emph{some} semblance of brevity in the present work, further description of the DFT implementation is omitted. In following, we will rigorously test and use only two different \emph{ab initio}, namely the HF and VMC frameworks. The developed DFT code\textemdash much of which derives from the HF program described in the previous chapter\textemdash is in a functional state and available on \inlinecc{github.com/mortele/HartreeFock} under a branch called \inlinecc{DFT}. 
+
+The DFT program is essentially ready for inclusion in the multiscale modelling framework we are developing, but lacks the proper testing done on the remaining two QM methods in this thesis. Thus a natural extension of the present work entails rigorous testing and comparison of the DFT code with the other two algorithms. We expand on this in the closing remarks of chapter \ref{future}.
+
+The theory section on DFT is intentionally left in the thesis\textemdash as a chapter in part II\textemdash and we hope it can provide a helpful introduction to implementation specific details. We find it especially likey that the accessible introduction to numerical grid based integration techniques used extensively in practical DFT calculations will prove useful to any reader wishing to implement their own density functional scheme from scratch.
+
+\subfile{Snippets/Hartree-FockValidation/Hartree-FockValidation}
+\subfile{Snippets/VMCValidation/VMCValidation}
+\subfile{Snippets/NNValidation/NNValidation}
+\subfile{Snippets/FullScheme/fullscheme.tex}
+
+\part{Conclusions and future work \label{future}}
+\chapter{Conclusions and perspectives}
+The aims of this project were to implement a general multiscale modelling framework capable of bridging QM and microscopic physics by using artificial neural networks. This has been done, and the framework has been validated. It is straightforward to employ the present framework with codes like LAMMPS. As LAMMPS permits working directly in atomic units (by the \inlinecc{units electron} command), ANN potentials fitted to HF, DFT, or VMC calculations can \emph{quite literally} be used \emph{directly} in MD simulations of tens of thousands of atoms. 
+
+As explained in chapter \ref{chap1}, schemes allowing the quantum mechanical accuracy to be brought into the domain of the microscopic\textemdash without the crippling computational scaling of first principles quantum methods\textemdash are of enormous scientific value. Many modern problems in the natural sciences involve multiscale phenomena, with physically important features across multiple (potentially very) different length and time scales. Accurate \emph{ab initio} quantum mechanical computations are in practice limited to systems of $<1\,000$ atoms wih length scales of few nanometers. The length scales involved in modelling of e.g.\ biological systems of interest may be on the order of ten nanometers, while for example exploring interfacial effects between grains in composite materials may require hundreds of nanometers. Ignoring quantum effects in such systems may very well yield qualitatively wrong results, while the direct application of quantum calculations may be unrealistic at best. 
+
+This lies at the heart of multiscale modelling. Calculations based on first principles are oftentimes untenable, while macroscale techniques do not offer the required accuracy.
+In this thesis we have demonstrated the feasibility of performing multiscale simulations\textemdash by bridging first principles quantum mechanics and machine learning\textemdash and implementing a general computational framework in which such simulations can be run. Crucially, our framework is (nearly) parameter-free in the sense that the resulting simulations depend very weakly on the  parameters directly put in "by hand." The one significant human input used is the choice of orbital basis sets and\textemdash in the case of the quantum Monte Carlo scheme\textemdash the form the correlation part of the wave function ansatz. For both HF and VMC, the roles of the basis size and the wave function ansatz impact the resulting PES. In principle, it is  possible to include, in a systematic way, more and more accurate wave function bases. 
+
+Most classically parametrized molecular dynamics potentials fail rather quickly when taken outside the regime they were optimized for. For example, a potential fitted to reproduce the thermodynamic properties of liquid water may fail spectacularly to reproduce those of ice. The machine learning approach has the potential to be general, in the sense that it can in princple handle any physical system for which \emph{ab initio} calculations can be done on the constituent parts. This of course represents a potentially enormous advantage over the traditional approach. 
+
+\phantom{-}
+
+%oppsummer kvalitet på res
+The validation results performed in the present work indicate that the full machinery is working well. The Hartree-Fock program has been compared to similar codes, and our results agree well in all cases with  the existing scientific  literature. For all tested atoms and small molecules, the energy is found to be within $0.04\%$ of the Hartree-Fock limit. Direct comparison with the literature is harder in the case of the variational Monte Carlo program, because we use a wave function parametrization which is much less flexible than most researchers in the field use. Despite this, we find a difference (w.r.t.\ reference litterature) on the order of $1\%$ for atomic systems, and about twice that for molecular systems. The Gaussian basis sets (approximating Slater type and hydrogenic orbitals) reproduce the energies of the underlying basis set to within $0.1\%$, but results for the \ce{Ne} atom deviate by about $1\%$. The trained neural networks perform well, approximating the underlying potentials with errors on the order of $0.001\%$ (relative magnitude of the cost function per sample divided by the function value). When noise is present, the relative errors predictably increase some. For the multivariable networks, the relative error was shown to be on the order of $0.001\%$ also. The ANN was shown to be able to do its job, even when the set of training data was small. Lastly, simple MD calculations showed that the ANN potentials can reproduce the results of classically parametrized potentials. 
+
+
+\phantom{-}
+
+
+The comprehensive nature of this thesis means we have only just scratched the surface of possibilities. The possible extensions of the present work fall naturally into two groups: \emph{improving} or \emph{extending}. There is a very natural possible extension to the present work in the form of testing and implementing the density functional code into the larger multiscale computational framework. This can be considered "low-hanging fruit" in the sense that not much work is needed in order to obtain interesting results. In addition to this, applying the framework in full to physically interesting systems is an obvious \emph{next step}. 
+
+Work involved in the former category would entail optimizing and stream-lining the developed QM calculation code in order to facilitate applications on heavier systems. Currently, the Hartree-Fock program is limited to about $~100$ total basis functions per calculation with \emph{reasonable} speed. The quantum Monte Carlo code\textemdash being an inherently slower scheme\textemdash is currently limited to only a small handful of first and second row atoms per calculation. Only light profiling and optimization has been performed for the present work, leaving a large body of possible computational improvements open. 
+
+In addition to simple optimization, there are numerous ways in which small assumptions and simplifications can be employed to drastically speed up \emph{ab initio} calculations. Techniques for Hartree-Fock involve e.g.\ integral pre-screening, density fitting, early density contraction, or multipole techniques for handling longer range interactions, among many others. Ultimately, this leads to a \emph{near} linear HF scheme. For VMC, possbilities involve for example using a more sophisticated optimization algorithm, including pseudo-potential replacement of core electrons, or proper inclusion of HF orbitals. For the DFT code, the single bottleneck currently is calculating four center interaction elements for the Coulomb interaction. Unless some fraction of \emph{exact} exchange\footnote{This is an example of awful but widespread notation. The $\hat K$ operator represents the \emph{exact} exchange only under the assumption of a single-Slater Hartree-Fock wave function, and not (as the name might imply) the exact exchange energy functional for the \emph{true} wave function.} is needed in the exchange-correlation potential, these integrals can be computed orders of magnitude more efficiently by a Poisson solver technique. 
+
+The second category of \emph{extensions} to the present work may include e.g.\
+\begin{itemize}
+  %\item[] \emph{Applications to physical systems of interest.} \newline Most classically parametrized molecular dynamics potentials fail quickly when taken outside the regime they were created for. For example, a potential fitted to reproduce the thermodynamic properties of liquid water may fail spectacularly to reproduce those of ice. The machine learning approach has the potential to be general, in the sense that it can in princple handle any physical system for which \emph{ab initio} calculations can be done on the constituent parts. 
+  \item[] \emph{More precise ab initio calculations.}\newline The accuracy of the \emph{ab initio} energy parametrization (in terms of nucleonic coordinates) is of crucial importance to the overall predictive power of the multiscale modelling framework described in this thesis. Therefore a natural augmentation of the present work is either applying more sophisticated QM calculations, or improving the accuracy of the VMC scheme by parametrizing more complicated wave function ansatzes (three-body and higher order Jastrow factors, multiconfigurational Slater determinant, etc.).
+  \item[] \emph{ANN parametrization of effective three-body (and higher order) interactions.} \newline Only the most rudimentary potential energy surface (PES) fitting was done in this thesis. As demostrated in chapter \ref{NNimplementation}, the extension to higher dimensional energy hypersurfaces is in principle straight forward. As most molecular dynamics systems of interest depend critically on effective three(or higher)-body interactions, an obvious extension of the current work is inclusion of such terms in the ANN training and subsequent MD simulations.
+  \item[] \emph{Implementing the Behler-Parrinello method.}\newline Taking the previous point to the extreme, we may do away with the effective two-body, three-body, etc.\ parametrization entirely. Instead, we may compute the \emph{ab initio} energy of the atoms in their chemical environment directly. This involves QM calculations currently inaccessible to the codes developed in the present work (they would be unfeasibly slow), but are in principle possible after some optimization. Since the calculated energies exhibit a high degree of symmetry w.r.t.\ rotations and interchange of atoms, processing them through so-called symmetry functions is necessary prior to ANN training. For more information, see \cite{stende,treider}.
+  \item[] \emph{Devise an efficient strategy for sampling the needed molecular configurations.}\newline Sampling the PES on a grid is almost certainly \emph{not} the most efficient scheme for generating training data inputs to the ANNs. A relatively standard way to find which configurations to sample is to run hybrid MD simulations (e.g.\ Car-Parrinello or Born-Oppenheimer MD) on small systems, and picking appearing geometries in some random fashion. Based on this approach it might be prudent to devise a Markov chain scheme in which a "walker" traverses the configuration space of nucleonic coordinates. This should be able to exploit the fact that a fully converged HF density matrix, or a fully optimized VMC ansatz for a set of nuclei at positions ${\bf R}$ is an excellent starting point for the solution at ${\bf R}+\mathit{\Delta}{\bf R}$ for "small" nucleonic displacements $\mathit{\Delta}{\bf R}$.
+\end{itemize}
+
+\begin{appendices}
+\appendixpage
+\noappendicestocpagenum
+\addappheadtotoc
+\subfile{Snippets/Appendix/Appendix}
+\end{appendices}
+
+
+
+%\printbibliography
+\printbibliography[heading=bibintoc]
+\end{document}

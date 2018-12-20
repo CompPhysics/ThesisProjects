@@ -1,0 +1,258 @@
+% Chapter Template
+
+\chapter{The Homogenous Electron Gas} % Main chapter title
+
+\label{Chapter6} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Chapter 6. \emph{The Homogenous Electron Gas}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{The Homogenous Electron Gas}
+
+The homogenous electron gas (HEG) is a system where free electrons interact with each other and a uniformly distributed background charge.  \cite{GrossRungeHeinonen} The model is also known as the \emph{Jellium Model} or the \emph{Free Electron Gas}. \cite{GrossRungeHeinonen}, and is currently a frequently studied system within many body physics. \cite{Shepherd2014, Baardsen2014, Roggero2013, Shepherd2012}. 
+
+Since the background charge is uniformly distributed, the model mainly focuses on effects due to interactions between the electrons. The model will in some sense be valid for systems where the electrons are weakly bound to the nucleis, such as periodic lattices with closed shells and weakly bound valence electrons. \cite{GrossRungeHeinonen}
+
+A very similar treatment as we apply to the HEG system by expanding it in a plane wave basis will also be applicable to infinite, homogenous nuclear matter with only smaller alterations \cite{Baardsen2014}, and may provide insight into properties of supernova explosions \cite{burrows2013} and neutron stars \cite{weber1999,hh2000}. 
+
+Some of the earliest treatments of the HEG using CC was performed in the 1970's by scientists such as C.M. Singal and T.P.Das \cite{Singal1973},  David Freeman  \cite{Freeman1977} and  R.F. Bishop together with K.H.Luhrmann  \cite{Bishop1978} \cite{Bishop1982}. 
+
+
+
+\section{The Hamiltonian}
+
+The Hamiltonian for the HEG is \cite{GrossRungeHeinonen}
+
+\begin{equation}
+\hat{H} = \hat{H}_e + \hat{H}_{eb} + \hat{H}_{bb},
+\label{eqn:h_HEG}
+\end{equation}
+
+where $\hat{H}_e$ relates to the electrons, $\hat{H}_{eb}$ is the interaction with the positive background and $\hat{H}_{bb}$ is the interaction in the background charge. This last term is analogous to the term that would be "frozen out" by the Born-Oppenheimer approximation if we were working on molecules, but in our case it will simply turn out to be a constant due to the uniformity of $\rho$ \cite{GrossRungeHeinonen}
+
+\begin{equation}
+\hat{H}_{bb} = \frac{e^2}{2}  \int_{\Omega} d^3R \int_{\Omega} d^3R' \frac{\rho_i(\bold{R})\rho_i(\bold{R}')}{\vert \bold{R}-\bold{R}'\vert} = 
+\hat{H}_{bb} = \frac{e^2}{2}  \int_{\Omega} d^3R \int_{\Omega} d^3R' \frac{(\frac{\Omega}{N})^2}{\vert \bold{R}-\bold{R}'\vert},
+\label{eqn:h_b}
+\end{equation}
+
+where $e$ is the electronic charge, $\omega$ is the volume and $N$ is the number of charged ions in the background. 
+
+The Hamiltonian associated with the electrons consists of the kinetic energy of the electrons and their correlation
+
+\begin{equation}
+\hat{H}_e = \sum_{i} \frac{\hat{p_i}}{2n} + \frac{1}{2} \sum_{i \neq j} \frac{e^2}{\vert \bold{r}_i - \bold{r}_j \vert }.
+\label{eqn:h_electron}
+\end{equation}
+
+The interaction between the electrons and the background charge may be written
+
+\begin{equation}
+\hat{H}_{eb} = - \sum_{i} \int_\Omega d^3R \frac{N}{\Omega} \frac{e^2}{\vert \bold{r}_i - \bold{R} \vert }.
+\label{eqn:h_eb}
+\end{equation}
+
+\section{Ewald's summation technique}
+
+The electrons repulse each other through the coulomb force, which has the general form
+
+\begin{equation}
+ \frac{1}{2} \sum_{i \neq j} \frac{1}{\vert \bold{r}_i - \bold{r}_j \vert },
+\label{eqn:repulsion}
+\end{equation}
+
+where we used atomic units, $\hbar = c = e = 1$.
+
+This expression is not convergent for a infinite number of particles, but in cases where the net charge of the system is neutral we may use \emph{Ewald's summation technique} to make this energy convergent.
+
+The error function is defined \cite{rottmann}
+
+\begin{equation}
+erf(x) \equiv \frac{2}{\sqrt{\pi}} \int_{0}^x dt e^{-t^2} .
+\end{equation}
+
+While the complementary error function is defined \cite{rottmann}
+
+\begin{equation}
+erfc(x) \equiv 1 - erf(x) = \frac{2}{\sqrt{\pi}} \int_{x}^\infty dt e^{-t^2} .
+\end{equation}
+
+P.P. Ewald \cite{Ewald1921} found that 
+
+\begin{equation}
+\frac{1}{r} = \frac{erf( \frac{1}{2} \sqrt{\eta} r) }{r} + \frac{ erfc(\frac{1}{2} \sqrt{\eta} r) }{r}.
+\end{equation}
+
+This will allow us to rewrite the electronic repulsion into
+
+\begin{equation}
+ \frac{1}{2} \sum_{i \neq j} ( \frac{erf( \frac{1}{2} \sqrt{\eta} r_{ij}) }{r_{ij}} + \frac{ erfc(\frac{1}{2} \sqrt{\eta} r_{ij}) }{r_{ij}}),
+\label{eqn:ewaldsum}
+\end{equation}
+
+where we for convenience defined
+
+\begin{equation}
+r_{ij} \equiv \vert \bold{r}_i - \bold{r}_j \vert .
+\end{equation}
+
+The Fourier transform of the first term in \ref{eqn:ewaldsum} is convergent, while the second is convergent as it is.
+
+
+\section{The Ewald interaction}
+
+It may be shown that the interaction between the electrons and the background, as well as interactions among the background charges vanish when using Ewald's summation technique \cite{Fraser1996}, and we will end up with the interaction energy for the three dimensional HEG \cite{Drummond2008}
+
+\begin{equation}
+v_{E}(\bold{r}) = \sum_{k \neq 0} \frac{4 \pi}{L^3 k^2 } e^{i \bold{k} \bullet \bold{r}}  e^{\frac{-\eta^2 k^2}{4} } + \sum_\bold{R} \frac{1}{\bold{r}- \bold{R}} erfc(\frac{\vert \bold{r}- \bold{R} \vert }{\eta}) - \frac{\pi \eta^2}{L^3 } ,
+\label{eqn:HEG_interaction}
+\end{equation}
+
+where $L$ is the length of one side in the simulation cell and the translational vector
+
+$$ \bold{R} = L (n_z \bold{u}_z + n_y \bold{u}_y + n_z \bold{u}_z)$$,
+
+are used to refer to all simulation cells in the real space. The vectors $\bold{k}$ are the fourier, or momentum vectors, while $\bold{r}$ is the position vector for each electron.  \cite{Baardsen2014}
+
+The parameter $\eta$ allows us to gradually vary the amount of the the different terms. We shall take it to be infinitesimally small and positive, as in \cite[p.97]{Baardsen2014}, so that the whole interaction is evaluated in fourier space. This will result in the interaction
+
+\begin{equation}
+v_{E}(\bold{r}) = \sum_{k \neq 0} \frac{4 \pi}{L^3 k^2} e^{i \bold{k} \bullet \bold{r}}  .
+\label{eqn:HEG_interaction2}
+\end{equation}
+
+\section{The antisymmetric elements}
+
+The antisymmetric matrix elements for the three dimensional HEG are \cite{Baardsen2014}
+
+\begin{multline}
+\langle pq \vert \vert rs \rangle = \frac{4\pi}{L^3} \delta_{\bold{k}_p + \bold{k}_q , \bold{k}_r + \bold{k}_s} \big{(}  \delta_{m_{s_p}, m_{s_r}}  \delta_{m_{s_q}, m_{s_s}} (1-\delta_{k_p, k_r}) \frac{1}{\vert \bold{k}_r -\bold{k}_p \vert^2 } \\
+-\delta_{m_{s_p}, m_{s_s}}  \delta_{m_{s_q}, m_{s_r}} (1-\delta_{k_p, k_s}) \frac{1}{\vert \bold{k}_s -\bold{k}_p \vert^2 } 
+ \big{)}.
+\end{multline}
+
+The antisymmetric matrix elements may also be defined for the two dimensional case. \cite{Baardsen2014}
+
+\section{The Hartree Fock energy}
+
+For the electron gas, the reference energy is  \cite{Baardsen2014}
+
+\begin{equation}
+E_{ref} = \sum_i \langle i \vert \hat{h}_0 \vert i \rangle + \frac{1}{2} \sum_{ij} \langle ij \vert  \vert ij \rangle + \frac{1}{2} Av_0 .
+\end{equation}
+
+This last term has not been present in any derivations up to this point. The number $A$ is the number of particles, and the quantity $v_0$ is the so called Madelung constant. This term describes so called \emph{finite size} effects \cite{Baardsen2014} that are stronger for small systems. As we increase the number of particle states towards the \emph{thermodynamical limit}, it will vanish.
+
+\section{The Fock Matrix}
+
+The Fock matrix elements are \cite{Baardsen2014}
+
+\begin{equation}
+\langle p \vert f \vert q \rangle = \frac{k_p^2}{2m} \delta_{\bold{k}_p \bold{k}_q} \delta_{m_{s_p} m_{s_q}} + \sum_i  \langle pi \vert \vert qi \rangle 
+\end{equation}
+
+\FloatBarrier
+
+\section{The Wigner Seitz radius}
+
+We will not directly use the volume $\Omega = L^3$ in the implementation. We will instead follow the same procedure as \cite[p.105]{Baardsen2014}, and calculate it using the dimensionless quantity $r_s$, so that 
+
+\begin{equation}
+\Omega(r_s) = \frac{4 \pi}{3} r_B^3 r_s^3,
+\end{equation}
+
+where
+
+\begin{equation}
+r_s = \frac{r_1}{r_B},
+\end{equation}
+
+and
+
+\begin{equation}
+\frac{\Omega}{N_{electrons}} = \frac{4\pi}{3} r_1^3.
+\end{equation}
+
+The quantity $r_s$ is called the \emph{Wigner Seitz} radius, and may be though of as a measure of the mean distance between the electrons.
+
+\section{The plane wave basis}
+
+We will expand the system in the plane wave basis for the finite volume $\Omega = L^3$, where basis functions are defined as
+
+\begin{equation}
+\psi_{{\bf k}m_s}({\bf r})= \frac{1}{\sqrt{\Omega}}\exp{(i{\bf kr})}\xi_{m_s}.
+\end{equation}
+
+The spin orientation is either up or down, and represented by $\xi$.  Each such basis function has an associated single particle energy
+
+\begin{equation}
+\epsilon(x,y,z) = \frac{1}{2m} (\frac{2\pi}{L})^2 (n_x^2 +n_y^2 + n_z^2).
+\end{equation}
+
+The first 3 shells (resulting in 38 states) of the three dimensional plane wave basis is shown in table \ref{tab:3shell}. We see that we have magic numbers corresponding to 2, 14, 38, 54, 66, 114, 162, 186 and so on. 
+
+\begin{table}[]
+\centering
+\caption{The first three shells in the plane wave basis}
+\label{tab:3shell}
+\begin{tabular}{lllllll}
+Shell & $n_x$ & $n_y$ & $n_z$ & $m_s$ \\ \hline
+0 & 0 & 0 & 0 & 1 & \\
+ & 0 & 0 & 0 & -1 & \\ \hline
+1 & -1 & 0 & 0 & 1 & \\
+ & -1 & 0 & 0 & -1 & \\
+ & 0 & -1 & 0 & 1 & \\
+ & 0 & -1 & 0 & -1 & \\
+ & 0 & 0 & -1 & 1 & \\
+ & 0 & 0 & -1 & -1 & \\
+ & 0 & 0 & 1 & 1 & \\
+ & 0 & 0 & 1 & -1 & \\
+ & 0 & 1 & 0 & 1 & \\
+ & 0 & 1 & 0 & -1 & \\
+ & 1 & 0 & 0 & 1 & \\
+ & 1 & 0 & 0 & -1 & \\ \hline
+2 & -1 & -1 & 0 & 1 & \\
+ & -1 & -1 & 0 & -1 & \\
+ & -1 & 0 & -1 & 1 & \\
+ & -1 & 0 & -1 & -1 & \\
+ & -1 & 0 & 1 & 1 & \\
+ & -1 & 0 & 1 & -1 & \\
+ & -1 & 1 & 0 & 1 & \\
+ & -1 & 1 & 0 & -1 & \\
+ & 0 & -1 & -1 & 1 & \\
+ & 0 & -1 & -1 & -1 & \\
+ & 0 & -1 & 1 & 1 & \\
+ & 0 & -1 & 1 & -1 & \\
+ & 0 & 1 & -1 & 1 & \\
+ & 0 & 1 & -1 & -1 & \\
+ & 0 & 1 & 1 & 1 & \\
+ & 0 & 1 & 1 & -1 & \\
+ & 1 & -1 & 0 & 1 & \\
+ & 1 & -1 & 0 & -1 & \\
+ & 1 & 0 & -1 & 1 & \\
+ & 1 & 0 & -1 & -1 & \\
+ & 1 & 0 & 1 & 1 & \\
+ & 1 & 0 & 1 & -1 & \\
+ & 1 & 1 & 0 & 1 & \\
+ & 1 & 1 & 0 & -1 & \\
+\end{tabular}
+\end{table}
+
+\FloatBarrier
+
+\section{Recent progress on the Electron gas}
+
+A number of recent publications has sparked an interest in the the homogeneous electron gas. Calculations using CCD has been performed by Roggero et al. \cite{Roggero2013} and Shepherd et al. \cite{Shepherd2012}, and to very high precision by Gustav Baardsen in his doctoral thesis \cite{Baardsen2014}. Shepherd et al. has frequently published on this topic since 2012 \cite{Shepherd2012, Shepherd2012a, Shepherd2013, Shepherd2013c, Shepherd2014}, and in a paper by him, Scuseria and Henderson \cite{Shepherd2014} they suggest a formal connection between the random phase approximation and the CCD. 
+
+Highly accurate calculations using Variational Monte Carlo (VMC) have also been performed as early as 1980 by Ceperley and Alder \cite{Ceperley1980}, but also in the recent years by Drummond et al. \cite{Drummond2006}, Shepherd et al. \cite{Shepherd2012} and Gurtubay et al. \cite{Gurtubay2010}.
+
+The system has also been a "hot topic" in the Computational Physics group at the University of Oslo, so several master theses has touched upon this subject. From this group, S.Reimann has produced IM-SRG(2) results \cite{Reimann2013}, while K.Leikanger has produced FCIVMC \cite{Leikanger2013} for the HEG. Similar results as those from Leikanger are available also from Shepherd et al. \cite{Shepherd2012}.
+
+Comparisons between CCD and FCIQMC have shown that CCD fails to account for important correlations in the system \cite{Baardsen2014}. 
+
+Shepherd and Grüneis has also preformed CCD(T) calculations on the system \cite{Shepherd2013}, but they found that the perturbative treatment of the triples (using Möller-Plesset PT) resulted in divergent energies for the HEG. They propose in the same article a modification that lifts the divergent behavior. 
+
+The author has not been able to find any results beyond the CCD(T) results from those of \cite{Shepherd2013}, so it may very well be that this thesis is the first attempt at obtaining such data. 

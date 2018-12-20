@@ -1,0 +1,169 @@
+% Chapter Template
+
+\chapter{Conclusions and future prospects} % Main chapter title
+
+\label{Chapter9} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+
+\lhead{Chapter 10. \emph{Conclusions and perspectives}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+\section{Conclusions}
+
+The electron gas has been studied with various {\em ab initio}
+techniques, and in recent years these techniques also include coupled
+cluster theory at the level of doubles excitations (CCD), see Refs.~ \cite{Baardsen2014,
+  Shepherd2012}, many-body perturbation theory \cite{Shepherd2013}, stochastic methods \cite{Shepherd2012, Roggero2013, Leikanger2013}, and even CCD
+with perturbative treatment of triples, see for example
+Ref.~\cite{Shepherd2013}. From these studies, it has been clear that
+the CCD aproach fails to account for important correlations in the homogeneous
+electron gas in two and three dimensions. In the concluding remarks of
+his doctoral thesis (see Ref.~\cite{Baardsen2014}), Baardsen suggests
+that inclusion of triple correlations may be necessary to obtain
+accurate results for the two-dimensional electron gas, and he also
+proposes doing CCDT calculations on the three dimensional case for
+small basis sets to explore how these correlations play in.
+
+The aim of this thesis was to study the role of triples
+correlations. These correlations have never been explored properly
+before this work, mainly due to large computational obstacles.  This
+thesis is thus likely to be the first time such results are presented
+for the three-dimensional homogeneous electron gas. With our
+results, we have demonstrated that it is computationally feasible to do
+large-scale coupled cluster calculations on this system even with the
+inclusion of triples. The formalism and techniques discussed are
+intended to be general, so that the same procedure may easily be
+extended to similar systems for infinite matter, like the electron gas in two dimensions or infinite nuclear matter and 
+neutron star matter.
+
+With our results, we have been able to demonstrate that the triple
+amplitudes indeed do account for significant correlations in the
+homogeneous electron gas in three dimensions. While the correlation
+energy is generally overestimated by the various CCDT truncations, it
+tends to reduce the deviation with the FCIQMC results (see
+Refs. \cite{Shepherd2012, Leikanger2013}) by a factor of roughly 10
+compared to the CCD energies, although this ratio depends  on
+the density (and thereby Fermi momentum) under study.  The FCIQMC provides most likely the best possible {\em ab initio} benchmark for such systems.
+
+In the same way as for the CCD results, the correlation energy
+associated with most diagrams in the $\hat{T}_3$ amplitude equation
+tend to diverge as we increase the Wigner-Zeiss radius $r_s$. This suggests
+that more complicated correlations become important in
+when we increase $r_s$.  
+These features have also been noted for systems like quantum dots in two or three dimensions.
+For larger values of $r_s$, most likely approaches like FCIQMC will provide more reliable estimates for various observables.
+
+We have also performed qualitative studies of how the various
+diagrams contributes to the correlation energy, and we have identified
+some few diagrams that contribute more than others. These results
+could possibly be utilized to do truncations in the CCDT approach for the sake
+of performance and memory usage, and still retain accurate results.
+
+Some reservation in these conclusions may arise due to the fact that
+we have neglected both finite size effects and incomplete basis
+errors. From the comparison with Shepherd \emph{et al.} in
+Ref.~\cite{Shepherd2013}, it is clear that the single point
+extrapolation technique will impact the thermodynamic limit estimates
+considerably. It would also be interesting to obtain third-party
+CCDT results in order to better validate our results. 
+
+Finally, the softare CCAlgebra that we have developed, allows one to
+produce automatically all relevant equations for a given level of
+truncation of coupled cluster theory. This is an extremely useful tool
+which provides important theory benchmarks when developing complicated
+many-body methods like coupled cluster theory.
+The software can easily be extended to accomodate other many-body methods. 
+\section{Perspectives and recommendations}
+
+With the code we have developed, we expect to be able to produce a lot
+more results than what is presented in this thesis.
+
+First, the main results produced in this thesis is in the authors
+opinion the data set used in the estimations for the thermodynamical
+limit. This set could be extended by correcting a minor coding issue
+in the amplitude initialization function. We suspect that basis sets
+above 1598 states resulted in a segmentation fault due to a static
+allocation of memory. At this point, we set up Abel's "hugemem" nodes
+to prepare 320GB of memory to our calculation, while the maximum limit
+on these nodes is 1TB. It should be possible to do CCDT-1 calculations
+beyond 2000 basis states.
+
+Another way of improving our data set is to make it more accurate by
+lowering the convergence threshold. This will lead to prolonged
+iteration time, but since we have not implemented any methods for
+convergence optimization, such as \emph{DIIS} (see
+Ref.~\cite{scuseria1986}), we may be able to compensate for this
+easily.
+
+Another issue with these results is the insufficient treatment of
+finite-size effects and incomplete basis error. The single point
+extrapolation technique described in Refs.~\cite{Shepherd2012} and
+methods discussed in \cite{Drummond2007} should be used on our results
+to obtain a more comparable estimate to those of
+Ref.~\cite{Shepherd2013}.
+
+While the sparse implementation is mainly used for smaller basis sets,
+it could be optimized considerably by choosing a more suitable
+algorithm and container for the sparse tensors. Sparse matrix-matrix
+multiplication is basically performed by sorting and traversing two
+lists only once. While our algorithm relies on the Armadillo library
+for this operation, it does not utilize any
+parallelization. Functionality such as that provided by CUDA
+\cite{cuda} or OpenMP \cite{openmp} could possibly improve performance
+to such a degree that also larger basis calculations could be
+feasible. The syntax used in the sparse implementation allows for fast
+prototyping, so this could possibly provide us with means to include
+even more correlations from the CCDTQ equations for smaller basis
+sets.
+
+Further, it seems to be great potential for optimizations of both
+implementations. Comparison of our performance with the CCD
+performance benchmarks form Baardsen, see Ref.~\cite{Baardsen2015},
+suggests that our CCD code could be improved considerably, and in doing
+this we could as well get some ideas as to how the CCDT
+implementation may be optimized using similar techniques. It would be
+wise to write such an implementation using the Intel MKL library and
+either Fortran or plain C to achieve the best performance
+possible. Avoiding libraries such as Armadillo will also simplify
+compilation on computing clusters as they are not always supported,
+while the Intel compiler generally is.
+
+The simplicity of the sparse implementation syntax is also easy to
+interface with the software CCAlgebra developed here, see for example
+the description of \cite{CCAlgebra}) discussed in Chapter
+\ref{Chapter5}. This process would allow the user to perform
+complicated calculations of any coupled cluster truncation, even with
+complicated many-body forces like three-body forces central in nuclear
+physics using directly IPython notebook. IPython supports compilation
+of C++ code directly from the cells, and it would even be possible to
+set up the basis class externally, thus, changing the system would only
+be a matter of rewriting a few lines in Python. This could be a
+powerful tool, especially in obtaining preliminary results or fast
+prototyping of code.
+
+It is at the present unknown to the author exactly how the inclusion
+of more diagrams (or even the full CCDT) in the block implementation
+would affect the memory usage. Each diagrams may have values that add
+into the full element vector, and we have observed quite a large
+intersection between these elements. It could very well be that a full
+CCDT implementation is not that much more computationally expensive
+than the CCDT-1. As pointed out in
+Ref~\cite[p.351]{ShavittBartlett2009}, one of the advantages of
+conventional CCDT-1 implementations is that they avoid the need for
+storing any $\hat{T}_3$ amplitudes. This is not possible in our
+implementation, since we actually need to now in advance how the
+$\hat{T}_3$ amplitudes align, so it may very well be that our
+implementation already accommodates efficient implementation of the
+full CCDT. This should be explored further.
+
+With the formalism, implementations and results presented in this
+thesis, it should be possible to carry out extensive experiments on
+the system in question\footnote{Other similar systems could also be
+  studied with these means.}. It is the authors hope that the work
+presented in this thesis may enable future numerical experiments to focus more
+on the physical aspects of the system in question, since a great deal
+of our work has been to develop a working and efficient implementation
+of the triple amplitudes for the homogeneous electron gas.
+

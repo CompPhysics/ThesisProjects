@@ -1,0 +1,222 @@
+\documentclass[a4paper]{article}
+% Included packages ---------------------------------------------------------- %
+\usepackage{inputenc}                 % utf-8 encoding, æ, ø , å, etc.
+\usepackage{a4wide}                          % Adjust margins to better fit A4 format.
+\usepackage{array}                           % Matrices.
+\usepackage{amsmath}                         % Math symbols, and enhanced matrices.
+\usepackage{amsfonts}                        % Math fonts.
+\usepackage{amssymb}                         % Additional symbols.
+\usepackage{wasysym}                         % More additional symbols.
+\usepackage{mathrsfs}                        % Most additional symbols.
+\usepackage[pdftex]{graphicx}                % Improved inclusion of .pdf-graphics files.
+\usepackage{sidecap}                         % Floats with captions to the right/left.
+\usepackage{cancel}                          % Visualize cancellations in equations.
+\usepackage{enumerate}                       % Change counters (arabic, roman, etc.).
+\usepackage{units}                           % Adds better looking fractions (nicefrac).
+\usepackage{floatrow}                        % Multi-figure floats.
+\usepackage{subfig}                          % Multi-figure floats.
+\usepackage{caption}                         % Adds functionality to captions.
+\usepackage{bm}                              % Bolded text in math mode.
+\usepackage{combinedgraphics}                % Figures; let latex handle the text itself.
+\usepackage[framemethod=default]{mdframed}   % Make boxes.
+\usepackage{listings}                        % For including source code.
+\usepackage[colorlinks]{hyperref}            % Interactive references, colored.
+\usepackage{soul}                            % Make vertical bars through text.
+\usepackage{nicefrac}                        % Nice fractions with \nicefrac.
+\usepackage{mathtools}                       % Underbrackets, overbrackets.
+\usepackage{wasysym}                         % \smiley{}-s!
+\usepackage{multicol}                        % Multiple text columns.
+\usepackage{capt-of}                         % Caption things which are not floats.
+\usepackage[url=false]{biblatex}             % Citations (made easy).
+
+% Differentials -------------------------------------------------------------- %
+\newcommand{\dt}{\,\mathrm{d}t}
+\newcommand{\dx}{\,\mathrm{d}x}
+\newcommand{\dr}{\,\mathrm{d}r}
+
+% Derivatives ---------------------------------------------------------------- %
+\newcommand{\der} [2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}   % Derivative.
+\newcommand{\pder}[2]{\frac{\partial #1}{\partial #2}}       % Partial derivative.
+
+% Matrices ------------------------------------------------------------------- %
+\newcommand{\mat} [2]{\begin{matrix}[#1] #2 \end{matrix}}    % Nothing enclosing it.
+\newcommand{\pmat}[2]{\begin{pmatrix}[#1] #2 \end{pmatrix}}  % Enclosing parentheses.
+\newcommand{\bmat}[2]{\begin{bmatrix}[#1] #2 \end{bmatrix}}  % Enclosing square brackets.
+\newcommand{\vmat}[2]{\begin{vmatrix}[#1] #2 \end{vmatrix}}  % Enclosing vertical bars.
+\newcommand{\Vmat}[2]{\begin{Vmatrix}[#1] #2 \end{Vmatrix}}  % Enclosing double bars.
+
+% Number sets ---------------------------------------------------------------- %
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\C}{\mathbb{C}}
+
+% Manually set alignment of rows / columns in matrices (mat, pmat, etc.) ----- %
+\makeatletter
+\renewcommand*\env@matrix[1][*\c@MaxMatrixCols c]{%
+  \hskip -\arraycolsep
+  \let\@ifnextchar\new@ifnextchar
+  \array{#1}}
+\makeatother
+
+% References ----------------------------------------------------------------- %
+\newcommand{\Fig}[1]{Fig.\ \ref{fig:#1}}
+\newcommand{\fig}[1]{Fig.\ \ref{fig:#1}}
+\newcommand{\eq} [1]{Eq.\ (\ref{eq:#1})}
+\newcommand{\Eq} [1]{Eq.\ (\ref{eq:#1})}
+\newcommand{\tab}[1]{Table \ref{tab:#1}}
+\newcommand{\Tab}[1]{Table \ref{tab:#1}}
+
+% Paragraph formatting ------------------------------------------------------- %
+\setlength{\parindent}{5.5mm}
+\setlength{\parskip}  {0mm}
+
+% Source code listings ------------------------------------------------------- %
+\definecolor{commentGreen}{RGB}{34,139,34}
+\definecolor{keywordBlue}{RGB}{0,0,255}
+\definecolor{stringPurple}{RGB}{160,32,240}
+\lstset{language=matlab}
+\lstset{basicstyle=\ttfamily\small}
+\lstset{frame=single}
+\lstset{stringstyle=\color{stringPurple}}
+\lstset{keywordstyle=\color{keywordBlue}}
+\lstset{commentstyle=\color{commentGreen}}
+\lstset{morecomment=[l][\color{commentGreen}\bfseries]{\%\%}}
+\lstset{showspaces=false}
+\lstset{showstringspaces=false}
+\lstset{showtabs=true}
+\lstset{columns=fixed}
+\lstset{breaklines}
+\lstset{literate={~} {$\sim$}{1}}
+\lstset{numbers=left}              
+\lstset{stepnumber=1}
+\renewcommand{\ttdefault}{pcr}
+\lstdefinestyle{prt}{frame=none,basicstyle=\ttfamily\small}
+
+% Convenient shorthand notation ---------------------------------------------- %
+\newcommand{\nn}{\nonumber}
+\newcommand{\e}[1]{\cdot10^{#1}}
+\renewcommand{\i}{\hat{\imath}}
+\renewcommand{\j}{\hat{\jmath}}
+\renewcommand{\k}{\hat{k}}
+
+% Caption position of tables at the top -------------------------------------- %
+\floatsetup[table]{capposition=top}
+
+% Black frame with white background ------------------------------------------ %
+\newmdenv[linecolor=black,backgroundcolor=white]{exframe}
+
+% Including vector drawings from inkscape ------------------------------------ %
+\newenvironment{combFig}[5]{
+  \begin{figure}[#1] 
+    \centering 
+    \includecombinedgraphics[vecscale=#2, keepaspectratio]{#3} 
+    \caption{#4 \label{#5}}
+  \end{figure}
+  }
+
+  {
+}
+
+% Including pdf graphics ----------------------------------------------------- %
+\newenvironment{pdfFig}[5]{
+  \begin{figure}[#1] 
+    \centering 
+    \includegraphics[width= #2]{#3} 
+    \caption{#4 \label{#5}}
+  \end{figure}
+  }
+
+  {
+}
+
+% Exercise and subexercise counters ------------------------------------------ %
+\newcounter{excounter}
+\renewcommand\theexcounter{\arabic{excounter}}
+\newcommand\exlabel{\theexcounter}
+\setcounter{excounter}{1}
+
+\newcounter{subexcounter}
+\renewcommand\thesubexcounter{\arabic{subexcounter}}
+\newcommand\subexlabel{\thesubexcounter}
+\setcounter{subexcounter}{1}
+
+% Environments for exercises ------------------------------------------------- %
+\newenvironment{exercise}[1]{
+  \subsection*{Exercise \theexcounter: #1}
+  \setcounter{subexcounter}{1}                      % Reset the subexercise counter to a.
+  \addcontentsline{toc}{section}{\theexcounter: #1} % Add the exercise to TOC
+  }
+      % Exercise text.
+  {
+  \stepcounter{excounter}                           % Add one to the exercise counter.
+  \newpage
+}
+
+% Environment for subexercises ----------------------------------------------- %
+\newenvironment{subexercise}{
+  \begin{exframe}
+    \begin{itemize}  \setlength{\itemindent}{1cm}
+      \item[{\bf Exercise \thesubexcounter}] 
+	}
+	  % Subexercise text.
+	{
+    \end{itemize}
+  \end{exframe}
+  \stepcounter{subexcounter}                        % Add one to the exercise counter.
+}
+
+% Environment for proofs ----------------------------------------------------- %
+\newenvironment{proof}[2]{
+  \begin{exframe}
+    \begin{itemize}  \setlength{\itemindent}{0.6cm}
+      \item[{\bf #1} {\bf #2}] 
+	}
+	  % Subexercise text.
+	{
+    \end{itemize}
+  \end{exframe}
+}
+
+% Environment for answers ---------------------------------------------------- %
+\newenvironment{answer}{}{}
+
+% Set bibliography file and path for images.
+\bibliography{references/fys4180ref.bib}
+\graphicspath{{./images/}}
+\newcommand{\includepdfgraphics}[2]{\includecombinedgraphics[#1]{./images/#2}}
+
+
+
+
+% Title
+\title{}
+\date{}
+\author{}
+% ---------------------------------------------------------------------------- %
+% ---------------------------------------------------------------------------- %
+\begin{document}
+
+
+\section{Saturation and weight initialization}
+Original article: \url{http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf}
+Tricks: \url{http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf}
+Saturation is bad: \url{http://www.sciencedirect.com/science/article/pii/S0893608005801169}
+
+
+
+  
+The Xavier method, proposed by Glorot and Bengio in [original article], attempts to accelerate the training of (deep) neural networks by cleverly assigning initial weight and bias values to the network. 
+
+
+\end{document}
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
+ 
+% \lstinputlisting[firstline=1,lastline=2, float=p!, caption={}, label=lst:1]{<code>.m}
+

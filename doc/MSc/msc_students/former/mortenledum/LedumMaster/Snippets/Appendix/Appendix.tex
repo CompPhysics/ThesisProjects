@@ -1,0 +1,256 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+
+\chapter{Natural units: Hartree atomic units \label{units}}
+\newcommand{\M}{\mathrm{M}}
+\renewcommand{\L}{\mathrm{L}}
+\newcommand{\T}{\mathrm{T}}
+\renewcommand{\C}{\mathrm{C}}
+When working within a specific branch of physics, it is often useful to deviate from the every-day SI units of measurements and instead use units which are \emph{natural} to the systems under study. Since we are working with "small" systems, the SI \emph{meter}, \emph{second}, \emph{kilogram}, and \emph{coulomb} are of little use to us. Instead we will work in a system of units in which we define the mass of the electron, $m_e$, to be the scale by which we measure all other masses. This obviously means the numerical value of the electron mass becomes unity, $m_e=1$. In the same way, we will use Planck's constant, $\hbar$, as the scale by which we measure angular momentum and action, the electron charge, $e$, will be our scale for electrical charge, and finally Coulomb's constant, $k_e$, will be our scale of electric permittivity. 
+
+The usual way to state this is to set $\hbar=e=m_e=k_e=1$, and the system of units derived from these four definitions is called Hartree atomic units. We can think of this as the \emph{natural} system of units for the Hydrogen atom system. To better see why this is the case, let us combine these four quantities in such a way as to produce a length. 
+
+In terms of the four fundamental dimensions of physics: Length(L), time(T), mass(M), and charge(C), the units of $\hbar$, $m_e$, $e$, and $k_e$ are $\left[\hbar\right]=\mathrm{M}\mathrm{L}^2\mathrm{T}^{-1}$, $\left[m_e\right]=\mathrm{M}$, $\left[e\right]=\mathrm{C}$, and $\left[k_e\right]=\mathrm{M}\mathrm{L}^3\mathrm{C}^{-2}\mathrm{T}^{-2}$, respectively. Combining arbitrary powers of these four constants gives 
+\begin{align}
+\left[\lambda(a,b,c,d)\right] &= \left[k_e^a \hbar^b m_e^c e^d\right] =  \left(\M^a \L^{3a} \C^{-2a} \T^{-2a} \right) \left(\M^b \L^{2b} \T^{-b} \right) \left( \M^c \right) \left( \C^d \right) \nn\\
+%%
+&= \L^{2a+3b} \T^{-a-2b} \M^{a+b+c} \C^{-2b+d}.
+\end{align}
+There is exactly one way to realize a length from these exponents, i.e. solving the four equations $2a+3b=1$, $-a-2b=0$, $a+b+c=0$, and $-2b+d=0$: $a=-1$, $b=2$, $c=-1$, and $d=-2$. This means that the natural length scale of our problem is simply (up to a numerical constant)
+\begin{align}
+\L_\text{scale} &= a_0 = k_e^{-1} \hbar^{2} m_e^{-1} e^{-2} = \frac{\hbar^2}{k_e m_e e^2} = \frac{ 4\pi \varepsilon_0 \hbar^2 }{m_e e^2},
+\end{align}
+which re recognize as simply the \emph{Bohr radius}. 
+
+We can go through this same exercise to find a natural \emph{time} scale for our system. There is a unique way to combine the exponents $a$, $b$, $c$, and $d$ in order to realize a time, namely $a=-2$, $b=3$, $c=-1$, $d=-4$, or
+\begin{align}
+\T_\text{scale} &= k_e^{-2} \hbar^3 m_e^{-1} e^{-4} = \frac{\hbar^3 }{k_e^2 m_e e^4} = \frac{\hbar a_0}{k_e e^2}.
+\end{align}
+This is the revolution time of an electron in the lowest lying hydrogen state in the Bohr model (apart from a factor of $2\pi$).
+
+From $a_0$ and $\T_\text{scale}$ we can find the natural energy scale,
+\begin{align}
+\mathrm{E}_\text{scale} &= m_e \frac{a_0^2}{a_0^2 \left(\frac{\hbar}{k_e e^2}\right)^2} = \frac{m_e k_e^2 e^4}{\hbar^2} \equiv E_h,
+\end{align}
+which we will call a Hartree. 
+
+Finally, before we go on we may use the expression for the \emph{fine structure constant} to find the numerical value of $c$ in this system. From 
+\begin{align}
+\alpha &= \frac{k_e e^2}{\hbar c} \Rightarrow c = \frac{k_e e^2}{\hbar \alpha} = \frac{1}{\alpha} \simeq 137,
+\end{align}
+after substituting $\hbar=e=k_e=1$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\chapter{Basics of numerical integration\label{numericalintegration}}
+\subsection*{Riemann integral and Riemann integrable functions}
+Given a function $f(x)$ and a closed finite subset of $\mathbb{R}$, $[a,b]$ with $a<b$, a \emph{Riemann sum} of $f$ is defined as the sum of values attained on $n$ sub-intervals of $[a,b]$, i.e.
+\begin{align}
+S_n = \sum_{i=1}^n (x_i-x_{i-1}) \, f_i.
+\end{align}
+The $x_i$s here define the partitionining into sub-intervals $[x_{i-1},x_i]$ (i.e. $a=x_0<x_1<\dots< x_{n-1}<x_n=b$), while $f_i\equiv f(\xi_i)$ with $\xi_i$ \emph{some} point in sub-interval $i$. 
+
+A sufficient condition for the \emph{Riemann integral} to exist for the function $f$ is that \emph{any} such sum (any choice of $x_i$ [for which $\max_{i}|x_i-x_{i-1}|\rightarrow0$] and $\xi_i$) converge to the same value in the limit $n\rightarrow \infty$ \cite{davis}\comment{p7}. In this case we say
+\begin{align}
+\lim_{n\rightarrow \infty} S_n = S = \int_a^b f(x)\dx,
+\end{align} 
+and that $f$ is Riemann integrable.
+
+A less strict, but still sufficient condition is to chose $\overline{f_i}=\max\{f(x):x\in[x_{i-1},x_i]\}$ and $\underline{f_i}=\min\{f(x):x\in[x_{i-1},x_i]\}$ and then only demand that the two sums converge to a common limit \cite{lindstrom}\comment{p366}, 
+\begin{align}
+\mat{rcccl}{
+\displaystyle\lim_{n\rightarrow \infty}\overline{S_n} & = & \displaystyle\lim_{n\rightarrow \infty}\sum_{i=1}^n (x_i-x_{i-1})\overline{f_i} \\
+% 
+\\[-1em] 
+%
+& = & \displaystyle\lim_{n\rightarrow \infty}\sum_{i=1}^n (x_i-x_{i-1})\underline{f_i} & = & \displaystyle\lim_{n\rightarrow \infty}\underline{S_n} \\
+%
+\\[-1.5em] 
+% 
+&&&=& \displaystyle \int_a^bf(x)\dx.
+}\nn
+\end{align}
+
+Although easier than checking \emph{every possible} Riemann sum, checking that the two upper and lower sums converge to a common limit is still a somewhat tedious procedure for checking integrability. In fact it turns out that a sufficient condition on $f$ is that it is continuous and bounded on $[a,b]$ \cite{davis}\comment{p7}. The latter condition is not necessary on a finite interval since all continuous functions on a closed finite domain are bounded according to the extreme value theorem. However, if we extend the limits of integration to an infinite interval, for example $[0,\infty)$, then the boundedness of $f$ is not guaranteed by the continuity we need to explicitly demand $|f(x)|<\infty$ for all $x\in[a,b]$.
+
+It is easy to see that the converse is \emph{not} true. Any Riemann integrable function is not automatically continuous. Take for example the integral over $[0,1]$ with the step function 
+\begin{align}
+f(x) = \left\{\mat{lcr}{1 & \text{if} & x>1/2 \\ 0 & \text{else} }\right..
+\end{align}
+Even though the upper and lower Riemann sums both attain the value $1/2$ in the limit $n\rightarrow \infty$ and the function is Riemann integrable, it demonstrably is not continuous. A more careful analysis shows that a less strict but sufficient condition on $f$ is that it be continuous \emph{almost everywhere} on $[a,b]$ (i.e. continuous on all of the interval, except possibly on a subset $C\subset[a,b]$ with measure zero) \cite{mcdonald}\comment{p72}. With this condition, the converse also holds.
+
+\subsection*{Newton-Cotes quadrature}
+Since the Riemann integral is defined in terms of the limit of a sum, numerical approximations to it arise naturally from any scheme for choosing $\xi_i$ and the partitioning. One of the simplest possible approximations is to take the midpoint value of each sub-interval to be $\xi_i$ with a uniform mesh of equispaced $x_i$s. This constitutes the {\bf midpoint rule} \cite{davis}\comment{p52}, 
+\begin{align}
+I\approx \sum_{i=1}^n f(x_{i-1}+\Delta x/2)(x_{i}-x_{i-1})=\Delta x\sum_{i=1}^n f(x_{i-1}+\Delta x/2),
+\end{align}
+where $\Delta x\equiv (x_i-x_{i-1})$ which is the same for all $i$.
+
+Instead of the midpoint, we can use the \emph{average} of the left and right endpoints of the subinterval as $f_i$. Geometrically, this means we are approximating the integral of each sub-interval by the integral over a right trapezoid with base points at $(x_{i-1},0)$ and $(x_i,0)$ and upper point at the function values $(x_{i-1},f(x_{i-1}))$ and $(x_{i},f(x_{i}))$. The resulting approximation is known as the {\bf trapezoidal rule} \cite{hjorthjensen}\comment{p113},
+\begin{align}
+I\approx \sum_{i=1}^n \frac{f(x_{i-1})+f(x_{i})}{2}(x_i-x_{i-1}) = \Delta x \sum_{i=1}^n \frac{f(x_{i-1})+f(x_{i})}{2}.
+\end{align}
+
+Yet another numerical scheme arises from replacing the integrand in each sub-interval with an interpolating polynomial of degree two, which by construction coincides with $f$ at the endpoints and the midpoint. This constitutes {\bf Simpson's rule} \cite{davis}\comment{p57},
+\begin{align}
+I&\approx \sum_{i=1}^n (x_i-x_{i-1})\left(\frac{f(x_{i-1}}{6}+\frac{4f(x_{i-1}+\Delta x/2)}{6}+\frac{f(x_{i}}{6}\right) \nn\\
+&= \frac{\Delta x}{6}\sum_{i=1}^n \Big( f(x_{i-1}) + 4f(x_{i-1}+\Delta x/2) + f(x_i) \Big).
+\end{align}
+
+All three approximations are examples of Newton-Cotes quadrature rules, which approximate the integral by replacing the integrand by interpolating polynomials of order $k$ on each of the $n$ sub-intervals. We can build arbitrarily high order methods by constructing higher order interpolating polynomials within each interval. The interpolation procedure is described for example in \cite{morken}. We have just seen Newton-Cotes method for orders zero (midpoint rule, zero order polynomial [constant]), one (trapezoidal rule, linear polynomial), and two (Simpson's rule, quadratic polynomial). The next few commonly used methods are the third order \emph{Simpson's 3/8 rule} and the fourth order \emph{Boole's rule}.
+
+\subsection*{Gaussian quadrature}
+Note that so far we have assumed the sub-intervals to all be the same size. If we drop this requirement, we can construct more advanced rules which exploit some convenient properties of orthogonal polynomials. Gaussian quadrature rules are a set of schemes for numerical intergration in which we extract a \emph{weight function} from the integrand
+\begin{align}
+\int_a^bf(x)\dx = \int_a^b W(x)g(x)\dx \approx \sum_{i=1}^n w_ig(x_i).
+\end{align}
+The weight function is associated with a set of orthogonal polynomials, and the integration points $x_i$ are chosen as the zeros of the polynomial of degree $n-1$. Note carefully that $w_i\not=W(x_i)$. The weights $w_i$ can in general be expressed as \cite{krylov}
+\begin{align}
+w_i=\left(\frac{a_n}{a_{n-1}}\right)\frac{\int_a^b W(x) p_{n-1}(x)^2\dx}{p'_n(x_i)p_{n-1}(x_i)}
+\end{align} 
+where $p_n(x)$ is the orthogonal polynomial of degree $n$ and $a_n$ is the coefficient of the $x^n$ term in $p_n(x)$. In some cases, the weight function is present in the original integral and the extraction constitutes a strict simplification of the function. For example, with 
+Chebyshev polynomials\footnote{The Chebyshev polynomials are solutions to the differential equation 
+\begin{align}
+(1-x^2)\pder{^2y(x)}{x^2}-x\pder{y(x)}{x} + n^2y(x)=0,
+\end{align}
+with $n$ a non-negative integer. In general, the solution can be written as \cite{rottmann}\comment{p95} \begin{align}
+T_n(x)=\sum_{k=0}^{\lfloor 1/2 \rfloor}{n \choose 2k}(x^2-1)x^{n-2k}.
+\end{align}} the weight function takes the form $W(x)=1/\sqrt{1-x^2}$, so trying to apply Gauss-Chebyshev quadrature to the integrand $(x^{10}+x+2)/\sqrt{1-x^2}$ would yield simply $g(x)=x^{10}+x+2$ and we would just have to evaluate $g_i$ according to the zeroes of the $n$th Chebyshev polynomial. Each class of polynomials is associated with a specific interval of integration. For Chebyshev, this is $[-1,1]$. So using our previous example, we note that with only $3!$ integration points (exclamation point for emphasis \emph{and} factorial function) we integrate \emph{exactly}
+\begin{align}
+I\equiv \int_{-1}^1 \underbrace{\frac{x^{10}+x+2}{\sqrt{1-x^2}}}_{\equiv f(x)}\dx = \sum_{i=1}^6w_i \underbrace{(x^{10}+x+2)}_{g(x)} = \frac{575\pi}{256}.
+\end{align}
+
+In general, if $g(x)$ is a polynomial of degree $2n-1$ for a weight function associated with some class of orthogonal polynomials, then the gaussian quadrature rule associated with the same class of polynomials will integrate the original $f(x)$ (recall that $g(x)=f(x)/W(x)$) \emph{exactly} with only $n$ integration points \cite{hjorthjensen}\comment{p119}. 
+
+\subsection*{Multiple integrals}
+Both of the aforementioned  rules are straight forward to extend to higher dimensional integrals. For the Newton-Cotes rules, we can simply apply the rule again to the sum resulting from the application of the rule, i.e.
+\begin{align}
+I_{\text{2D}} &= \int_a^b \int_a^b f(x,y)\,\mathrm{d}x\,\mathrm{d}y \approx \int_a^b\sum_{i=1}^n \Delta x f(\xi_i,y) \,\mathrm{d}y \nn\\
+&\approx \sum_{i=1}^n\sum_{j=1}^n \Delta x\Delta y f(\xi_i,\zeta_j).
+\end{align}
+Since function evaluations on the endpoints of sub-intervals (sub-areas to be precise) coincide with the endpoints of the neighbouring sub-intervals, a number of points may be evaluated multiple times and thus have a higher \emph{weight} in the final sum. For example, the 1D trapezoidal rule carries weights 
+\begin{align}
+\mat{ccccccccc}{\nicefrac{1}{2} & 1 & 1 & 1 & \dots & 1 & 1 & 1 & \nicefrac{1}{2}},
+\end{align}
+since 
+\begin{align}
+\frac{\Delta x}{2}\sum_{i=1}^n\Big(f(x_{i-1}+f(x_i)\Big) &= \frac{\Delta x}{2}\left[f(x_0) + 2\sum_{i=1}^{n-1}\Big(f(x_i)+f(x_{i+1})\Big)\right] \nn\\
+&= \frac{\Delta x}{2}\left[f(x_0) + 2\left(\sum_{i=1}^{n-1}f(x_i)\right)+f(x_{n})\right] \nn\\
+&= \frac{\Delta x}{2}\left[f(x_0) + 2f(x_1) + 2f(x_2) + \dots + 2f(x_{n-2}) +2f(x_{n-1}) + f(x_n) \right].
+\end{align}
+In a similar way, the 2D trapezoidal rule has the weights
+\newcommand{\nfh}{\nicefrac{1}{2}}
+\begin{align}
+\mat{ccccccccccc}{
+  \nfh   & 1 & 1 & 1 & \dots & 1 & 1 & 1 & \nfh \\
+  1      & 2 & 2 & 2 & \dots & 2 & 2 & 2 & 1 \\
+  1      & 2 & 2 & 2 & \dots & 2 & 2 & 2 & 1 \\
+  \vdots & \vdots &  \vdots & \vdots & \ddots &\vdots & \vdots&\vdots & \vdots \\
+  1      & 2 & 2 & 2 & \dots & 2 & 2 & 2 & 1 \\
+  1      & 2 & 2 & 2 & \dots & 2 & 2 & 2 & 1 \\
+  \nfh   & 1 & 1 & 1 & \dots & 1 & 1 & 1 & \nfh & ,
+}
+\end{align}
+while the 2D Simpson's rule attains the weights (apart from a factor $\nicefrac{1}{6}$)
+\begin{align}
+\mat{ccccccccccccc}{
+  1      & 4      & 2       & 4      & 2     & \dots  & 2     & 4      & 2      & 4    & 1    \\
+  4      & 16     & 8       & 16     & 8     & \dots  & 8     & 16     & 8      & 16   & 4    \\
+  2      & 8      & 4       & 8      & 4     & \dots  & 4     & 8      & 4      & 8    & 2    \\
+  4      & 16     & 8       & 16     & 8     & \dots  & 8     & 16     & 8      & 16   & 4    \\
+  \vdots & \vdots &  \vdots & \vdots & \vdots& \ddots &\vdots & \vdots & \vdots &\vdots& \vdots \\
+  4      & 16     & 8       & 16     & 8     & \dots  & 8     & 16     & 8      & 16   & 4    \\
+  2      & 8      & 4       & 8      & 4     & \dots  & 4     & 8      & 4      & 8    & 2    \\
+  4      & 16     & 8       & 16     & 8     & \dots  & 8     & 16     & 8      & 16   & 4    \\
+  1      & 1      & 2       & 4      & 2     & \dots  & 2     & 4      & 2      & 4    & 1 &  .
+}
+\end{align}
+
+A similar scheme yields multi-dimensional Gaussian quadrature rules, where the total weights become products of the 1D weights.
+
+
+
+
+
+\chapter{Functionals and functional variations \label{functionals}}
+Recall that a \emph{function} is a mapping from some algebraic scalar field $\mathbb{F}$ to another (possibly different) field $\mathbb{F}'$, i.e. $g:\mathbb{F}\rightarrow \mathbb{F}'$. In physics, we are usually interested mainly in the cases where $\mathbb{F}$ and $\mathbb{F}'$ are the real or complex numbers, $\mathbb{R}$ or $\mathbb{C}$. An example is the complex exponential, $x\mapsto e^{ix}$, which takes complex values but the argument is real, so $g:\mathbb{R}\rightarrow \mathbb{C}$ in this case. 
+
+A \emph{functional}, on the other hand, is a mapping from some function space, $\mathcal{F}$, to a scalar field $\mathbb{F}$, i.e. $f:\mathcal{F}\rightarrow F$. We will take the space of functions to be the underlying Hilbert space of our quantum mechanical system, $\mathcal{H}$, and the field to be the complex numbers, $\C$. The functional thus assigns to each $f\in\mathcal{H}$ a complex number. 
+
+As a familiar example of such a construction, let us consider the definite integral. For the moment, let us take the function space to be continuous real functions of a single real arguments in the range $[0,1]$, $C([0,1])$. We call this \emph{functional} $I$, such that $I:C([0,1])\rightarrow \mathbb{R}$. 
+\begin{align}
+I[f] = \int_0^1\dx f(x)
+\end{align}
+thus assigns a real number to any continuous function on $[0,1]$. For example, $I[e^x]=e-1\approx 1.7183$ or $I[\sqrt{x}]=2/3\approx 0.6667$.
+
+When working in a separable Hilbert space as we always do in quantum mechanics, we may always express any function $f\in\mathcal{H}$ in terms of some basis $\{\\chi_n\}_{n=1}^\infty$, (recall the Parseval relation from section \ref{math})
+\begin{align}
+|f\rangle = \left(\sum_{n=1}^\infty |\chi_n\rangle\langle \chi_n| \right)|f\rangle = \sum_{n=1}^\infty \underbrace{\langle \chi_n|f\rangle}_{c_n} |\chi_n\rangle = \sum_{n=1}^\infty c_n |\chi_n\rangle,
+\end{align}
+meaning we can think of a functional $F[f]$ as a \emph{function} of the vector of coefficients relative to the basis set, ${\bf c}=(c_1,c_2,\dots)$ \cite{kvaal}\comment{p151}.
+
+\subsection*{Short mathematical interlude \label{HFmath}}
+Let $B(X,Y)$ denote the set of all continuous linear transformations from normed vector spaces $X$ and $Y$ (over the algebraic scalar field $\mathbb{F}$\footnote{Meaning $X$ and $Y$ are closed under scalar multiplication with elements $c\in\mathbb{F}$.}). For example we may consider $X=\mathbb{R}^n$ and $Y=\mathbb{R}^m$, i.e. the set of real vectors of length $n$ and $m$, respectively. The set of continuous linear transformations from $X$ to $Y$, $B(X,Y)$, thus consists of real valued matrices of dimensions $m\times n$, so we may write $B(\mathbb{R}^n,\mathbb{R}^m)=\mathbb{R}^{m\times n}$. 
+
+A \emph{Banach space} is a normed vector space which is complete under the metric associated with the norm. Since any norm, $\Vert \cdot \Vert$ induces as metric by $d({\bf x},{\bf y})=\Vert {\bf x}-{\bf y} \Vert$, and the inner product $\langle \cdot|\cdot\rangle$ induces a norm by $\Vert \cdot \Vert = \sqrt{\langle \cdot|\cdot\rangle}$ we can define a \emph{Hilbert space} as a Banach space which is complete w.r.t. this specific metric \cite{lindstrom,mcdonald}\comment{p153,p461}.
+
+The space of linear transformations from $X$ to $\mathbb{F}$, with $X$ being some normed vector space, is called the \emph{dual space} of $X$, sometimes denoted $X^*$. We note that a linear transformation from $X$ to $\mathbb{F}$ is exactly a linear \emph{functional}, and so functionals "live in the dual" of the vector space itself. It turns out that if $X$ is normed, the dual is always a Banach space \cite{rynne}\comment{p104}. Since we are inherently working with Hilbert spaces in quantum mechanics, it is natural to ask: What can we say in general about the vector space of functionals on a Hilbert space $\mathcal{H}$?
+
+In the following, we take $f\in\mathcal{H}^*$ to be a linear functional on $\mathcal{H}$ and $x\in\mathcal{H}$ to be a function in the Hilbert space itself. It can be shown that for any such $x$ there exists a \emph{unique} $y\in\mathcal{H}$ such that $f[x]=f_y[x]=\langle x|y\rangle$, where the functional $f_y[\cdot]\equiv\langle \cdot|y\rangle$ \cite{rynne,mcdonald}\comment{p123,p472}. This is known as the Riesz representation theorem or sometimes the Riesz-Fréchet theorem. Essentially, this means that we can associate the dual space of $\mathcal{H}$ with the space itself since there is a correspondance between the functionals and the elements of the space itself. This is more succintly stated as Hilbert spaces are \emph{self-dual}, and it is this property that justifies the use of Dirac bra-ket notation since we are guaranteed that any ket has a unique corresponding bra which is its Hermitian conjugate.
+
+\subsection*{Functional differentials and derivatives \label{app:functionls}}
+The differential of a functional $F[f]$ is the part of the difference $F[f+\delta f]-F[f]$ that depends linearly on $\delta f$, where $\delta f$ is an infinitesimal variation of the argument function $f$ \cite{yangparr}\comment{246}. Since we need to account for the continuous variation of $F$ over the infinitesimal range $[f,f+\delta f]$ we take the integral
+\begin{align}
+\delta F[f] = \int \frac{\delta F[f]}{\delta f(x)}\delta f(x)\dx,
+\end{align}
+where we have defined the \emph{functional derivative} of $F$ w.r.t. $f$ at the point $x$ as 
+\begin{align}
+F'[f]\equiv\frac{\delta F[f]}{\delta f(x)}.
+\end{align}
+If the underlying space is a Banach space, meaning the dual space is also a Banach space (c.f. section \ref{HFmath}), we can write the functional differential in a way that is familiar \cite{hfreview}\comment{p3093}:
+\begin{align}
+\delta F[f]=\lim_{\varepsilon\rightarrow 0}\frac{F[f+\varepsilon \delta f(x)] - F[f]}{\varepsilon} = \int \frac{\delta F[f]}{\delta f(x)}\delta f(x)\dx.
+\end{align}
+
+In the following, assume $g[f]$ is a functional of the function $f$. It turns out that the functional derivative behaves a lot like ordinary derivatives, \cite{toulouse}\comment{p42}
+\begin{align}
+\mat{rclr}{
+  \displaystyle\frac{\delta}{\delta f(x)}\Big(aF[f]+bG[f] \Big) & \displaystyle= & \displaystyle a \frac{\delta F[f]}{\delta f(x)} + b\frac{\delta G[f]}{\delta f(x)} & \text{(linearity)} \\
+%
+\\
+%
+  \displaystyle\frac{\delta}{\delta f(x)}\Big(F[f]\ G[f] \Big) & \displaystyle= & \displaystyle G[f]\frac{\delta F[f]}{\delta f(x)} + F[f]\frac{\delta G[f]}{\delta f(x)} & \text{(product rule)} \\
+%
+\\
+%
+  \displaystyle\frac{\delta}{\delta f(x)}\Big(F[g]\Big) & \displaystyle= & \displaystyle\int \frac{\delta F[g]}{\delta g(x')}\frac{\delta g(x')}{\delta f(x)}\dx & \text{(chain rule)} \\
+} \nn
+\end{align}
+
+We can also define higher-order functional derivaties, for example the equivalent of the ordinary double derivative
+\begin{align}
+\frac{\delta^2 F[f]}{\delta f(x)\delta f(x')} = \frac{\delta}{\delta f(x)}\left( \frac{\delta F[f]}{\delta f(x')} \right).
+\end{align}
+We may use this to compute the Taylor expansion of a functional $F[f]$ as 
+\begin{align}
+F[f+\Delta f] &= F[f] + \sum_{n=1}^\infty \frac{1}{n!}\int  \dots \int \frac{\delta^{(n)}F[f]}{\delta f(x_1)\dots \delta f(x_n)}\Delta f(x_1)\Delta f(x_2)\dots \Delta f(x_n)\mathrm{d}x_1\mathrm{d}x_2\dots\mathrm{d}x_n \nn\\
+%
+F[f+\Delta f] &= F[f] + \int \frac{\delta F[f]}{\delta f(x)}\Delta f(x)\dx + \frac{1}{2}\int \int \frac{\delta^2 F[f]}{\delta f(x)\delta f(x')}\Delta f(x) \Delta f(x')\dx\,\mathrm{d}x'+\dots,
+\end{align}
+where $\Delta f(x)$ is a finite (not infinitesimal) variation in the function $f(x)$ \cite{yangparr}\comment{p249}.
+
+
+
+
+\end{document}
