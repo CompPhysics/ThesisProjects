@@ -1,0 +1,420 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+\chapter{Implementation: Artificial Neural Networks \label{NNimplementation}}
+The following is a description of the implementation of the artificial neural network (ANN) framework described in chapter \ref{NN}. The main body of the implementation consists of around $1\,500$ lines of object oriented Python code. The structure of the neural networks (NN) and the training procedure is implemented by us, but the underlying back-propagation (by automatic differentiation\footnote{\emph{Automatic differentiation} denotes the process of analytically evaluating the derivative of an arbitrary computer program w.r.t.\ any variable in that program. It exploits the fact that any code\textemdash regardless of how complicated\textemdash at the end of the day only applies a series of elementary operations to a set of variables. Since the derivative of such elementary operations (addition, subtraction, multiplication, sines, exponentiation, etc.) are all known analytically, repeated application of the chain rule can in principle give the closed form analytical derivative of \emph{any} computer code. Please note \emph{very carefully} that this differs fundamentally from an ordinary numerical (finite difference) derivative approximation.}) and parameter optimization is handled by the TensorFlow library \cite{tensorflow}. Our code consists of around 10 classes, but a generic user needs only interact with a single Python source file. The program is designed to be run from the command line where numerous command line arguments dictate which computation is run and how the output is handled/visualized.
+
+The NN framework is essentially used as a general curve fitting procedure, capable of "parameter free" fitting of (in principle) any real mapping $f:\mathbb{R}^M\mapsto \mathbb{R}^N$. Apart from possibly some examples of pathologically badly-behaved functions, the NN machinery can find a least squares\footnote{The precise meaning of \emph{least squares} in this context is made clear in chapter \ref{NN}.} fit to any $f$. Whereas ordinary curve fitting algorithms require a parametrized ansatz, the ANN approach is completely general. 
+
+Given a functional form (with or without added random noise), the developed code is capable of finding an approximation to the noise-less underlying function. It is also possible to provide the program with a file consisting of data points and have the code compute a parametrization of the data points based on one or more inputs. For example, a set of energies originating from \emph{ab initio} QM calculations,
+\begin{align}
+E_{ab\text{ }initio}^i=E_{ab\text{ }initio}(r^i_{12},r^i_{13},r^i_{23},\dots,\theta^i_{123},\theta^i_{134},\theta^i_{124},\dots).
+\end{align}
+The superscript $i$ signifies the discrete sampling\textemdash the energy is only calculated quantum mechanically at a finite set of $N$ configurations\textemdash with given inter-nucleus separations $r_{ij}$ and nucleus-nucleus-nucleus angles $\theta_{ijk}$. Feeding the ANN with the discrete nucleonic configurations (distances and angles) and the corresponding \emph{ab initio} energies, the network can \emph{learn} the underlying patterns and provide an continuous interpolation 
+\begin{align}
+E_\text{NN}=E_\text{NN}(r_{12},r_{13},r_{23},\dots,\theta_{123},\theta_{134},\theta_{124},\dots).
+\end{align}
+
+We will start off our description by presenting examples of the usage of the code, before we delve deeper into the specific implementation. 
+
+\section{Introductory examples \label{nnimpintro}}
+The ANN code is controlled primarily from the command line, and interaction with the source directly is only necessary for \emph{advanced use}. Querying the program with a \inlinecc{--help} option gives an overview of the usage, i.e.\
+\begin{lstlisting}
+(tensorflow)$ python tfpotential.py --help
+\end{lstlisting}
+The \inlinecc{(tensorflow)} denotes an active (possibly virtual) environment which has TensorFlow (TF) and all required libraries in the appropriate Python paths. As a rule, it is generally beneficient to install TensorFlow in a virtual environment (to avoid interfering with the system default Python binaries) using e.g.\ Anaconda package system \cite{anaconda}. 
+
+By default\textemdash if not otherwise specified\textemdash a Lennard-Jones (LJ) functional form is used as an example. The code admits a single positional argument, namely the number of training \emph{epochs} to go through. For example, the following command line statement will run training over $200$ epochs on a default LJ data set, and (once finished) visualize the NN output, the training progress, and the approximation error:
+\begin{lstlisting}
+(tensorflow)$ python tfpotential.py 200 --plotall
+\end{lstlisting}
+
+The structure of the network (number of layers and the amount of neurons per hidden layer) can be specified with the \inlinecc{--size} option. Additionally, training with a data set from e.g.\ \emph{ab initio} QM calculations can be done by specifying the name of a file containing said data. For long training processes, it is convenient to be able to save the NN state. This enables pausing and resuming the training, and is handled in the code by the \inlinecc{--save} and \inlinecc{--load} key-words. The following example runs 1000 training epochs on a data set from the file \inlinecc{QMData.dat}, saving the network structure and state to facilitate subsequent reloading for more training: 
+\begin{lstlisting}
+(tensorflow)$ python tfpotential.py 1000 --size 3 10 --file QMData.dat --save
+\end{lstlisting}
+A network size of 3 hidden layers\textemdash each consisting of 10 neurons\textemdash is used, and an example of the \emph{on the fly} output of the program is shown in \fig{nnexample}.
+
+\begin{figure}[p]
+\begin{lstlisting}
+Initializing network:
+ => layers    3
+ => neurons   10
+ => type      sigmoid
+ 
+Training network:
+ => epochs         1000
+ => function       QMData.dat
+ => data set size  10000
+ => batch size     200
+ => test set size  1000
+ 
+==============================================================================
+                       Cost/                          Test Cost/
+Epoch      Cost        DataSize         Test Cost     TestSize
+------------------------------------------------------------------------------
+  0       294984.9     2.949849         6296.4092     6.2964092           
+  1       5946.0332    0.059460332      5746.3628     5.7463628           
+  2       5909.0933    0.059090933      5743.9268     5.7439268           
+  3       5906.6206    0.059066206      5741.6689     5.7416689           
+  4       5903.2309    0.059032309      5736.8623     5.7368623           
+  5       5899.0264    0.058990264      5733.3242     5.7333242  saved: ckpt-0         
+  6       5893.5371    0.058935371      5725.332      5.725332            
+  7       5885.2447    0.058852447      5716.1626     5.7161626           
+  8       5875.6524    0.058756524      5704.4277     5.7044277           
+  9       5861.1823    0.058611823      5689.1689     5.6891689           
+  10      5843.8268    0.058438268      5668.082      5.668082   saved: ckpt-1
+  11      5822.3592    0.058223592      5647.6074     5.6476074           
+  12      5791.2043    0.057912043      5612.1699     5.6121699           
+  13      5751.5597    0.057515597      5563.3501     5.5633501          
+    
+                                  ...                                      
+          
+  995     13.405828    0.00013405828    17.932564     0.017932564         
+  996     13.568553    0.00013568553    17.441454     0.017441454         
+  997     13.552082    0.00013552082    17.314411     0.017314411         
+  998     13.498887    0.00013498887    17.568069     0.017568069         
+  999     13.575483    0.00013575483    17.655457     0.017655457  
+============================================================================== 
+  \end{lstlisting}
+\caption{Output produced by the example run of the NN program shown in section \ref{nnimpintro}. Saving of the network state is done \emph{at most} every 5 epochs, but only if the current cost function computed for the test set attains a minimum. If other states with lower values of this cost function have already been saved as a previous checkpoint, the current one is not saved. The output has been lightly edited to make it fit (a column showing the elapsed time per epoch is removed, and some non-UTF8 characters have been replaced with similar UTF8 characters, among other things). \label{fig:nnexample}}
+\end{figure}
+
+\section{Overview of selected classes}
+\subsection{The NeuralNetwork class}
+The actual structure and evaluation of the NN is done in the \inlineclass{NeuralNetwork} class. Here, the weights and biases are initialized and organized into hidden layers. Weights are initialized using the \emph{Xavier} method \cite{glorot2010understanding}
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def initializeWeight(self, shape, layer) :
+    nIn   = shape[0]
+    nOut  = shape[1]
+    if self.hiddenActivation = tf.nn.sigmoid :
+        limit = 4 * np.sqrt(6.0 / (nIn + nOut))
+    elif self.hiddenActivation == tf.nn.tanh :
+        limit =     np.sqrt(6.0 / (nIn + nOut))
+      
+    lowerLimit = -limit
+    upperLimit =  limit
+
+    name = 'w%d' % (layer)
+    with tf.name_scope("Weights") :
+        weight = tf.Variable(tf.random_uniform( shape, 
+                                                lowerLimit, 
+                                                upperLimit), name=name); 
+        self.summary(name, weight)
+    return weight
+\end{lstlisting}
+The TensorFlow variables are classified according to their uses, and can later be visualized using the TensorBoard web visualization tool \cite{tensorboard}. An analogous method initializes the biases. Both of the initialization functions are used to create \emph{layers} by
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def layer(self, 
+          y_,
+          layerNumber, 
+          activation=None, 
+          inputLayer=False, 
+          outputLayer=False) :
+
+    iSize = self.nNodes if (not inputLayer)  else self.inputs
+    jSize = self.nNodes if (not outputLayer) else self.outputs
+    self.w.append(self.initializeWeight([iSize, jSize], layerNumber))
+    self.b.append(self.initializeBias  ([jSize],        layerNumber))
+    y_ = tf.add(tf.matmul(y_, self.w[-1]), self.b[-1])
+    return y_ if (activation == None) else activation(y_)
+\end{lstlisting}
+In each layer, the signature "matrix multiply and bias add" is performed, with weight matrices and bias vectors being initialized according to the size of the incoming/outgoing signal. 
+
+Layers can then be combined to form the full network model, which we subsequently will evaluate. This is done in the \inlineclass{fullNetwork} method
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def fullNetwork(self,
+                y_,
+                inputs,
+                nLayers,
+                nNodes,
+                outputs,
+                hiddenActivation,
+                lastActivation) :
+
+    self.w, self.b = [], []
+    self.inputs = inputs
+    self.nNodes = nNodes
+    self.hiddenActivation = hiddenActivation
+    self.lastActivation   = lastActivation
+
+    y_ = self.layer(y_, 0, activation=self.hiddenActivation, inputLayer=True)
+    for i in xrange(1, nLayers) :
+        y_ = self.layer(y_, i,     activation=self.hiddenActivation)
+      
+    y_ = self.layer(y_, nLayers,   activation=self.lastActivation)
+    y_ = self.layer(y_, nLayers+1, activation=None, outputLayer=True)
+    return y_
+\end{lstlisting}
+In order to construct a persistent network, and avoid having to pass around several function arguments, a \inlineclass{constructNetwork} method is used, which creates and saves the network configuration. 
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def constructNetwork( self, 
+                      inputs, 
+                      nNodes, 
+                      nLayers, 
+                      outputs, 
+                      networkType=None) :
+    self.networkType  = networkType
+    self.nLayers      = nLayers
+    self.nNodes       = nNodes
+    self.inputs       = inputs
+    self.outputs      = outputs
+    self.x            = tf.placeholder('float', [inputs,  None], name='x')
+    self.y            = tf.placeholder('float', [outputs, None], name='y')
+    self.parseTypeString(networkType)
+    self.network = lambda x : \
+                    self.fullNetwork(x,
+                                     inputs           = self.inputs,
+                                     nLayers          = self.nLayers,
+                                     nNodes           = self.nNodes,
+                                     outputs          = self.outputs,
+                                     hiddenActivation = self.hiddenActivation,
+                                     lastActivation   = self.lastActivation) 
+
+def __call__(self, inputData) :
+    return self.network(inputData)
+\end{lstlisting}
+Note that the call-method enables usage of a \inlineclass{NeuralNetwork} instance as a \emph{callable object}, essentially using the class instance directly as a function. 
+
+The activation functions can be any one of the pre-defined TensorFlow activations, including rectified linear (ReLU), exponential linear (ELU) sigmoid, or hyperbolic tangent, among others. In order to avoid unnecessarily constraining the final output, no activation is applied for the last layer. 
+
+\subsection{The NetworkTrainer class}
+The training of the Network is handled entirely by the \inlineclass{NetworkTrainer} class. Here, the TensorFlow session is initialized, and a cost function is minimized according to some specified optimization algorithm. Changing the cost function or the optimizer is not currently supported via command line arguments, but can be done by interchanging a single line of code in the source. For all runs in the present work we use the Adam (adaptive moment estimation) optimizer and an $\ell^2$ norm difference,
+\begin{align}
+\text{Cost}(\hat {\bf y})=\Vert {\bf y}-\hat {\bf y} \Vert_{2},
+\end{align}
+is used as the cost function \cite{adam}. Recall that for an input vector ${\bf x}$, the NN output is denoted $\hat {\bf y}$ while the true result is ${\bf y}$. The $\ell^2$ norm cost function is thus simply the square root squared difference between the true result and the network output. The $\ell^2$ space\textemdash briefly mentioned in section \ref{math}\textemdash is the space of \emph{square summable sequences}, essentially a special case of the $\mathcal{L}^2$ space (see e.g.\ Rynne and Youngson \cite{rynne}). 
+
+The \inlineclass{NetworkTrainer} constructor defines two \emph{placeholders}, which are later assigned to TF variables. In addition, the network is assembled and cost function and optimizer is set up.
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def __init__(self, system, saver) :
+    self.system   = system
+    self.x        = tf.placeholder( 'float', 
+                                    [None, system.inputs], 
+                                    name='x')
+    self.y        = tf.placeholder( 'float', 
+                                    [None, system.outputs],
+                                    name='y')
+    self.prediction = system.network(self.x)
+    self.cost       = tf.nn.l2_loss(tf.subtract(self.prediction, self.y))
+    self.adam       = tf.train.AdamOptimizer()
+    self.optimizer  = self.adam.minimize(self.cost)
+    self.save       = system.argumentParser().save
+    self.saver      = saver
+\end{lstlisting}
+The \inlinecc{system} parameter is an instance of the \inlineclass{TFPotential} class, which acts as a driver for the program, glueing the different pieces together. This is the only class the user needs interact with for basic usage of the NN machinery. 
+
+Initialization of the TensorFlow session and the optimization takes place in the \inlineclass{trainNetwork} method.
+The statements 
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+self.sess = tf.Session()
+self.sess.run(tf.global_variables_initializer())
+\end{lstlisting}
+initializes variables to TF structures, essentially constructing the computational graph. The input variables\textemdash usually NumPy (see e.g. Langtangen \cite{primer}) arrays\textemdash are converted to TensorFlow \emph{tensors}. These are only explicitly evaluated and differentiated (up to the required order, depending on the graph) when the TF \inlinecc{run} method is called on them. An example of this is the evaluation of the optimizer and cost function in conjunction with the training step. This is done by 
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+self.sess = tf.Session()
+self.sess.run(tf.global_variables_initializer())
+bOpt, bCost = self.sess.run([self.optimizer, self.cost], 
+                                        feed_dict={ self.x: xBatch, 
+                                                    self.y: yBatch})
+\end{lstlisting}
+The \inlinecc{feed_dict} feeds NumPy arrays into the placeholder variables \lstinline[language={Python},classoffset={4}, morekeywords={self}, keywordstyle=\color{listingsmembercolor}, classoffset={0}]{self.x} and \lstinline[language={Python},classoffset={4}, morekeywords={self}, keywordstyle=\color{listingsmembercolor}, classoffset={0}]{self.y}. The cost function is then evaluated in the TF graph, alongside \lstinline[language={Python},classoffset={4}, morekeywords={self}, keywordstyle=\color{listingsmembercolor}, classoffset={0}]{self.optimizer}. Recall that the latter variable was defined as 
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+self.optimizer  = self.adam.minimize(self.cost)
+\end{lstlisting}
+and \emph{evaluating} it constitutes an update of the NN weights according to the gradients w.r.t.\ the cost function (see chapter \ref{NN} for a brief description of the back-propagation algorithm). 
+
+In total the \inlineclass{trainNetwork} function takes the following (abridged) form:
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork,trainNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+def trainNetwork(self, numberOfEpochs) :
+    self.sess = tf.Session()
+    self.sess.run(tf.global_variables_initializer())
+    # ...
+    xEpoch, yEpoch, xTest, yTest = self.system.dataGenerator.generateData \
+                                                          (self.system.dataSize,
+                                                           self.system.testSize)
+    # ...
+    for epoch in xrange(numberOfEpochs) :
+        indices = np.random.choice(dataSize, dataSize, replace=False)
+        xEpoch = xEpoch[indices]
+        yEpoch = yEpoch[indices]      
+
+        self.epochCost = 0
+        for i in xrange(dataSize / batchSize) :
+            startIndex  = i*batchSize
+            endIndex    = startIndex + batchSize
+            xBatch      = xEpoch[startIndex:endIndex]
+            yBatch      = yEpoch[startIndex:endIndex]
+            bOpt, bCost = self.sess.run([self.optimizer, self.cost], 
+                                                  feed_dict={ self.x: xBatch, 
+                                                              self.y: yBatch})
+            self.epochCost += bCost
+
+        tCost = -1
+        if epoch % self.system.testInterval == 0 :
+            tOpt, tCost = self.sess.run([self.testCost, self.cost], 
+                                                  feed_dict={ self.x: xTest, 
+                                                              self.y: yTest})
+    #...
+\end{lstlisting}
+The \inlinecc{DataGenerator} class is used to provide the training and validation data sets, either from a generating functional form (e.g.\ a Lennard-Jones form) or from a file containing e.g.\ \emph{ab initio} QM data.
+
+\subsubsection{Online learning and order randomization}
+The training scheme used in the current work is an \emph{online leaning} method. Online learning describes a way of feeding inputs through the neural network and is usually contrasted with the \emph{batch learning}. In the batch learning scheme, the entire data set is pushed through the NN in one fell swoop at every epoch. The weights and biases are then updated according to the gradient w.r.t.\ the cost function \emph{of the entire data set}. In order to facilitate data sets which are too big for simultaneous evaluation in the network, online methods feed only a part of the data set through before updating the parameters. If each online batch is size $M$, and the total data set is $N$ samples, then each epoch consists of evaluating $M/N$ mini-batches with subsequent parameter update. 
+
+Crucially, the training data is reordered in a random manner before each training epoch begins. If this is not done\textemdash and especially if the training samples are heavily correlated such as e.g.\ training point $i$ is given by $f(x_i)$ for $x_i=x_0+\mathit{\Delta}x$\textemdash then it is conceivable that the model becomes \emph{stuck in place}. As each mini-batch only trains the NN in very constrained range of inputs with heavily homogenous function values, the model has no way of optimizing in the \emph{global} sense, i.e.\ for the entire data set. 
+
+
+\subsection{The TFPotential and the DataGenerator classes}
+Lastly, let us briefly discuss the \inlineclass{TFPotential} and \inlineclass{DataGenerator} classes. The former class acts as the interface between the user and the ANN machinery, being the class which is used to start calculations. Calling the \inlinecc{tfpotential.py} file evaluates  
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork,train},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+if __name__ == "__main__" :
+    tfpot = TFPotential()
+    tfpot.train(tfpot.argumentParser().epochs)
+\end{lstlisting}
+which creates a \inlineclass{TFPotential} class instance and then calls the \inlineclass{train} method
+\begin{lstlisting}[
+language=Python,
+classoffset=4, % CLASSES
+morekeywords={NeuralNetwork,initializeWeight,layer,initializeBias,fullNetwork, parseTypeString,constructNetwork,train,trainNetwork},
+keywordstyle=\color{listingsclasscolor},
+classoffset=5, % MEMBER VARIABLES
+morekeywords={self},
+keywordstyle=\color{listingsmembercolor},
+classoffset=6, % KEY WORDS
+morekeywords={__call__,__init__},
+keywordstyle=\color{listingskeywordcolor},
+classoffset=0,
+morekeywords={with,None}]
+    def train(self, epochs=-1) :
+        numberOfEpochs = self.numberOfEpochs if epochs == -1 else epochs
+        self.numberOfEpochs = numberOfEpochs
+        self.networkTrainer.trainNetwork(numberOfEpochs)
+        self.sess = self.networkTrainer.sess
+\end{lstlisting}
+which sets up and facilitates the training. In order to help with setting the correct parameters asked for by the user, the \inlineclass{ArgumentParser} class is used to handle command line \inlinecc{--argument} and \inlinecc{value} pairs. 
+
+The data generation (or \emph{data organization} in the case of QM training data) is handled by the \inlineclass{DataGenerator} class, who's primary job is to ensure the training data is structured correctly to be fed through the network. Since The default behaviour\textemdash with the default LJ functional form\textemdash is to create a NumPy \inlinecc{linspace} between two cutoffs, using a number of points specified by the user. Note that since we shuffle the training data around prior to every single training epoch, there is no inherent problem with such a heavily spatially correlated data set. 
+
+
+\end{document}

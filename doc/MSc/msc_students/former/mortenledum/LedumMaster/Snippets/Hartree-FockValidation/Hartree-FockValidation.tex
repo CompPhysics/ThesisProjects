@@ -1,0 +1,205 @@
+\documentclass[../../master.tex]{subfiles}
+
+\begin{document}
+
+
+\renewcommand{\R}{{\bf R}}
+\renewcommand{\r}{{\bf r}}
+\newcommand{\p}{{\bf p}}
+\newcommand{\q}{{\bf q}}
+\renewcommand{\H}{\mathcal{H}}
+\newcommand{\psit}{\left|\psi(t)\right\rangle}
+
+
+\chapter{Hartree-Fock validation tests \label{hfvalid}}
+Recall that we are working in Hartree atomic units, meaning energies are given in terms of the Hartree $[E_h]$, and lengths in Bohr radii $[a_0]$. See appendix \ref{units}.
+%Szabo,Ostlund: p191
+%Langhoff \url{https://ntrs.nasa.gov/archive/nasa/casi.ntrs.nasa.gov/19860023656.pdf}
+%Millard H. Alexander, Molecular Electronic Structure \url{http://www2.chem.umd.edu/groups/alexander/chem691/Chap3.pdf}
+%Goddard \url{http://www.wag.caltech.edu/publications/sup/pdf/5.pdf} (Table 2)
+
+\begin{table}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{l X c l}
+\hline
+\hline
+\\[-0.9em]
+\textbf{Molecule} & & \textbf{Bond length} $[a_0]$ & \textbf{Bond angle} $[\text{rad}]$ \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+H${}_2$ & (Dihydrogen)   & 1.400 & \\
+CH${}_4$ &(Methane)      & 2.050 & 1.911 (Tetrahedral)       \\
+NH${}_3$ &(Ammonia)      & 1.913 & 1.862 (Trigonal pyramid)  \\
+H${}_2$O &(Water)        & 1.809 & 1.824                     \\
+HF &(Hydrogen fluoride)  & 1.733 & \\
+N${}_2$ &(Dinitrogen)    & 2.074 & \\
+CO &(Carbon monoxide)    & 2.132 & \\
+\\[-0.0em]
+LiF & (Lithium fluoride) & 2.955 & \\ % 1.564 Å
+LiO & (Lithium monoxide) & 3.203 & \\ % 1.695 Å
+BeF & (Beryllium monofluoride) & 2.572 & \\ % 1.361 Å
+BeO & (Beryllium oxide) & 2.515 & \\ % 1.331 Å
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Geometries used in the validation Hartree-Fock calculations. The first part of the table is adapted from \cite{szabo}\comment{p191}, while the latter part takes values from \cite{langhoff}. For descriptions of the bonding geometry, see e.g. \cite{zumdahl}. \label{tab:hfv1}}
+\end{table}
+
+\begin{table}
+\centering\sisetup{table-number-alignment=center}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{7}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+ & \multicolumn{2}{c}{3-21G} & \phantom{---} & \multicolumn{2}{c}{6-311++G**} & \\
+\textbf{Molecule} & \textbf{RHF} & \textbf{UHF} & \phantom{---} & \textbf{RHF} & \textbf{UHF} & \phantom{---}  & \textbf{HF limit} \\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+H${}_2$   &  -1.12293 &   -1.12293 & &  -1.13249 &   -1.13249 & &    -1.134  \\ 
+CH${}_4$  &  -39.9769 &   -39.9769 & &  -40.2092 &   -40.2092 & &   -40.225  \\ 
+NH${}_3$  &  -55.8705 &   -55.8705 & &  -56.2145 &   -56.2145 & &   -56.225  \\ 
+H${}_2$O  &  -75.5854 &   -75.5854 & &  -76.0529 &   -76.0529 & &   -76.065  \\ 
+HF        &  -99.4598 &   -99.4598 & &  -100.053 &   -100.053 & &  -100.071  \\ 
+N${}_2$   &  -108.300 &   -108.300 & &  -108.972 &   -108.972 & &  -108.997  \\
+CO        &  -112.093 &   -112.093 & &  -112.770 &   -112.770 & &  -112.791  \\
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Total energies in Hartrees, $H_f$, calculated with restricted (RHF) and un-restricted (UHF) Hartree-Fock. Two different basis sets are used, namely 3-21G and 6-311++G**. The Hartree-Fock limits are taken from Szabo \& Ostlund \cite{szabo}\comment{p191}. Produced using \url{github.com/mortele/HartreeFock} commit \inlinecc{f01b2f65f0d3a6dd3e0a35260686f6ea65292eb4}. \label{tab:hfv2}}
+\end{table}
+
+
+% \begin{table}
+% \setlength\extrarowheight{2pt}
+% \begin{tabularx}{\textwidth}{X c c c}
+% \hline
+% \hline
+% \\[-0.9em]
+% & \multicolumn{3}{c}{\textbf{Dissociation energy} $[H_f]$} \\
+% \\[-0.9em]
+% \textbf{Molecule} & \textbf{Current work, UHF} & \textbf{Reference HF} & \textbf{Expt} \\
+% \\[-0.9em]
+% \hline
+% \\[-0.9em]
+% LiF       & & 0.222333386 & 0.216820988  \\
+% LiO       & \\
+% BeF       & \\
+% BeO       & \\
+% \\[-0.9em]
+% \hline
+% \end{tabularx}
+% \caption{ ((Langhoff)) \label{tab:hfv3}}
+% \end{table}
+
+\section{Dissociation of the hydrogen molecule ion, \texorpdfstring{\ce{H2+}}{H2+}}
+The conceptually simplest possible diatomic molecule is the hydrogen molecule ion, \ce{H2+}, sometimes also called the dihydrogen cation. Being a positively ionized hydrogen molecule, it consists of a single electron in the Coulomb field of two hydrogen atoms. Dissociation of this molecule involves breaking up the covalent one-electron bond, \ce{H2+ <=> H+ + H}. The \emph{dissociation energy}, $D_e$, is calculated as the difference between the energy of the bound molecule and the sum of the energies of the constituent parts at infinite separation.
+
+Fixing the intermolecular distance, $R$, it is relatively straight forward to calculate variational bounds on the dissociation energy using simple trail wave functions (armed with no more than pen, paper, and some patience). Using a single 1s hydrogen orbital centered on each molecule gives a bond length of $R_e=2.4a_0$ with a corresponding dissociation energy of $D_e=0.07E_h$, see e.g. \cite{griffiths}\comment{p304}. A natural next step in improving on this is to include more orbitals. Hinchliffe notes that adding 2p orbitals centered on the nuclei yields $R_e=2.005a_0$ and $D_e=0.09981E_h$. It is a testament to the simplicity of the problem that this is already within $0.1\%$ and $3\%$ of the experimental values of $R_e$ and $D_e$, respectively \cite{hinchliffe}\comment{p81}.
+
+As a test of our Hartree-Fock machinery, let us now see how close we can get using our gaussian basis functions. Since the system has only a single electron, we emply the un-restricted Hartree-Fock method throughout this section. In order to find the bond length we perform a brute force search for a wide range of $R$ values. The resulting potential energy surfaces are shown in \fig{h2plus_dissociation}. First off, we may note from the figure that \ce{H2+} bonds under the Hartree-Fock approximation for all our basis sets as the energy minima are all $<0.5E_h$: the energy of a free proton and a neutral hydrogen atom.
+
+The calculated bond lengths and dissociation energies for all the basis sets tested can be seen in \tab{hfv4}. The Slater type trial wave function described previously used only two orbitals for each atom, but we needed to use the 6-311++G** in order to get a more accurate result. The 6-311++G** for hydrogen has eight primitive orbitals spread over six contracted orbitals. The difference illustrates how much more \emph{natural} the Slater orbitals are for calculating molecular properties. The sole reason we are using gaussian type orbitals is ease of integral calculation. The Slater orbitals are solutions of the hydrogenic Schrödinger equation and an ideal starting point for designing multi-atomic wave function anzatses. The gaussians, on the other hand, can only try to combine multiple primitives in order to emulate the form of the Slater orbitals.
+
+There appears to be two distinct jumps in accuracy: The first one when going from 6-31G (3s1s) to 6-31G** (3s1s1p) and a second one when making the change from 6-31G** (3s1s1p) to 6-311++G** (3s1s1s1s1p). The first one can be understood by the addition of three polarized gaussians which combine to form an orbital of p symmetry. It is clear from this that the \ce{H2+} ground function has a contribution from a bonding $\pi$-orbital\footnote{Linear diatomic molecular orbitals can be modelled as being comprised of states with a definite value of the axial (along the inter-molecular axis) angular momentum, $\ell=0,\pm1,\pm2,\dots$. Molecular orbitals with $\ell=0$ are called $\sigma$-orbitals, while $\ell=\pm1$ are called $\pi_u$-orbitals. Orbitals with non-vanishing electron density \emph{between} the nuclei contribute to Coulomb shielding of the atoms from each other and thus promote the inter-atomic bond. These are called bonding orbitals (in contrast to orbitals for which this is \emph{not} the case which are called anti-bonding). A subscript $g$ means the molecular orbital has positive inversion symmetry, i.e. $\hat P \phi(r)=\phi(-r) = +\phi(r)$, where $\hat P$ denotes the party operator w.r.t. inversion through the inter-molecular center. A subscript $u$ means the orbital has negative inversion symmetry. See e.g. \cite{zumdahl}\comment{p677}} that we cover to some extent with the 1p ($l=1$) gaussian. The second step up in accuracy comes after introduction of a diffuse s-type ($l=0$) gaussian. It is clear that this covers a part of the $\sigma$-symmetric $2\sigma_g$ orbital that is not effectively covered by the other s-symmetric gaussians with larger exponents. 
+
+As a validation example, we feel confident that our unrestricted Hartree-Fock code works as it should for small systems. With a basis set consisting of only 15 contracted gaussians (17 total primitives) per atom, we calculate the dissociation energy of \ce{H2+} to within about $0.3\%$ accuracy. As we will not be very focused on large Hartree-Fock basis sets in the present work, we declare ourselves satisfied with this and move on to testing larger diatomic systems.
+
+\section{Calculating the energies of the "ten-electron series"}
+We will now concern ourselves with calculating the total energy for a series of molecular systems totalling ten electrons. We will also consider \ce{H2}, \ce{N2}, and \ce{CO}. Geometry optimization will not be done here, but we will instead use bond lengths given in \cite{szabo}\comment{p191}. The atomic configuration used throughout this section is shown in \tab{hfv1}. For methane (\ce{CH4}), a tetrahedral structure is assumed: The four hydrogen atoms placed at the four corners of a tetrahedron with the carbon atom in the center. The bond angle refers to the \ce{H}\textemdash\ce{C}\textemdash\ce{H} angle between any of the four hyrogen atoms. Similarily, the ammonia molecule (\ce{NH3}) assumes a trigonal pyramid structure with the shortest \ce{H}\textemdash\ce{N}\textemdash\ce{H} angle between any two hydrogen atoms being the bond angle. Reference energies are also taken from \cite{szabo}\comment{p192}, where the authors have used the 4-31G and 6-31G* basis sets, in addition to STO-G3. 
+
+As the the total energy is the primary quantity available in any \emph{ab initio} calculation such as ours \cite{szabo}\comment{p191}, it seems like a good place to start validation for larger systems. Using two different basis sets, 3-21G and 6-311++G**, we calculate the energies for all the ten-electron series molecules in addition to \ce{CO}, \ce{N2} and \ce{H2}. The results are shown in \tab{hfv2}. We note that in every case, our results are better than the corresponding results of \cite{szabo}\comment{p192} using the 6-31G** basis set, as expected; we are using a larger basis. Our results are also consistent with the results of \cite{dragly}\comment{p84}, from which we can directly compare results for the 6-311++G** basis set. We also notice that the restricted and unrestricted versions of our code seem to output the exact same values, meaning that forcing electrons pairs to occupy the same molecular orbitals is a valid assumption we can make in these cases.
+
+Also shown in \tab{hfv2} are the Hartree-Fock limits for all the molecules. With the 6-311++G** basis sets, we are already within $0.02\%$ of the limit for all the systems, except for \ce{H2}. For the dihydrogen molecule the relative error w.r.t. the Hartree-Fock limit is $0.13\%$. Using the cc-pVTZ basis set reduces this down to about $0.08\%$, and using the even bigger cc-pVQZ yields an error of the same order as for the other molecules, $0.04\%$ at $E=-1.1335E_h$.
+
+Finding results which correspond perfectly to those of \cite{szabo} and especially \cite{dragly} (for the exact same basis sets) makes us even more confident in assuming our Hartree-Fock machinery works as it should. 
+
+
+% 3-21G
+% 1.994   -0.583151164349028
+
+% 6-31G
+% 1.968   -0.584082297862902
+
+% 6-31G**
+% 1.940   -0.590926756190465
+
+% 6-311++G**
+% 1.984   -0.601180380722361
+
+% 6-311++G(2p,2d)
+% 1.9968   -0.601862747862178
+
+% cc-pVTZ
+% 1.9968   -0.602267324326618
+
+% Expt
+% 2.0031   0.1026
+
+\begin{table}
+\setlength\extrarowheight{2pt}
+\begin{tabularx}{\textwidth}{X *{3}{S[table-format=-1.3,table-space-text-post=***]}}
+\hline
+\hline
+\\[-0.9em]
+& \textbf{Bond length,}& \textbf{Dissociation energy,} & \textbf{Relative error w.r.t} 
+\\
+\textbf{Basis set} & \textbf{\phantom{----.}$R_e$ $[a_0]$} & \textbf{\phantom{---------.}$D_e$ $[H_f]$} & \textbf{\phantom{------}expt $D_e$ [$\%$]} 
+\\
+\\[-0.9em]
+\hline
+\\[-0.9em]
+3-21G           & 1.994 & 0.083151 & 18.96        \\
+6-31G           & 1.968 & 0.084082 & 18.05        \\
+6-31G**         & 1.940 & 0.090927 & 11.38        \\
+6-311++G**      & 1.984 & 0.101180 & 1.384        \\
+6-311++G(2d,2p) & 1.997 & 0.101863 & 0.7183       \\
+cc-pVTZ         & 1.997 & 0.102267 & 0.3245       \\
+Expt            & 2.003 & 0.1026   &              \\ 
+\\[-0.9em]
+\hline
+\end{tabularx}
+\caption{Dissociation energies and bond lengths calculated for the hydrogen molecule ion \ce{H2+} using six different basis sets. The experiemental value is taken from  \cite{langhoff}\comment{p81}. Produced using \url{github.com/mortele/HartreeFock} commit \inlinecc{c251e9835d5534f0c957308fec585ec918cb2e94}. \label{tab:hfv4}}
+\end{table}
+
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.49\textwidth]{H2plus_dissociation1.pdf}
+\includegraphics[width=0.49\textwidth]{H2plus_dissociation2.pdf}
+\caption{Energy as a function of the intermolecular distance, $R$, for the hydrogen molecule ion \ce{H2+}. Six different hydrogen basis sets were used, yielding various values of the energy minima and equilibrium bond length. Detail around the minima shown on the right. Produced using \url{github.com/mortele/HartreeFock} commit \inlinecc{c251e9835d5534f0c957308fec585ec918cb2e94}. \label{fig:h2plus_dissociation}}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.98\textwidth,trim=50 50 50 90, clip]{methane1.png}
+\includegraphics[width=0.98\textwidth,trim=100 100 100 175, clip]{methaneDensity.png}
+\caption{Example of a \emph{molecular orbital} in the \ce{CH4} molecule (top) and the electronic density (bottom) as calculated by the Hartree-Fock code using the diffuse-polarized \inlinecc{6-311++G**} basis set for all atoms. The \ce{C} and \ce{H} atoms are shown as points connected by bars. Multiple isosurfaces of the orbital are shown, with increasing opaqueness denoting higher values. The density was calculated using the density matrix by $\rho(\r)=\sum_{pq}P_{pq}\psi_p(\r)\psi_q(\r)$. Produced using \url{github.com/mortele/HartreeFock} commit \inlinecc{a587a2f88184db05d679311058525cebc7ef1ee2}. \label{fig:ch4density}}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}
+
+% \begin{figure}[p!]
+% \centering
+% \includegraphics[width=12cm]{<fig>.pdf}
+% \caption{\label{fig:1}}
+% \end{figure}
+ 
+% \lstinputlisting[firstline=1,lastline=2, float=p!, caption={}, label=lst:1]{<code>.m}
+

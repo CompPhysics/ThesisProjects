@@ -1,0 +1,698 @@
+
+
+void flexmat::update_as_p_qrs(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNq*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vs*iNq*iNr)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vs*iNq*iNr - vr*iNq);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_pqr_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNp*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vr*iNp*iNq)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vr*iNp*iNq - vq*iNp);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_p_qsr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNq*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vr*iNq*iNs)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vr*iNq*iNs - vs*iNq);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_pqs_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNp*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vs*iNp*iNq)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vs*iNp*iNq - vq*iNp);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_p_rqs(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNr*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vs*iNr*iNq)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vs*iNr*iNq - vq*iNr);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_prq_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNp*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vq*iNp*iNr)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vq*iNp*iNr - vr*iNp);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_p_rsq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNr*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vq*iNr*iNs)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vq*iNr*iNs - vs*iNr);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_prs_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNp*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vs*iNp*iNr)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vs*iNp*iNr - vr*iNp);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_p_sqr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNs*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vr*iNs*iNq)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vr*iNs*iNq - vq*iNs);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_psq_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNp*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vq*iNp*iNs)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vq*iNp*iNs - vs*iNp);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_p_srq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNs*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vq*iNs*iNr)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vq*iNs*iNr - vr*iNs);
+    vp = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_psr_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNp*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vr*iNp*iNs)/iNp));
+    vp = conv_to<uvec>::from(H.vT0 - vr*iNp*iNs - vs*iNp);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_prs(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNp*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vs*iNp*iNr)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vs*iNp*iNr - vr*iNp);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qpr_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNq*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vr*iNq*iNp)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vr*iNq*iNp - vp*iNq);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_psr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNp*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vr*iNp*iNs)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vr*iNp*iNs - vs*iNp);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qps_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNq*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vs*iNq*iNp)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vs*iNq*iNp - vp*iNq);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_rps(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNr*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vs*iNr*iNp)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vs*iNr*iNp - vp*iNr);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qrp_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNq*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vp*iNq*iNr)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vp*iNq*iNr - vr*iNq);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_rsp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNr*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vp*iNr*iNs)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vp*iNr*iNs - vs*iNr);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qrs_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNq*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vs*iNq*iNr)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vs*iNq*iNr - vr*iNq);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_spr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNs*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vr*iNs*iNp)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vr*iNs*iNp - vp*iNs);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qsp_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNq*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vp*iNq*iNs)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vp*iNq*iNs - vs*iNq);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_q_srp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNs*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vp*iNs*iNr)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vp*iNs*iNr - vr*iNs);
+    vq = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_qsr_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNq*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vr*iNq*iNs)/iNq));
+    vq = conv_to<uvec>::from(H.vT0 - vr*iNq*iNs - vs*iNq);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_pqs(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNp*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vs*iNp*iNq)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vs*iNp*iNq - vq*iNp);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rpq_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNr*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vq*iNr*iNp)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vq*iNr*iNp - vp*iNr);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_psq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNp*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vq*iNp*iNs)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vq*iNp*iNs - vs*iNp);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rps_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNr*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vs*iNr*iNp)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vs*iNr*iNp - vp*iNr);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_qps(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT1/(iNq*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vs*iNq*iNp)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vs*iNq*iNp - vp*iNq);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rqp_s(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNr*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vp*iNr*iNq)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vp*iNr*iNq - vq*iNr);
+    vs = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_qsp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNq*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT1 - vp*iNq*iNs)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vp*iNq*iNs - vs*iNq);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rqs_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vs = conv_to<uvec>::from(floor(H.vT0/(iNr*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vs*iNr*iNq)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vs*iNr*iNq - vq*iNr);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_spq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNs*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vq*iNs*iNp)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vq*iNs*iNp - vp*iNs);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rsp_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNr*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vp*iNr*iNs)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vp*iNr*iNs - vs*iNr);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_r_sqp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNs*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vp*iNs*iNq)/iNs));
+    vs = conv_to<uvec>::from(H.vT1 - vp*iNs*iNq - vq*iNs);
+    vr = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_rsq_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNr*iNs)));
+    vs = conv_to<uvec>::from(floor((H.vT0 - vq*iNr*iNs)/iNr));
+    vr = conv_to<uvec>::from(H.vT0 - vq*iNr*iNs - vs*iNr);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_pqr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNp*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vr*iNp*iNq)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vr*iNp*iNq - vq*iNp);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_spq_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNs*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vq*iNs*iNp)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vq*iNs*iNp - vp*iNs);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_prq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNp*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vq*iNp*iNr)/iNp));
+    vp = conv_to<uvec>::from(H.vT1 - vq*iNp*iNr - vr*iNp);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_spr_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNs*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT0 - vr*iNs*iNp)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vr*iNs*iNp - vp*iNs);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_qpr(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT1/(iNq*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vr*iNq*iNp)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vr*iNq*iNp - vp*iNq);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_sqp_r(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNs*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vp*iNs*iNq)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vp*iNs*iNq - vq*iNs);
+    vr = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_qrp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNq*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT1 - vp*iNq*iNr)/iNq));
+    vq = conv_to<uvec>::from(H.vT1 - vp*iNq*iNr - vr*iNq);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_sqr_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vr = conv_to<uvec>::from(floor(H.vT0/(iNs*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT0 - vr*iNs*iNq)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vr*iNs*iNq - vq*iNs);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_rpq(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT1/(iNr*iNp)));
+    vp = conv_to<uvec>::from(floor((H.vT1 - vq*iNr*iNp)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vq*iNr*iNp - vp*iNr);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_srp_q(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT0/(iNs*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vp*iNs*iNr)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vp*iNs*iNr - vr*iNs);
+    vq = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+void flexmat::update_as_s_rqp(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vp = conv_to<uvec>::from(floor(H.vT1/(iNr*iNq)));
+    vq = conv_to<uvec>::from(floor((H.vT1 - vp*iNr*iNq)/iNr));
+    vr = conv_to<uvec>::from(H.vT1 - vp*iNr*iNq - vq*iNr);
+    vs = conv_to<uvec>::from(H.vT0);
+    vValues = H.vVals;
+    deinit();
+}
+void flexmat::update_as_srq_p(sp_mat spC, int Np, int Nq, int Nr, int Ns){
+    iNp = Np;
+    iNq = Nq;
+    iNr = Nr;
+    iNs = Ns;
+    unpack_sp_mat H(spC);
+    vq = conv_to<uvec>::from(floor(H.vT0/(iNs*iNr)));
+    vr = conv_to<uvec>::from(floor((H.vT0 - vq*iNs*iNr)/iNs));
+    vs = conv_to<uvec>::from(H.vT0 - vq*iNs*iNr - vr*iNs);
+    vp = conv_to<uvec>::from(H.vT1);
+    vValues = H.vVals;
+    deinit();
+
+
+    void update_as_p_qrs(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qrs_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_p_qsr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qsr_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_p_rqs(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rqs_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_p_rsq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rsq_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_p_sqr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_sqr_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_p_srq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_srq_p(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_prs(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_prs_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_psr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_psr_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_rps(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rps_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_rsp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rsp_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_spr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_spr_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_q_srp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_srp_q(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_pqs(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_pqs_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_psq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_psq_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_qps(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qps_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_qsp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qsp_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_spq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_spq_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_r_sqp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_sqp_r(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_pqr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_pqr_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_prq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_prq_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_qpr(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qpr_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_qrp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_qrp_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_rpq(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rpq_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+
+    void update_as_s_rqp(sp_mat spC, int Np, int Nq, int Nr, int Ns);
+    void update_as_rqp_s(sp_mat spC, int Np, int Nq, int Nr, int Ns);

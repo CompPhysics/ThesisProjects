@@ -1,0 +1,587 @@
+% Chapter Template
+
+\chapter{Second Quantization} % Main chapter title
+
+\label{Chapter2} % Change X to a consecutive number; for referencing this chapter elsewhere, use \ref{ChapterX}
+\lhead{Chapter 3. \emph{Second Quantization}} % Change X to a consecutive number; this is for the header on each page - perhaps a shortened title
+
+%-----------------------------------
+%f	Second Quantization
+%-----------------------------------
+
+\paragraph{A brief review} In this chapter we introduce the Second Quantization (or Number Representation) formalism, and we use it to derive the Hamiltonian for many-body problems with at most two-body interactions.
+
+\section{Second Quantization}
+
+When choosing the single-particle states to populate the Slater
+determinants, as discussed in the previous chapter, we will
+normally choose from a set of states that solves the corresponding one-body problem. 
+Each of these states will have an energy eigenvalue in
+the one-body problem. Because of the Pauli Exclusions Principle, any
+state may only occur once in the Hartree product, since multiple
+identical functions will cause the Slater determinant to be zero.
+
+When setting up the Slater determinant in this way, we create a model for our system
+that is commonly referred to as an \emph{independent particle model},
+since it is constructed from what we are referring to as uncorrelated states.
+
+For a collection of $N$ completely non-interacting identical fermions
+in a common potential, it then makes sense to define an energy level
+corresponding to the distribution of states where the $N$ lowest
+energy states are occupied. The energy of the last occupied
+single-particle state (normally defined in terms of the energy of the
+single-particle states) is called the Fermi energy. The Slater
+determinant which is defined by filling all states below the Fermi
+energy is called the Fermi vacuum. This particular many-body state
+defines normally the ansatz for the ground state of the system and is
+often dubbed 'the reference state'.  The expectation value of this state defines the so-called \emph{reference energy} mentioned in the previous chapter,
+leaving it to various many-body methods like coupled cluster theory to produce reliable estimates for the 
+so-called correlation energy. The latter is defined as the difference between the exact energy and the reference energy.
+It is normal to use single-particle states obtained from a Hartree-Fock calculation in order to construct the 
+ansatz for the ground state and all other possible Slater determinants. 
+
+In a Dirac notation, we write the ansatz for the ground state (or the new vacuum reference state) as \cite{ShavittBartlett2009}
+
+\begin{equation}
+ \vert \Phi_0 \rangle.
+\label{eqn:fermivacuum}
+\end{equation}
+In the same way, we may consider the "true" vacuum, where no states are occupied as
+
+\begin{equation}
+ \vert 0 \rangle.
+\label{eqn:truevacuum}
+\end{equation}
+It is in this context that second quantization will come in handy. We
+will first define the framework for the true vacuum, and thereafter
+for the Fermi vacuum. This is similar to the order in which these
+topics are introduced in most text on many-body methods, see for example Shavitt and Bartlett's \emph{Many-body methods in chemistry and physics}
+\cite{ShavittBartlett2009}. In the following sections we will
+basically just restate the formalism as it appears in the latter reference.
+
+\section{Creation and annihilation operators}
+
+In the following, we will for the sake of simplicity assume all Slater determinants to form an orthogonal and normalized many-body basis. This follows from the fact that the constituent single-particle states are orthogonal and normalized. 
+
+To be \emph{occupied}, means that the single-particle state occurs in the Slater determinant, and to be \emph{unoccupied} then naturally means the opposite. Beginning with the true vacuum state, we may then define operators that create or annihilate (remove) occupied states in the Slater determinant. We call these operators \emph{creation-} and {annihilation} operators, respectively. 
+
+In the second quantization formalism, we denote creation operators as $\hat{a}_p^{\dagger}$,  where the subscript denotes the a particular state and its relevant quantum numbers. When acting on the true vacuum state, we have
+
+\begin{equation}
+\hat{a}_p^\dagger \vert 0 \rangle = \vert p \rangle,
+\label{eqn:creation}
+\end{equation}
+
+indicating that we have a single-particle state labeled by the index $p$. The annihilation operator is defined as 
+
+\begin{equation}
+\hat{a}_p \vert p \rangle = \vert 0 \rangle,
+\label{eqn:annihilation}
+\end{equation}
+
+meaning that a particle is removed from the state identified by the label $p$, bringing us back to the true vacuum state.
+When a creation operator acts on a state which is already occupied, the Pauli exclusion principle requires that 
+
+
+\begin{equation}
+\hat{a}_p^\dagger \vert pqr \rangle = 0,
+\label{eqn:createExclusion}
+\end{equation}
+
+where we here have defined a three-body state identified by labels $pqr$. Attempting to add a new particle with the quantum numbers given by the label $p$, must give zero in order to obey the Pauli principle.  
+Annihilating states that are not present in the SD should also yield zero, that is
+
+\begin{equation}
+\hat{a}_p \vert qrs \rangle = 0.
+\label{eqn:annihilateExclusion}
+\end{equation}
+
+Again, we have here defined a three-body state identified by the labels $qrs$. 
+We may combine these operators to define the so called \emph{number} operator $\hat{n}$ that lets us evaluate if a given state is occupied or not, as well as count all occupied states with the operator $\hat{N}$:
+
+\begin{equation}
+\hat{N} = \sum_p\hat{a}_p^\dagger \hat{a}_p \equiv \sum_p \hat{n}_p. 
+\label{eqn:numberop}
+\end{equation}
+
+Its action on a given Slater determinant results in the number of particles present as eigenvalue. 
+
+\section{Strings of operators}
+
+Constructing a slater determinant from a set of orbitals may now be performed by 
+
+\begin{equation}
+\hat{a}_i^\dagger \hat{a}_j^\dagger  ... \hat{a}_q^\dagger \hat{a}_r^\dagger \vert 0 \rangle = \vert ij ... qr \rangle.
+\label{eqn:createSD}
+\end{equation}
+
+While the subcripts refer to the states present in the Slater determinant, the order in which these appear tells us which particles are occupying each state. If we need to explicitly express which particle occupies which state, we may give each particle a number and write
+
+\begin{equation}
+\hat{a}_{i,1}^\dagger \hat{a}_{j,2}^\dagger  ... \hat{a}_{q,N-1}^\dagger \hat{a}_{r,N}^\dagger \vert 0 \rangle = \vert i(1)j(2) ... q(N-1)r(N) \rangle.
+\label{eqn:createSD2}
+\end{equation}
+
+Since the permutation of occupied states changes the sign of the Slater determinant (\ref{eqn:slaterdet}), so should the permutation of operators. Permuting operators acting on a Slater determinant is basically the same operation as permuting particles in the Slater determinant. We have 
+
+\begin{equation}
+\hat{P} \vert \Phi \rangle = (-1)^{\sigma(P)} \vert \Phi \rangle,
+\label{eqn:Permute2nquant}
+\end{equation}
+
+which is equivalent to
+
+\begin{equation}
+\hat{a}_i^\dagger \hat{a}_j^\dagger  ... \hat{a}_m^\dagger \hat{a}_n^\dagger ... \hat{a}_q^\dagger \hat{a}_r^\dagger \vert 0 \rangle = - \hat{a}_i^\dagger \hat{a}_j^\dagger  ... \hat{a}_n^\dagger \hat{a}_m^\dagger ... \hat{a}_q^\dagger \hat{a}_r^\dagger \vert 0 \rangle.
+\label{eqn:permuteSD2}
+\end{equation}
+
+Because of orthonormality, we will find that the the expectation value of an annihilation operator is
+\begin{equation}
+\langle \Phi' \vert \hat{a}_p \vert \Phi \rangle = 
+\begin{cases}
+\pm 1,& \hat{n}_p(\Phi) = 1,  \hat{n}_p(\Phi') = 0,  \hat{n}_i(\phi) = \hat{n}_i{\Phi'}  (i \neq p) \\
+0,& \mathrm{else}.
+\end{cases}
+\label{eqn:expvalue}
+\end{equation}
+This means that the expectation value will be nonzero if $\Phi'$ and $\Phi$ have the same 
+occupied states, except when the state $p$ occurs in $\Phi$ but not in $\Phi'$. From this, we may deduce that
+\begin{equation}
+\langle \Phi' \vert \hat{a}_p \vert \Phi \rangle = \langle \hat{a}_p^\dagger \Phi' \vert \Phi \rangle,
+\label{eqn:expvalue2}
+\end{equation}
+which shows that $\hat{a}_p$ is the adjoint to $ \hat{a}_p^\dagger $.
+
+\section{Anticommutation relations}
+
+To enable us to evaluate expectation values for strings of operators,
+we will need to be able to manipulate these strings. Such
+manipulations will at some abstract level be involved at a later stage
+in this thesis, for example when deriving the coupled cluster
+equations.
+
+While we have already defined the interchange or permutations of two
+or more operators in strings of exclusively creation or annihilation
+operators (\ref{eqn:Permute2nquant}), we will run into complications
+when the strings contain a mix of these operators. To this end, we
+will utilize the anticommutator, defined as
+\begin{equation}
+[\hat{A}, \hat{B}]_+ \equiv \hat{A}\hat{B} + \hat{B}\hat{A}.
+\label{eqn:anticommutator}
+\end{equation}
+From what we already have discussed (see Eq. (\ref{eqn:permuteSD2})), it is follows that
+\begin{equation}
+[\hat{a}_p, \hat{a}_q]_+ = \hat{a}_p\hat{a}_q + \hat{a}_q\hat{a}_p = \hat{a}_p\hat{a}_q - \hat{a}_p\hat{a}_q = 0,
+\label{eqn:anticommutator_aa}
+\end{equation}
+and
+\begin{equation}
+[\hat{a}_p^\dagger, \hat{a}_q^\dagger]_+ = \hat{a}_p^\dagger\hat{a}_q^\dagger + \hat{a}_q^\dagger\hat{a}_p^\dagger = \hat{a}_p^\dagger\hat{a}_q^\dagger - \hat{a}_p^\dagger\hat{a}_q^\dagger = 0.
+\label{eqn:anticommutator_cc}
+\end{equation}
+
+By evaluating how the anticommutator for mixed operators acts on certain Slater determinants, we find that
+\begin{equation}
+[\hat{a}_p^\dagger, \hat{a}_q]_+ = [\hat{a}_p, \hat{a}_q^\dagger]_+ = \delta_{p,q}.
+\label{eqb:anticommutator_ca_ac}
+\end{equation}
+This results  allows us to rewrite certain strings of operators, since it means that for example
+\begin{equation}
+\hat{a}_p^\dagger \hat{a}_q = \delta_{p,q} -  \hat{a}_q \hat{a}_p^\dagger.
+\label{eqn:anticommutator_ca_ac2}
+\end{equation}
+
+\section{Inner products and operators}
+
+The vacuum state is assumed to be normalized, that is
+\begin{equation}
+\langle 0 \vert 0 \rangle = 1
+\label{eqn:vacuuminner}
+\end{equation}
+
+With the framework laid out so far, we are now able to evaluate inner products of multiple Slater determinants. 
+Consider the following two Slater determinants
+
+\begin{equation}
+\hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_N^\dagger \vert 0 \rangle
+\label{eqn:sd12}
+\end{equation}
+
+and
+
+\begin{equation}
+\hat{a}_r^\dagger \hat{a}_s^\dagger  ... \hat{a}_M^\dagger \vert 0 \rangle.
+\label{eqn:sd12b}
+\end{equation}
+
+
+Using the fact that the creation operator is the adjoint of the annihilation operator, we have
+\begin{equation}
+\langle 0\vert  \hat{a}_M ...  \hat{a}_s  \hat{a}_r   \hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_N^\dagger \vert 0 \rangle.
+\label{eqn:sd12inner}
+\end{equation}
+For Eq.~(\ref{eqn:sd12inner}), we may find that the operators line up perfectly, meaning that
+\begin{equation}
+(r=p), (s=q), ... ,(M=N) \rightarrow
+\langle 0\vert  \hat{a}_M ...  \hat{a}_s  \hat{a}_r   \hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_N^\dagger \vert 0 \rangle = 1.
+\label{eqn:sd12inner_prog}
+\end{equation}
+
+In other cases, the calculation of this inner product (also commonly
+called \emph{matrix product} in the literature
+\cite{ShavittBartlett2009}), becomes a matter of reorganizing the
+creation and annihilation operators in such a manner that we end up
+with something we are able to evaluate. As will become apparent, a
+good strategy is to move all creation operators to the left of the
+annihilation operators, since this inner product will be zero.
+
+One very important aim is to be able to evaluate the expectation value
+of the Hamiltonian, and as such we will also need to extend the
+formalism to include operators. 
+We define the relevant operators in the following, 
+focusing only on one-body and two-body operators since our Hamiltonian will contain at most two-body interactions.
+
+\paragraph{The One-body Operator}
+
+A one-body operator is defined as \cite{ShavittBartlett2009}
+\begin{equation}
+\hat{F} \equiv \sum_{k,l} f_{k,l}  \hat{a}_k^{\dagger} \hat{a}_l = \sum_{k,l} \langle k \vert \hat{f} l \rangle   \hat{a}_k^{\dagger}, \hat{a}_l.
+\label{eqn:onebody}
+\end{equation}
+
+where $\hat{f}$ may for example be identical to $\hat{h}_0$ which we used in Chapter 2.
+s
+It is useful to calculate the expectation value of this operator. We consider here the inner product
+\begin{equation}
+ \sum_{k,l} f_{k,l}  \langle 0\vert  \hat{a}_M ...  \hat{a}_s  \hat{a}_r ( \hat{a}_k^{\dagger} \hat{a}_l)  \hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_N^\dagger \vert 0 \rangle.
+\label{eqn:sd12inner_op}
+\end{equation}
+
+Depending on the Slater determinants present, we  have four different outcomes of the above:
+\begin{enumerate}
+\item If we have perfect line up as in Eq. (\ref{eqn:sd12inner_prog}), we find that $\langle \hat{F} \rangle = \sum_i^N f_{i,i}$
+\item If all single-particle states involved occur in both Slater determinants but in no particular order, we find that $\langle \hat{F} \rangle =(-1)^{\sigma(\hat{P})} \sum_i^N f_{i,i}$
+\item If all except one single-particle state (one \emph{non-coincidence} \cite{ShavittBartlett2009}) occurs in both Slater determinants, the one body operator may act on the Slater determinants in such a way that when encountering the non-coincidence it brings it to coincide
+%\begin{equation}
+\begin{multline}
+(r=p), (s=q), ...,(m \neq n) , ... ,(M=N) \rightarrow \\ \sum_{k,l} f_{k,l}  \langle 0\vert  \hat{a}_M ...  \hat{a}_m ... \hat{a}_s  \hat{a}_r ( \hat{a}_k^{\dagger} \hat{a}_l)  \hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_n...\hat{a}_N^\dagger \vert 0 \rangle =(-1)^{\sigma(\hat{P})} f_{m,n}
+\end{multline}
+\label{eqn:sd12inner_noncoincide}
+%\end{equation}
+\item If there is more than one non-coincidence, the resulting Slater determinants will be orthogonal so that $\langle \hat{F} \rangle = 0$.
+\end{enumerate}
+
+
+
+\paragraph{The Two-body Operator}
+
+We define the two-body operator within the second quantization formalism \cite{ShavittBartlett2009} as
+\begin{equation}
+\hat{G} = \frac{1}{2} \sum_{i,j,k,l} \langle i(1) j(2) \vert g_{12} \vert k(1) l(2) \rangle  \hat{a}_{i}^{\dagger}\hat{a}_{j}^{\dagger}, \hat{a}_{l} \hat{a}_k.
+\label{eqn:twobody}
+\end{equation}
+
+Where we used the definition in Eq. \ref{eqn:createSD2} so that in the bra side of the inner product, particle one is in state $i$ and particle two is in state $j$, while in the ket side we have particle one in state $k$ and particle two in state $l$.
+
+Similar to the case of the one-body operator, we need to know the expectation value of this operator in a general Fock space.
+We consider thus the inner product
+\begin{equation}
+ \frac{1}{2} \sum_{i,j,k,l}    \langle i(1) j(2) \vert g_{12} \vert k(1) l(2) \rangle \langle 0\vert  \hat{a}_M ...  \hat{a}_s  \hat{a}_r (\hat{a}_{i}^{\dagger}\hat{a}_{j}^{\dagger} \hat{a}_{l} \hat{a}_k)  \hat{a}_p^\dagger \hat{a}_q^\dagger  ... \hat{a}_N^\dagger \vert 0 \rangle.
+\label{eqn:sd12inner_op2}
+\end{equation}
+
+If we have perfectly aligned states in the two Slater determinants, we obtain
+\begin{equation}
+\langle \Phi \vert \hat{G} \vert \Phi \rangle = \sum_{i < j, ij \in \Phi} (\langle ij \vert \hat{g} \vert ij \rangle -   \langle ij \vert \hat{g} \vert ij \rangle) \equiv \sum_{i < j, ij \in \Phi}  \langle ij \vert \vert ij \rangle.
+\label{eqn:antisymmetric_element}
+\end{equation}
+
+This is the so-called \emph{antisymmetric matrix element}, and the two terms appearing in this element are by convention named the \emph{direct}- and \emph{exhange} term, respectively. 
+
+For the case where the two Slater determinants differ by one single-particle state only, we find that
+\begin{equation}
+\langle \Phi' \vert \hat{G} \vert \Phi \rangle = \sum_{j \in \Phi} \langle i'(p) j \vert \vert i(p)j \rangle,
+\label{eqn:antisymmetric_element_2}
+\end{equation}
+
+meaning that particle p in this case does not occupy identical single particle states in the bra- and ket side of the inner product since $i' \neq i$.
+
+If instead two single-particle states differ, we obtain
+\begin{equation}
+\langle \Phi' \vert \hat{G} \vert \Phi \rangle = \langle i'(p) j'(q) \vert \vert i(p) j(q) \rangle.
+\label{eqn:antisymmetric_element_3}
+\end{equation}
+With more than two differing single-particle states, the above matrix elements are zero since our interaction acts at most on two particles at the time. 
+
+\paragraph{The Hamiltonian}
+
+We have now the means to write down a Hamiltonian in a second
+quantized form containing both one-body and two-body operators. This
+is the form of the Hamiltonian that will be the studied in this
+thesis. We will define later the explicit form of the Hamiltonian.
+For now, we will utilize the fact that
+$$ \langle ij \vert \vert kl \rangle =  -\langle ij \vert \vert lk \rangle = \langle ji \vert \vert lk \rangle =  \langle ji \vert \vert kl \rangle$$
+to rewrite the Hamiltonian into the following form
+\begin{equation}
+\hat{H} = \sum_{ij} h_{ij} \hat{a}_i^{\dagger} \hat{a}_j + \frac{1}{4} \sum_{i,j,k,l} \langle ij \vert \vert kl \rangle \hat{a}_{i}^{\dagger}\hat{a}_{j}^{\dagger} \hat{a}_{l} \hat{a}_k.
+\label{eqn:2nq_hamiltonian}
+\end{equation}
+
+\section{Normal ordering}
+
+As previously mentioned, reorganizing strings of operators so that all annihilation operators are to the right of the creation operators will be a good strategy when evaluating inner products. The reason for this is that this sequence of operators must yield zero when evaluated as the expectation value in the vacuum state, and in the process of this reorganization we will produce all nonzero contributions as Kronecker deltas in accordance with Eq. (\ref{eqb:anticommutator_ca_ac}). 
+
+For this reason, the process of reorganizing strings of operators into this so called \emph{normal ordered} sequence is of special interest when doing calculations on many-body wave functions. While the diagrammatic approach introduced by Feynman \cite{ShavittBartlett2009} will be our main weapon of choice when dealing with such problems at a later stage in this thesis, we will first treat this using \emph{Wick's Theorem} \cite{Wick1950}. This straightforward approach has the advantage of being easily translated into computer algebra, as utilized in for example the \emph{Secondquant} package included in the SymPy package of Python \cite{secondquant}. Although we have already introduced the basic operations needed in this process, we will in this section see that it may be greatly simplified.
+
+The normal ordered product (or simply \emph{normal product}) is commonly denoted by either an "n" followed by square brackets, or curly brackets \cite{ShavittBartlett2009}
+\begin{equation}
+n[\hat{A} \hat{B} ...] = \{\hat{A} \hat{B}...  \}.
+\label{eqn:2nq_hamiltonian}
+\end{equation}
+
+\section{Contractions}
+
+We define the process of \emph{contracting} two (creation or annihilation) operators by
+\begin{equation}
+\contraction{}{A}{}{B}
+AB \equiv AB - n[AB].
+\label{eqn:contractiondef}
+\end{equation}
+
+For the operators discussed so far, we will only encounter four different situations when performing such contractions. Either we have the three cases where the contracted operators are already basically normal ordered
+\begin{equation}
+\contraction{}{\hat{a}_p^\dagger}{}{\hat{a}_q^\dagger}
+\hat{a}_p^\dagger \hat{a}_q^\dagger 
+\contraction{=}{\hat{a}_p}{}{\hat{a}_q}
+= \hat{a}_p \hat{a}_q
+\contraction{=}{\hat{a}_p^\dagger}{}{\hat{a}_q}
+ = \hat{a}_p^\dagger \hat{a}_q = 0,
+\label{eqn:contractionbank}
+\end{equation}
+or we have the singular nonzero case, where
+\begin{equation}
+\contraction{}{\hat{a}_p}{}{\hat{a}_q^\dagger}
+\hat{a}_p \hat{a}_q^\dagger = [\hat{a}_p, \hat{a}_q^\dagger]_+ = \delta_{p,q}.
+\label{eqn:contractionbank2}
+\end{equation}
+
+\section{Wick's theorem}
+
+Wick's theorem was introduced by Gian-Carlo Wick in 1950 \cite{Wick1950}, and states that 
+
+\begin{theorem}[The time independent Wick's theorem]
+A product of a string of creation and annihilation operators is equal to their normal product plus the sum of all possible normal products with contractions.
+\end{theorem}
+
+We have already seen that the expectation value of any normal product
+on the vacuum state will be zero, so this basically means that only
+the possible fully contracted normal products will contribute to the
+expectation value. As stated in Eq. (\ref{eqn:contractionbank}), many of
+these contractions will also be zero, so we need only to consider the
+possible non-zero contractions.
+
+This is a great simplification of the tedious reorganization of
+operators we have previously encountered, and it is an important tool
+when working with many-body wave states.
+
+\section{Particles and holes}
+
+We have previously briefly mentioned the \emph{Fermi vacuum} (also
+commonly called the \emph{reference state}) (\ref{eqn:fermivacuum}),
+although we up to this point have mainly considered operators acting
+on the true vacuum state (\ref{eqn:truevacuum}). When we at a later
+stage will perform actual calculations, we will typically have a fixed
+number ($N$) of particles that may be represented by a number of fixed
+sized Slater determinants. In this context, it will make much more sense to define the
+second quantization formalism with respect to the Fermi vacuum, namely
+the Slater determinant  where the $N$ particles occupy the $N$ lowest energy eigenstates
+of the single-particle basis.
+
+We will then need to redefine normal ordering, creation and
+annihilation operators, and Wick's theorem with respect to this new
+reference state.
+
+We will define the Fermi level to be the N'th lowest energy level where N is the number f particles in our system.
+
+By convention, we will now refer to unoccupied states up to the Fermi
+level as holes (or hole states), and label them with the letters
+$i,j,k,...$. Occupied states above the Fermi level will be referred to
+as \emph{particles} (or particle states), and will be labeled
+by $a,b,c,...$. Creation and annihilation operators will now behave
+differently depending on whether they target states above or below the
+Fermi level.
+
+A \emph{pseudo particle} creation operator may act on the reference
+state to either remove an occupied state below the Fermi level, thus
+\emph{creating a hole}, or it may create a particle in an unoccupied
+particle state above the Fermi level. Operators acting on particle
+states will then behave the same as before, while operators acting on
+holes will have the opposite effect as previously discussed.
+
+For example, we may excite the reference state by annihilating a state
+$i$ below the Fermi level (thus creating a hole), and thereafter
+create a particle state above the Fermi level. By convention, such a
+process may be written
+\begin{equation}
+\hat{a}_a^\dagger \hat{a}_i^\dagger \vert \Phi_0 \rangle = \vert \Phi_i^a \rangle,
+\label{eqn:excitation}
+\end{equation}
+
+Note that both operators above are given in terms of creation
+operators, denoting that they are pseudo-particle creation operators
+\cite{ShavittBartlett2009}.  This inversion in notation for operators
+acting on states below the Fermi level is motivated by the fact that
+the way we previously defined the normal product no longer will 
+yield zero when evaluated on the reference state. If we instead define
+our normal product to have all pseudo-creation operators to the left
+of all pseudo-annihilation operators, we achieve the same behavior as
+for the true vacuum.
+
+In this new context, Wick's theorem will remain basically unchanged,
+apart from that the only possible nonzero contractions will be
+\begin{equation}
+\contraction{}{\hat{a}_a}{}{\hat{a}_b^\dagger}
+\hat{a}_a \hat{a}_b^\dagger = \delta_{a,b},
+\label{eqn:nnz_contractions_1}
+\end{equation}
+and
+\begin{equation}
+\contraction{}{\hat{a}_i^\dagger}{}{\hat{a}_j}
+\hat{a}_i^\dagger \hat{a}_j = \delta_{i,j}.
+\label{eqn:nnz_contractions_2}
+\end{equation}
+
+
+\section{The normal-ordered Hamiltionian and Wick's generalized theorem}
+
+By normal ordering the Hamiltonian we will achieve two things; we will
+derive expressions that are especially suitable for dealing with states
+ in Fock space (post Hartree Fock calculations), and we will
+be able to utilize the so-called generalized Wick's theorem, that is\footnote{Note that this is not the actual formulation, see \cite[p.86]{ShavittBartlett2009} for the full theorem. For our purpose this formulation is sufficient, since it means that when we encounter expectation values involving normal ordered strings, it will efficiently reduce the number of evaluations needed.}
+\begin{theorem}[The generalized time independent Wick's theorem]
+When considering products of strings of normal ordered creation and/or annihilation operators, we need only consider fully contracted contributions between the normal ordered strings. Internal contractions in the products will yield zero.
+\end{theorem}
+
+To this end, we will benefit from rewriting the Hamiltonian into normal ordered form.
+
+\subsection{Normal-ordered one-body operator}
+
+Acting on all states (particles and holes), the one-body operator is rewritten as
+\begin{equation}
+\hat{F} = \sum_{p,q} f_{p,q}  \hat{a}_p^{\dagger} \hat{a}_q.
+\label{eqn:onebody_n}
+\end{equation}
+Using Wick's theorem, we find that
+\begin{equation}
+\hat{F} = \sum_{p,q} f_{p,q}  (\{\hat{a}_p^{\dagger} \hat{a}_q \} + \delta_{p,q \leq Fermi level}) \equiv \hat{F}_N + \sum_{i} f_{i,i} .
+\label{eqn:onebody_n2}
+\end{equation}
+If we treat particle and hole states separately in the normal-ordered one-body operator, 
+we find
+\begin{equation}
+\hat{F}_N = \sum_{i,j} f_{i,j}   \hat{a}_j \hat{a}_i^{\dagger} + \sum_{a,b} f_{a,b}  \hat{a}_a^{\dagger} \hat{a}_b + \sum_{a,i} f_{i,a}  \hat{a}_i^{\dagger} \hat{a}_a + \sum_{a,i} f_{a,i}   \hat{a}_i \hat{a}_a^{\dagger}.
+\label{eqn:onebody_N}
+\end{equation}
+The remaining term is now simply the expectation value associated with each single-particle state below the Fermi level.
+
+\subsection{Two-body operator}
+
+For the two-body operator we find that
+\begin{equation}
+\hat{G} = \frac{1}{2} \sum_{p,q,r,s} \langle pq \vert g \vert rs \rangle  \hat{a}_{p}^{\dagger}\hat{a}_{q}^{\dagger} \hat{a}_{s} \hat{a}_r.
+\label{eqn:twobody_n}
+\end{equation}
+Again, by Wick's theorem, we find \cite[p.82]{ShavittBartlett2009}
+\begin{equation}
+\hat{G} = \hat{G}_N + \frac{1}{2} \sum_{p,q} (\sum_i \langle pi \vert \hat{g} \vert qi \rangle_{AS} \{ \hat{a}_p^{\dagger} \hat{a}_q \}) + \frac{1}{2} \sum_{ij} \rangle ij \vert \hat{g} \vert ij \rangle_{AS}.
+\label{eqn:twobody_N}
+\end{equation}
+
+The middle term is a one-body term associated with a two-body operator \cite{ShavittBartlett2009}.
+
+The normal-ordered term above may also be written in a way that specifies particles and holes, that is
+\begin{multline}
+\hat{G}_N = \sum_{abcd} \langle ab\vert \hat{g} \vert cd \rangle \{ \Cr{a} \Cr{b} \An{d} \An{c} \}
++  \sum_{ijkl} \langle ij\vert \hat{g} \vert kl \rangle \{ \Cr{i} \Cr{j} \An{l} \An{k} \}
++  \sum_{aibj} \langle ij\vert \hat{g} \vert bj \rangle \{ \Cr{a} \Cr{i} \An{j} \An{b} \} \\
++  \sum_{abci} \langle ab \vert \hat{g} \vert ci \rangle \{ \Cr{a} \Cr{b} \An{i} \An{c} \}
++  \sum_{iajk} \langle ia\vert \hat{g} \vert jk \rangle \{ \Cr{i} \Cr{a} \An{k} \An{j} \}
++  \sum_{aibc} \langle ai\vert \hat{g} \vert bc \rangle \{ \Cr{a} \Cr{i} \An{b} \An{c} \} \\
++  \sum_{ijka} \langle ij \vert \hat{g} \vert ka \rangle \{ \Cr{i} \Cr{j} \An{a} \An{k} \}
++  \sum_{abij} \langle ab\vert \hat{g} \vert ij \rangle \{ \Cr{a} \Cr{b} \An{j} \An{i} \}
++  \sum_{ijab} \langle ij\vert \hat{g} \vert ab \rangle \{ \Cr{i} \Cr{j} \An{b} \An{a} \}.
+\label{eqn:twobody_NN}
+\end{multline}
+
+\subsection{The normal-ordered Hamiltonian}
+
+From the above derivations, we may now express the full Hamiltonian as
+\begin{multline}
+\hat{H} = \hat{F}_N + \frac{1}{2} \sum_{p,q}  \sum_i \langle pi \vert \hat{v} \vert qi \rangle_{AS} \{\Cr{p} \An{q} \} + \hat{V}_N + \frac{1}{2} \sum_{ij} \rangle ij \vert \hat{v} \vert ij \rangle_{AS} +  \sum_{i} f_{i,i}, 
+\label{eqn:hamiltonian_full}
+\end{multline}
+where we conventionally renamed $\hat{G} \rightarrow \hat{V}$ to
+identify the interaction.  We have previously derived the expectation
+value of one- and two-body operators for the reference state in Eqns.
+(\ref{eqn:antisymmetric_element}) and (\ref{eqn:sd12inner_op}), where we found
+that
+\begin{equation}
+\langle \Phi_0 \vert  \hat{H} \vert \Phi_0 \rangle = \sum_{i \in \Phi} f_{ii} + \sum_{i < j, ij \in \Phi}  \langle ij \vert \vert ij \rangle.
+\label{eqn:hamiltonian1}
+\end{equation}
+Comparing Eq. (\ref{eqn:hamiltonian_full}) to Eq. (\ref{eqn:hamiltonian1}), we see that the full Hamiltonian may be rewritten
+\begin{equation}
+\hat{H} = 
+(\hat{F}_N + 
+\hat{V}_N) +
+\langle \Phi_0 \vert \hat{H} \vert \Phi_0 \rangle \equiv 
+\hat{H}_N +
+\langle \Phi_0 \vert \hat{H} \vert \Phi_0 \rangle.
+\label{eqn:hamiltonian_full_N}
+\end{equation}
+The normal ordered Hamiltonian is defined as
+\begin{equation}
+\hat{H}_N = 
+\hat{H}  -
+\langle \Phi_0 \vert \hat{H} \vert \Phi_0 \rangle.
+\label{eqn:hamiltonian_N}
+\end{equation}
+
+\section{The correlation energy}
+
+We may interpret the result in Eq. (\ref{eqn:hamiltonian_N}) as follows: if
+we seek the expectation value of the normal ordered Hamiltonian on the
+true ground state wave function, we find that
+\begin{equation}
+\langle \Psi \vert \hat{H}_N  \vert \Psi \rangle = 
+\langle \Psi \vert \hat{H}  \vert \Psi \rangle -
+\langle \Phi_0 \vert \hat{H} \vert \Phi_0 \rangle \equiv
+\langle \Psi \vert \hat{H}  \vert \Psi \rangle -
+E_{ref},
+\label{eqn:hamiltonian_N_vacuum}
+\end{equation}
+meaning that the energy found from calculating the above equals the
+true ground state energy of the system minus the part of the energy associated
+with the ground state ansatz Slater determinant $\Phi_0$ (the reference state or the Fermi vacuum). We may express this as
+\begin{equation}
+\langle \Psi \vert \hat{H}_N  \vert \Psi \rangle \equiv \Delta E = E - E_{ref}.
+\label{eqn:correlation_energy}
+\end{equation}
+
+In cases where $f_{pq}$ is diagonal, we will refer to the energy
+associated with the normal ordered Hamiltonian as the
+\emph{correlation energy}\footnote{See also Figure
+  \ref{fig:correlation}.}, while the energy associated with the reference
+state will be referred to as the \emph{reference energy}. The
+rationale of this ordering is, as well as the way they naturally occur
+in the equations, that the reference energy is normally found by
+seeking a decent reference state for the system, while the correlation
+energy may be sought in a variety of ways building upon this first
+approximation. Our aim is to obtain a as precise possible expression
+for the correlation energy using advanced first principle methods like
+coupled cluster theory.
+
+In cases where we may justly treat the interaction as a small perturbation in our system (Eq. (\ref{eqn:lesserinteraction})), we may expect the reference
+energy to good approximation to the true ground state energy.
+

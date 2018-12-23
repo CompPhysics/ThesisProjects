@@ -1,0 +1,450 @@
+\documentclass[../../master.tex]{subfiles}
+\renewcommand{\R}{{\bf R}}
+\renewcommand{\r}{{\bf r}}
+
+\begin{document}
+\chapter{Variational Monte Carlo \label{VMC}}
+A large collection of computational methods exist which attempt to solve the Schrödinger equation via the use of stochastic \emph{Monte Carlo} methods. These are collectively known as \emph{Quantum Monte Carlo methods}, and the (arguably) simplest such method is known as {\bf Variational Monte Carlo} (VMC). The VMC scheme attempts to directly evaluate the integral governing the ground state energy expectation value of a quantum mechanical system, 
+\begin{align}
+E_0=\langle \Psi|\hat H|\Psi\rangle = \frac{\int\mathrm{d}^{3N}\R\, \Psi^*(\R)\hat H(\R) \Psi(\R)}{\int\mathrm{d}^{3N}\R\, \Psi^*(\R)\Psi(\R)}, \label{eq:VMC1}
+\end{align}
+with $\R=\{\r_1,\r_2,\dots,\r_N\}$ being all electronic coordinates. It is fairly obvious from the name that said integral is evaluated using Monte Carlo integration. Any other quantum mechanical quantity of interest can be expressed in terms of the expectation value of an operator à la \eq{VMC1}, which means we can essentially formulate all of electronic structure theory in terms of such high-dimensional integrals \cite{hjorth-jensen}\comment{p457}. Since Monte Carlo methods are well suited to solving such integrals (for which grid-based methods fail spectacularly) the matching of quantum mechanics and Monte Carlo integration has widespread applicability \cite{hammond}\comment{p48}.
+
+Of course, we do not a priori know the form of the ground state wave function, $\Psi(\R)$, and in electronic structure problems we have to construct an ansatz wave function by filling a (linear combination of) Slater determinant(s) with spin-orbitals from some chosen basis set. However, in contrast with the previously described Hartree-Fock and (Kohn-Sham) Density Functional methods, VMC does not in general require the use of spin-orbitals for which one-, and two-electron Coulombic interaction integrals can be readily calculated \cite{assaraf}\comment{p3}. Whereas we are essentially forced into using combinations of gaussian basis functions under the former schemes, the Variational Monte Carlo method offers much more freedom in the choices of orbital basis. Essentially the only requirement on the orbital basis functions is that we need to be able to evaluate the orbitals and their second derivatives realatively efficiently.
+
+The Variational Monte Carlo method is an explicitly correlated one, meaning dynamic electron-electron correlation is taken into account. Unlike the Hartree-Fock formalism which treats (opposite spin) electron-electron correlations purely in terms of a mean-field approximation, the electrons under the VMC formalism interact \emph{instantaneously}. Electrons are at all times surrounded by "correlation holes" where the probability of finding other electrons vanish. Introducing explicit many-body correlation terms in Hartre-Fock and post Hartree-Fock methods lead to the introduction of molecular integrals which are significantly harder to solve numerically than otherwise ignoring such terms. For this reason, the vast majority of such work is done using Slater determinants filled with independent-particle orbitals. However, due to the flexibility of the Monte Carlo integration scheme, we may (and should) relatively easily include correlation terms explicitly in the VMC wave function \cite{bressanini}\comment{p9}.
+
+In the following, we will present the fundamentals of Monte Carlo integration and its application to the electronic quantum mechanical problem. But first of all we will derive the Metropolis algorithm which we will employ to sample the configuration space of our $N$-electron system according to the wave function squared $|\Psi(\R)|^2$ (the probability density).
+
+\section{The Metropolis algorithm \label{metropolis}}
+The Metropolis algorithm, originally proposed by Metropolis and co-workers \cite{metropolis} and later generalized by Hastings \cite{hastings} is a method for sampling probability distributions which may be impossible to sample directly\footnote{Direct sampling in this context means e.g.\ \emph{inverse transform sampling}, which necessitate inverting the cumulative distribution associated with the probability density function (PDF) \cite{numericalrecipes}. For complicated distributions, this is often either impossible of unfeasible \cite{assaraf}.} \cite{assaraf}\comment{p291}. The Metropolis-Hastings algorithm  generates a Markov chain of random samples distributed according to the PDF in question. 
+
+\subsection{Markov chains, detailed balance and ergodicity \label{markov}}
+A Markov chain is a sequence of stochastic variables $\{X_i\}_{i=1}^n$ for which step $i+1$ depends soley on step $i$, meaning the process has no "memory." In other words, the probability of stepping from state $X_k$ to state $X_l$ depends only on the states $k$ and $l$, not on \emph{how} it got to $X_k$, \cite{hammond,gilks}\comment{p25}\comment{p5}
+\begin{align}
+W\left(X_{i+1};i+1|X_i;i|X_{i-1};i-1|\dots|X_0;0\right)=W\left(X_{i+1};i+1|X_i;i\right).
+\end{align}
+Given the state $X_i$, the step to the next configuration\textemdash the state $X_{i+1}$\textemdash is governed by the stepping probability $W(\,\cdot\,;i+1|X_i;i)$. Even though the stepping probability has no \emph{memory}, the probability of finding the chain in configuration $Y$ at step $i$ is implicitly dependent on the starting configuration, $X_0$. The \emph{Markov assumption} means we can write the conditional probability of the chain going from $X_0$, through $X_1$, $X_2$, $\dots$, $X_{i}$, and finally to $Y$ (at step $i+1$) as a simple product \cite{gardiner}\comment{p43}
+\begin{align}
+P^{(i)}(Y|X_i|X_{i-1}|\dots|X_0) = W(Y;i+1|X_{i};i)W(X_{i};i|X_{i-1};i-1)\dots W(X_1;1|X_0;0).
+\end{align}
+
+In order for the Markov chain to be of much use to us, we need to demand that given \emph{any} starting point, after sufficient time has passed the chain must gradually "forget" about its initial value. In other words, $P^{(i)}(\,\cdot\,|X_0)$ must converge to some \emph{unique stationary} distribution independent of $X_0$ for large $i$ \cite{gilks}\comment{p5}. necessary and sufficient conditions for this to hold will be derived shortly.
+
+\subsubsection{Markov chain as a random walk}
+We can visualize the evolution of the Markov chain as a \emph{walker}, taking steps around in the configuration space according to the stepping probability. The attributes of the walker define completely the state of the system, $X$, which in the present work is the coordinate configuration of all electrons $\R=\{\r_1,\r_2,\dots,\r_N\}$. Standing at position $X$ in the configuration space, the probability of the walker of stepping to configuration $Y$ in the next step is then given by the stepping probability $W(Y|X)$. 
+
+If the configuration space is discrete, i.e.\ only a finite number $K$ of configurations are possible, then the stepping probability is a $K\times K$ matrix, with the configurations of the system being represented by $K$-dimensional unit vectors. The states of the walker then become $K$-dimensional vectors, with  the elements representing the probability of the system being in any given configuration. For a system in which the configurations take continuous values, the stepping probability is an operator on an infinite dimensional vector space. We will ignore any possible subtle complications introduced by considering the continuous integrals as opposed to discrete sums, and refer to $W$ as a matrix also in the continuous case.
+
+It is important to note that even though the configuration space consists of quantities with continuous ranges, the \emph{sample path} of the Markov chain is still discrete \cite{gardiner}. In other words, stepping from Markov step $i$ to the next step $i+1$ involves some finite (not infinitesimal) change in the configuration.\footnote{Infinitesimal changes are of course in general also allowed. This ensures for example that there is a non-zero chance of the system remaining in place at the $i\rightarrow i+1$ step.} Since the stepping probability is in fact a \emph{probability}, the following equation must hold
+\begin{align}
+\sum_{Y\in\mathcal{X}}W(Y;i+1|X;i)=1, \ \ \text{ or } \ \ \int_{\mathcal{X}}\mathrm{d}Y\,W(Y;i+1|X;i)=1, \label{eq:VMC2}
+\end{align}
+in the discrete and continuous cases, respectively \cite{hammond}. The set of all possible configurations of the system is here denoted $\mathcal{X}$. \eq{VMC2} essentially states the when the walker is situated at configuration $X$, a Markov step means the walker either moves or stays put. In addition, non-negativity $W(Y|X)\ge0$ must hold \cite{assaraf}\comment{p292}. This means $W$ is a \emph{stochastic matrix}. 
+
+A related but somewhat more useful relation can be found when considering a subsequent step from one of all the possible intermediate configurations $Y$, to some state $Z$. Summing (integrating) over the intermediate state yields the Chapman-Kolmogorov equation, \cite{gardiner}
+\begin{align}
+W(Z;i+2|X;i) &= \sum_{Y\in\mathcal{X}}W(Z;i+2|Y;i+1)W(Y;i+1|X;i), \ \ \text{ or} \\
+% 
+W(Z;i+2|X;i) &= \int_{\mathcal{X}}\mathrm{d}Y\,W(Z;i+2|Y;i+1)W(Y;i+1|X;i). \label{eq:VMC3}
+\end{align}
+This is also sometimes known as the Einstein–Smoluchowski–Kolmogorov–Chapman or the Chapman-Einstein-Enskog-Kolmogorov relation \cite{chaichian,hjorth-jensen}\comment{p21}\comment{p401}.\footnote{Or apparen'tly pretty much \emph{any} combination of two or more of the names Chapman, Kolmogorov Einstein, Smoluchowski, and Enskog; depending on who you ask.} 
+
+In the following, we drop the temporal $i$-indices on the stepping probability which we assume to not depend on the \emph{Markov time}. In addition, without any loss of generality, we split it into two parts: a proposal probability and a corresponding acceptance probability. We write thus
+\begin{align}
+W(Y;i+1|X;i) = W(Y|X) \equiv T(Y\leftarrow X)A(Y\leftarrow X),
+\end{align}
+where $T$ and $A$ are proposal and acceptance probabilities, respectively. When the temporal indices are omitted, a single step is always assumed. It turns out that we can express the condition that resulting probability density converge to some \emph{unique} distribution in terms of the Chapman-Kolmogorov relation of \eq{VMC3}. Since the probability of the walker being in configuration $X$ at time $i$ is $P^{(i)}(X)$, the total probability of being in state $Y$ at time $i+1$ is the sum of probabilities of \emph{being in $X$ and stepping into $Y$} (for all possible state $X$) plus the probability of \emph{being in $Y$ and rejecting a suggested move out to any other state $X$} \cite{kalos}\comment{p65}:
+\begin{align}
+P^{(i+1)}(Y)&=\int_{\mathcal{X}}\mathrm{d}X\,\left[P^{(i)}(X)W(Y|X) + P^{(i)}(Y)\neg W(X|Y)\right] \nn\\
+%
+&=\int_{\mathcal{X}}\mathrm{d}X\,\Big[P^{(i)}(X)T(Y\leftarrow X)A(Y\leftarrow X) + \nn\\
+& \ \ \ \ \  \ \ \ \ \  \ \ \ \ \   \ \ \ \ \   \ \ \ \ \  \ \ \ \ \  P^{(i)}(Y) T(X\leftarrow Y)\left\{1-A(X\leftarrow Y)\right\}\Big]. \nn\\
+%
+&=\int_{\mathcal{X}}\mathrm{d}X\,\Big[P^{(i)}(X)T(Y\leftarrow X)A(Y\leftarrow X) + P^{(i)}(Y)T(X\leftarrow Y)- \nn\\
+& \ \ \ \ \  \ \ \ \ \  \ \ \ \ \   \ \ \ \ \   \ \ \ \ \  \ \ \ \ \  P^{(i)}(Y) T(X\leftarrow Y)A(X\leftarrow Y)\Big]. \label{eq:VMC4}
+\end{align}
+Since the integral of $T(X\leftarrow Y)$ over all possible $X$ neccessarily must be unity, the middle term is simply $P^{(i)}(Y)$ \cite{hjorth-jensen}\comment{p401}. This means we can rewrite \eq{VMC4} as
+\begin{align}
+P^{(i+1)}(Y)-P^{(i)}(Y) &= \int_{\mathcal{X}}\mathrm{d}X\, \Big[P^{(i)}(X)T(Y\leftarrow X)A(Y\leftarrow X) - \nn\\
+& \ \ \ \ \  \ \ \ \ \  \ \ \ \ \   \ \ \ \ \   \ \ \ \ \  \ \ \ \ \  P^{(i)}(Y) T(X\leftarrow Y)A(X\leftarrow Y)\Big],
+\end{align}
+and the condition that once equilibrium is reached, the Markov chain cannot exit the equilibrium again can now be stated as $P^{(i+1)}(Y)-P^{(i)}(Y)=0$, i.e.\
+\begin{align}
+P^{(i)}(X)T(Y\leftarrow X)A(Y\leftarrow X) &= P^{(i)}(Y) T(X\leftarrow Y)A(X\leftarrow Y) \nn\\
+%
+\frac{P^{(i)}(X)}{P^{(i)}(Y)} &= \frac{T(X\leftarrow Y)A(X\leftarrow Y)}{T(Y\leftarrow X)A(Y\leftarrow X)}. \label{eq:VMC5}
+\end{align}
+This is known as {\bf detailed balance} \cite{thijssen}\comment{p301}.
+
+Systems generated by random walks such as this one can be characterized into a few catergories. If, after vising $X$, the probability of later re-visiting the neighbourhood around $X$ vanishes we classify the system as \emph{null}. If, on the other hand, after vising $X$, the walker re-visits $X$ every subsequent $T$ steps, we call the system \emph{periodic}. Crucially, a system which is neither null nor periodic is called {\bf ergodic}: revisiting $X$ is allowed but is not done periodically \cite{kalos}\comment{67}. The ergodicity condition can be stated as: For every pair of states $X$ and $Y$ there exists a non-zero stepping probability (possibly with intermediate steps)
+\begin{align}
+W^{(n)}(Y|X)=W(Y|Z_n)W(Z_n|Z_{n-1})\dots W(Z_1|X)\not=0,
+\end{align}
+where the $W$-superscript denotes the number of steps taken. In short, ergodicity ensures we can reach any configuration in finite time, regardless of starting point.
+
+It turns out that detailed balance and ergodicity are exactly sufficient\footnote{Although not necessary: detailed balance is more stringent demand than needed \cite{assaraf}\comment{p293}.} for the conditions stated at the end of section \ref{markov} to hold, i.e. the asymptotical distribution after a large number $M$ of Markov steps converges to a unique distribution independently of starting configuration \cite{wood}.
+
+\subsubsection{Connecting stepping probability with the asymptotic probability density}
+Having shown that under certain conditions, the asymptotic probability density resulting from the Markov chain is unique, it is now time to ask how we can construct the stepping probability in a way which produces the desired $P(X)$. It is exactly this the Metropolis algorithm achieves. The stepping probability $W(Y|X)$ associated with the known probability density $P(X)$ is in general unknown, and often too complicated to even easily write down \cite{hjorth-jensen}\comment{p400}. However, according to Metropolis and co-workers, we can use a uniform suggestion probability $T$ and accept any suggested step with the probability 
+\begin{align}
+A(Y\leftarrow X) = \min\left\{1,\frac{P(Y)}{P(X)}\right\}. \label{eq:VMC6}
+\end{align}
+This ensures the sampled Markov steps adhere to the correct relative probabilities within the distirbution \cite{hammond}\comment{p30}. For completeness, the transition matrix can under the Metropolis-scheme be written as \cite{assaraf}\comment{p294}
+\begin{align}
+W(Y|X)=\left\{\mat{lcr}{
+	T(Y\leftarrow X)A(Y\leftarrow X) & & Y\not=X \\
+	1-\int_{\mathcal{X}}\mathrm{d}Z\, T(Z\leftarrow X)A(Z\leftarrow X) & & Y=X
+}\right..
+\end{align}
+
+The steps of the basic Metropolis algorithm (sometimes referred to as brute-force Metropolis) can be written as
+\begin{shadeframe}
+\begin{itemize}
+	\item[(1)] Start in configuration $X_0$.
+	\item[(2)] Generate a suggested new configuration $Y$, according to the uniform suggestion probability $T(Y\leftarrow X)$.
+	\item[(3)] Accept the new value with probability $\min\{1,A(Y\leftarrow X)\}$. The acceptance probability is given by $A(Y\leftarrow X)=P(Y)/P(X)$.
+	\item[(4)] Assign $X_1=Y$ if step (3) was accepted, else assign $X_1=X_0$.
+	\item[(5)] Repeat steps (2)\textemdash(4).
+\end{itemize}
+\end{shadeframe}
+
+\subsection{The Metropolis-Hastings algorithm and importance sampling}
+The uniform suggestion probability proposed by Metropolis and co-workers is just \emph{one way} of satisfying the detailed balance condition \cite{metropolis}. More generally, we need \eq{VMC5} to hold and thus
+\begin{align}
+A(Y\leftarrow X) = \min\left\{ 1,\frac{T(X\leftarrow Y)P(Y)}{T(Y\leftarrow X)P(X)} \right\}. \label{eq:VMC14}
+\end{align}
+It is immediately obvious that if the proposal probability $T(Y\leftarrow X)$ is uniform in the sense that the probability is constant within the hyper-cube in the configration space\textemdash any configuration with $\vert\r_i^\text{new}-\r_i^\text{old}\vert\le \Delta x$ for all $i$ is equiprobable\textemdash then the $T$s drop out and we are left with the maximized $A(Y\leftarrow X)$ of \eq{VMC6} \cite{assaraf}\comment{295}.
+
+In general, we have a lot of freedom in the choice of $T(Y\leftarrow X)$. The only conditions being that it must be stochastic\textemdash in the sense of a stochastic matrix, i.e. non-zero and satisfying $\int_\mathcal{X}\mathrm{d}Y\, T(Y\leftarrow X)=1$\textemdash and we must be able to easily sample it directly. Instead of using a $T$ uniform in all degrees of freedom, we can instead take advantage of information about the target distribution. A clever choice of such a sampling probability can take into account the local gradient of $P(X)$, and steer the Markov chain towards areas of higher probability. A good choice turns out to be the Greens function of the short-time approximation Fokker-Planck equation \cite{assaraf}\comment{p296}. 
+
+\subsubsection{Fokker-Planck equation}
+In order to derive the Fokker-Planck equation, we first backtrack a short distance. Recall that the Chapman-Kolmogorov equation for a (in general time-dependent) transition probability takes the form 
+\begin{align}
+W(Y;t_2|X;t_0) = \int_\mathcal{X}\mathrm{d}Z\, W(Y;t_2|Z;t_1)W(Z;t_1|X;t_0). 
+\end{align} 
+%Setting $t_1=t_0$, we find upon inspecting this integral that in order for the right hand side to yield $W(Y;t_2|X;t_0)$ the integrand must simply be the delta function $\delta(Z-X)$.
+Let now $P(X)$ be the probability distribution associated with the transition matrix $W(Y;t_1|X;t_0)$. We assume that the following holds:
+\begin{align}
+\lim_{t\rightarrow \tau}  \frac{1}{(t-\tau)} \int_\mathcal{X}\mathrm{d}Y\,(Y-X)\phantom{{}^{a+b}}\,W(Y;t|X;\tau)&=A(X,\tau), \\
+%
+\lim_{t\rightarrow \tau} \frac{1}{(t-\tau)} \int_\mathcal{X}\mathrm{d}Y\,(Y-X)^2\phantom{{}^{+k}}\,W(Y;t|X;\tau)&=2B(X,\tau), \ \ \text{ and }\\
+%
+\lim_{t\rightarrow \tau} \frac{1}{(t-\tau)} \int_\mathcal{X}\mathrm{d}Y\,(Y-X)^{3+k}\,W(Y;t|X;\tau)&=0,
+\end{align}
+for any non-negative integer $k=0,1,2,\dots$. These integrals are sometimes called \emph{Kramers-Moyal-expansions}. If we take the distribution to represent e.g.\ the position of a particle, the first condition constrains the mean velocity of the particle to be $A(X,\tau)$ \cite{gilks}. Similarily, the second condition describes the influence on the particle's position by some random force. The third condition essentially ensures the motion must be continuous, in that $W(Y;t_1|X;t_0)$ must vanish for $Y\not=X$ if $t_1\not=t_0$ \cite{gardiner}\comment{p48}. We will denote these integrals themselves (sans the denominator and limit) by $\langle (Y-X)^n\rangle$.
+
+We will now consider some arbitrary function $g(x)$ which vanishes along with it's first derivative on the edges of our configuration space, $g(X\rightarrow \pm\infty)\rightarrow 0$ and $g'(X\rightarrow \pm\infty)\rightarrow 0$. Taking the integral of $g(x)$ weighed by $W(Y;t|X;0)$ over the all possible configurations, and employing the Chapman-Kolmogorov relation, yiels
+\begin{align}
+\int_\mathcal{X}\mathrm{d}Y\,g(Y)W(Y;t|X;0) &= \int_\mathcal{X}\int_\mathcal{X}\mathrm{d}Y\mathrm{d}Z\,g(Y)W(Y;t|Z;\tau)W(Z;\tau|X;0). \label{eq:VMC7}
+\end{align}
+Exchanging $g$ for it's Taylor series to second order around $Z$ gives next
+\begin{align}
+(\ref{eq:VMC7}) &\approx \int_\mathcal{X}\mathrm{d}Z\,g(Z)W(Z;\tau|X;0) + \nn\\
+%
+& \phantom{---} \int_\mathcal{X}\mathrm{d}Z\,g'(Z)W(Z;\tau|X;0)\big\langle(Y-Z) \big\rangle +\nn\\
+%
+& \phantom{------} \frac{1}{2}\int_\mathcal{X}\mathrm{d}Z\,g''(Z)W(Z;\tau|X;0)\big\langle(Y-Z)^2 \big\rangle. \label{eq:VMC8}
+\end{align}
+Dividing this by $(t-\tau)$ and taking the limit $t\rightarrow \tau$ gives finally (after integration by parts and interchanging the limit and the integral)
+\begin{align}
+\int_\mathcal{X}\mathrm{d}Y\, g(Y)\left[\pder{W}{t}+\pder{AW}{Y}-\pder{^2BW}{Y^2} \right]=0,
+\end{align}
+where we used the fact that $g$ vanishes at infinity to handle the boundary term arising from the integration by parts \cite{chaichian}\comment{p60}. We note that in the limit of vanishing $t-\tau$, the approximation of \eq{VMC8} is \emph{exact} since all terms of order three or higher in the Taylor expansion vanish after the integration.
+
+Since $g$ is completely arbitrary, we see that 
+\begin{align}
+\pder{W}{t}+\pder{(AW)}{X}-\pder{^2(BW)}{X^2}=0 \label{eq:VMC9}
+\end{align}
+must hold. This is known as the {\bf Fokker-Planck equation} or sometimes \emph{the second Kolmogorov equation}. It describes the time evolution of the prabability density of a particle (such as a Markovian walker) subject to a drift force. With $A(X,t)=0$ and $B(X,t)=B(X)$, the Fokker-Planck equation reduces to a simple diffusion equation. 
+
+By taking the \emph{Master equation} as a starting point, we can show that a corresponding equation also holds for the probability density itself, i.e.\ \cite{hauge}
+\begin{align}
+\pder{P(X,t)}{t}+\pder{\big[A(X,t)P(X,t)\big]}{X}-\pder{^2\big[B(X,t)P(X,t)\big]}{X^2}=0. \label{eq:VMC10}
+\end{align}
+Alternatively, note that $P(X,t)=\int_\mathcal{X}\mathrm{d}X_0\,W(X;t|X_0;0)P(X_0,t)$\textemdash thus if we assume $P(X_0,0)=\delta(X-X_0)$ then $W(X;t|X_0;0)=P(X,t)$\textemdash hence \eq{VMC9} immideately implies \eq{VMC10}.
+
+\subsubsection{Solving the Fokker-Planck equation}
+Isotropic Brownian motion adheres to the usual diffusion equation in the same way that a Markovian random walker subject to a drift force satisfies the Fokker-Planck equation. A natural question thus arises: Can we solve the Fokker-Planck equation in the case of a random walker traversing the configuration space of our electronic positions? The answer is yes, and it will help us to improve the efficiency of the Metropolis algorithm.
+
+Let now $P(\R,t)$ be a probability distribution function subject to a drift force ${\bf F}(\R)=(F_1, F_2,\dots, F_N)$, where $\R=\{{\bf r}_i\}_{i=1}^N$ as usual and $F_i=F_i(x_i)$ denotes the drift term on compontent $i$ of $\R$.\footnote{The $i$-th component of ${\bf F}$ is the drift term corresponding to coordinate $i\bmod d$ of electron $\lfloor i/d\rfloor$ in $d$ dimensions.} This probability density satisfies the Fokker-Planck equation \cite{hammond}\comment{53}
+\begin{align}
+\pder{P(\R,t)}{t} = \sum_{i=1}^{dN} D \pder{}{x_i}\left(\pder{}{x_i} -F_i(x_i)\right)P(\R,t). \label{eq:VMC11}
+\end{align}
+The diffusion constant is here denoted by $D$ while lowercase $d$ indicates the number of spatial dimensions. Since we are interested in the probability density which converges to $P(\R,t)=P(\R)=|\Psi(\R)|^2$ (assuming for the moment that $\Psi(\R)$ is normalized), we look for the solution in the case where the left hand side of \eq{VMC11} vanishes. An obviously sufficient (but possibly not necessary) condition for this equation to hold is if it holds for each individual term of the sum, such that 
+\begin{align}
+\pder{^2P(\R)}{x_i^2}&= P(\R)\pder{F_i(x_i)}{x_i}+F_i(x_i)\pder{P(\R)}{x_i}.
+\end{align}
+We note that in order for the right hand side to include a second derivative of $P(\R)$, we must require 
+\begin{align}
+{\bf F}_i(\r) \sim g[P]\pder{P(\R)}{x_i}.
+\end{align}
+In addition, in order for cancellation of the $P$ in the first term on the right hand side, $g[P]=1/P(\R)$. It can be shown that the drift vector which results in a stationary probability density $P(\R)=|\Psi(\R)|^2$ is 
+\begin{align}
+{\bf F}=2\frac{1}{\Psi(\R)}\nabla \Psi(\R),
+\end{align}
+with $\nabla=(\nabla_1,\nabla_2,\dots,\nabla_N)$ being the vector of gradients w.r.t.\ each of the electrons \cite{hjorth-jensen}\comment{488}. This quantity is sometimes referred to as the \emph{quantum force}, and acts to push the Markovian random walker in the direction of higher probability density. \footnote{Please note that even though the quanitity ${\bf F}$ is called a quantum \emph{force}, it is strictly speaking not a force. In fact it has dimensions of inverse length. We may instead think of the combination $D{\bf F}$ as a \emph{drift velocity}. With $D$ having dimensions of length squared per time, the combination has dimensions of lenght per time. This is in fact the combination which we will encounter (multiplied with a time step $\delta t$) shortly in the Green's function of the Fokker-Planck equation.}
+
+It turns out that a good choice for the transition probability $T(Y\leftarrow X)$ which incorporates the information in the quantum force ${\bf F}$ is the \emph{Green's function} of the Fokker-Planck equation in the limit of small $\Vert X-Y\Vert$ \cite{assaraf}\comment{p296}. We can rewrite the Fokker-Planck equation in terms of a differential operator $\mathcal{L}$,  
+\begin{align}
+\pder{P}{t}=\mathcal{L}P, \ \ \ \text{ with } \ \ \ \mathcal{L}\equiv D\nabla \cdot (\nabla - {\bf F}). \label{eq:VMC12}
+\end{align} 
+The Green's function $G(Y,X;\delta t)$ is then the \emph{operator inverse} of $\mathcal{L}$ in the sense that \cite{hassani}\comment{p553}
+\begin{align}
+\mathcal{L}G(Y,X;\delta t) = \delta(\underbrace{t_Y-t_X}_{\delta t})\delta(Y-X).
+\end{align}
+The finite time step $\delta t$ is the temporal distance between configurations $X$ and $Y$.
+
+By inspection of we can straight away write down a representation of the solution, the Green's function is simply given by $G(Y,X;\delta t)=\exp(-\delta t \mathcal{L})$ \cite{hammond}\comment{p55}. Assuming a short time step $\delta t$, we can assume also correspondingly short spatial step $\Vert Y-X\Vert$ meaning the quantum force will remain essentially unchanged between the two configurations. Under this assumption, we can integrate the Green's function,
+\begin{align}
+G(Y,X;\delta t) = \exp\left(D\delta t \left[\nabla^2-\nabla \cdot {\bf F}-{\bf F}\cdot \nabla \right]\right),
+\end{align} 
+over the time interval $\delta t$ to obtain 
+\begin{align}
+G(Y,X;\delta t)=\left(\frac{1}{4\pi D \delta t}\right)^{-3N/2}\exp\left(\frac{-\left[Y-X-D\delta t {\bf F}(X)\right]^2}{4D\delta t}\right). \label{eq:greens}
+\end{align}
+Recall that $X$ here denotes a full configuration of the system, meaning all the electronic coordinates. This means that a more natural labelling of $X$ and $Y$ would be $Y=\R_\text{new}$ and $X=\R_\text{old}$, however we keep the $X$s and $Y$s to remain in line with the notation of the previous sections.
+
+\subsubsection{The Langevin equation}
+Having found the solution, we are still left with the question of how to generate Fokker-Planck trajectories in practice. This is where we need to introduce the {\bf Langevin equation}
+\begin{align}
+\pder{x(t)}{t} = D{\bf F}(x(t))+\eta. \label{eq:VMC13}
+\end{align}
+The Langevin equation which corresponds to our Fokker-Planck equation describes e.g.\ the movement of a particle under the influence of a rapid and irregularly fluctuating random function of time \cite{gardiner}\comment{p80}. The random force $\eta$ is distributed according to a multidimensional Gaussian with a vanishing mean and variance $2D$.
+
+The Langevin approach of adding random terms to the equations of motion, sometimes called \emph{noise sources}, is fundamentally different but mathematically equivalent to the Fokker-Planck equation \cite{vankampen}\comment{p219}. Whereas the former describes the evolution of the degrees of freedom of a system, the latter describes the evolution of the probability density of said degrees of freedom.
+
+Integrating \eq{VMC13} over a short time interval $\delta t$ gives rise to a time discrete form which we will find useful in generating Markov trajectories for use with the generalized Metropolis-Hastings algorithm: \cite{hammond}\comment{p54}
+\begin{align}
+y = x + D{\bf F}(x)\delta t + \chi.
+\end{align}
+The random variable $\chi=\eta \delta t$ is a rescaled Gaussian, now with variance $2D\delta t$. 
+
+\subsubsection{Importance sampling}
+Having introduced both the Fokker-Planck and the Langevin equation we are now ready to extend the original Metropolis algorithm with a non-uniform proposal distribution. The standard approach used to implement the Metropolis-Hastings algorithm with importance sampling in quantum mechanical problems is the following: Use the Langevin equation to propose moves and then accept or reject them according to the solution of the corresponding Fokker-Planck equation \cite{hjorth-jensen}\comment{p409}. 
+
+Whereas the Metropolis suggestion step described previously assigned equal probability of stepping to any point inside a $3N$ dimensional hyper-box of side lengths $\Vert y_i - x_i\Vert<\Delta x$, the importance sampled Metropolis-Hastings suggestions take the form
+\begin{align}
+x_i^\text{new} = x_i^\text{old} + D\delta t {\bf F}(x_i) + \chi. \label{eq:VMC15}
+\end{align}
+The random variable $\chi$ is distributed as a Gaussian around zero with variance $2D\Delta t$. Without the velocity drift term, this is the stepping scheme for an isotropic Brownian random walk in configuration space. However, with the added quantum force, the walker is pushed in the direction of higher probability, meaning more significant areas of the configuration space are visited proportionally more often.
+
+Once a step has been suggested, the Metropolis test is performed. The full probability of accepting the step now has a non-vanishing contribution from $T(x_i^\text{new}\leftarrow x_i^\text{old})$: the ratio of the Green's functions of the Fokker-Planck equation. The acceptance probability is thus\textemdash according to \eq{VMC14}\textemdash the following \cite{assaraf}\comment{p296}
+\begin{align}
+A(x_i^\text{new}\leftarrow x_i^\text{old}) = \min\left\{1, \frac{G(x_i^\text{new},x_i^\text{old};\delta t)|\Psi(\R^\text{new})|^2}{G(x_i^\text{old},x_i^\text{new};\delta t)|\Psi(\R^\text{old})|^2}  \right\}. \label{eq:VMC16}
+\end{align}
+
+In summary, the Metropolis-Hastings algorithm with importance sampling consists of the following steps
+\begin{shadeframe}
+\begin{itemize}
+	\item[(1)] Start in configuration $X_0$.
+	\item[(2)] Generate a suggested new configuration $Y$ according to the solution of the Langevin equation, \eq{VMC15}.
+	\item[(3)] Accept the new value with probability $\min\{1,A(Y\leftarrow X)\}$. The acceptance probability is given by the Green's function ratio of \eq{VMC16}.
+	\item[(4)] Assign $X_1=Y$ if step (3) was accepted, else assign $X_1=X_0$.
+	\item[(5)] Repeat steps (2)\textemdash(4).
+\end{itemize}
+\end{shadeframe}
+
+
+
+\section{Monte Carlo integration}
+Monte Carlo integration is a numerical scheme for estimating the value of definite integrals. The method differs from the usual grid-based methods in that the evaluation points are chosen at random. Whereas grid-based methods fail spectacularly as the number of dimensions increase past \emph{a few}\footnote{As of November 2017, the fastest super computer in the world is situated at the National Supercomputing Center in Wuxi, China: it has a performance of about $100 \,\text{petaFLOPS}=10^{17}\,\text{FLOPS}$ \cite{top500}. Let us say we wish to perform an integral over some electronic observable for a Neon atom. Under the Born-Oppenheimer approximation, this integral would be $30$-dimensional. Using a conventional grid-based method, a conservative estimate for the number of grid points needed in each dimension to get a somewhat decent approximation may be e.g.\ $30$. This means the grid would be $30$ by $30$ by $\dots$ by $30=30^{30}\sim 10^{44}$ large. Assuming every evaluation of the integrand consists of a single FLOP (again, a [very] conservative estimate), this means the total problem involves on the order of $10^{44}\,\text{FLOPs}$. Running on the aforementioned Chinese super-computer, this would take on the order of $10^{27}\,\text{s}\sim 10^{19}\,\text{yr}$ or about $10^{10}$ times the current age of the universe \cite{hjorth-jensen}. This is clearly not feasible.}, the Monte Carlo scheme can somewhat overcome this "curse of dimensionality." 
+
+In the most basic form, Monte Carlo integration provides an estimate of the integral value $I$ by an average of $N$ samplings of the integrand, uniformely within the integration range $[a,b]$, i.e.\
+\begin{align}
+I\equiv \int_a^b\mathrm{d}x\, f(x) \approx \frac{b-a}{N}\sum_{i=1}^N
+ f(X_i). \label{eq:mci2}
+\end{align}
+The set of values $\{X_i\}_{i=1}^N$ are independent, identically distributed random samples. In general, the distribution need not be uniform. For \emph{any} probability distribution function $P(x)$, we can obtain an estimate of $I$ by
+\begin{align}
+I=\int_a^b\mathrm{d}x\, f(x) \approx \frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{P(X_i)}, \label{eq:mci1}
+\end{align}
+where the $X_i$s are distributed according to $P$. Essentially, we are weighing the sum by how likely the value $X_i$ is to be picked, according to the probability distribution $P(x)$. If $P(x_1)=2P(x_2)$, then we weigh any sampling of $x_1$ only half as much as a corresponding sampling of the value $x_2$. 
+
+The advantage of the latter approach is immediately obvious: Imagine attempting to compute an approximation to the integral
+\begin{align}
+I=\int_0^{100}\mathrm{d}x\, \mathrm{e}^{-x^2}x^2
+\end{align}
+using the uniform sampling technique. Heuristically, at least 95\% of sampled points will give an absolutely negligible contribution to the overall value of $I$. We may however, pick $P(x)=\mathrm{e}^{-x^2}$ and use \eq{mci1}. Using this scheme, every sampled point would have a meaningful impact on the average since any $x$ for which the integrand is negligible also now has a \emph{negligible} chance to be sampled. This approach is called {\bf importance sampling} and has two\textemdash already obvious\textemdash distinct advantages over the uniform or \emph{brute force} method of \eq{mci2}. First, no time is wasted computing integrand values for which the integral is essentially independent because $f(x)\sim0$. And secondly, for clever choices of $P(x)$, the computational load may be decreased because $g(x)\equiv f(x)/P(x)$ is a less computationally expensive quantity to sample. Furthermore, ideally fluctuations in $g(x)$ are considerably reduced. If we are e.g.\ able to sample our random points according to $f(x)$ itself, then $g(x)=1$ and a single sample is sufficient.\footnote{Assuming the integral is taken over the entire domain of $P$.} In general, a distribution $P(x)$ \emph{close} to $f(x)$ will give reduced statistical fluctuations in the integral estimate \cite{hammond}\comment{p40}. The importance sampling scheme also opens up the possibility of extending to an infinite range of integration.
+
+\subsection{Convergence properties of the Monte Carlo estimators}
+Taking a short step backwards, let now 
+\begin{align}
+\langle I^N\rangle = \frac{b-a}{N}\sum_{i=1}^Nf(X_i) \approx \int_a^b\mathrm{d}x\,f(x)=I
+\end{align}
+denote the brute force Monte Carlo estimator of $I$ using $N$ samples. Computing the expectation value of $\langle I^N\rangle$ yields
+\begin{align}
+E\big[\langle I^N\rangle\big]&=E\left[\frac{b-a}{N}\sum_{i=1}^Nf(X_i) \right] = \frac{b-a}{N}\sum_{i=1}^NE\big[f(X_i)\big] \nn\\
+%
+&= \frac{b-a}{N}\sum_{i=1}^N\int_a^b\mathrm{d}x\,f(x)P(x) \nn\\
+%
+&= (b-a)\frac{1}{b-a}\int_a^b\mathrm{d}x\,f(x) = \int_a^b\mathrm{d}x\,f(x)=I,
+\end{align}
+where we used that $P(x)=1/(b-a)$ for the uniform probability density \cite{kalos}\comment{28}. This shows that $\langle I^N\rangle$ is a so-called \emph{unbiased estimator} of $I$ \cite{devore}. The same is true of the generalized Monte Carlo estimator with non-uniform distribution $P(x)$, which we will denote $\langle J^N\rangle$:
+\begin{align}
+E\big[\langle J^N\rangle\big]&=E\left[\frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{P(X_i)} \right] = \frac{1}{N}\sum_{i=1}^NE\left[\frac{f(X_i)}{P(X_i)}\right] \nn\\
+%
+&= \frac{1}{N}\sum_{i=1}^N\int_a^b\mathrm{d}x\,\frac{f(x)}{P(x)}P(x) \nn\\
+%
+&= \int_a^b\mathrm{d}x\,f(x) = I.
+\end{align}
+
+For \emph{uncorrelated} random variables, $\{Y_i\}_{i=1}^M$, the variance of the sum equals the sum of the variance, i.e.\ $\sigma^2[\sum_{i=1}^NY_i]=\sum_{i=1}^N\sigma^2[Y_i]$. Note also the relation $\sigma^2[aY_i]=a^2\sigma^2[Y_i]$ \cite{devore} Using this, we may compute the variance of the Monte Carlo estimator as
+\begin{align}
+\sigma^2\big[\langle J^N\rangle\big]&=\sigma^2\left[\frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{P(X_i)} \right] = \frac{1}{N^2}\sum_{i=1}^N\sigma^2\left[\frac{f(X_i)}{P(X_i)}\right] \nn\\
+%
+&= \frac{1}{N}\sigma^2\left[\frac{f(X_i)}{P(X_i)}\right].
+\end{align}
+We note that the standard deviation in the mean $\sigma[\langle J^N\rangle]\rightarrow0$ as $\mathcal{O}(\sqrt{N})$. The same is true of the basic Monte Carlo estimator $\langle I^N\rangle$, but $\sigma^2[f(X_i)/P(X_i)]$ is likely much smaller (for a good choice of $P$) than the corresponding $\sigma^2[f(X_i)]$. 
+
+%Distribution of the \emph{sample mean}: For random samples $\{Y_i\}_{i=1}^M$, each with mean $\mu$ and standard deviation $\sigma$. Then $E[\bar Y]=\mu$ and $V[\bar Y] = \sigma_{\bar Y}^2=\sigma^2/N$ \cite{devore}\comment{p291}.
+
+
+%The average of $f(x)$ across random samples $\{X_i\}_{i=1}^N$\textemdash we denote this $\langle f$ is \emph{itself} a random variable and with variance \cite{hjorth-jensen,assaraf}\comment{p343,287}
+%\begin{align}
+%\sigma_f^2&=\frac{1}{N}\sum_{i=1}^N \big(f(X_i)-\langle f\rangle  \big)^2p(X_i) \nn\\
+%&=
+%\end{align}
+
+\newcommand{\EL}{E_\text{L}}
+\subsection{The local energy, $E_\text{L}$}
+Like we did in section \ref{section:encusp}, we introduce a spatially dependent measure of the "instantaneous" energy, $\EL$. The \emph{local energy} is defined as
+\begin{align}
+\EL(\R) = \frac{\hat H \Psi(\R)}{\Psi(\R)}=\frac{1}{\Psi(\R)}\sum_{i=1}^N\left[ -\frac{\nabla_i^2}{2}-\sum_{A=1}^M \frac{Z_A}{|\r_i-\r_A|} + \sum_{j=i+1}^N \frac{1}{|\r_i-\r_j|}\right]\Psi(\R).
+\end{align}
+Note that if $\Psi(\R)$ is the exact ground state wave function then $\EL(\R)=\EL$ is constant for all electronic configurations because 
+\begin{align}
+\frac{\hat H\Psi(\R)}{\Psi(\R)}=\frac{E_0\Psi(\R)}{\Psi(\R)}=E_0.
+\end{align}
+The variational energy can be written \emph{in terms of} the local energy by \cite{assaraf}\comment{p286}
+\begin{align}
+E_\text{V} &= \frac{\langle \Psi|\hat H|\Psi\rangle}{\langle \Psi|\Psi\rangle} = \frac{\displaystyle \int\mathrm{d}\R\,\Psi^*(\R) \hat H\Psi(\R)}{\displaystyle \int\mathrm{d}\R\, \Psi^*(\R)\Psi(\R)} 
+= 
+\frac{\displaystyle \int\mathrm{d}\R\,\Psi^*(\R)\left(\frac{\Psi(\R)}{\Psi(\R)}\right) \hat H\Psi(\R)}{\displaystyle \int\mathrm{d}\R\, |\Psi(\R)|^2} \nn\\
+%
+&= \frac{\displaystyle \int\mathrm{d}\R\,\Psi^*(\R)\Psi(\R)\frac{\hat H\Psi(\R)}{\Psi(\R)}}{\displaystyle \int\mathrm{d}\R\, |\Psi(\R)|^2} = \int\mathrm{d}\R\, \rho(\R)\EL(\R),
+\end{align}
+with 
+\begin{align}
+\rho(\R) \equiv \frac{|\Psi(\R)|^2}{\int\mathrm{d}\R\,|\Psi(\R)|^2}.
+\end{align}
+
+\newcommand{\Psit}{\Psi_\text{T}}
+Consider now this in light of \eq{mci1}, and note that for any trial wave function ansatz $\Psit$ the following is an unbiased estimator for the true variational energy \cite{hammond}\comment{p50}
+\begin{align}
+E\big[\Psit\big]&= \langle \EL^M \rangle = \frac{1}{M}\sum_{i=1}^M\EL(\R_i).
+\end{align}
+In the language of the previous section, $f=\rho(\R)\EL(\R)$, $g=\EL(\R)$, and $P=\rho(\R)$ which is the normalized probability density. This means that if we can pick samples randomly from the probability density function $\sim|\Psit(\R)|^2/\int\mathrm{d}\R\,|\Psit(\R)|^2$, then we can simply evaluate the local energy and take the average. This will give us an estimate for the true variational energy, as well as a measure of the stastical uncertainty from calculating the variance. 
+
+The Metropolis-Hastings (MH) algorithm of the previous section enables us to draw samples directly from $\rho(\R)$. Note carefully that since MH always works in terms of ratios, $\rho(\R)$ need strictly speaking not be normalized. We require simply a quantity proportional to $|\Psit(\R)|^2$. 
+
+A relatively short \emph{burn-in} time is usually employed, wherein the first $K$ samples are taken to be thermalization samples which are discarded. This is done in order to allow the MH Markov chain time to "forget" about it's starting point, and to allow the system as a whole to equilibrate and an energetically favourable region of the configuration space found \cite{gilks}\comment{p14}.
+
+\newcommand{\err}{\text{err}_{\langle \EL\rangle}}
+\subsection{Uncertainty estimates and correlated sampling}
+A stochastic method such as quantum Monte Carlo is useless without an estimate of the precision of the result. The quantity normally used to gauge this is the \emph{estimated standard error} of the mean, $\err$. The standard error is the standard deviation of the mean (for un-correlated samples),
+\begin{align}
+\err = \sigma_{\langle\EL\rangle} = \frac{\sigma}{\sqrt{n}},
+\end{align}
+where $\sigma$ denotes the true standard deviation which we can estimate by the \emph{sample standard deviation},
+\begin{align}
+s=\sqrt{\frac{1}{N-1}\sum_{i=1}^N(x_i-\langle x\rangle)^2}\approx \sigma.
+\end{align}
+Note the $N-1$ in the denominator\footnote{The reason for using a $N-1$ denominator\textemdash as opposed to the more intuitive $N$\textemdash is that 
+\begin{align}
+s^2=\frac{1}{N-1}\sum_{i=1}^N(x_i-\langle x\rangle)^2
+\end{align}
+is an \emph{unbiased} estimator of the variance, but the corresponding expression with the denominator replaced by $(N-1)\rightarrow N$ is not. This is sometimes referred to as \emph{Bessel's correction} \cite{devore}\comment{p333}. Although it is not true that $s$ is an unbiased estimator of the standard deviation (because of the non-linearity of the square root), it is in a sense \emph{less biased} than the $N$-denominator version.}. In order to find a point estimate of $\sigma$, we could simply calculate 
+\begin{align}
+s^2= \frac{\sum_{i=1}^N(x_i-\langle x\rangle)^2}{N-1} = \frac{1}{N-1}\sum_{i=1}^Nx_i^2 - \frac{1}{N(N-1)}\left( \sum_{i=1}^Nx_i\right)
+\end{align}
+where the sample variance $s^2$ is an unbiased estimator of $\sigma^2$, i.e.\ \cite{devore}\comment{p328}
+\begin{align}
+s^2\approx \sigma^2=\langle\EL^2\rangle-\langle \EL\rangle^2.
+\end{align}
+This, however, has the under-lying assumption that all the samples are \emph{un-correlated}. If this is not the case\textemdash i.e.\ subsequent samples \emph{are} correlated\textemdash then this equation will seriously underestimate the error \cite{kalos}\comment{p109}. 
+
+In order to account for the auto-correlation of the Markov chain samples, we start instead from the definition of the variance in terms of the covariance, $\text{Var}(X)=\text{Cov}(X,X)$. Setting $\err=\sum_{ij}\text{Cov}(X_i,X_j)/N^2$ accounts for the correlation between subsequent samples \cite{hjorth-jensen}\comment{slides, 4411vmc, p51}. The covariance $\text{Cov}(X_i,X_j)$ can we written as
+\begin{align}
+\text{Cov}(X_i,X_j) &= \Big\langle \big(x_i-\langle x_i\rangle\big)\big(x_j-\langle x_j\rangle\big)\Big\rangle \nn\\
+%
+&= \Big\langle x_ix_j-x_i\langle x_j\rangle -\langle x_i\rangle x_j +\langle x_i\rangle\langle x_j\rangle  \Big\rangle \nn\\
+%
+&= \langle x_ix_j\rangle - \langle x_i\rangle\langle x_j\rangle,
+\end{align}
+with  
+\begin{align}
+\frac{1}{N^2}\sum_{i=1}^N\sum_{j=1}^N\text{Cov}(X_i,X_j) = \frac{1}{N^2}\sum_{i=1}^N\sum_{j=1}^N(x_i-\langle x\rangle)(x_j-\langle x\rangle) = \frac{1}{N}\text{Cov}(x).
+\end{align}
+A proper estimate for the standard error of the mean can now be written in terms of the \emph{sample covariance}, $\text{Cov}(x)$, as \cite{hjorth-jensen}\comment{slides, 52}
+\begin{align}
+\err^2=\frac{1}{N^2}\sum_{i=1}^N\sum_{j=1}^N\text{Cov}(X_i,X_j) = \frac{1}{N^2}\sum_{i=1}^N\sum_{j=1}^N \frac{1}{N}\text{Cov}(x) = \frac{1}{N}\text{Cov}(x). \label{eq:stderr}
+\end{align}
+
+Note carefully that \eq{stderr} requires simultaneous knowledge of every single sample, and the evaluation is a double sum over the number of MC samples: a variable which routinely runs $N\gtrsim10^{6}$. We would very much like to avoid having to perform this calculation. In order to circumvent this costly and inconvenient summation, lets us consider the standard error of the mean split into two terms as
+\begin{align}
+\err^2=\frac{1}{N}\text{Var}(x)+\frac{1}{N}\big(\text{Cov}(x)-\text{Var}(x) \big).
+\end{align}
+The second term\textemdash the correlation term\textemdash can be written in terms of it's partial sums as
+\begin{align}
+\frac{1}{N}\big(\text{Cov}(x)-\text{Var}(x) \big) &= \frac{2}{N}\sum_{k=1}^N\sum_{l=k+1}^N\big(x_k-\langle x\rangle \big)\big(x_l-\langle x\rangle\big) \nn\\
+%
+&= 2\sum_{d=1}^{N-1}\bigg[\underbrace{\frac{1}{N-d}\sum_{k=1}^{N-d}\big(x_k-\langle x\rangle\big)\big(x_{k+d}-\langle x\rangle\big)}_{\displaystyle\equiv f_d} \bigg].
+\end{align}
+Dividing $f_d$ by the sample variance yields the \emph{autocorrelation function} $\kappa_d=f_d/\text{Var}(x)$ \cite{hammond}\comment{p59}. Defining now the \emph{autocorrelation time} $\tau$,
+\begin{align}
+\tau\equiv 1+2\sum_{d=1}^{N-1}\kappa_d,
+\end{align}
+we can rewrite $\err$ as
+\begin{align}
+\err^2 &= \frac{1}{N}\text{Var}(x)+\frac{1}{N}\big(\text{Cov}(x)-\text{Var}(x) \big) \nn\\
+%
+&= \left(1+2\sum_{d=1}^{N-1}\right)\frac{1}{N}\text{Var}(x) = \frac{\tau}{N}\text{Var}(x).
+\end{align}
+Note that if the samples are indeed uncorrelated, then $\tau=1$ and we recover the expression for the standard error of the mean as $\err = \sigma/\sqrt{N}$.
+
+\subsection{Blocking}
+In order to account for the correlation in the sampling, we may simply treat \emph{blocks} of samples\textemdash with block size $b\ge \tau$ \textemdash as the samples. From $N$ total samplings of $\EL$, this gives an \emph{effective} number of samples 
+\begin{align}
+N_\text{eff}=\frac{N}{b}.
+\end{align}
+Each effective sample is thus taken to be the average of $b$ samples, and since $b\ge\tau$ we know subsequent \emph{block} samples are uncorrelated. This means we can calculate the standard error of the mean \emph{of the blocks} simply as 
+\begin{align}
+\err^\text{blocks} &= \frac{1}{N_\text{blocks}}\sqrt{\langle \EL^2\rangle^\text{block}-\Big(\langle \EL\rangle^\text{block}\Big)^2} \nn\\
+%
+&= \frac{1}{N_\text{blocks}}\sqrt{
+\sum_{i=1}^{N_\text{blocks}} \left(\sum_{j=1}^b \EL^{ib+j}\right)^2
+-
+\left(
+\sum_{i=1}^{N_\text{blocks}}\sum_{j=1}^b \EL^{ib+j}
+\right)^2} \nn\\
+&= \frac{1}{N_\text{blocks}}\sqrt{
+\sum_{i=1}^{N_\text{blocks}} \left(\sum_{j=1}^b \EL^{ib+j}\right)^2
+-
+\left(
+\sum_{i=1}^{N} \EL^{i}
+\right)^2},
+\end{align} 
+where $\EL^i$ denotes the $i$-th sample of the local energy. Calculating $\tau$ directly constitutes calculating the autocovariance, but we can estimate it using the calculated standard deviation for different block sizes, $b$. This procedure is known as {\bf blocking} \cite{blocking}:
+\begin{shadeframe}
+\begin{itemize}
+ \item[(1)] Calculate the standard deviation of the measurement set with block size $b=1$, i.e.\ the usual standard deviation.
+ \item[(2)] Calculate the standard deviation using $b=1,2,\dots$, and plot $\sigma(b)$ versus $b$.
+ \item[(3)] Take the value for which $\sigma(b)$ seems to plateu to be $b^*\approx \tau$.
+ \item[(4)] The blocking estimate of the true standard deviation is then taken to be $\sigma(b^*)$.
+\end{itemize}
+\end{shadeframe}
+Since the standard deviation with block size $b=k$ contains $k/(k+1)$ as many samples as the corresponding deviation with block size $b=k+1$, the expected change in the standard deviation is on the order of $\sim \sqrt{(k+1)/k}$. However, if the samples are correlated with $\tau<k$, then increasing the block size will sharply increase the calculated standard deviation. As $\tau\gtrsim k$, this effect vanishes and leaves only the $\sqrt{(k+1)/k}$ order change. The resulting plot has a sharp increase for low $k$ and then a characteristic plateu around $k=\tau$. 
+
+
+
+
+
+
+
+
+
+
+
+%\iffalse \bibliography{ref.bib} \fi
+\end{document}
