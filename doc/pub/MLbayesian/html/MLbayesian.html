@@ -7,9 +7,9 @@ Automatically generated HTML file from DocOnce source
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="DocOnce: https://github.com/hplgit/doconce/" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Machine Learning: Bayesian Machine Learning">
+<meta name="description" content="Bayesian Machine Learning">
 
-<title>Machine Learning: Bayesian Machine Learning</title>
+<title>Bayesian Machine Learning</title>
 
 
 <style type="text/css">
@@ -46,7 +46,11 @@ div { text-align: justify; text-justify: inter-word; }
                '___sec0'),
               ('Thesis Projects', 2, None, '___sec1'),
               ('Specific tasks and milestones', 3, None, '___sec2'),
-              ('References', 3, None, '___sec3')]}
+              ('References', 3, None, '___sec3'),
+              ('Appendix: Brief note on Bayesian Statistics',
+               3,
+               None,
+               '___sec4')]}
 end of tocinfo -->
 
 <body>
@@ -72,7 +76,7 @@ MathJax.Hub.Config({
 
 
 
-<center><h1>Machine Learning: Bayesian Machine Learning</h1></center>  <!-- document title -->
+<center><h1>Bayesian Machine Learning</h1></center>  <!-- document title -->
 
 <p>
 <!-- author(s): Master of Science thesis project -->
@@ -86,7 +90,7 @@ MathJax.Hub.Config({
 
 <br>
 <p>
-<center><h4>Nov 28, 2019</h4></center> <!-- date -->
+<center><h4>Nov 30, 2019</h4></center> <!-- date -->
 <br>
 
 <h2 id="___sec0">Bayesian Machine Learning, Level Densities and Probability  </h2>
@@ -95,70 +99,245 @@ MathJax.Hub.Config({
 The level density \( \rho(E) \) as function of energy \( E \) plays a central in many
 physics applications, ranging from the modeling of nuclear
 astrophysics reactions central to the synthesis of the elements to the
-classification and understanding of phases in condensed matter
+classification and understanding of phases and phase transition in for example condensed matter
 physics.
 
 <p>
-In statistical physics it defines the thermodynamical potential in the micro-canonical ensembler and thereby the entropy as
+In statistical physics it defines the thermodynamical potential in the micro-canonical ensemble and thereby the entropy.
+For a finite isolated many-body system (for example an atomic nucleus), the correct
+thermodynamical ensemble is the microcanonical one. In this ensemble,
+the nuclear level density, the density of eigenstates of a nucleus
+at a given excitation energy, is the important quantity that may be
+used to describe thermodynamic properties of nuclei, such as the 
+nuclear entropy, specific heat, and temperature. 
+Bethe first described the level density using a 
+non-interacting fermi gas model
+for the nucleons.
+Modifications to this picture, such as the 
+back-shifted fermi gas which includes pair and
+shell effects not present in Bethe's original formulation, are in 
+wide use.  
+The level density
+\( \rho \) defines the partition function for 
+the microcanonical ensemble and the entropy through the well-known
+relation \( S(E)=k_Bln(\rho(E)) \).
+Here \( k_B \) is Boltzmann's constant and \( E \) is the energy.  In 
+the microcanonical ensemble, we could then extract expectation values 
+for thermodynamical quantities like temperature \( T \), or the 
+heat capacity \( C \). The temperature in the microcanonical ensemble 
+is defined as 
 $$
-S(E) = -k_B \ln{(\rho(E))},
+\begin{equation}
+      \langle T\rangle=\left(\frac{dS(E)}{dE}\right)^{-1}.
+      \label{eq:temp}
+\end{equation}
 $$
 
-and the partition function \( Z(\beta) \) (with \( \beta = 1/k_BT \))  as
+It is a function of the excitation energy, which is 
+the relevant variable of interest in the microcanonical ensemble. 
+However, since the extracted level density is given only at discrete 
+energies, the calculation of expectation values 
+like \( T \), involving derivatives of the partition function, is not
+reliable unless a strong smoothing over energies is 
+performed. Another possibility
+is to perform a transformation to the canonical ensemble.
+The partition function for the 
+canonical ensemble is related to that of the 
+microcanonical ensemble through a Laplace transform
 $$
-Z(\beta) = \int dE \exp{(-\beta E)}\rho(E),
+\begin{equation}
+     Z(\beta)=\int_0^{\infty}dE\rho(E)\exp{(-\beta E)}.
+     \label{eq:zcan}
+\end{equation}
 $$
 
-and the expectation values of various moments of the energy
-as
+Here we have defined \( \beta=1/k_BT \).
+Since we will  deal with discrete energies, the 
+Laplace transform of Eq.\ \eqref{eq:zcan} takes the form
 $$
-\mathbb{E}^n(\beta) = \frac{\int dE E^n\exp{(-\beta E)}\rho(E)}{Z(\beta)}. 
+\begin{equation}
+         Z(\beta)=\sum_E \Delta E\rho(E)\exp{(-\beta E)},
+         \label{eq:zactual}
+\end{equation}
 $$
 
-We can rewrite this equation as
+where \( \Delta E \) is the energy bin used.
+With \( Z \) we can evaluate the 
+entropy in the canonical ensemble using the definition of the 
+free energy 
 $$
-\mathbb{E}^n(\beta) = \int dE E^n P(E\vert\beta), 
+\begin{equation}
+     F(T)= -k_B T \ln Z(T)=\langle E(T)\rangle - TS(T).
+\label{_auto1}
+\end{equation}
 $$
+
+Note that the temperature \( T \) is now the variable of 
+interest and the energy \( E \) is given by the expectation 
+value \( \langle E\rangle \) as a function of \( T \). Similarly, 
+the entropy \( S \) is also a function of \( T \).
+For finite systems, fluctuations in various 
+expectation values can be large.
+In nuclear and solid state physics, thermal properties have 
+mainly been studied in the canonical and grand-canonical ensemble. 
+In order to obtain the level density, the inverse transformation 
+$$
+\begin{equation}
+      \rho(E) =\frac{1}{2\pi i}\int_{-i\infty}^{i\infty}
+ d\beta Z(\beta) \exp{(\beta E)},
+      \label{eq:zbigcan}
+\end{equation}
+$$
+
+is normally used. Compared with Eq.\ \eqref{eq:zcan}, this 
+transformation is rather difficult to perform since 
+the integrand \( \exp{\left(\beta E+ \ln Z(\beta)\right)} \) is a 
+rapidly varying function of the integration parameter. In order to obtain 
+the density of states, approximations like the saddle-point 
+method, viz., an expansion of the exponent in the integrand 
+to second order around the equilibrium point and subsequent integration, 
+have been used widely.
 
 <p>
-where \( P(E\vert\beta) \) is the likelihood of being in a state with
-energy \( E \) with temperature \( \beta \). The probability is defined as
+For the ideal Fermi gas, this gives the following density of states
+$$
+\begin{equation}
+      \rho_{\rm ideal}(E)=\frac{\exp{(2\sqrt{aE})}}{E\sqrt{48}},
+      \label{eq:omegaideal}
+\end{equation}
+$$
 
-$$
-P(E\vert\beta) = \frac{\exp{(-\beta E)}\rho(E)}{Z(\beta)}. 
-$$
+where \( a \) in nuclear physics is a factor 
+typically of the order \( a=A/8 \) with dimension 
+MeV$^{-1}$, \( A \) being the mass number of a given nucleus.
 
 <p>
-With the density of states we can in turn define a probability distribution function (PDF) in say for example the canonical ensemble. Alternatively, if we have the PDF we can find the denisty of states.
+To obtain an experimental level density is a rather hard task.
+Ideally, we would like an experiment to provide us with the level 
+density as a function of excitation energy and thereby 
+the <em>full</em> partition function for the microcanonical ensemble. 
+It is only rather recently that 
+experimentalists have been able to develop methods for extracting level densities at low spin from
+measured \( \gamma \)-spectra. 
+These measurements were performed at the Oslo 
+Cyclotron Laboratory.
+
+<p>
+The Oslo cyclotron group has developed a method to 
+extract nuclear level densities at low spin from 
+measured \( \gamma \)-ray spectra.
+The main advantage of utilizing \( \gamma \)-rays as a probe for 
+level density is that the nuclear system is likely thermalized prior 
+to the \( \gamma \)-emission. In addition, the method 
+allows for the simultaneous extraction of level density 
+and \( \gamma \)-strength function over a wide energy region.
+
+<p>
+With the level density we can in turn define a probability
+distribution function (PDF) in say for example the canonical
+ensemble. Alternatively, if we have the PDF we can find the level density.
+Having a PDF allows us also to quantify in a rigorous way statistical
+confidence intervals, statistical errors and other statistical quantities with far reaching
+consequences for our understanding of a specific physics problem. 
+In experiments we do however normally not have the above
+quantities. This means that we need to translate experimental results
+via some theoretical modeling into suitable quantities that can be
+used to define either a PDF or the density of states.
+
+<p>
+A typical situation which occurs in for example nuclear reaction
+experiments performed at the cyclotron of the University of Oslo, is
+that one can extract the number of counts as function of the
+excitation energy \( E_x \) of a given nucleus and the resulting gamma
+energy \( E_{\gamma} \) from Compton scattering. This quantity, labelled
+\( N(E_x,E_{\gamma}) \) can in turn be used to define either a PDF or the
+density of state.
+
+<p>
+In this project we will use Bayesian statistics and Bayesian machine
+learning to extract first the PDF based on the above experimental data
+in order to define a posterior distribution \( P(E_x\vert E_{\gamma}) \),
+that is the likelihood of being in  a state with  energy \( E_x \) given a certain
+\( \gamma \)-energy.  This quantity will in turn be used to identify a
+density of states. A short note on Bayes' rule and some other elements
+of statistics are included at the end here.
 
 <h2 id="___sec1">Thesis Projects </h2>
 
 <p>
-The aim of this thesis project is employ Bayesian machine learning to
+The aim of this thesis project is to employ Bayesian machine learning to
 define a PDF, either from experiment or from theoretical simulations.
-Eventually, based on the PDF, can attempt to define a a level density
-\( \rho(E) \), or the other way around. The first step is to use an
+Eventually, based on the PDF, one can attempt to define the level density
+\( \rho(E) \). The first step is to use an
 already available model for extracting the level density from exact
-diagonalization. These data will then be used to define a posterior
-distribution based on a Bayesian machine learning approach.
+diagonalization. This model, a so-called simplified pairing model is
+described in detail in the references below.
+The 
+data from these theoretical calculations
+will then be used to define a posterior distribution based on a
+Bayesian machine learning approach.
 
 <h3 id="___sec2">Specific tasks and milestones  </h3>
 
 <p>
-The projects can easily be split into several parts and form the basis for collaborations among several students. The milestones are as follows
+The project can easily be split into several parts and form the basis
+for collaborations among several students. The milestones are as
+follows
 
 <ol>
-<li> Spring 2020:</li> 
-<li> Fall 2020:</li> 
-<li> Spring 2021:</li> 
+<li> Spring 2020: Use the simple pairing model to generate training data on the density of states from numerical diagonalization (existing code) and develop a Bayesian Neural Network code and algorithm to extract a PDF. This PDF expresses the likelihood for finding the system at a given energy.</li>
+<li> Fall 2020: Based on the experience with the theoretical model, the next step is to use experimental data from the Oslo cyclotron (see discussions above) in order to extract \( P(E_x\vert E_{\gamma}) \) using Bayesian Machine Learning.</li>
+<li> Spring 2021: Analysis of results and determination of level density. Finalize thesis.</li> 
 </ol>
 
 The thesis is expected to be handed in May/June  2021.
 
 <h3 id="___sec3">References </h3>
 
+<ol>
+<li> <b>Pairing in nuclear systems: from neutron stars to finite nuclei</b>, DJ Dean, M Hjorth-Jensen, <a href="http://journals.aps.org/rmp/abstract/10.1103/RevModPhys.75.607" target="_blank">Reviews of Modern Physics 75, 607  (2003)</a>.</li>
+<li> <a href="http://www.springer.com/us/book/9783319533353" target="_blank">Morten Hjorth-Jensen, M.P. Lombardo and U. van Kolck</a>, Volume <b>936</b>, (2017), see chapter 8</li>
+</ol>
+
+<h3 id="___sec4">Appendix: Brief note on Bayesian Statistics </h3>
+
 <p>
-Highly relevant articles for possible thesis projects are:
+The aim is  to assess hypotheses by calculating their probabilities \( p(H_i | \ldots) \) conditional on known and/or presumed information using the rules of probability theory.
+Bayes' theorem is based on the standard  Probability Theory Axioms:
+
+<ol>
+<li> Product (AND) rule : \( p(A, B | I) = p(A|I) p(B|A, I) = p(B|I)p(A|B,I) \). Should read \( p(A,B|I) \) as the probability for propositions \( A \) AND \( B \) being true given that \( I \) is true.</li>
+<li> Sum (OR) rule: \( p(A + B | I) = p(A | I) + p(B | I) - p(A, B | I) \). \( p(A+B|I) \) is the probability that proposition \( A \) OR \( B \) is true given that \( I \) is true.</li>
+<li> Normalization: \( p(A|I) + p(\bar{A}|I) = 1 \). \( \bar{A} \) denotes the proposition that \( A \) is false.</li>
+</ol>
+
+Bayes' theorem follows directly from the product rule
+$$
+$$
+p(A|B,I) = \frac{p(B|A,I) p(A|I)}{p(B|I)}.
+$$
+$$
+
+The importance of this property to data analysis becomes apparent if we replace \( A \) and \( B \) by hypothesis(\( H \)) and data(\( D \)):
+$$
+\begin{align}
+p(H|D,I) &= \frac{p(D|H,I) p(H|I)}{p(D|I)}.
+\label{eq:bayes}
+\end{align}
+$$
+
+The power of Bayes&#8217; theorem lies in the fact that it relates the quantity of interest, the probability that the hypothesis is true given the data, to the term we have a better chance of being able to assign, the probability that we would have observed the measured data if the hypothesis was true.
+
+<p>
+The various terms in Bayes&#8217; theorem have formal names. 
+
+<ul>
+<li> The quantity on the far right, \( p(H|I) \), is called the <em>prior</em> probability; it represents our state of knowledge (or ignorance) about the truth of the hypothesis before we have analysed the current data.</li> 
+<li> This is modified by the experimental measurements through \( p(D|H,I) \), the <em>likelihood</em> function,</li> 
+<li> The denominator \( p(D|I) \) is called the <em>evidence</em>. It does not depend on the hypothesis and can be regarded as a normalization constant.</li>
+<li> Together, these yield the <em>posterior</em> probability, \( p(H|D, I ) \), representing our state of knowledge about the truth of the hypothesis in the light of the data.</li> 
+</ul>
+
 
 <!-- ------------------- end of main content --------------- -->
 
