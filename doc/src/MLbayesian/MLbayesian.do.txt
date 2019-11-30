@@ -11,7 +11,7 @@ astrophysics reactions central to the synthesis of the elements to the
 classification and understanding of phases and phase transition in for example condensed matter
 physics.
 
-In statistical physics it defines the thermodynamical potential in the micro-canonical ensembler and thereby the entropy as
+In statistical physics it defines the thermodynamical potential in the micro-canonical ensemble and thereby the entropy as
 !bt
 \[
 S(E) = -k_B \ln{(\rho(E))},
@@ -49,7 +49,7 @@ P(E\vert\beta) = \frac{\exp{(-\beta E)}\rho(E)}{Z(\beta)}.
 With the density of states we can in turn define a probability
 distribution function (PDF) in say for example the canonical
 ensemble. Alternatively, if we have the PDF we can find the density of
-states. Having a PDF allows us also to quantify in a rigorous ways
+states. Having a PDF allows us also to quantify in a rigorous way statistical
 confidence intervals, statistical errors and other statistical quantities with far reaching
 consequences for our understanding of a specific physics problem. 
 In experiments we do however normally not have the above
@@ -57,10 +57,22 @@ quantities. This means that we need to translate experimental results
 via some theoretical modeling into suitable quantities that can be
 used to define either a PDF or the density of states.
 
+A typical situation which occurs in for example nuclear reaction
+experiments performed at the cyclotron of the University of Oslo, is
+that one can extract the number of counts as function of the
+excitation energy $E_x$ of a given nucleus and the resulting gmamma
+energy $E_{\gamma}$ from Compton scattering. This quantity, labelled
+$N(E_x,E_{\gamma})$ can in turn be used to define either a PDF or the density of state.
 
 
+In this project we will use Bayesian statistics and Bayesian machine
+learning to extract first the PDF based on the above experimental data
+in order to define a posterior distribution $P(E_x\vertE_{\gamma})$,
+that is the likelihood of the state of energy $E_x$ given a certain
+$\gamma$-energy.  This quantity will in turn be used to identify a
+density of states.
 
-In this project we will use Bayesian statistics and Bayeisan 
+In order to get familiar 
 
 
 
@@ -89,29 +101,15 @@ o Spring 2021:
 
 The thesis is expected to be handed in May/June  2021.
 
-=== References ===
+=== Appendix: Brief note on Bayesian Statistics ===
 
-Highly relevant articles for possible thesis projects are:
+The aim is  to assess hypotheses by calculating their probabilities $p(H_i | \ldots)$ conditional on known and/or presumed information using the rules of probability theory.
+Bayes' theorem is based on the standard  Probability Theory Axioms:
 
+o Product (AND) rule : $p(A, B | I) = p(A|I) p(B|A, I) = p(B|I)p(A|B,I)$. Should read $p(A,B|I)$ as the probability for propositions $A$ AND $B$ being true given that $I$ is true.
+o Sum (OR) rule: $p(A + B | I) = p(A | I) + p(B | I) - p(A, B | I)$. $p(A+B|I)$ is the probability that proposition $A$ OR $B$ is true given that $I$ is true.
+o Normalization: $p(A|I) + p(\bar{A}|I) = 1$. $\bar{A}$ denotes the proposition that $A$ is false.
 
-
-!bblock
-Assess hypotheses by calculating their probabilities $p(H_i | \ldots)$ conditional on known and/or presumed information using the rules of probability theory.
-!eblock
-!bblock
-Probability Theory Axioms:
-- Product (AND) rule : $p(A, B | I) = p(A|I) p(B|A, I) = p(B|I)p(A|B,I)$<linebreak>
-  Should read $p(A,B|I)$ as the probability for propositions $A$ AND $B$ being true given that $I$ is true.
-- Sum (OR) rule: $p(A + B | I) = p(A | I) + p(B | I) - p(A, B | I)$<linebreak>
-  $p(A+B|I)$ is the probability that proposition $A$ OR $B$ is true given that $I$ is true.
-- Normalization: $p(A|I) + p(\bar{A}|I) = 1$<linebreak>
-  $\bar{A}$ denotes the proposition that $A$ is false.
- 
-!eblock
-
-!split
-===== Bayes' theorem =====
-!bblock
 Bayes' theorem follows directly from the product rule
 !bt
 $$
@@ -126,10 +124,7 @@ label{eq:bayes}
 \end{align}
 !et
 The power of Bayes’ theorem lies in the fact that it relates the quantity of interest, the probability that the hypothesis is true given the data, to the term we have a better chance of being able to assign, the probability that we would have observed the measured data if the hypothesis was true.
-!eblock
 
-!split
-!bblock
 The various terms in Bayes’ theorem have formal names. 
 * The quantity on the far right, $p(H|I)$, is called the *prior* probability; it represents our state of knowledge (or ignorance) about the truth of the hypothesis before we have analysed the current data. 
 * This is modified by the experimental measurements through $p(D|H,I)$, the *likelihood* function, 
