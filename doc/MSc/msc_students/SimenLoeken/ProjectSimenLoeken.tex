@@ -30,8 +30,8 @@
 \newcommand{\comment}[1]{\textcolor{red}{#1}}
 \newcommand{\core}[3]{^{#2}_{#3}\text{#1}}
 
-\title{Time Evolution of Quantum Mechanical systems \\ \vspace{5px} \large Implementation of Time-Dependent Coupled Cluster methods \\ \vspace{20px} \large Master of Science thesis project}
-% \author{Håkon Kvernmoen}
+\title{Deep Learning and Quantum Many-body problems \\ \large Master of Science thesis project}
+% \author{Simen Løken}
 \date{November 2022}
 
 \begin{document}
@@ -39,75 +39,556 @@
 
 \subsection*{Introduction and overview}
 
-The aim of this project is the study of time evolution in fermionic
-systems through the use of quantum many-body theory. Quantum many-body
-theory has provided methods to solve problems in such diverse areas as
-atomic, molecular, solid-state and nuclear physics, chemistry and
-materials science. In the past decades, static properties such as
-binding energies and various expectation values have been
-calculated. The introduction of time in these calculations yields an
-insight into the dynamics of quantum mechanical systems, such as the
-electron behavior under an external potential in quantum dots and the
-consolidation of composite systems undergoing nuclear
-fusion. Specifically, the goal is to implement the time dependent
-version of the Coupled Cluster approach
-\cite{Kvaal2012,Schoyen2019,Pigg2012,Hagen2014,Lietz2017}, a method containing a plethora
-of desired properties such as size consistency and extensivity. The
-results can be compared with exisiting codes using time-dependent full
-configuration interaction theory \cite{Skattum2013,Hochstuhl2014}.
+Predicting the structure of quantum many-body systems from first
+principles in quantum mechanics is a central challenge in physics,
+chemistry, and material science. Deep learning techniques have
+recently proven to be powerful tools for solving interacting quantum
+mechanical problems in condensed matter physics, atomic and molecular
+physics and quantum chemistry, nuclear physics and materials science.
 
-\subsection*{General introduction to possible physical systems.}
 
-The code developed during this thesis will be written in such a way
-that different fermionic system can be handled. Examples of potential
-applications are ions confined in various traps
-\cite{Reimann2002}. Strongly confined electrons offer a wide
-variety of complex and subtle phenomena which pose severe challenges
-to existing many-body methods. Quantum dots in particular, that is,
-electrons confined in semiconducting heterostructures, exhibit, due to
-their small size, discrete quantum levels. The ground states of, for
-example, circular dots show similar shell structures and magic numbers
-as seen for atoms and nuclei. These structures are particularly
-evident in measurements of the change in electrochemical potential due
-to the addition of one extra electron.
+The above implies solving the Schrödinger equation for systems of many interacting
+bosons or fermions. This  is classified as an NP-hard problem due to the
+complexity of the required many-dimensional wave function, resulting
+in an exponential growth of degrees of freedom. Reducing the
+dimensionalities of quantum mechanical many-body systems is an
+important aspect of modern physics, ranging from the development of
+efficient algorithms for studying many-body systems to exploiting the
+increase in computing power. To write software that can fully utilize
+the available resources has long been known to be an important aspect
+of these endeavors. Despite tremendous progress has been made in this
+direction, traditional many-particle methods, either quantum
+mechanical or classical ones, face huge dimensionality problems when
+applied to studies of systems with many interacting particles.
 
-Application in nuclear physics might also be of
-interest\cite{Pigg2012}, where the Coupled Cluster method was
-originally introduced. In particular, the process of two $\alpha$-particles
-fusing into Beryllium $(\isotope[4][2]{He} + \isotope[4][2]{He}
-\xrightarrow{} \isotope[8][4]{Be})$ could serve as the ultimate goal
-of the thesis, being part of the tripe-alpha process, the backbone of
-stellar nucleosynthesis.
+Over the last two decades, quantum computing and machine learning have
+emerged as some of the most promising approaches for studying complex
+physical systems where several length and energy scales are involved.
+Machine learning techniques and in particular neural-network quantum
+states~\cite{Goodfellow2016} have recently been applied to studies of
+many-body systems, see for example
+Refs.~\cite{carleo_solving_2017,carra2021,pfau2019abinitio,calcavecchia_sign_2014,carleo2019,amber2022,Lovato2021,lovato2022},
+in various fields of physics and quantum chemistry, with very
+promising results. In many of these studies, one has obtained results
+that align well with exact analytical solutions or are in close
+agreement with state-of-the-art quantum Monte Carlo calculations.
 
-\subsection*{Specific tasks and milestones}
+The variational and diffusion Monte Carlo algorithms are among the
+most popular and successful methods available for ground-state studies
+of quantum mechanical systems. They both rely on a suitable ansatz for
+the ground-state of the system, often dubbed {\it trial wave
+  function}, which is defined in terms of a set of variational
+parameters whose optimal values are found by minimizing the total
+energy of the system. Devising flexible and accurate functional forms
+for the trial wave functions requires prior knowledge and physical
+intuition about the system under investigation. However, for many
+systems we do not have this intuition, and as a result it is often
+difficult to define a good ansatz for the state function.
 
-The specific task here is to study the time evolution of quantum
-mechanical systems using the Coupled Cluster (CC) method, in order to
-be able to study the time evolution of an interacting quantum
-mechanical system. In order to achieve this, the following milestones outline the thesis:
+According to the universal approximation theorem, a deep neural
+network can represent any continuous function within a certain error
+\cite{hornik_multilayer_1989} --- see also
+Refs.~\cite{Murphy2012,Hastie2009,Bishop2006,Goodfellow2016} for
+further discussions of deep leaning methods. Since the variational
+state wave function in principle can take any functional form, it is
+natural to replace the trial wave function with a neural network and
+treat it as a machine learning problem. This approach has been
+successfully implemented in recent works, see for example
+Refs.~\cite{pfau2019abinitio,carleo_solving_2017,casella2022,Lovato2021,lovato2022},
+and forms the motivation for the present study. Here, the neural
+network of choice was derived from so-called restricted Boltzmann
+machines, much inspired by the recent contributions by Carleo {\em et
+  al.}, see for example Refs.~\cite{carleo_solving_2017,carleo2019}.
+Note that neural-networks representations of variational states are
+more general, as they do not in principle require prior knowledge on
+the ground-state wave function, thereby opening the door to systems
+that have yet to be solved. Particular attention however has to be
+devoted to the symmetries of the problem, whose inclusion is critical
+to achieve accurate results..
+
+
+
+
+\subsection*{Thesis Project}
+
+The aim here is to study systems of confined fermions and bosons in one and two dimensions.
+Strongly confined electrons offer a wide variety of complex and subtle
+phenomena which pose severe challenges to existing many-body methods.
+Quantum dots in particular, that is, electrons confined in
+semiconducting heterostructures, exhibit, due to their small size,
+discrete quantum levels.  The ground states of, for example, circular
+dots show similar shell structures and magic numbers as seen for atoms
+and nuclei. These structures are particularly evident in measurements
+of the change in electrochemical potential due to the addition of one
+extra electron.
+
+Small confined systems, such as quantum dots (QD), have become very
+popular for experimental study.  Beyond their possible relevance for
+nanotechnology, they are highly tunable in experiments and introduce
+level quantization and quantum interference in a controlled way.
+
+Similarly, other fermionic systems like atoms, molecules, nuclei, the
+infinite homogeneous electron gas and infinite nuclear matter, are all
+systems which can be studied with the same many-body methods.
+Thus, a proper theoretical understanding of such systems requires the
+development of appropriate and reliable theoretical few- and many-body
+methods.  Furthermore, for say quantum dots with more than two electrons
+and/or specific values of the external fields, this implies the
+development of few- and many-body methods where uncertainty
+quantifications are provided.  For most methods, this means providing
+an estimate of the error due to the truncation made in the
+single-particle basis and the truncation made in limiting the number
+of possible excitations.  For systems with more than three or four
+electrons, \textbf{ab initio} methods that have been employed in studies of
+quantum dots are variational and diffusion Monte Carlo, path integral
+approaches, large-scale diagonalization (full configuration
+interaction and to a more limited extent coupled-cluster theory.
+Exact diagonalization studies are accurate for a very small number of
+electrons, but the number of basis functions needed to obtain a given
+accuracy and the computational cost grow very rapidly with electron
+number.  In practice they have been used for up to eight electrons,
+but the accuracy is very limited for all except $N\le 3$ .  Monte
+Carlo methods have been applied up to $N\sim 100$ electrons. Diffusion
+Monte Carlo, with statistical and systematic errors, provide, in
+principle, exact benchmark solutions to various properties of quantum
+dots. However, the computations start becoming rather time-consuming
+for larger systems.  Mean field methods like various Hartree-Fock
+approaches and/or current density functional methods give results that
+are satisfactory for a qualitative understanding of some systematic
+properties. However, comparisons with exact results show discrepancies
+in the energies that are substantial on the scale of energy
+differences. The above-mentioned many-body methods all experience what
+is the loosely called the \emph{curse of dimensionality}. This means that
+the increased number of degrees freedom hinders the application of
+most first principle methods. As an example, for direct
+diagonalization methods, Hamiltonian matrices of dimensionalities
+larger than ten billion basis states, are simply computationally
+intractable. Such a dimensionality translates into few interacting
+particles only. For larger systems one is limited to much more
+approximative methods.  Reecent approaches in Machine Learning as well
+as in quantum computing, hold promise however to circumvent partly the
+above problems with increasing degrees of freedom.
+
+The specific aim of this
+thesis topic is to, based on quantum Monte Carlo methods, to
+explore deep learning approaches to many-body systems based on neural networks, see the recent work of for example
+\href{{https://arxiv.org/abs/2007.14282}}{Adams et al.}. 
+
+\paragraph{Specific tasks and milestones.}
+
+The specific task here is to implement and study deep learning methods 
+for solving quantum mechanical many-particle
+problems of fermions. The results can  be easily compared with exisiting standard
+many-particle codes developed by former students at the Computational
+Physics group. These codes will serve as useful comparisons in order
+to gauge the appropriateness of recent Machine Learning approaches to
+quantum mechanical problems.
+
+
+The basic framework to be developed contains:
+\begin{enumerate}
+
+\item The development of a Variational Monte Carlo code for fermions.
+
+\item The development of a trial wave function for the correlated part based on deep neural networks.
+
+\item Be able to study quantum mechanical systems with interactions for bosons and fermions in one and two dimensions.
+
+\item Compare results with those obtained with recent libraries like FermiNet, SchNet and other.
+
+\end{enumerate}
+
+\noindent
+The milestones are
 
 \begin{enumerate}
-    \item Spring 2023: Start writing a time-independent Coupled Cluster code with double excitations first following \cite{Lietz2017} and applied to a small confined fermionic system in one dimension. Here we have in mind electrons confined in harmonic oscillator traps \cite{Zanghellini2004} and/or the Calogero-Sutherland \cite{Calogero1971} type of Hamiltonians which provide analytical answers to many-body problems. Singles excitations can be added later. Finalize remaining courses. 
-    \item Fall 2023: Extend the program from spring 2023 to include singles excitations and time-dependence without time-dependence for single-particle orbitals, see Ref.~\cite{Pigg2012}. Compare with existing results obtained with full configuration theory as done in \cite{Skattum2013,Hochstuhl2014}.
-    \item Spring 2024: Extend the program to include time-dependence of the single-particle orbitals and compare with corresponding full configuration theory calculations. Apply to systems of quantum dots and/or the fusion of two $\alpha$-particles. Finalize thesis and present final results.
+\item Spring semester 2023: Develop a Variational Monte Carlo framework for fermions without a self-consistent single-particle basis. Parts of this will be done in the course FYS4411, Computational Quantum Mechanics.
+
+
+\item Fall semester 2023: Introduce neural networks for the correlated part of the trial wave function used in Monte Carlo studies. Study simpler Hamiltonians in one and two dimensions like those described in \cite{Zanghellini2004,Calogero1971}. 
+
+\item Spring semester 2024: Perform numerical studies of quantum systems involving quantum dots in two dimensions and compare with results from other libaries.
+
+\item Spring semester 2024: Final thesis
 \end{enumerate}
-The thesis is expected to be handed in May/June 2024
+
+\noindent
+The thesis is expected to be handed in May/June  2024.
 
 
-\begin{thebibliography}{99}
+%merlin.mbs apsrev4-1.bst 2010-07-25 4.21a (PWD, AO, DPC) hacked
+%Control: key (0)
+%Control: author (0) dotless jnrlst
+%Control: editor formatted (1) identically to author
+%Control: production of article title (0) allowed
+%Control: page (1) range
+%Control: year (0) verbatim
+%Control: production of eprint (0) enabled
+\begin{thebibliography}{31}%
+\makeatletter
+\providecommand \@ifxundefined [1]{%
+ \@ifx{#1\undefined}
+}%
+\providecommand \@ifnum [1]{%
+ \ifnum #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \@ifx [1]{%
+ \ifx #1\expandafter \@firstoftwo
+ \else \expandafter \@secondoftwo
+ \fi
+}%
+\providecommand \natexlab [1]{#1}%
+\providecommand \enquote  [1]{``#1''}%
+\providecommand \bibnamefont  [1]{#1}%
+\providecommand \bibfnamefont [1]{#1}%
+\providecommand \citenamefont [1]{#1}%
+\providecommand \href@noop [0]{\@secondoftwo}%
+\providecommand \href [0]{\begingroup \@sanitize@url \@href}%
+\providecommand \@href[1]{\@@startlink{#1}\@@href}%
+\providecommand \@@href[1]{\endgroup#1\@@endlink}%
+\providecommand \@sanitize@url [0]{\catcode `\\12\catcode `\$12\catcode
+  `\&12\catcode `\#12\catcode `\^12\catcode `\_12\catcode `\%12\relax}%
+\providecommand \@@startlink[1]{}%
+\providecommand \@@endlink[0]{}%
+\providecommand \url  [0]{\begingroup\@sanitize@url \@url }%
+\providecommand \@url [1]{\endgroup\@href {#1}{\urlprefix }}%
+\providecommand \urlprefix  [0]{URL }%
+\providecommand \Eprint [0]{\href }%
+\providecommand \doibase [0]{http://dx.doi.org/}%
+\providecommand \selectlanguage [0]{\@gobble}%
+\providecommand \bibinfo  [0]{\@secondoftwo}%
+\providecommand \bibfield  [0]{\@secondoftwo}%
+\providecommand \translation [1]{[#1]}%
+\providecommand \BibitemOpen [0]{}%
+\providecommand \bibitemStop [0]{}%
+\providecommand \bibitemNoStop [0]{.\EOS\space}%
+\providecommand \EOS [0]{\spacefactor3000\relax}%
+\providecommand \BibitemShut  [1]{\csname bibitem#1\endcsname}%
+\let\auto@bib@innerbib\@empty
+%</preamble>
+\bibitem [{\citenamefont {Goodfellow}\ \emph {et~al.}(2016)\citenamefont
+  {Goodfellow}, \citenamefont {Bengio},\ and\ \citenamefont
+  {Courville}}]{Goodfellow2016}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {I.}~\bibnamefont
+  {Goodfellow}}, \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont {Bengio}},
+  \ and\ \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Courville}},\
+  }\href@noop {} {\emph {\bibinfo {title} {Deep Learning}}}\ (\bibinfo
+  {publisher} {The MIT Press, Cambridge, Massachusetts},\ \bibinfo {year}
+  {2016})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Carleo}\ and\ \citenamefont
+  {Troyer}(2017)}]{carleo_solving_2017}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Carleo}}\ and\ \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Troyer}},\ }\href {\doibase 10.1126/science.aag2302} {\bibfield  {journal}
+  {\bibinfo  {journal} {Science}\ }\textbf {\bibinfo {volume} {355}},\ \bibinfo
+  {pages} {602} (\bibinfo {year} {2017})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Carrasquilla}\ and\ \citenamefont
+  {Torlai}(2021)}]{carra2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {Carrasquilla}}\ and\ \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Torlai}},\ }\href {\doibase 10.48550/arxiv.2101.11099} {\  (\bibinfo {year}
+  {2021}),\ 10.48550/arxiv.2101.11099}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Pfau}\ \emph {et~al.}(2020)\citenamefont {Pfau},
+  \citenamefont {Spencer}, \citenamefont {Matthews},\ and\ \citenamefont
+  {Foulkes}}]{pfau2019abinitio}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Pfau}}, \bibinfo {author} {\bibfnamefont {J.~S.}\ \bibnamefont {Spencer}},
+  \bibinfo {author} {\bibfnamefont {Alexander G. D.~G.}\ \bibnamefont
+  {Matthews}}, \ and\ \bibinfo {author} {\bibfnamefont {W.~M.~C.}\ \bibnamefont
+  {Foulkes}},\ }\href {\doibase 10.1103/PhysRevResearch.2.033429} {\bibfield
+  {journal} {\bibinfo  {journal} {Physical Review Research}\ }\textbf {\bibinfo
+  {volume} {2}},\ \bibinfo {pages} {033429} (\bibinfo {year}
+  {2020})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Calcavecchia}\ \emph {et~al.}(2014)\citenamefont
+  {Calcavecchia}, \citenamefont {Pederiva}, \citenamefont {Kalos},\ and\
+  \citenamefont {K{\"u}hne}}]{calcavecchia_sign_2014}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {F.}~\bibnamefont
+  {Calcavecchia}}, \bibinfo {author} {\bibfnamefont {F.}~\bibnamefont
+  {Pederiva}}, \bibinfo {author} {\bibfnamefont {M.~H.}\ \bibnamefont {Kalos}},
+  \ and\ \bibinfo {author} {\bibfnamefont {T.~D.}\ \bibnamefont {K{\"u}hne}},\
+  }\href {\doibase 10.1103/PhysRevE.90.053304} {\bibfield  {journal} {\bibinfo
+  {journal} {Physical Review E}\ }\textbf {\bibinfo {volume} {90}},\ \bibinfo
+  {pages} {053304} (\bibinfo {year} {2014})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Carleo}\ \emph {et~al.}(2019)\citenamefont {Carleo},
+  \citenamefont {Cirac}, \citenamefont {Cranmer}, \citenamefont {Daudet},
+  \citenamefont {Schuld}, \citenamefont {Tishby}, \citenamefont
+  {Vogt-Maranto},\ and\ \citenamefont {Zdeborov\'a}}]{carleo2019}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Carleo}}, \bibinfo {author} {\bibfnamefont {I.}~\bibnamefont {Cirac}},
+  \bibinfo {author} {\bibfnamefont {K.}~\bibnamefont {Cranmer}}, \bibinfo
+  {author} {\bibfnamefont {L.}~\bibnamefont {Daudet}}, \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Schuld}}, \bibinfo {author} {\bibfnamefont
+  {N.}~\bibnamefont {Tishby}}, \bibinfo {author} {\bibfnamefont
+  {L.}~\bibnamefont {Vogt-Maranto}}, \ and\ \bibinfo {author} {\bibfnamefont
+  {L.}~\bibnamefont {Zdeborov\'a}},\ }\href {\doibase
+  10.1103/RevModPhys.91.045002} {\bibfield  {journal} {\bibinfo  {journal}
+  {Reviews of Modern Physics}\ }\textbf {\bibinfo {volume} {91}},\ \bibinfo
+  {pages} {045002} (\bibinfo {year} {2019})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Boehnlein}\ \emph {et~al.}(2022)\citenamefont
+  {Boehnlein}, \citenamefont {Diefenthaler}, \citenamefont {Sato},
+  \citenamefont {Schram}, \citenamefont {Ziegler}, \citenamefont {Fanelli},
+  \citenamefont {Hjorth-Jensen}, \citenamefont {Horn}, \citenamefont {Kuchera},
+  \citenamefont {Lee}, \citenamefont {Nazarewicz}, \citenamefont {Ostroumov},
+  \citenamefont {Orginos}, \citenamefont {Poon}, \citenamefont {Wang},
+  \citenamefont {Scheinker}, \citenamefont {Smith},\ and\ \citenamefont
+  {Pang}}]{amber2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Boehnlein}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Diefenthaler}}, \bibinfo {author} {\bibfnamefont {N.}~\bibnamefont {Sato}},
+  \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Schram}}, \bibinfo
+  {author} {\bibfnamefont {V.}~\bibnamefont {Ziegler}}, \bibinfo {author}
+  {\bibfnamefont {C.}~\bibnamefont {Fanelli}}, \bibinfo {author} {\bibfnamefont
+  {M.}~\bibnamefont {Hjorth-Jensen}}, \bibinfo {author} {\bibfnamefont
+  {T.}~\bibnamefont {Horn}}, \bibinfo {author} {\bibfnamefont {M.~P.}\
+  \bibnamefont {Kuchera}}, \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont
+  {Lee}}, \bibinfo {author} {\bibfnamefont {W.}~\bibnamefont {Nazarewicz}},
+  \bibinfo {author} {\bibfnamefont {P.}~\bibnamefont {Ostroumov}}, \bibinfo
+  {author} {\bibfnamefont {K.}~\bibnamefont {Orginos}}, \bibinfo {author}
+  {\bibfnamefont {A.}~\bibnamefont {Poon}}, \bibinfo {author} {\bibfnamefont
+  {X.-N.}\ \bibnamefont {Wang}}, \bibinfo {author} {\bibfnamefont
+  {A.}~\bibnamefont {Scheinker}}, \bibinfo {author} {\bibfnamefont {M.~S.}\
+  \bibnamefont {Smith}}, \ and\ \bibinfo {author} {\bibfnamefont {L.-G.}\
+  \bibnamefont {Pang}},\ }\href {\doibase 10.1103/RevModPhys.94.031003}
+  {\bibfield  {journal} {\bibinfo  {journal} {Reviews of Moddern Physics}\
+  }\textbf {\bibinfo {volume} {94}},\ \bibinfo {pages} {031003} (\bibinfo
+  {year} {2022})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Adams}\ \emph {et~al.}(2021)\citenamefont {Adams},
+  \citenamefont {Carleo}, \citenamefont {Lovato},\ and\ \citenamefont
+  {Rocco}}]{Lovato2021}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
+  {Adams}}, \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Carleo}},
+  \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont {Lovato}}, \ and\ \bibinfo
+  {author} {\bibfnamefont {N.}~\bibnamefont {Rocco}},\ }\href {\doibase
+  10.1103/PhysRevLett.127.022502} {\bibfield  {journal} {\bibinfo  {journal}
+  {Physical Review Letters}\ }\textbf {\bibinfo {volume} {127}},\ \bibinfo
+  {pages} {022502} (\bibinfo {year} {2021})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Lovato}\ \emph {et~al.}(2022)\citenamefont {Lovato},
+  \citenamefont {Adams}, \citenamefont {Carleo},\ and\ \citenamefont
+  {Rocco}}]{lovato2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Lovato}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Adams}},
+  \bibinfo {author} {\bibfnamefont {G.}~\bibnamefont {Carleo}}, \ and\ \bibinfo
+  {author} {\bibfnamefont {N.}~\bibnamefont {Rocco}},\ }\href {\doibase
+  10.48550/arxiv.2206.10021} {\  (\bibinfo {year} {2022}),\
+  10.48550/arxiv.2206.10021}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Hornik}\ \emph {et~al.}(1989)\citenamefont {Hornik},
+  \citenamefont {Stinchcombe},\ and\ \citenamefont
+  {White}}]{hornik_multilayer_1989}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.}~\bibnamefont
+  {Hornik}}, \bibinfo {author} {\bibfnamefont {M.}~\bibnamefont {Stinchcombe}},
+  \ and\ \bibinfo {author} {\bibfnamefont {H.}~\bibnamefont {White}},\ }\href
+  {\doibase 10.1016/0893-6080(89)90020-8} {\bibfield  {journal} {\bibinfo
+  {journal} {Neural Networks}\ }\textbf {\bibinfo {volume} {2}},\ \bibinfo
+  {pages} {359} (\bibinfo {year} {1989})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Murphy}(2012)}]{Murphy2012}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {K.~P.}\ \bibnamefont
+  {Murphy}},\ }\href@noop {} {\emph {\bibinfo {title} {Machine Learning: A
+  Probabilistic Perspective}}}\ (\bibinfo  {publisher} {The MIT Press,
+  Cambdridge, Massachusetts},\ \bibinfo {year} {2012})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Hastie}\ \emph {et~al.}(2009)\citenamefont {Hastie},
+  \citenamefont {Tibshirani},\ and\ \citenamefont {Friedman}}]{Hastie2009}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {T.}~\bibnamefont
+  {Hastie}}, \bibinfo {author} {\bibfnamefont {R.}~\bibnamefont {Tibshirani}},
+  \ and\ \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Friedman}},\
+  }\href@noop {} {\emph {\bibinfo {title} {The Elements of Statistical
+  Learning: Data Mining, Inference and Prediction}}}\ (\bibinfo  {publisher}
+  {Springer Verlag, Berlin},\ \bibinfo {year} {2009})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Bishop}(2006)}]{Bishop2006}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.~M.}\ \bibnamefont
+  {Bishop}},\ }\href@noop {} {\emph {\bibinfo {title} {Pattern Recognition and
+  Machine Learning}}}\ (\bibinfo  {publisher} {Springer Verlag, Berlin},\
+  \bibinfo {year} {2006})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Cassella}\ \emph {et~al.}(2022)\citenamefont
+  {Cassella}, \citenamefont {Sutterud}, \citenamefont {Azadi}, \citenamefont
+  {Drummond}, \citenamefont {Pfau}, \citenamefont {Spencer},\ and\
+  \citenamefont {Foulkes}}]{casella2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {G.}~\bibnamefont
+  {Cassella}}, \bibinfo {author} {\bibfnamefont {H.}~\bibnamefont {Sutterud}},
+  \bibinfo {author} {\bibfnamefont {S.}~\bibnamefont {Azadi}}, \bibinfo
+  {author} {\bibfnamefont {N.~D.}\ \bibnamefont {Drummond}}, \bibinfo {author}
+  {\bibfnamefont {D.}~\bibnamefont {Pfau}}, \bibinfo {author} {\bibfnamefont
+  {J.~S.}\ \bibnamefont {Spencer}}, \ and\ \bibinfo {author} {\bibfnamefont
+  {W.~M.~C.}\ \bibnamefont {Foulkes}},\ }\href {\doibase
+  10.48550/arxiv.2202.05183} {\  (\bibinfo {year} {2022}),\
+  10.48550/arxiv.2202.05183}\BibitemShut {NoStop}%
+\bibitem [{Note1()}]{Note1}%
+  \BibitemOpen
+  \bibinfo {note} {Natural units are used with energy given in units of $\hbar
+  $ and length given in units of $\protect \sqrt {\hbar /m}$}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Drummond}\ \emph {et~al.}(2004)\citenamefont
+  {Drummond}, \citenamefont {Towler},\ and\ \citenamefont
+  {Needs}}]{drummond_jastrow_2004}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {N.~D.}\ \bibnamefont
+  {Drummond}}, \bibinfo {author} {\bibfnamefont {M.~D.}\ \bibnamefont
+  {Towler}}, \ and\ \bibinfo {author} {\bibfnamefont {R.~J.}\ \bibnamefont
+  {Needs}},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Physical Review B}\ }\textbf {\bibinfo {volume} {70}},\ \bibinfo {pages}
+  {235119} (\bibinfo {year} {2004})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Huang}\ \emph {et~al.}(1998)\citenamefont {Huang},
+  \citenamefont {Filippi},\ and\ \citenamefont {Umrigar}}]{huang_spin_1998}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.-J.}\ \bibnamefont
+  {Huang}}, \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont {Filippi}}, \
+  and\ \bibinfo {author} {\bibfnamefont {C.~J.}\ \bibnamefont {Umrigar}},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {The Journal of
+  Chemical Physics}\ }\textbf {\bibinfo {volume} {108}},\ \bibinfo {pages}
+  {8838} (\bibinfo {year} {1998})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Neidinger}(2010)}]{autodiff2010}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {R.~D.}\ \bibnamefont
+  {Neidinger}},\ }\href {\doibase 10.1137/080743627} {\bibfield  {journal}
+  {\bibinfo  {journal} {SIAM Review}\ }\textbf {\bibinfo {volume} {52}},\
+  \bibinfo {pages} {545} (\bibinfo {year} {2010})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Baydin}\ \emph {et~al.}(2018)\citenamefont {Baydin},
+  \citenamefont {Pearlmutter}, \citenamefont {Andreyevich~Radul},\ and\
+  \citenamefont {Siskind}}]{autodiff2018}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.~G.}\ \bibnamefont
+  {Baydin}}, \bibinfo {author} {\bibfnamefont {B.~A.}\ \bibnamefont
+  {Pearlmutter}}, \bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Andreyevich~Radul}}, \ and\ \bibinfo {author} {\bibfnamefont {J.~M.}\
+  \bibnamefont {Siskind}},\ }\href {http://jmlr.org/papers/v18/17-468.html}
+  {\bibfield  {journal} {\bibinfo  {journal} {Journal of Machine Learning
+  Research}\ }\textbf {\bibinfo {volume} {18}},\ \bibinfo {pages} {1} (\bibinfo
+  {year} {2018})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Hammond}\ \emph {et~al.}(1994)\citenamefont
+  {Hammond}, \citenamefont {Lester},\ and\ \citenamefont
+  {Reynolds}}]{hammond_monte_1994}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {B~L}\ \bibnamefont
+  {Hammond}}, \bibinfo {author} {\bibfnamefont {W~A}\ \bibnamefont {Lester}}, \
+  and\ \bibinfo {author} {\bibfnamefont {P~J}\ \bibnamefont {Reynolds}},\
+  }\href@noop {} {\emph {\bibinfo {title} {Monte Carlo Methods in Ab Initio
+  Quantum Chemistry}}}\ (\bibinfo  {publisher} {World Scientific, Singapore},\
+  \bibinfo {year} {1994})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Umrigar}\ and\ \citenamefont
+  {Filippi}(2005)}]{umrigar_energy_2005}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {C.~J.}\ \bibnamefont
+  {Umrigar}}\ and\ \bibinfo {author} {\bibfnamefont {C.}~\bibnamefont
+  {Filippi}},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal}
+  {Physical Review Letters}\ }\textbf {\bibinfo {volume} {94}},\ \bibinfo
+  {pages} {150201} (\bibinfo {year} {2005})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {H{\o}gberget}(2013)}]{hogberget_quantum_2013}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.}~\bibnamefont
+  {H{\o}gberget}},\ }\emph {\bibinfo {title} {Quantum Monte Carlo Studies of
+  Generalized Many-body Systems}},\ \href
+  {https://www.duo.uio.no/handle/10852/37167} {Master's thesis},\ \bibinfo
+  {school} {University of Oslo} (\bibinfo {year} {2013})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Taut}(1994)}]{taut_two_1994}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {M.}~\bibnamefont
+  {Taut}},\ }\href {\doibase 10.1088/0305-4470/27/3/040} {\bibfield  {journal}
+  {\bibinfo  {journal} {Journal of Physics A}\ ,\ \bibinfo {pages} {1045}}
+  (\bibinfo {year} {1994})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Mariadason}(2018)}]{mariadason_quantum_2018}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.~A.}\ \bibnamefont
+  {Mariadason}},\ }\emph {\bibinfo {title} {Quantum {Many}-{Body} {Simulations}
+  of {Double} {Dot} {System}}},\ \href
+  {https://github.com/Oo1Insane1oO/HartreeFock} {Master's thesis},\ \bibinfo
+  {school} {University of Oslo} (\bibinfo {year} {2018})\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Saito}(2018)}]{saito_method_2018}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {H.}~\bibnamefont
+  {Saito}},\ }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Journal
+  of the Physical Society of Japan}\ }\textbf {\bibinfo {volume} {87}},\
+  \bibinfo {pages} {074002} (\bibinfo {year} {2018})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Kim}\ \emph {et~al.}()\citenamefont {Kim},
+  \citenamefont {Fore}, \citenamefont {Nordhagen}, \citenamefont {Lovato},\
+  and\ \citenamefont {Hjorth-Jensen}}]{kim2022}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {J.M.}\ \bibnamefont
+  {Kim}}, \bibinfo {author} {\bibfnamefont {B.}~\bibnamefont {Fore}}, \bibinfo
+  {author} {\bibfnamefont {E.~M.}\ \bibnamefont {Nordhagen}}, \bibinfo {author}
+  {\bibfnamefont {A.}~\bibnamefont {Lovato}}, \ and\ \bibinfo {author}
+  {\bibfnamefont {M.}~\bibnamefont {Hjorth-Jensen}},\ }\href@noop {} {\enquote
+  {\bibinfo {title} {Deep learning and confined electrons in two dimensions},}\
+  }\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Ghosal}\ \emph {et~al.}(2007)\citenamefont {Ghosal},
+  \citenamefont {G{\"u}{\c c}l{\"u}}, \citenamefont {Umrigar}, \citenamefont
+  {Ullmo},\ and\ \citenamefont {Baranger}}]{ghosal_incipient_2007}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {A.}~\bibnamefont
+  {Ghosal}}, \bibinfo {author} {\bibfnamefont {A.~D.}\ \bibnamefont {G{\"u}{\c
+  c}l{\"u}}}, \bibinfo {author} {\bibfnamefont {C.~J.}\ \bibnamefont
+  {Umrigar}}, \bibinfo {author} {\bibfnamefont {D.}~\bibnamefont {Ullmo}}, \
+  and\ \bibinfo {author} {\bibfnamefont {H.~U.}\ \bibnamefont {Baranger}},\
+  }\href@noop {} {\bibfield  {journal} {\bibinfo  {journal} {Physical Review
+  B}\ }\textbf {\bibinfo {volume} {76}},\ \bibinfo {pages} {085341} (\bibinfo
+  {year} {2007})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Fock}(1930)}]{fock_bemerkung_1930}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {V.}~\bibnamefont
+  {Fock}},\ }\href {\doibase 10.1007/BF01339281} {\bibfield  {journal}
+  {\bibinfo  {journal} {Zeitschrift f{\"u}r Physik}\ }\textbf {\bibinfo
+  {volume} {63}},\ \bibinfo {pages} {855} (\bibinfo {year} {1930})}\BibitemShut
+  {NoStop}%
+\bibitem [{\citenamefont {Metropolis}\ \emph {et~al.}(1953)\citenamefont
+  {Metropolis}, \citenamefont {Rosenbluth}, \citenamefont {Rosenbluth},
+  \citenamefont {Teller},\ and\ \citenamefont
+  {Teller}}]{metropolis_equation_1953}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {N.}~\bibnamefont
+  {Metropolis}}, \bibinfo {author} {\bibfnamefont {A.~W.}\ \bibnamefont
+  {Rosenbluth}}, \bibinfo {author} {\bibfnamefont {M.~N.}\ \bibnamefont
+  {Rosenbluth}}, \bibinfo {author} {\bibfnamefont {A.~H.}\ \bibnamefont
+  {Teller}}, \ and\ \bibinfo {author} {\bibfnamefont {E.}~\bibnamefont
+  {Teller}},\ }\href {\doibase 10.1063/1.1699114} {\bibfield  {journal}
+  {\bibinfo  {journal} {The Journal of Chemical Physics}\ }\textbf {\bibinfo
+  {volume} {21}},\ \bibinfo {pages} {1087} (\bibinfo {year}
+  {1953})}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Kingma}\ and\ \citenamefont
+  {Ba}(2014)}]{kingma_adam:_2014}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {D.~P.}\ \bibnamefont
+  {Kingma}}\ and\ \bibinfo {author} {\bibfnamefont {J.}~\bibnamefont {Ba}},\
+  }\href {\doibase 10.48550/arxiv.1412.6980} {\  (\bibinfo {year} {2014}),\
+  10.48550/arxiv.1412.6980}\BibitemShut {NoStop}%
+\bibitem [{\citenamefont {Glorot}\ and\ \citenamefont
+  {Bengio}(2010)}]{glorot_understanding_2010}%
+  \BibitemOpen
+  \bibfield  {author} {\bibinfo {author} {\bibfnamefont {X.}~\bibnamefont
+  {Glorot}}\ and\ \bibinfo {author} {\bibfnamefont {Y.}~\bibnamefont
+  {Bengio}},\ }\bibfield  {title} {\enquote {\bibinfo {title} {Understanding
+  the difficulty of training deep feedforward neural networks},}\ }in\
+  \href@noop {} {\emph {\bibinfo {booktitle} {Proceedings of the Thirteenth
+  International Conference on Artificial Intelligence and Statistics}}},\
+  \bibinfo {series} {Proceedings of Machine Learning Research}, Vol.~\bibinfo
+  {volume} {9},\ \bibinfo {editor} {edited by\ \bibinfo {editor} {\bibfnamefont
+  {Y.~W.}\ \bibnamefont {Teh}}\ and\ \bibinfo {editor} {\bibfnamefont
+  {M.}~\bibnamefont {Titterington}}}\ (\bibinfo  {publisher} {PMLR},\ \bibinfo
+  {year} {2010})\ p.\ \bibinfo {pages} {249}\BibitemShut {NoStop}%
 
-\bibitem{Kvaal2012} Simen Kvaal, Journal of Chemical Physics {\bf 136}, 194109 (2012), \url{ https://doi.org/10.1063/1.4718427}
-\bibitem{Schoyen2019} Øyvind Schøyen Sigmundson, Master of Science Thesis, University of Oslo (2019), \url{https://www.duo.uio.no/handle/10852/72881}
-\bibitem{Hagen2014} Gaute Hagen, Thomas Papenbrock, Morten Hjorth-Jensen, and David J. Dean, Reports on Progress in Physics  {\bf 77}, 096302 (2014), \url{10.1088/0034-4885/77/9/096302}
-\bibitem{Lietz2017} Justin Lietz, Samuel Novario, Gustav R. Jansen, Gaute Hagen, and Morten Hjorth-Jensen, Lecture Notes in Physics {\bf 936}, 293 (2017), \url{https://link.springer.com/chapter/10.1007/978-3-319-53336-0_8}
-\bibitem{Pigg2012} David Pigg, Gaute Hagen, H. Nam, and Thomas Papenbrock, Physical Review C {\bf 86}, 014308 (2012), \url{https://doi.org/10.1103/PhysRevC.86.014308}
-\bibitem{Skattum2013} Sigve Skattum, Master of Science Thesis, University of Oslo (2013), \url{https://www.duo.uio.no/handle/10852/37170}  
-\bibitem{Hochstuhl2014} D. Hochstuhl, C.M. Hinz, and M. Bonitz, The European Physical Journal Special Topics {\bf 223}, 177 (2014), \url{https://link.springer.com/article/10.1140/epjst/e2014-02092-3}
-\bibitem{Reimann2002} Stephanie M. Reimann and Matti Manninen, Reviews of  Modern Physics {\bf 74}, 1283 (2002), \url{https://doi.org/10.1103/RevModPhys.74.1283}
+
+
+
 \bibitem{Zanghellini2004} J. Zanghellini, M. Kitzler, T. Brabec, and A. Scrinzi, Journal of Physics  B {\bf 37}, 763 (2004), \url{https://doi.org/10.1088/0953-4075/37/4/004}
 \bibitem{Calogero1971} F. Calogero, Journal of Mathematical Physics {\bf 12}, 419,  (1971), \url{https://doi.org/10.1063/1.1665604}
 
-\end{thebibliography}  
-%\printbibliography
+\end{thebibliography}%
+
 
 \end{document}
+
+
+
