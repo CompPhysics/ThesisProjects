@@ -1,0 +1,18 @@
+Gaussian processes (GP) are non-parametric models that use Bayesian statistics to provide a machine learning algorithm that can model complex relationships between the data, even if the predictions are based on uncertain information. GPs can be used for classification, but we will only consider regression applications in this thesis, meaning the GPs will learn to model a continuous function. GPs assume that the function to be modeled can be represented as a Gaussian distribution over the function values at every point \cite{Ref11, Ref12, Ref169}.  
+
+Given a set of inputs \textbf{x} and a set of outputs \textbf{y}, the GP defines a joint distribution over all outputs such that the subsequent multivariate Gaussian distribution, N, is created:
+
+$$p(\textbf{y} | \textbf{x}) = N(\mu, \Sigma).$$
+
+The vector \textbf{$\mu$} contains the mean of each element of y ($\mu_i = E[y_i]$), and $\Sigma$ is the covariance matrix with elements $\Sigma_{i,j} = k(y_i, y_j)$, where k is known as the covariance or the kernel function.
+
+
+The kernel function used in the GP analysis presented in this work is the rational quadratic (RQ) kernel, which is defined as:
+
+$$k(x_i,x_j) = (1 + \frac{d(x_i, x_j)^2}{2\alpha l^2})^{-\alpha},$$
+
+where $\alpha$ is a hyperparameter known as the scale mixture parameter, l is a hyperparameter that sets the length scale of the kernel, and the function d calculates the Euclidean distance between $x_i$ and $x_j$. The values of the hyperparameters are set during the training process. The rational quadratic kernel can model functions with a mixture of local and global smoothness. It was chosen as the kernel function for this analysis because it produced the lowest RMSE error on the extrapolations compared to other kernel functions.
+
+GPs were chosen as a primary machine learning method because they can be thought analogous to the Bayesian implementation kernel ridge regression (KRR). KRR relies on user-chosen hyperparameters, complicating the analysis process. The values of these hyperparameters (one from the loss function, 2-5 from the kernel) are chosen through hyperparameter tuning, where many combinations of hyperparameters are tested to find the best combination. The drawback to this method is that it requires a validation data set to be used for the hyperparameter tuning, in addition to the training data set and the test data set. Additionally, it was found that the data sets used in this work are sensitive to the values of the hyperparameters (a slight change in hyperparameter value could lead to a significant change in extrapolated value), so a quiet through hyperparameter tuning would need to be performed to find the optimal values.
+
+In the context of this research, we are interested in time savings in addition to prediction accuracy. Therefore the goal is to accurately generate the converged correlation energies with as few training points as possible and as fast as possible. Furthermore, eliminating the need to perform hyperparameter tuning saves a significant amount of time in the machine learning analysis and eliminates the need to generate a validation data set.

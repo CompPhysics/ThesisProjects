@@ -1,0 +1,82 @@
+This section describes the SRE formulation to remove the basis incompleteness errors from CCD calculations of infinite matter. 
+
+Both the $\Delta E_{CC}$ and $\Delta E_{MBPT}$ converge as M increases. In that case, there must be a large value of M where their ratio becomes a constant:
+
+
+\begin{equation}
+\frac{\Delta E_{CC,Large\ M}}{\Delta E_{MBPT,Large\ M}} \longrightarrow constant.
+\end{equation}
+
+One of the machine learning algorithms described in the previous chapter will be used to find this constant value using only data collected at low values of M, where the ratio still needs to be converged. $\Delta E_{CC}$ and $\Delta E_{MBPT}$ are calculated for the training data set generated at small values of M. The exact values of M will depend on the value of N and the system in the calculations. However, the largest value of M used across all training data in this thesis is 2,090 single-particle states. For each data set (constant N and $\rho_0$/$r_s$), the training data for the regression algorithm was created by dividing $\Delta E_{CC}$ by $\Delta E_{MBPT}$ at the exact value of M.
+
+\begin{equation}
+y =\frac{\Delta E_{CC,M}}{\Delta E_{MBPT,M}} = \frac{\Delta E_{CC,M_1}}{\Delta E_{MBPT,M_1}}, \frac{\Delta E_{CC,M_2}}{\Delta E_{MBPT,M_2}}, \frac{\Delta E_{CC,M_3}}{\Delta E_{MBPT,M_3}}, ...
+\end{equation}
+
+Next, the machine learning algorithm, $f_R$, is trained on this data set using the SRE formulation developed earlier in this chapter. The sequence length shown here is three data points, but depending on the analysis being done, it could range from 1 to 3. We are adding this hyperparameter into the analysis, whose value will have to be set, but in general, we want a smaller sequence length if there is less training data. 
+
+\begin{equation}
+f_{R}(\frac{\Delta E_{CC,k-3}}{\Delta E_{MBPT,k-3}},\frac{\Delta E_{CC,k-2}}{\Delta E_{MBPT,k-2}}, \frac{\Delta E_{CC,k-1}}{\Delta E_{MBPT,k-1}}) = \frac{\Delta E_{CC,k}}{\Delta E_{MBPT,k}}
+\end{equation}
+
+The SRE algorithm is then used to extrapolate this data set to many points until the ratio of correlation energies has converged. This value can then be taken as the slope of the graph created with $\Delta E_{CC}$ plotted as a function of $\Delta E_{MBPT}$.
+
+\begin{equation}
+\lim_{k\to\infty} \frac{\Delta E_{CC,k}}{\Delta E_{MBPT,k}} = slope = m
+\end{equation}
+
+Finally, $\Delta E_{MBPT, Large\ M}$  is generated, a process that takes less than one second (not including the time to generate the matrix elements). $\Delta E_{MBPT, Large\ M}$ is multiplied by the slope, m, to approximate $\Delta E_{CC, Large\ M}$.
+
+\begin{equation}
+m\Delta E_{MBPT,Large\ M} \approx \Delta E_{CC,Large\ M}
+\end{equation}
+
+Due to convergence, the number of single-particle states used to calculate the large M data sets will vary depending on the system. For example, for the HEG, M = 6,142 (70 total shells) is used because the CCD correlation energies were confirmed to be converged at this point across all values of N and r$_s$ tested. It is important to note that the data sets used to train a machine learning algorithm in this work consist of 3-16 points each, making these data sets some of the smallest used in physics applications of machine learning. Many machine learning algorithms need more points to be accurately trained, even up to 1-2 orders of magnitude more, as with some neural networks. For example, the ML-based process shown in Ref. \cite{Ref7} can generate accurate molecular CCD correlation energies using only 12 data points with kernel ridge regression and a training process based on MP2 amplitudes. However, the MP2 amplitudes used in the training data have a very high dimensionality which can increase the time needed for training. Some other studies designed machine learning algorithms to use small data sets but still needed around 100 data points, if not more (see Ref. \cite{Ref17} for example) and are usually artificially extended with interpolation (for example, see \cite{Ref6}. 
+
+It is also of note that machine learning is typically only used to make extrapolations in exceptional cases such as recurrent neural networks. When asked to make predictions outside their training range, many machine learning algorithms could improve. However, it will be shown that SRE can make accurate extrapolations using only a small training set, making it a unique machine-learning algorithm. There is, however, a drawback to the SRE method. Since it relies only on the y component of the training data set, it assumes that the data is evenly spaced with respect to the x variable and can only make predictions at the same spacing. This works well for this application since "evenly spaced" means a calculation at every closed shell of unoccupied states, and extrapolations are made until the result converges (the exact x value where this occurs is not essential for this study). However, this limitation does mean that the SRE method is only suitable for some applications.
+
+The SRE method must meet two metrics to be a helpful extrapolator. First, the total time to generate the training data, train the SRE algorithm, and predict the converged correlation energy must be less than the time to calculate the correlation energy at M = 6142. Secondly, the accuracy between the predicted and calculated converged correlation energies must be high, preferably with a percent error between the two data sets of less than 2$\%$.
+
+\subsubsection* {Error Analysis on Prediction}
+
+The prediction has a measurable uncertainty since Bayesian methods calculate the slope, m. This can be transferred to an uncertainty on the predicted converged CCD correlation energy using the following scheme. Given that the converged CCD correlation energy is:
+
+\begin{equation}
+    \Delta E_{CC} = m\Delta E_{MBPT},
+\end{equation}
+
+then we can relate the uncertainties on all three quantities using equation Eq. \ref{uncertainity1}.  In Eq. \label{uncertainity1}, $\delta x$ refers to the uncertainty associated with quantity x.
+
+\begin{equation}\label{uncertainity1}
+    \frac{\delta \Delta E_{CC}}{\Delta E_{CC}} = \frac{\delta \Delta E_{MBPT}}{\Delta E_{MBPT}} + \frac{\delta m}{m}
+\end{equation}
+
+We will also assume that the uncertainty in the calculation of the MBPT2 correlation energy is 0, so \ref{uncertainity1} simplifies to:
+
+\begin{equation}\label{uncertainity2}
+    \frac{\delta \Delta E_{CC}}{\Delta E_{CC}} = \frac{\delta m}{m}.
+\end{equation}
+
+Now, Eq. \ref{uncertainity2} is solved for $\delta \Delta E_{CC}$, or the uncertainty on the predicted converged CCD correlation energy, yielding:
+
+\begin{equation}
+    \delta \Delta E_{CC} = \frac{\Delta E_{CC}}{m}\delta m.
+\end{equation}
+
+However, this can be simplified using the following:
+
+\begin{equation}
+    \Delta E_{CC} = m\Delta E_{MBPT} \longrightarrow \Delta E_{MBPT} = \frac{\Delta E_{CC}}{m},
+\end{equation}
+
+yielding as a final equation for the CCD correlation energy uncertainty:
+
+\begin{equation}\label{uncertainity3}
+    \delta \Delta E_{CC} = \Delta E_{MBPT}\delta m.
+\end{equation}
+
+Finally, to present the results as the correlation energy per particle, as is typically done with infinite nuclear matter calculations, the uncertainty in the predicted converged CCD correlation energy can be found by dividing both sides of Eq. \ref{uncertainity3} by N.
+
+\begin{equation}
+    \delta (\frac{\Delta E_{CC}}{N} = \frac{\Delta E_{MBPT}}{N}\delta m
+\end{equation}

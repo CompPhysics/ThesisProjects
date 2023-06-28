@@ -1,0 +1,37 @@
+A regression algorithm related to ridge regression is called kernel ridge regression (KRR) \cite{Ref7, Ref11, Ref12}. While it uses the same loss function as ridge regression, the inputs are altered using a kernel function. This is known as the kernel trick and adds non-linearity into the model, making it able to generalize to a broader range of data sets. KRR assumes that the output data, y, can be approximated by multiplying a set of weights, $\theta$, by values from a kernel function:
+
+\begin{equation} \label{krr_output}
+    \hat{y}_{KRR} = \sum_{i=0}^{n-1} \theta_ik(x,x_i),
+\end{equation}
+
+where the points x$_{i}$ correspond to the training data, and x is the point to produce a prediction. The function k is the kernel function and can take different forms depending on the application. Some common kernel functions are the polynomial kernel,
+
+\begin{equation} \label{polynomial_kernel}
+    k(x, y) = (\gamma x^Ty + c_0)^d,
+\end{equation}
+
+and the sigmoid kernel,
+
+\begin{equation} \label{sigmoid_kernel}
+    k(x,y) = tanh(\gamma x^Ty + c_0).
+\end{equation}
+
+Each of these kernel functions comes with some hyperparameters: $\gamma$, c$_0$, and d for the polynomial kernel and $\gamma$ and c$_0$ for the sigmoid kernel, for example. The user must set these hyperparameters before the algorithms are trained. Even the kernel function can be considered a hyperparameter since the user chooses it, and it affects the results of the trained algorithm.
+
+
+The loss function for KRR is the same as ridge regression's, a regularized form of the mean-squared error function where the regularization term is the L2 norm of the weights, $\theta$. Therefore, KRR still has the $\lambda$ hyperparameter. Just like the previous algorithms, the optimized values of the weights are found by minimizing the loss function with respect to the weights yielding optimized values of the weights to be:
+
+\begin{equation} \label{krr_optimized_weights}
+    \theta_{KRR} = (K - \lambda\textbf{I})^{-1}y,
+\end{equation}
+
+where K is known as the kernel matrix and is defined as:
+
+\begin{equation} \label{kernel_matrix}
+    K_{i,j} = k(x_i, x_j).
+\end{equation}
+
+
+%% INCREASED HYPERPARAMETER TUNING REQUIREMENTS HERE
+
+While KRR is better at generalizing than linear regression and ridge regression due to the inclusion of the kernel function, this does introduce significantly more hyperparameters into the algorithm. Furthermore, this drastically increases the complexity of the hyperparameter tuning process since the kernel function and its hyperparameters must also be tuned in addition to $\lambda$. Therefore, while KRR can produce the most accurate predictions once trained of the three regression algorithms investigated here, the requirements for its hyperparameter tuning are a significant drawback when total run time and data set size are restrictions, as in the case with the research presented in this thesis.

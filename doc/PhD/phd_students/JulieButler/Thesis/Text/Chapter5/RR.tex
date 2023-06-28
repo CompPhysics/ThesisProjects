@@ -1,0 +1,27 @@
+Several regularized linear regression forms exist, including ridge, LASSO, and elastic net. This section focuses on ridge regression, where the base linear regression loss function is regularized by the L2 norm of the weights, $\theta$ \cite{Ref11, Ref12, Ref168}.
+
+The output of a ridge regression algorithm is the same as for linear regression:
+
+\begin{equation} \label{rr}
+    \hat{y}_{Ridge} = X\theta.
+\end{equation}
+
+The main difference from linear regression comes with the loss function. The ridge regression loss function, shown in Eq. \ref{rr_loss}, consists of the standard mean-squared error as the first term and a second term known as a regularization term. The regularization term is simply the L2 norm of the weights, $\theta$, scaled by a parameter $\lambda$, known as the strength of the regularization. Note that in some sources, this scaling factor is shown as $\lambda$/2, or sometimes as $\alpha$.
+
+\begin{equation}\label{rr_loss}
+    J_{Ridge}(\theta) = \frac{1}{n}\sum_{i=0}^{n-1} (y_i - \hat{y}_{Ridge,i})^2 + \lambda \sum_{i=0}^{n-1} \theta_i^2
+\end{equation}
+
+The optimal values of $\theta$ will again be found via a simple minimization which results in optimal values of $\theta$ which are close to $\theta_{Linear}$ but which contain an additional term from the regularization:
+
+\begin{equation}
+    \theta_{Ridge} = (X^TX - \lambda\textbf{I})^{-1}X^Ty.
+\end{equation}
+
+Ridge regression tends to be more accurate than linear regression due to the bias-variance trade-off. The addition of the regularization term to the loss function adds some amount of bias to the algorithm. This, in turn, causes a drop in the variance, leading to ridge regression being better able to generalize to data outside of its training set than linear regression. The regularization term also keeps the model's weights small, which can have computational benefits.
+
+The value chosen for the hyperparameter $\lambda$ can significantly affect the values of the optimized $\theta_{ridge}$ and the results of the future predictions. For example, if $\lambda$ = 0, then $\theta_{ridge}$ = $\theta_{Linear}$ (the ridge regression algorithm becomes linear regression because the regularization term is removed). On the other hand, if $\lambda$ is very large, then the weights will all be forced to be very small, and the resulting predictions will be a straight line through the mean of the data set. 
+
+Since the results of a ridge regression model depend on the value of $\lambda$ chosen, hyperparameter tuning is used to choose an optimal value. In hyperparameter tuning, a ridge regression model is trained using the training data set and various values of $\lambda$. The algorithm's performance with each new value of $\lambda$ is checked against a validation data set, which can be a subset of the training set, the test set, or a separate data set. For a thorough hyperparameter tuning of $\lambda$, hundreds of different values are typically tested, spanning several orders of magnitude. The value of $\lambda$ that is kept is the one that produces the lowest error when recreating the validation data set.
+
+While finding a value of $\lambda$ that produces an acceptable error in this manner is possible, it poses a few problems. First, there is a theoretical value of $\lambda$ that will minimize the loss function when applied to the validation data set. However, it is unlikely that the exact value will be found in a traditional hyperparameter tuning process where the list of supplied values for $\lambda$ are tested by brute force. This leaves the open question of if the value of $\lambda$ that performed best in the tuning process is the best value overall. Secondly, while the hyperparameter tuning process can be fast (depending on the number of values tested), it is an additional step that needs to occur with each new data set and thus adds time to the ML analysis. Lastly, hyperparameter tuning requires a validation data set, either taken from the training or test data set, making them smaller, or generated separately. While this may be fine for some machine learning applications, especially those with large data sets or where data is easy to generate, this is a significant drawback for many-body applications since new data points can represent large computational requirements in time and resources.

@@ -1,0 +1,70 @@
+Given an $N$-body many-body wavefunction, its energy can be determined by solving the eigenvalue problem that results from applying the Hamiltonian to the wavefunction (i.e., solving the time-independent Schr\"{o}dinger's equation) using:
+
+\begin{equation} \label{schrodinger}
+	\hat{H}|\Psi\rangle = E|\Psi\rangle.
+\end{equation}
+
+The above equation Eq. \ref{schrodinger} can give just the energy on the right-hand side of the left-hand side turned into a matrix element such that the equation now has the form:
+ 
+\begin{equation} \label{matrix_element}
+	\langle \Psi | \hat{H} | \Psi \rangle = E.
+\end{equation}
+
+Eq. \ref{matrix_element} has an implicit $\langle\Psi|\Psi\rangle = 1$ on the righthand side of the equation. From here, we can split the Hamiltonian into two pieces, the normal-ordered Hamiltonian and the vacuum expectation value:
+
+\begin{equation}\label{split_H}
+	\hat{H} = \hat{H}_N + E_0.
+\end{equation}
+
+where the vacuum expectation value $E_0$ is defined as:
+
+\begin{equation}\label{vacuum_expectation}
+	E_0 = \langle \Phi_0 | H | \Phi_0 \rangle.
+\end{equation}
+
+Combining Eqs. \ref{matrix_element} and \ref{split_H} yields:
+\begin{equation}
+	\langle \Psi | \hat{H}_N + E_0 | \Psi \rangle = E,
+\end{equation}
+
+which can be split up into the following two terms:
+
+\begin{equation} \label{two_terms}
+	\langle \Psi | \hat{H}_N | \Psi \rangle + \langle \Psi | E_0 | \Psi \rangle = E.
+\end{equation}
+
+Since $\langle\Psi | E_0 | \Psi\rangle = E_0\langle\Psi |\Psi\rangle = E_0$, then we can simplify Eq. \ref{two_terms} to:
+
+\begin{equation}\label{two_terms_2}
+	\langle \Psi | \hat{H}_N | \Psi \rangle + E_0 = E.
+\end{equation}
+
+From here, we can rewrite the coupled cluster exponential equation:
+
+\begin{equation}
+	e^{\hat{T}}|\Phi_0\rangle = |\Psi\rangle,
+\end{equation}
+
+which can be inserted into Eq. \ref{two_terms_2} to yield.
+
+\begin{equation}
+	\langle \Phi_0 | e^{-\hat{T}}\hat{H}_Ne^{\hat{T}} | \Phi_0 \rangle + E_0 = E.
+\end{equation}
+
+From here, we can define the similarity transformed normal ordered Hamiltonian to be:
+
+\begin{equation}
+	\bar{H}_N = e^{-\hat{T}}\hat{H}_Ne^{\hat{T}}, 
+\end{equation}
+
+which yields a final form of the energy equation:
+
+\begin{equation}\label{energy_final}
+	\langle \Phi_0 | \bar{H}_N | \Phi_0 \rangle + E_0 = E.
+\end{equation}
+
+In \ref{energy_final}, $E_0$ is known as the reference energy and (for this work) it is the Hartree-Fock energy. This makes coupled cluster a post-Hartree-Fock method, similar to MBPT. $\langle \Phi_0 | \bar{H}_N | \Phi_0 \rangle$ is the correlation energy or the coupled cluster correction to the Hartree-Fock energy. As a final definition for this section, the CC correlation energy will be represented as $\Delta E_{CC} = \langle \Phi_0 | \bar{H}_N | \Phi_0 \rangle$.
+
+Much like MBPT, coupled cluster calculations will generally be reported in terms of the correlation energy instead of the total energy. Again, this is due to convention, as the correlation energy is the most important part of the energy calculation. Also note that for some systems (namely the infinite matter systems discussed in the next chapter), CC correlation energies are usually reported as the CC correlation energy per particle by convention such that systems with different numbers of particles can be compared.
+
+The cluster operator $\hat{T}$ is undefined in the above equations. It is obtained by solving a set of coupled cluster amplitude equations set up in the previous section, of which there are $N$ sets of equations for an $N$ particle system. and the number of equations per set depends on the number of single particle states in the calculation. This system of equations is quite large even for relatively small systems and requires and iterative procedure to be solved. Defining the cluster operator (and, more specifically, the N t-amplitudes) is the most computationally extensive step when performing a CC energy calculation.

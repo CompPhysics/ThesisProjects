@@ -1,0 +1,60 @@
+Coupled cluster theory (CC), initially developed in nuclear physics (for its development, see Ref. \cite{Ref153, Ref152}, and for its resurgence in nuclear physics, see Ref. \cite{Ref147, Ref68, Ref16, Ref154, Ref148}), has long been the goal standard for quantum chemistry calculations (\cite{Ref149}). CC provides a method to systematically include complicated interactions beyond the mean field, is non-perturbative, size extensive, non-variational, and is widely used for performing calculations on strongly correlated systems \cite{Ref8}. Being size-extensive is important for CC to be applied to large systems. Computationally, CC scales polynomially with respect to the number of occupied and unoccupied states in the system, making it an efficient many-body method for small to medium-sized systems but relatively slow for large systems.  Compared to MBPT, CC is a more accurate method but also incurs more extensive computational run times.
+
+In quantum chemistry and electronic structure, CC is considered the "gold-standard" many-body method but also can be too computationally expensive for some applications, especially for studies of larger molecules \cite{Ref7}. However, quantum chemists have made great strides in accelerating coupled cluster calculations of electronic systems through various methods, including truncations, which will be discussed in a few sections. For interesting applications of coupled cluster theory in quantum chemistry, see, for example, Ref. \cite{Ref140, Ref141, Ref149, Ref142,Ref143,Ref145,Ref150,Ref155,Ref7,Ref67,Ref72,Ref74}.
+
+In CC, we can represent the $N$-Fermion wavefunction ($|\Psi\rangle$) using the so called exponential ansatz:
+
+\begin{equation} \label{cc_ansatz}
+    |\Psi \rangle = e^{\hat{T}} |\Phi_0 \rangle.
+\end{equation}
+
+In the above equation, $|\Phi_0\rangle$ is the Fermi vacuum state where the $N$ particles in the system occupy the $N$ lowest energy states. $\hat{T}$ is known as the correlation or the cluster operator, and it is the sum of $N$ operators, where $N$ is the number of particles in the system \cite{Ref8, Ref7}, and can be written as:
+
+\begin{equation} \label{cluster}
+    \hat{T} = \sum_{i=1}^N \hat{T}_m.
+\end{equation}
+
+Each $\hat{T}_m$ operator in Eq. \ref{cluster} represents the m-particle m-hole excitation operator, which has the below form \cite{Ref8,Ref7}.
+
+%% ADD CHANGE IN NOTATION FROM |p> to |kp>%%%%%%%
+
+\begin{equation} \label{m_particle_m_hole}
+    \hat{T}_m = (\frac{1}{m!})^2 \sum_{i_1...i_m\\
+                  a_1...a_m} t^{a_1...a_m}_{i_1...i_m} a^\dagger_{a_1}...a^\dagger_{a_m}a_{i_m}...a_{i_1}
+\end{equation}
+
+Single-particle states with labels $i_n$ correspond to states occupied in the Fermi vacuum state, and single-particle states with the labels $a_n$ correspond to states unoccupied in the Fermi vacuum state. The operator $a^\dagger$ is the Fermion creation operator, and the operator $a$ is the Fermion annihilation operator (both are defined in Chapter 2). The coefficients $t$ are called T-amplitudes, and they are determined through a complex set of non-linear equations:
+
+\begin{equation} \label{CC_amplitude}
+    \langle \Phi^{a_1, a_2, ...,a_k}_{i_1, i_2, ...,i_k} | e^{-\hat{T}}\hat{H}e^{\hat{T}} | \Phi_0 \rangle = 0,
+\end{equation}
+
+where the index $k$ = 1, 2, ..., A \cite{Ref8}. When $k$ = 1, the 1-particle 1-hole excitation operator is recovered ($\hat{T}_1$), when $k$ = 2 the 2-particle 2-hole excitation operator is recovered ($\hat{T}_2$), and so on. Therefore, amplitude equations must be solved for untruncated coupled-cluster theory to fully derive the cluster operator for an $N$-body system. If coupled cluster equations are solved with the untruncated cluster operator, they arrive as the same result as Schr\"{o}dinger's equation.
+
+It is important to note that in Eq. \ref{CC_amplitude}, we have used a shorthand notation to refer to the bra vector, which is, in fact, a $k$-particle $k$-hole excitation of the Fermi vacuum state \cite{Ref8}. Written out fully in second quantization, we can define the $k$-particle $k$-hole excitation of the Fermi vacuum state as:
+
+\begin{equation} \label{Fermi_excite}
+    |\Phi^{a_1, a_2, ..., a_k}_{i_1, i_2, ..., i_k} \rangle = a^\dagger_{a_1} ... a^\dagger_{a_k}a_{i_k} ... a_{i_1}|\Phi_0\rangle,
+\end{equation}
+
+where $a^\dagger$ is the Fermion creation operator, and $a$ is the Fermion annihilation operator.
+
+As a note on notation, the T-amplitudes, scalars that are calculated through determining the m-particle m-hole excitation operators, can be represented equivalently in the following two notations:
+
+\begin{equation}
+t^{a_1...a_m}_{i_1...i_m} = \langle a_1...a_m | \hat{t} | i_1...i_m \rangle.
+\end{equation}
+
+As an aside from the form of the CC wavefunction: 
+
+\begin{equation} \label{cc_ansatz}
+    |\Psi\rangle = e^{\hat{T}}|\Phi_0\rangle,
+\end{equation}
+
+one can use a Taylor expansion to expand the exponential function to obtain:
+
+\begin{equation} \label{cc_ansatz}
+    |\Psi\rangle = (1 + \hat{T} + \hat{T}^2/2! + \hat{T}^3/3! + ...)|\Phi_0\rangle.
+\end{equation}
+
+This expansion explains why some of the later CC approximations we will be looking at contain terms such as $\hat{T}_1$ and $\hat{T}_2$ but also $\hat{T}_1\hat{T}_2$ and $\hat{T}_1^3$.

@@ -1,0 +1,182 @@
+\subsection*{Occupation Number Representation}
+
+Up to this point, we have used $|\Phi_{p_1...p_A}\rangle$ to represent a many-fermion wavefunction with $A$ fermions. The single-particle basis in which the single-particle wavefunctions exist is not denoted explicitly, but it contains M single-particle states (where $M$ can be finite or infinite). There is another way to represent a many-fermion wavefunction in a way where the number of single-particle states in the basis is more explicitly shown. This is called occupation number representation. Given an ordered single particle basis, any many-fermion wavefunction can be represented as:
+
+\begin{equation}
+	|\Phi\rangle = |n_1 n_2 n_3 .... n_M \rangle \quad n_i = 0,1.
+\end{equation}
+
+If the state $n_i$ is occupied (i.e., contains a particle), then $n_i$ is 1. If $n_i$ is unoccupied, then it is a zero. As an example, consider the many-fermion wavefunction made up of the single particle wavefunctions $\psi_{p_1}$, $\psi_{p_4}$, $\psi_{p_7}$, and $\psi_{p_8}$. The many-fermionic wavefunction made from these states can be represented in occupation number representation as:
+
+\begin{equation} \label{occupation_example}
+	|\Phi_{p_1p_4p_7p_8} \rangle = |010010011000...\rangle.
+\end{equation}
+
+In the above equation, the number of trailing zeros can be finite or infinite depending on if $M$ is finite or infinite. The total number of occupied states (states which are one) must equal the number of particles, $N$, in the system. So in Eq. \ref{occupation_example}, there are four particles in the system, so there must be four ones in the many-body wavefunction. Also, note that, as previously, we start indexing the single particle states at zero instead of one.
+
+We can represent a couple of other important wavefunctions in occupation number representation. A single particle wavefunction can be represented in occupation number representation, where only the index corresponding to the single particle state is non-zero. For example, $\psi_2$ in occupation number representation is:
+
+\begin{equation}
+	|\psi_2\rangle = |2\rangle \ = |001000....\rangle,
+\end{equation}
+
+where we have introduced the shorthand $|\psi_p\rangle = |p\rangle$ \cite{Ref5}.  We can also introduce the true vacuum state in occupation number representation, which is simply the state where all $M$ single-particle states are unoccupied (all the indices are zero) \cite{Ref5}:
+
+\begin{equation}
+	|0000000000.....\rangle = |0\rangle.
+\end{equation}
+
+Occupation number representation will be a more convenient way to represent these many-fermionic wavefunctions moving forward as we develop the rest of the necessary formulas. Therefore, moving forward, a many-fermion wavefunction is assumed to be in occupation number representation unless explicitly stated otherwise.
+
+\subsection*{Creation and Annihilation Operators}
+
+The annihilation and creation operators allow us to change from one many-body state to another by removing existing particles and adding new ones. Let $a^\dagger_p$ represent the fermionic creation operator acting on state $p$ and $a_p$ represent the fermionic annihilation operator acting on state p (p = 0, 1, ..., $M$). The creation and annihilation operators are Hermitian adjoints of each other (($a^\dagger_p)^\dagger = a_p$ and $(a_p)^\dagger = a^\dagger_p$).
+	
+	\subsubsection{Annihilation and Creation Operators on Single-Particle States}
+	When acting on the single particle state $|p\rangle$, the annihilation operator $a_p$ removes the particle at state $p$, resulting in the true vacuum state. When the creation operator $a^\dagger_p$ acts on state $|p\rangle$, it results in an answer of 0 since it cannot create an occupied state at index $p$ if one already exists. Thus we have:
+
+	\begin{equation}
+		a_p|p\rangle = |0\rangle\ and\  a^dagger_p|p\rangle = 0.
+	\end{equation}
+
+	When the creation operator $a^\dagger_p$ acts on the true vacuum state $|0\rangle$, it creates the single-particle state $|p\rangle$. On the other hand, when the annihilation operator $a_p$ acts on the true vacuum state, it answers zero since it cannot create an unoccupied state at index $p$ if it is already unoccupied. Then:
+
+	\begin{equation}
+		a_p|0\rangle = 0
+   and \ a^\dagger_p|0\rangle = |p\rangle.
+	\end{equation}
+
+	\subsubsection*{Annihilation and Creation Operators on Many-Particle States}
+
+	The annihilation and creation operators are applied to the many-fermion states similarly to the single-particle states. For example, when the creation operator $a^\dagger_p$ is applied to a many-fermion state, it returns the same state with p now occupied ($p$=1) if $p$ was unoccupied and 0 if state $p$ was already occupied. However, there is now an additional phase factor that needs to be accounted for.
+
+	\begin{equation}\label{creation}
+		a^\dagger_p|...p...\rangle = \begin{cases}
+    									(-1)^m|...1...\rangle,& \text{if } p = 0\\
+           								0,& \text{if } p = 1
+									\end{cases}
+	\end{equation}
+
+	In Eq. \ref{creation}, $m$ refers to the number of occupied states prior to state $p$ and determines the phase factor. The annihilation operator is applied to a many-fermion state in the same manner.
+
+	\begin{equation}
+		a_p|...p...\rangle = \begin{cases}
+    									(-1)^m|...0...\rangle,& \text{if } p = 1\\
+           								0,& \text{if } p = 0
+								\end{cases}
+	\end{equation}
+
+	Annihilation and creation operators can be applied in chains to a given many-body state. In this case, the rightmost operator acts first, then the next rightmost operator acts on the result, and so on. Below is an example of how chains of operators can act on a given many-body state to create an entirely new state.
+
+	\begin{equation}
+		a^\dagger_7a_6a^\dagger_5a^\dagger_3a_3|1001101010\rangle\newline
+		= a^\dagger_7a_6a^\dagger_5a^\dagger_3|1001101010\rangle \newline
+		= a^\dagger_7a_6a^\dagger_5|1000101010\rangle  \newline
+		= a^\dagger_7a_6|1001101010\rangle\newline
+		= a^\dagger_7|1001111010\rangle \newline
+		= |1001110110\rangle \newline
+	\end{equation}
+
+	Every many-fermion state can be created from the true vacuum state with a chain of creation operators.
+
+	\begin{equation}
+		|\Phi_{p_1...p_A}\rangle = a^\dagger_1...a^\dagger_A|0\rangle
+	\end{equation}
+
+	Using these creation operators, we can create a critical state: the Fermi vacuum state represented as $|\Psi_0\rangle$. For an $N$ particle system, the Fermi vacuum state occupies the $N$ lowest energy states, and the remaining single-particle states are unoccupied. We can create the Fermi vacuum state by applying $N$ creation operators to the actual vacuum state:
+
+	\begin{equation}
+		|\Phi_0\rangle = a^\dagger_1 a^\dagger_2...a^\dagger_N |0\rangle.
+	\end{equation}
+
+	By defining the Fermi vacuum state, we also define the Fermi level. The Fermi level is the line that separates the highest energy-occupied single particle state from the lowest energy-unoccupied single particle state in the Fermi vacuum state. We also will denote a new way to label single particle states based on the Fermi vacuum state. States which are occupied in the Fermi vacuum state (i.e., are below the Fermi level) will be labeled with indices $i$, $j$, $k$, $l$, ... . States which are unoccupied in the Fermi vacuum state (i.e., are above the Fermi level) are labeled with the indices $a$, $b$, $c$, $d$,... .  States which are labeled with the indices $p$, $q$, $r$, $s$, ... can be either above or below the Fermi level. This notation will be vital as we construct the many-body methods in the next chapter.
+
+	\subsection*{Anticommutation Relations}
+	All creation and annihilation operators must obey the following two anticommutation rules.  Remember that $\{A,B\} = AB + BA = BA + AB = \{B,A\}.$ Thus, we have the anticommutation rules:
+
+	\begin{equation}
+		\{a^\dagger_p, a_q\} = \delta_{pq},
+	\end{equation}
+
+    and
+
+	\begin{equation}
+		\{a_p, a_q\} = \{a^\dagger_p, a^\dagger_q\} = 0.
+	\end{equation}
+
+\subsection*{Operators in Second Quantization}
+
+	\subsubsection*{Number Operators}
+	The first operator we will look at in the second quantization is the number operator. The number operator is defined as:
+
+	\begin{equation}
+		\hat{N}_p = a^\dagger_pa_p.
+	\end{equation}
+
+	When the number operator acts on a many-body state, the result is:
+
+	\begin{equation}
+		\hat{N}_p|...p...\rangle = \begin{cases}
+	    									p|...p...\rangle,& \text{if } p = 1\\
+	           								1,& \text{if } p = 0								\end{cases}.
+	\end{equation}
+
+	Since the many-body state is unchanged on both sides of the equation for $p$=1, the many-body state is an eigenket of the number operator if index $p$ is occupied. Note that $\hat{N}_p$ conserves particle number (because there are an equal number of creation and annihilation operators) and is Hermitian.
+
+	The total number operator is defined as the sum of number operators overall single-particle indices:
+
+	\begin{equation}
+		\hat{N} = \sum_p \hat{N}_p.
+	\end{equation}
+
+	When $\hat{N}$ acts on a many-body state, it returns the number of fermions in that state. For example, when the number operator is applied to the $A$-body state $|\Psi\rangle$:
+
+	\begin{equation}
+		\hat{N}|\Psi\rangle = A|\Psi\rangle.
+	\end{equation}
+
+	Note that $|\Psi\rangle$ is an eigenket of the number operator.
+
+	\subsubsection*{Hamiltonian and k-Body Operators}
+
+	As in the first section of this chapter, we can define the Hamiltonian for a many-body system as:
+
+	\begin{equation} \label{hamiltonian}
+		\hat{H} = \hat{K} + \hat{V}_2 + \hat{V}_3 + ... ,
+	\end{equation}
+
+	where $\hat{K}$ is the one-body operator (the kinetic energy), $\hat{V}_2$ is the two-body operator, $\hat{V}_3$ is the three-body operator, and so on.  There are, at most, $A$ operators in the Hamiltonian for an A-body system. Second quantization provides us with two ways to represent these k-body operators: Goldstone and Hugenholtz. In the Goldstone form, the $k$-body operator can be represented as:
+
+	\begin{equation}
+		\hat{V}_k = (\frac{1}{k!})^2\sum_{\substack{p_1...p_k \\ q_1...q_k}} \langle p_1 ... p_k | \hat{v}_k | q_1 ... q_k \rangle a^\dagger_{p_1}...a^\dagger_{p_k}a_{q_k}...a_{q_1},
+	\end{equation}
+
+	where the matrix element is defined as:
+
+	\begin{equation}\label{matrix_element}
+		\langle p_1 ... p_k |\hat{v}_k | q_1...q_k \rangle = \int ... \int \psi^*_{p_1}(x_1)...\psi^*_{p_k}(x_k)\hat{v}_k(x_1,...,x_k)\psi_{q_1}(x_1) ... \psi_{q_k}(x_k)dx_1...dx_k
+	\end{equation}
+
+	In Eq. \ref{matrix_element}, we again use the single-particle wavefunctions to calculate the many-fermion matrix elements. Again, the $k$-body interaction in the Hugenholtz form is very similar, except the matrix elements are antisymmetrized.
+
+		\begin{equation}
+		\hat{V}_k = (\frac{1}{k!})^2\sum_{\substack{p_1...p_k \\ q_1...q_k}} \langle p_1 ... p_k | \hat{v}_k | q_1 ... q_k \rangle_A a^\dagger_{p_1}...a^\dagger_{p_k}a_{q_k}...a_{q_1},
+	\end{equation}
+
+	Using the antisymmetrized matrix elements is often more convenient and compact, so we will primarily use the Hugenholtz form for this thesis.  
+
+	Due to computation limitations, the maximum $k$-body interaction included in the calculations in this thesis is the 3-body interaction. Therefore, we can explicitly define the 1-body, 2-body, and 3-body interactions in the Hugenholtz form below.
+
+	\begin{equation}
+		\hat{K} = \sum_{pq}\langle p | \hat{k} | q \rangle_A a^\dagger_pa_q
+	\end{equation}
+
+	\begin{equation}
+		\hat{V}_2 = \frac{1}{2}\sum_{pqrs}\rangle pq|\hat{v}_2|rs\rangle a^\dagger_p a^\dagger_q a_s a_r
+	\end{equation}
+
+	\begin{equation}
+		\hat{V}_3 = \frac{1}{6}\sum_{pqrstu} \rangle pqr | \hat{v}_3 | stu \rangle a^\dagger_p a^\dagger_q a^\dagger_r a_u a_t a_s
+	\end{equation}
+
+	The exact form of $\hat{v}_2$ and $\hat{v}_3$ will depend on the interaction of the system being studied. However, since the systems are defined in detail in Chapter 4, they will be left in their generic forms until then.
