@@ -1,0 +1,174 @@
+\documentclass[UKenglish,openany]{uiomasterthesis}  %% ... or norsk or nynorsk or USenglish
+\usepackage[utf8]{inputenc}                 %% ... or latin1
+\usepackage[T1]{url}\urlstyle{sf}
+\usepackage{babel, csquotes, graphicx, textcomp, uiomasterfp, varioref}
+\usepackage[backend=biber,style=numeric-comp, sorting=none]{biblatex}
+\usepackage[hidelinks, hypertexnames=false]{hyperref}
+
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{geometry}
+\usepackage{graphicx}   
+\usepackage{enumitem}
+\usepackage{mathrsfs}
+\usepackage{emptypage}
+\usepackage{tikz} 
+
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.15}
+\usepackage{mathrsfs}
+\usetikzlibrary{arrows}
+\pagestyle{empty}
+
+\usepackage{braket}
+%\usepackage{quantikz} 
+\usetikzlibrary{quantikz2}
+
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{booktabs}
+\graphicspath{{./images/}}
+
+\newlength{\tabcont}
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+\usepackage{empheq}
+\usepackage{framed}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{xcolor}
+\colorlet{shadecolor}{orange!15}
+\parindent 0in
+\parskip 12pt
+\geometry{margin=1in, headsep=0.25in}
+
+\DeclareMathOperator{\Tr}{Tr}
+
+\tcbuselibrary{theorems}
+
+\newtcbtheorem[number within=section]{theorem}{Theorem}%
+{colback=blue!5,colframe=blue!40!black,fonttitle=\bfseries}{th}
+
+\newtcbtheorem[number within=section]{definition}{Definition}%
+{colback=blue!5,colframe=blue!40!black,fonttitle=\bfseries}{def}
+
+\newtcbtheorem[number within=section]{postulate}{Postulate}%
+{colback=blue!5,colframe=blue!30!black,fonttitle=\bfseries}{pos}
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{keycolor}{rgb}{0.9,0.3,0.42}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{xdxdff}{rgb}{0.49019607843137253,0.49019607843137253,1}
+\definecolor{ududff}{rgb}{0.30196078431372547,0.30196078431372547,1}
+
+\lstnewenvironment{mycode}[1][]
+{\lstset{language=Python, % Specify the programming language
+    basicstyle=\small\ttfamily, % Font style for the code
+    keywordstyle=\color{keycolor}, % Custom color for keywords
+    commentstyle=\color{codegreen}, % Custom color for comments
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{blue}, % Custom color for strings
+    showstringspaces=false, % Don't show spaces in strings
+    breaklines=true, % Allow line breaks
+    frame=single, % Add a frame around the code
+    framesep=5pt, % Space between frame and code
+    rulecolor=\color{lightgray}, % Color of the frame
+    frameround=tttt, % Round the frame corners
+    numbers=left, % Display line numbers on the left
+    #1 % Additional customizations
+  }
+}
+{}
+
+\newcommand{\cnot}{\text{CNOT}}
+\newcommand{\swp}{\text{SWAP}}
+
+\newcommand{\quanthon}{%
+	\texttt{Quanthon}
+}
+
+\title{Simulating Many-body Physics on Quantum Computers}        %% ... or whatever
+\subtitle{Implementation and Analysis for Variational Quantum Algorithms with Quanthon}         %% ... if any
+\author{Keran Chen}                      %% ... or whoever 
+
+\addbibresource{ref.bib}          %% ... or whatever
+
+
+% The page numbers disappeared from everywhere except first page of each chapter. The page style changes reintroduces them.
+
+% Include the necessary packages
+\usepackage{fancyhdr}
+%\usepackage{lastpage}
+
+% Set the page style to 'fancy'
+\pagestyle{fancy}
+
+% Set the header to show title and author
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{Keran Chen}
+
+% Ensure that plain pages (such as chapter start pages) use the fancy page style
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyhead[L]{\leftmark}
+  \fancyhead[R]{Keran Chen}
+}
+
+\begin{document}
+\uiomasterfp[dept={Department of Physics},  %% ... or your department
+  program={Physics},                        %% ... or your study program
+  supervisors={Morten Hjorth-Jensen\and Oskar Leinonen},     %% if more than one
+  long]                                     %% ... or short
+
+\frontmatter{}
+\begin{abstract}
+    Advancements in quantum algorithms for quantum simulations in the past decade have been tremendous. Amongst these, the variational quantum eigensolver(VQE) which solves the ground state energy problem in many-body physics is one of the most promising algorithms in the noisy intermediate-scale quantum era and variants of it such as the Adaptive, Problem Tailored VQE (ADAPT-VQE) have been proposed to enhance its performance. To study the VQE and the ADAPT-VQE with minimal complete operator pools (qubit-ADAPT-VQE), a minimalistic, physicists-oriented quantum computing library called Quanthon was developed. The VQE and the ADAPT-VQE were implemented and thoroughly studied through simulations of different small many-body systems. It was found that the qubit-ADAPT-VQE performs better than the VQE with hardware efficient ansatz with or without shot noise. When shot noise is present, the convergence of the qubit-ADAPT-VQE is slower and not guaranteed with a small number of iterations $<30$. The iteration number scales close to linear with the number of qubits when exact energy is calculated. An interesting phenomenon of zero ADAPT operator gradient with certain states was observed which causes non-convergence of the ADAPT-VQE and a new initialisation method that uses the optimised state from the VQE for the ADAPT-VQE was proposed to circumvent the problem and was shown to achieve faster convergence for the ground state energy calculation when no noise is present.
+\end{abstract}
+
+\tableofcontents{}                          %%
+\listoffigures{}                            %% (omit if none)
+\listoftables{}                             %% (omit if none)
+
+\begin{preface}
+
+
+\chapter*{Acknowledgments}
+Words are inflated these days and I hope the meanings come through. 
+
+First, I would like to express my deepest gratitude towards my two incredible supervisors and dear friends, Morten Hjorth-Jensen and Oskar (censored) Leinonen. Thank you for practically adopting me and treating me ever so gently with the kindness and care that one would only have towards a tiny wounded animal.  
+
+Morten, you always encourage me to explore different things and you don’t really mind my silly jokes. I do, in the end, believe that it is trust and freedom that spawn scientists and you gave me exactly that.
+
+Oskar, my first impression of you was “difficult to understand what he’s saying”, but underneath your rigid, structured lifestyle you have such a gentle heart and I have received so much support from you both academically and emotionally. 
+
+I would also like to thank my fellow student Håkon Kvernmoen for giving me your \texttt{plot\_utils} file a year ago and Kiki W. for helping me with making the illustrations. 
+
+I also appreciate everyone in the office area for bringing so much fun and energy with little entropy. 
+
+Physics wouldn't exist without the hard work and intelligence poured into it by all the smart people around the world, so thank you all the physicists for contributing to this great field. 
+
+Finally, a special thanks to Morten's not quite sofa but ish sitting device. Without that, I won't be able to complete this thesis. 
+
+To a better world with more physics!
+
+
+\end{preface}
+
+\mainmatter{}
+\include{chapters/Introduction}
+\include{chapters/qm}
+\include{chapters/qc}
+\include{chapters/quanthon}
+\include{chapters/physical_system}
+\include{chapters/result}
+\include{chapters/conclusion}
+
+\include{chapters/appendix}
+
+\backmatter{}
+\printbibliography{}
+\end{document}
+

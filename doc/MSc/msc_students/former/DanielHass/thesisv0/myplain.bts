@@ -1,0 +1,73 @@
+ENTRY
+  { address
+    author
+    title
+    journal
+    year
+    volume
+    number
+    pages
+    month
+    note
+    key
+    archivePrefix
+    eprint
+  }
+  {}
+  { label }
+
+INTEGERS { output.state before.all mid.sentence after.sentence before.block after.block }
+
+STRINGS { s t }
+
+FUNCTION {output}
+{ duplicate$ empty$
+    'pop$
+    { " " * write$ }
+  if$
+}
+
+FUNCTION {eprint}
+{ "eprint" }
+
+FUNCTION {archivePrefix}
+{ "archivePrefix" }
+
+FUNCTION {field.or.null}
+{ 't := duplicate$ empty$
+    { pop$ "" }
+    { swap$ * }
+  if$
+}
+
+FUNCTION {article}
+{ output.bibitem
+  author "author" output.check
+  new.block
+  title "title" output.check
+  new.block
+  journal "journal" output.check
+  new.block
+  volume "volume" output.check
+  new.block
+  pages "pages" output.check
+  new.block
+  year "year" output.check
+  new.block
+  "eprint: " eprint field.or.null output
+  new.block
+  "arXiv: " archivePrefix field.or.null output
+  new.block
+  note "note" output.check
+  fin.entry
+}
+
+FUNCTION {default.type}
+{ article }
+
+READ
+EXECUTE {initialize}
+ITERATE {presort}
+SORT
+ITERATE {output.entry}
+EXECUTE {final.cleanup}

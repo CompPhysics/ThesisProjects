@@ -1,0 +1,173 @@
+\documentclass[UKenglish]{uiomasterthesis}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc, url}  \urlstyle{sf}
+\usepackage{babel, csquotes, fancyvrb, graphicx, textcomp, uiomasterfp, varioref}
+%% \usepackage[backend=biber,style=numeric-comp]{biblatex}  %% No bibliography
+\usepackage[hidelinks, hypertexnames=false]{hyperref}
+
+\newcommand{\bsl}{\textbackslash}
+\newcommand{\tettere}{\addtolength{\itemsep}{-1ex}}
+\newcommand{\p}[1]{\textsf{#1}}
+\newcommand{\pb}[1]{\textbf{\p{#1}}}
+\newcommand{\pcmd}[1]{\p{\bsl #1}}
+\newcommand{\ppar}[1]{\p{\{#1\}}}
+
+\title{Writing your master's thesis}
+\subtitle{A guide to the \LaTeX{} document class \pb{uiomasterthesis}}
+\author{Dag Langmyhr\\ (\url{dag@ifi.uio.no})}
+
+\begin{document}
+\uiomasterfp[kind=Documentation, compact, nosp, colour=grey, date=\today]
+
+\chapter{Writing your thesis}
+\LaTeX{} is an excellent tool for writing your master's thesis, especially in
+combination with the bibliography tool Bib\LaTeX.
+
+There are no official specifications for the contents of a master's
+thesis at the University of Oslo (only the front page) but 
+the University of Oslo Library
+and the Department of Informatics have developed this document class
+which we believe is well suited.
+
+There exists a companion \LaTeX{} package called \p{uiomasterfp} to
+get an official front page for the thesis (also used in this
+document);
+\p{uiomasterthesis} only defines the typography of the contents.
+
+\section{Installation}
+If you are processing your \LaTeX{} document on a stationary Linux
+computer at the University of Oslo, you need not worry about
+installing the \p{uiomasterthesis} document class; it is already there.
+
+\subsection{On your personal computer\label{privat-pc}}
+To use this document class on your own computer (which may run Linux, MacOS
+or Windows) you must do the following:
+\begin{enumerate}
+\item Download
+  \url{https://www.mn.uio.no/ifi/tjenester/it/hjelp/latex/uiotheses.zip}. (Click
+  on the \textsc{url} to download the file.)
+
+  You should also fetch the companion file
+  \url{https://www.mn.uio.no/ifi/tjenester/it/hjelp/latex/uiomasterfp.zip}
+  to get an official front page.
+  
+\item Unzip the files. You may place all the files in the same folder
+  as your \LaTeX{} source files.\footnote{If you know where \LaTeX{}
+    packages are kept on your computer, you 
+    can save them there to make them generally available. Remember to
+    refresh your file name database afterwards.}
+\end{enumerate}
+And that should be all.
+
+\subsection{Using Overleaf}
+If you are using Overleaf (see \url{https://www.overleaf.com}) to
+write your thesis, you may do the following to use the \p{uiomasterthesis}
+document class:
+\begin{enumerate}
+\item Download 
+  \url{https://www.mn.uio.no/ifi/tjenester/it/hjelp/latex/uiotheses.zip}. (Click
+  on the \textsc{url} to download the file.)
+
+\item Unpack the \textsc{zip} file.\footnote{Overleaf allows import of
+  \textsc{zip} files, but \emph{only} if it is the first thing you do
+  after creating a new project.}
+
+\item In your Overleaf project, select the upload icon
+  (``\includegraphics[height=2ex]{upload}''). Then, select all the
+  unzipped files and upload them.
+\end{enumerate}
+Once this has been done, you may use the document class.
+
+\section{Using the document class}
+To use this document class, just start your \LaTeX{} file with
+\begin{quote}
+  \pcmd{documentclass[\emph{options}]}\ppar{uiomasterthesis}
+\end{quote}
+Any options are passed to packages you use.
+
+\section{An example}
+The \p{uiomasterthesis} package comes with a base file named
+\pb{uiomasterthesis-base.tex} containing the basic layout of your thesis;
+see Figure~\vref{fig:base}. The idea is that you make a copy of that
+file, modify the specified texts, and then write your thesis.
+
+\begin{figure}[htp]
+  \VerbatimInput[fontsize=\footnotesize,frame=single,obeytabs,
+    label={\pb{uiomasterthesis-base.tex}},numbers=left]{uiomasterthesis-base.tex}
+  \caption{The file \p{uiomasterthesis-base.tex}\label{fig:base}}
+\end{figure}
+
+\begin{description}
+\item[Line 1:] The document class should be \pb{uiomasterthesis}. You must
+  also specify the language of your thesis.
+\item[Line 2:] UTF-8 is the most common character encoding in use
+  today, so, unless you specify otherwise in your text editor, you are
+  likely to get this encoding.
+\item[Line 3:] The \p{url} package provides the \pcmd{url}
+  command which is very useful for typesetting long internet
+  addresses. These should be set in a \textsf{sans serif} typeface
+  (rather than \texttt{teletype}). For an example, see
+  Section~\vref{privat-pc}.
+\item[Lines 4--6:] These packages should always be included:
+  \begin{description}
+  \item[\p{babel}] handles language adaption.
+  \item[\p{csquotes}] supports quote marks in various language. This
+    package is required by \p{biblatex}; see below.
+  \item[\p{graphicx}] provides support for including illustrations.
+  \item[\p{textcomp}] adds many useful symbols.
+  \item[\p{uiomasterfp}] is used to create the official University of
+    Oslo front page.
+  \item[\p{varioref}] gives improved features for crossrfererencing.
+  \item[\p{biblatex}] loads Bib\LaTeX{} which handles
+    bibliographies.\footnote{\emph{Local guide to Bib\LaTeX} at
+      \url{https://www.mn.uio.no/ifi/tjenester/it/hjelp/latex/biblatex-guide.pdf}
+      is a simple introduction to creating your bibliography.}
+    The package options given here are recommended; they use the
+    numeric citation style favoured in natural science.
+  \item[\p{hyperref}] provides hyperlinks both internally and externally.
+  \end{description}
+
+\item[Line 8:] You must always state a thesis title.
+\item[Line 9:] Often, a subtitle is useful.\footnote{The
+  \pcmd{subtitle} command is not standard \LaTeX{} but supplied by the
+  \p{uiomasterfp} package.}
+\item[Line 10:] Don't forget you own name!
+
+\item [Line 12:] \pcmd{addbibresouce} specifies the name/s of your Bib\LaTeX{}
+  bibliography file/s.
+
+\item[Line 15--19:] You should place your call on \pcmd{uiomasterfp}
+  just after \pcmd{begin}\ppar{document}. The most common options are:
+  \begin{description}
+  \item[\p{dept=\ppar{\dots}}] states your department.
+  \item[\p{program=\ppar{\dots}}] tells your study programme.
+  \item[\p{supervisor=\ppar{\dots}}] names your supervisor. If you
+    have more than one supervisor, use \p{supervisors=} instead, and
+    separate the names with \pcmd{and}.
+  \item[\p{long} \textmd{or} \p{short}] displays the number of
+    \textsc{ects} study points your thesis represents (60 or~30).
+  \end{description}
+
+\item[Line 22:] specifies the start of the thesis front matter, i.e.,
+  abstract, table of contents~etc.
+\item[Lines 23--25:] contains your abstract.
+\item[Lines 26--28:] contains your abstract in a different language.
+\item[Lines 30--32:] produces your tables of content, figures and
+  tables, accordingly.
+\item[Lines 34--36:] is you preface.
+
+\item[Line 38:] shows the start of the main part of your thesis.
+\item[Line 39--41:] shows your thesis structure: \pcmd{part},
+  \pcmd{chapter}, \pcmd{section}, \pcmd{subsection}~etc.
+  Use the *-ed form for unnumbered headings.
+
+\item[Line 49:] starts the back part containing appendices,
+  bibliography and such.
+\item[Line 50:] prints the bibliography created by Bib\LaTeX.
+\end{description}
+
+\section{Another example}
+The file \url{uiomasterthesis-guide.tex} shows the \LaTeX{} source
+code for this documentation.
+
+\end{document}

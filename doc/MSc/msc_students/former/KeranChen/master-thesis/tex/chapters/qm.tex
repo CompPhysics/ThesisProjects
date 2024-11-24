@@ -1,0 +1,333 @@
+%\newtheorem{postulate}{Postulate}[chapter]
+\newcommand{\tr}[1]{\text{Tr}\left(#1\right)}
+
+\part{Theory}
+\label{part:theory}
+
+\chapter{Quantum Mechanics}
+\label{ch:qm}
+Quantum mechanics governs the behaviour of everything. In fact, both the tool we will be using for the thesis, quantum computing, and the problem we are trying to solve, the ground state energy of a Hamiltonian, are tightly connected to the principles of quantum mechanics. It is therefore important that we devote this chapter to the theory of quantum mechanics. We start by introducing notations, followed by postulates and key definitions and theorems, including the variational principle and basic many-body physics. We will follow the textbook \textit{Quantum Mechanics}~\cite{schiff1968} in the formulation.
+\section*{Symbols and Notations}
+\label{sec:notations}
+
+The notations defined in Table~\ref{tab:notations} are used throughout this thesis. Table~\ref{tab:notations} includes symbols for many essential concepts for the topic of quantum computing. Note that the hat on an operator $ \hat A $ is often omitted for simplicity when there is no ambiguity. 
+\begin{table}[ht]
+	\centering
+	\caption{Notations}
+	\label{tab:notations}
+
+	\begin{tabular}{ll}
+		\toprule
+		Notation & Meaning \\
+		\midrule
+		$ \ket{\psi} $ & State vector, ket \\
+		$ \bra{\psi} $ & Dual vector of $ \ket{\psi} $, bra \\
+		$ \braket{\psi|\phi} $ & Inner product of $ \ket{\psi} $ and $ \ket{\phi} $ \\
+		$ \ket{\psi}\bra{\phi} $ & Outer product of $ \ket{\psi} $ and $ \ket{\phi} $ \\
+		$ \hat A$ & operator A \\
+		$ \hat I $ & Identity operator \\
+		$ \braket{\psi|\hat A|\psi} $ & Expectation value of $ \hat A $ in $ \ket{\psi} $ \\
+		$ [\hat A, \hat B] $ & Commutator of $ \hat A $ and $ \hat B $ \\
+		$ \{\hat A, \hat B\} $ & Anti-commutator of $ \hat A $ and $ \hat B $ \\
+		$ \hat A^\dagger $ & Hermitian conjugate of $ \hat A $ \\
+		$ \tr{\hat A} $ & Trace of $ \hat A $ \\
+		%$ Tr_A(\hat A) $ & Partial trace of $ \hat A $ over $ \mathcal{H}_A $ \\
+		$ A \otimes B $ & Tensor product of $ \hat A $ and $ \hat B $ \\
+		$ X,Y,Z $ & Pauli $ \sigma_x, \sigma_y \text{ and } \sigma_z $ matrices \\
+            $ \mathcal{H}$ Hilbert space \\
+	\bottomrule	
+	\end{tabular}
+\end{table}
+
+\section{Postulates}
+\label{sec:posulates}
+
+The postulates of quantum mechanics are the basic assumptions and the foundation of the theory, every other theorem in quantum mechanics follows as a consequence. They are the assumptions that the theory is built upon. The postulates are listed below:
+
+
+\begin{postulate}{}{qm1}
+	The state of a quantum system is described by a ket vector $ \ket{\psi} $ in a Hilbert space $ \mathcal{H} $.
+\end{postulate}
+This is the \textbf{state postulate}, it states that the state vector $\ket{\psi}$ contains all the information about the system
+
+\begin{postulate}{}{qm2}
+	Every observable quantity is associated with a Hermitian operator $ \hat A $ in $ \mathcal{H} $. $\braket{A} = \braket{\Psi|A|\Psi}$ is the expectation value of $ \hat A $ in the state $ \ket{\Psi} $. The only possible result of a measurement of an observable $ \hat A $ is one of the eigenvalues of $ \hat A $.
+\end{postulate}
+As we will discuss later in Subsection~\ref{sub:hermitian}, the eigenvalues of Hermitian operators are real, which is an important consequence as the measurement results of any oberservable has to be real.
+\begin{postulate}{}{qm3}
+	The time evolution of a wave function is governed by the Schr{\"o}dinger equation:
+	\begin{equation}
+		i\hbar\frac{\partial}{\partial t}\ket{\Psi(t)} = \hat H\ket{\Psi(t)}.
+	\end{equation}
+\end{postulate}
+This is the \textbf{evolution postulate}, it describes how the quantum system changes over time if undisturbed, through e.g. measurement.
+
+
+\begin{postulate}{}{pos:qm4}
+	The probability of measuring an observable $ \hat A $ in the state $ \ket{\Psi} $ is given by:
+	\begin{equation}
+		P(a) = \left | {\braket{\Psi|a}}^2 \right |,
+	\end{equation}
+	where $ \ket{a} $ is an eigenstate of $ \hat A $.
+\end{postulate}
+Opposite to Postulate~\ref{pos:qm3}, the \textbf{measurement postulate} describes the behaviour of a quantum system when disturbed.
+
+\begin{postulate}{}{qm5}
+	The eigenvectors of a Hermitian operator form a complete basis, which means that any state vector can be expressed as a linear combination of the eigenvectors:
+	\begin{equation}
+		\ket{\Psi} = \sum_{i} c_i \ket{\psi_i},
+	\end{equation}
+where $ \{ \psi_i \}  $ is a complete basis set. 
+\end{postulate}
+
+\section{The Schr{\"o}dinger Equation}
+
+The Schr{\"o}dinger equation is the fundamental equation of quantum mechanics. It describes the time evolution of a quantum system without measurement. Since the norm of the state vector must be conserved, the time evolution operator in quantum mechanics therefore must be unitary. The Schr{\"o}dinger equation is given by:
+\begin{equation}
+	\label{eq:schrodinger}
+i\hbar\frac{\partial}{\partial t}\ket{\Psi(t)} = \hat H\ket{\Psi(t)},
+\end{equation}
+where $ \hat H $ is the Hamiltonian operator of the system. 
+The time independent Schr{\"o}dinger equation is given by:
+\begin{equation}
+	\label{eq:time_independent_schrodinger}
+	\hat H\ket{\Psi} = E\ket{\Psi},
+\end{equation}
+where $ E $ is the energy of the system. The solution to the time independent Schr{\"o}dinger equation (TISE) is the eigenvalue of the Hamiltonian operator. The ground state energy problem which we will be solving using the VQE in Chapter~\ref{chap:results} is fundamentally the TISE.
+
+\section{Special Types of Operators in Quantum Mechanics}
+According to Postulate~\ref{pos:qm2}, every observable can be represented by a Hermitian operator. In this section, we will discuss the properties of operators and their representations.
+
+\begin{theorem}{Spectral Theorem}{spectral}
+If $ \hat A $ is a Hermitian operator in vector space $ V $, then there exists an orthonormal basis of $ V $ consists of eigenvector of $ \hat A $. Each eigenvalue of $ \hat A $ is real.  The spectral decomposition of a Hermitian operator $ \hat A $ is given by:
+\begin{equation}
+	\hat A = \sum_{i} a_i \ket{\psi_i}\bra{\psi_i},
+\end{equation}
+where $ a_i $ is the eigenvalue of $ \hat A $ and $ \ket{\psi_i} $ is the corresponding eigenvector.
+\end{theorem}
+Rewriting the operators in a different basis is extremely important in quantum computing, as we will see in Chapter~\ref{ch:qc}.
+
+\subsection{Hermitian Operators}
+\label{sub:hermitian}
+
+\begin{definition}{Hermitian Operators}{hermitian}
+An operator $ \hat A $ is Hermitian if it satisfies:
+\begin{equation}
+	\hat A = \hat A^\dagger,
+\end{equation}
+where $ \hat A^\dagger $ is the Hermitian conjugate of $ \hat A $. 
+
+The Hermitian conjugate of an operator is defined as:
+\begin{equation}
+	\braket{\psi|\hat A^{\dagger} |\phi} = \braket{\phi|\hat A|\psi}^*.
+\end{equation}
+
+\end{definition}
+Example of famous Hermitian operators include the Pauli matrices, $\sigma_x, \sigma_y$ and $\sigma_z$.
+
+
+The eigenvalues of a Hermitian operator are real, as 
+\begin{equation}
+\begin{aligned}
+	\braket{\psi|a|\psi}^* &= \braket{\psi|\hat A^{\dagger}|\psi} = \braket{\psi|\hat A|\psi} = \braket{\psi|a|\psi}, \\
+					&\implies \braket{\psi|a|\psi} = a \braket{\psi|\psi}  \in \mathbb{R}, \\
+					&\implies a \in \mathbb{R} \quad \quad \text{since} \braket{\psi|\psi} \in \mathbb{R},
+\end{aligned}
+\end{equation}
+where $ a $ is an eigenvalue of $ \hat A $.
+This ensures that all measurable quantities and expectation values are real.
+
+\subsection{Unitary Operators}
+\label{sub:unitary}
+\begin{definition}{Unitary Operators}{unitary}
+	An operator $ \hat U $ is unitary if it satisfies:
+	\begin{equation}
+		\hat U^\dagger \hat U = \hat U \hat U^\dagger = \hat I.
+	\end{equation}
+\end{definition}
+
+
+This is an important property for quantum gates to have, as it ensures that the norm and orthogonality of the state vector are preserved . \\
+Given an initial state $ \ket{\psi(0)} $ and any operator $ \hat U $. The evolution is given by
+\[ \hat U \ket{\psi(0)} = \ket{\psi(t)}.  \]
+By requiring the norm of the state vector to be preserved, we have
+\[ \braket{\psi(0)|\psi(0)} = \braket{\psi(t)|\psi(t)} = \braket{\psi(0)|U^{\dagger}U|\psi(0)}, \] 
+\[ \implies U^{\dagger}U = \hat I, \] 
+hence $ U $ is unitary.
+
+\subsection{Commutators and Anticommutators}
+Operators in general do not commute. Two commuting operators have the same eigenvectors and can be measured simultaneously. Finding commuting terms in the Hamiltonian could save the number of measurements in the context of quantum computing. The anti-commutation relation for fermions are extremely important in quantum computing and that is the reason why mappings like the Jordan-Wigner transformation must respect the anti-commutation relation for fermionic operators.
+\begin{definition}{Commutator}{commutator}
+	The commutator of two operators $ \hat A $ and $ \hat B $ is defined as:
+	\begin{equation}
+		[\hat A, \hat B] = \hat A \hat B - \hat B \hat A.
+	\end{equation}
+		The anticommutator of two operators $ \hat A $ and $ \hat B $ is defined as:
+	
+	\begin{equation}
+		\{\hat A, \hat B\} = \hat A \hat B + \hat B \hat A.
+	\end{equation}
+\end{definition}
+
+Important commutation relations are given in Appendix~\ref{appsec:commutation_relations}.
+
+\section{Density Matrix}
+\label{sec:density_matrix}
+The density operator is useful to describe a mixed state, which contain classical uncertainties that cannot be described using superposition. In finite dimensional space, the density operator can be written as a matrix and is therefore often called the \textit{density matrix}.  
+\begin{definition}{Density Matrix}{density_matrix}
+	The density matrix $ \rho $ is defined as:
+	\begin{equation}
+		\rho = \sum_{i} p_i \ket{\psi_i}\bra{\psi_i},
+	\end{equation}
+	where $ p_i $ is the probability of the state $ \ket{\psi_i} $.
+\end{definition}
+
+The expectation value of an observable $ \hat A $ in a classical ensemble of states described by the density matrix $ \rho $ is given by:
+\begin{equation}
+\begin{aligned}
+	\braket{A} &= \sum_j P_j \braket{\psi_j|A|\psi_j}, \\
+		   &= \sum_j P_j \braket{\psi_j|\sum_k |k} \braket{k|\hat A|\psi_j}, \\
+		   &= \sum_{j,k} P_j \braket{\psi_j|k} \braket{k|\hat A|\psi_j}, \\
+		   &= \sum_{j,k} P_j \braket{k|\hat A|\psi_j} \braket{\psi_j|k}, \\
+		   &= \tr{\hat A \rho}.
+\end{aligned}
+\end{equation}
+
+For a pure state $ \ket{\psi} $, the density matrix is the projector:
+\begin{equation}
+	\rho = \ket{\psi}\bra{\psi}.
+\end{equation}
+
+\section{Entanglement}
+\label{sec:entanglement}
+Entanglement is a purely quantum mechanical phenomenon where two or more different quantum states, (particles or otherwise), become correlated where measurements to one state can determine the other(s) state(s) instantaneously. This is one of the many reasons why quantum computers might be better than classical computers.
+For two states $ \ket{\psi}  $ and $ \ket{\phi} $ in two Hilbert spaces $ \mathcal{H}_1 $ and $ \mathcal{H}_2 $ with basis $ \{\ket{u_j} \} $ and $ \{\ket{w_j} \} $  respectively, the tensor product $ \ket{\psi} \otimes \ket{\phi} $ is a state in the Hilbert space $ \mathcal{H}_1 \otimes \mathcal{H}_2 $. This is called a \textit{product state} and if
+\[ \ket{\psi} = \sum_j d_j \ket{u_j},\] and \[ \ket{\phi} = \sum_k f_k \ket{w_k},\] 
+then
+\[ \ket{\psi} \otimes \ket{\phi} = \sum_{j,k} d_j f_k \ket{u_j} \otimes \ket{w_k}.\]
+An arbitrary state $ \ket{\Psi} $ in the combined Hilbert space can be written as:
+\[ \ket{\Psi} = \sum_{j,k} c_{jk} \ket{u_j} \otimes \ket{u_k}, \] 
+with coefficients $ c_{jk} $.
+A product state has separable coefficients. If the coefficients $ c_{jk} $  are not separable, the state $ \ket{\Psi} $ is called an entangled state. 
+
+\section{the Variational Principle}
+\label{sec:variational_principle}
+The variational method provides an upper bound on the ground state energy levels of a system. It is given by
+\begin{equation}
+	\label{eq:variational_principle}
+	E_0 \leq \bra{\psi(\vec{\theta)}} \hat H \ket{\psi(\vec{\theta)}}.
+\end{equation}
+Note that the equality is only true when $\ket{\psi}$ is the ground state.
+It consists of two steps:
+\begin{enumerate}
+	\item Choose an ansatz $\ket{\psi(\vec{\theta_0})}$ for the ground state.
+	\item Optimise the parameter $\vec{\theta}$ of the ansatz to minimise the energy.
+\end{enumerate}
+The variational principle allows us to find the ground state energy using iterative methods which is the key principle behind the VQE. 
+
+
+
+\section{Many-Body Physics}
+\label{sec:many_body_physics}
+Most problems we will attempt to solve in this thesis are fundamentally many-body problems.
+In this section, we will discuss the many-body basis, indistinguishability and the second quantization formalism.
+
+\subsection{Many-Body Basis}
+\label{sub:many_body_basis}
+If the single particle state is represented by $ \{ \ket{\phi_i} \} $, a single particle state $ \ket{\psi}  $  can be represented by
+\begin{equation}
+	\ket{\psi_{\text{1-particle}}}  = \sum_{j} c_j \ket{\phi_{j}}.
+\end{equation}
+Then the $ N $ identical particle state can be written as a tensor product of the single particle basis:
+\begin{equation}
+	\label{eq:many_body_state}
+	\ket{\psi_{\text{N-particle}}} = \sum_{j_1, j_2, \ldots, j_N} c_{j_1, j_2, \ldots, j_N} \ket{\phi_{j_1}} \otimes \ket{\phi_{j_2}} \otimes \cdots \otimes \ket{\phi_{j_N}}.
+\end{equation}
+
+\subsection{indistinguishability}
+\label{sub:indistinguishability}
+Fundamental particles are indistinguishable. This means that the state of a system is invariant under the exchange of two particles. If $ \hat P_{ij} $ is the particle exchange operator which exchanges state of particle $ i $ and particle $ j $,
+\begin{equation}
+	\label{eq:indistinguishability}
+	\hat P_{ij} \ket{\psi(0,\ldots,i,\ldots,j,\ldots)} = e^{i\phi}\ket{\psi(0,\ldots,j,\ldots,i,\ldots)}. \\
+\end{equation}
+Since the physics is invariant under the exchange of two particles, the state can only differ by a global phase. Applying the particle exchange operator again must give the exact state that we have started with.
+\begin{equation}	
+	\hat P_{ij}^2 \ket{\psi(0,\ldots,i,\ldots,j,\ldots)} = e^{2i\phi}\ket{\psi(0,\ldots,i,\ldots,j,\ldots)} = \ket{\psi(0,\ldots,i,\ldots,j,\ldots)} 
+\end{equation}
+This implies that $ e^{2i\phi} = 1 $, hence $ e^{i\phi} = \pm 1$, which means that the state is either symmetric or antisymmetric under the exchange of two particles. 
+
+The principle of indistinguishability results in that the actual space for the both fermions and bosons are smaller than the tensor product of the single particle Hilbert space.
+
+
+\subsection{Occupation Number (Second Quantisation) Notation}
+\label{sub:occupation_number_notation}
+
+Because of the indistinguishability discussed in Section~\ref{sub:indistinguishability}, the coefficients $ \{ c_{j_{n}} \}  $ in Equation~\eqref{eq:many_body_state} are not independent and not all elements of the combined Hilbert space are physical states. The occupation number notation provides a different way to represent the many-body state, also called second quantisation formalism. Since the fundamental particles are either symmetric or antisymmetric under exchange of particles, one could simply the number of particles in a given state, hence the occupation number notation. In the occupation number notation, Equation~\eqref{eq:many_body_state}
+becomes:
+\begin{equation}
+	\label{eq:occupation_number_notation}
+	\ket{\psi_{\text{N-particles}}} = \sum_{n_1, n_2, \ldots, n_N} c_{n_1, n_2, \ldots, n_N} \ket{n_1, n_2, \ldots, n_N}.
+\end{equation}
+Note that the coefficients $ \{ c_n \}  $ are now independent and normalised. \\
+While Equation~\eqref{eq:occupation_number_notation} looks similar to Equation~\eqref{eq:many_body_state}, they have very different physical interpretations. The state $ \ket{\phi_{j_n}} $ is a state of the $ N $th particle and the state $ \ket{n_N} $ gives the number of particles in the single particles state $ \ket{\phi_N}  $.
+
+\subsubsection{Fock Space}
+\label{sub:fock_space}
+The occupation number notation introduces the possibility of having different numbers of the particles in a state, say
+\[ \ket{\psi} = \ket{1,1,0} + \ket{1,0,0}, \]
+where we assume for $\ket{1}$ means a state is occupied and $\ket{0}$ otherwise. The first part of the equation is a state with $2$ particles and the second part of the state has $1$ particle. This is allowed with the occupation number notation.
+The space of all possible number of particles is called the Fock space.
+The Fock space is the direct sum of the Hilbert space of all possible number of particles up to $ N $ . The Fock space is given by:
+\begin{equation}
+	F_v(\mathbb{H}) = \bigoplus_{n=0}^{N} \hat S_v \mathbb{H}^{\otimes n}.
+\end{equation}
+where $ \hat S_v $ is the symmetrisation operator for bosons and the antisymmetrisation operator for fermions, and$ \bigoplus $is summation over spaces. 
+
+\subsubsection{Operators in Second Quantisation}
+\label{sub:second_quantization}
+The creation operator is defined as:
+\begin{definition}{Creation Operator}{fermionic_creation}
+	\begin{equation}
+		\hat a_i^\dagger \ket{0} \equiv \ket{i},
+	\end{equation}	
+\end{definition}
+where $ \ket{0} $ is the vacuum state and $ \ket{i} $ is the state with one particle in the $ i $th single particle state.
+The hermitian conjugate of the creation operator, $ \hat a_i $ is the annihilation operator since
+\begin{equation}
+	\hat a_i \ket{i} = \ket{0}.
+\end{equation}
+The number operator is given by:
+\begin{equation}
+	\label{eq:number_operator}
+	\hat n_i = \hat a_i^\dagger \hat a_i.
+\end{equation}
+
+An Hamiltonian operator $ \hat H $ with one-body and two-body interactions in the first quantisation formalism can be written in the second quantisation formalism as:
+\begin{equation}
+	\begin{aligned}
+		\hat H &= \sum_{p} \hat T_p + \sum_{p \neq q} \hat V_{pq}, \\
+			&= \sum_{i,j} h_{ij} \hat a_i^\dagger \hat a_j + \frac{1}{2}\sum_{i,j,k,l} v_{ijkl} \ \hat a_i^\dagger \hat a_j^\dagger \hat a_k \hat a_l,
+	\end{aligned}
+\end{equation}
+where $h_ij$ and $v_ijkl$ are the one- and two- body coefficients.
+
+
+\subsection{Fermionic Operators}
+\label{sub:fermionic}
+The principle of indistinguishability states that under the exchange of particles, the total many-body wavefunction be either symmetric or anti-symmetric, as we have shown in Subsection~\ref{sub:indistinguishability}. The Pauli exclusion principle states the many-body states for fermions are anti-symmetric under the exchange of particles, and for boson are symmetric. The obey the anti-commutation relation given in Appendix~\ref{appsec:commutation_relations}.
+
+\subsection{Slater Determinant}
+\label{sub:slater_determinant}
+The Slater determinant is a way to antisymmetrise the many-body wave function. It is given by:
+\begin{equation}
+	\ket{\psi} = \frac{1}{\sqrt{N!}} \begin{vmatrix}
+		\psi_1(1) & \psi_2(1) & \ldots & \psi_N(1) \\
+		\psi_1(2) & \psi_2(2) & \ldots & \psi_N(2) \\
+		\vdots & \vdots & \ddots & \vdots \\
+		\psi_1(N) & \psi_2(N) & \ldots & \psi_N(N)
+        \end{vmatrix}.
+\end{equation}
+where $ \psi_i(j) $ is the $ i $th single particle state with the $ j $th particle. 
+
+

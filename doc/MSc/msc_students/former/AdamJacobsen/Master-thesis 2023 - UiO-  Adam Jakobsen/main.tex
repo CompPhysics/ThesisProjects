@@ -1,0 +1,136 @@
+%\documentclass[12pt,english]{report}
+%\renewcommand{\baselinestretch}{1.5}
+%\usepackage{duomasterforside}
+%\usepackage[utf8]{inputenc}
+%\usepackage{graphicx} % Required for inserting images
+\PassOptionsToPackage{table}{xcolor}
+\documentclass[USenglish]{uiomasterthesis}  %% ... or norsk or nynorsk or USenglish
+%\renewcommand{\baselinestretch}{1.5}
+\linespread{1.5}
+\usepackage[utf8]{inputenc}                 %% ... or latin1
+\usepackage[T1]{url}\urlstyle{sf}
+\usepackage{babel, csquotes, graphicx, textcomp, uiomasterfp, varioref}
+\usepackage[backend=biber,style=numeric-comp]{biblatex}
+\usepackage[hidelinks, hypertexnames=false]{hyperref}
+%\input{preample}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{physics}
+\usepackage{wrapfig}
+\usepackage{svg}
+\usepackage{floatflt}
+\usepackage{float} % for [H] position specifier
+\usepackage{multicol}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{float}
+\usepackage{comment}
+\usepackage{acronym}
+\usepackage{nomencl}
+\makenomenclature
+
+\renewcommand{\nomname}{List of symbols and variables}
+\usepackage[left=30mm,right=23mm,top=35mm,columnsep=15pt]{geometry}
+%\usepackage[dvipsnames]{xcolor}
+%\rowcolors{2}{blue!10}{white}
+
+\addbibresource{bibliography.bib}
+\begin{document}
+
+\title{Pathological Electrical Wave Simulation in the Heart Using Physics Informed Neural Networks}
+
+\author{Adam Jakobsen }
+
+%\duoforside[dept={Department of Physics},  program={Computational Science: Physics},long]
+\uiomasterfp[dept={Department of Physics},  %% ... or your department
+  program={Computational Science: Physics},                        %% ... or your study program
+  supervisors={Gabriel Balaban, Molly Maleckar, Vajira Tambawita, Thus Nguyen and Morten Hjorth-Jensen},                    %% ... or blank
+  % or supervisors={A Name\and B Name},     %% if more than one
+  long]  
+
+\newpage
+
+\section*{Abstract}
+Cardiovascular disease is the leading cause of mortality globally, with a staggering 18 million deaths every year.
+Arrhythmia, one of the numerous heart conditions contributing to this significant mortality rate, presents considerable challenges in terms of both diagnosis and treatment. 
+Computational models of cardiac electrophysiology (EP) can provide valuable insights for the understanding and treatment of arrhythmias and other heart-related disorders. Specifically, personalized cardiac EP modeling has shown significant promise in the detection and management of arrhythmias. However, the substantial computational requirements of these models pose a notable challenge in their integration into clinical practice. In contrast, neural networks, once trained, can offer predictions within a very short timeframe.  In particular, Physics-Informed Neural Networks (PINNs) can combine the theoretical knowledge of a physical system with data, presenting a promising method for personalized electrophysiology simulations.
+
+
+We have developed a novel PINN model that utilizes spatial and temporal coordinates along with local conductivities as input parameters to predict the spatio-temporal evolution of action potentials. 2D magnetic resonance images (MRI) were used to establish a computational domain and to infer local conductivities.
+
+
+Our study demonstrates the ability of PINNs to precisely recreate action potential dynamics from sparse \textit{in-silico} voltage data.
+Importantly, we demonstrate that trained PINNs are able to interpolate and extrapolate with great accuracy using local conductivity inputs, even beyond the scope of the training data, and are able to generate predictions in a remarkably short time span.
+This work represents a significant advancement towards the clinical application of personalized cardiac electrophysiology models as well as a step towards general-purpose PINN models that can be used in varying scenarios
+without needing retraining or fine-tuning.
+
+\newpage
+
+\section*{Acknowledgements}
+I would like to extend my heartfelt gratitude to my thesis supervisors, Gabriel Balaban, Molly Maleckar, Vajira Tambawita, Thu Nguyen, and Morten Hjort-Jensen, whose guidance and support have been indispensable in the completion of this thesis. Thank you for helping me prepare for new academic experiences, such as conferences and publishing papers. You have all made this thesis work a very enjoyable experience, and I couldn't have wished for a better supervision team.
+
+I want to thank Gabriel Balaban and Molly Maleckar for providing excellent supervision and mentorship. 
+Your support and encouragement has given me the confidence to push my boundaries and achieve more than I thought possible at this stage in my academic career.
+
+Thank you to Thu Nguyen and Vajira Tambawita for your guidance and providing valuable feedback whenever needed.
+
+I am also thankful to Morten Hjorth-Jensen, Tone Skramstad and the rest of the people at CCSE for providing an excellent environment for both academic pursuits and social bonding.
+
+
+Additionally, I would like to extend my gratitude to Simula Research Laboratory for offering an outstanding work environment with wonderful people, a great cafeteria, and indispensable complementary coffee.
+
+I also want to thank my family and friends, whose encouragement and support have been invaluable throughout this journey. A special thanks goes to my parents, Latifa Jakobsen and Per Oskar Jakobsen, for always believing in me, encouraging me, and providing financial support in times of need.
+Lastly, but not least, I want to thank my partner, Leah Hansen, for never-ending emotional support throughout and for helping me with proof reading my acknowledgments.
+
+
+\newpage
+
+
+\tableofcontents
+\newpage
+\section*{Acronyms}
+\begin{acronym}
+    \acro{AP}{Action Potential}
+    \acro{AU}{Arbitrary Units}
+    \acro{BC}{Boundary Conditions}
+    \acro{EP}{Electrophysiology}
+    \acro{FEM}{Finite Elements Method}
+    \acro{IQR}{Interquartile Range}
+    \acro{RK4}{4th order Runge-Kutta}
+    \acro{MRI}{Magnetic Resonance Imaging}
+    \acro{NN}{Neural Network}
+    \acro{PINN}{Physics-Informed Neural Network}
+    \acro{TP}{Transmembrane Potential}
+    \acro{PDE}{Partial Differential Equation}
+    \acro{ODE}{Ordinary Differential Equation}
+    \acro{RA}{Right Atrium}
+    \acro{RV}{Right Ventricle}
+    \acro{LA}{Left Atrium}
+    \acro{LV}{Left Ventricle}
+    \acro{AD}{Automatic Differentiation}
+    \acro{ECG}{Electrocardiogram}
+    \acro{NN}{Neural Network}
+\end{acronym}
+
+\input{variables}
+
+
+
+\input{Sections/Introduction}
+\newpage
+\input{Sections/Theory}
+\newpage
+\input{Sections/Method}
+\newpage
+\input{Sections/Results}
+\newpage
+\input{Sections/Discussion}
+\newpage
+\input{Sections/Conclusion}
+\appendix
+\input{Sections/Appendix}
+\printbibliography
+\end{document}

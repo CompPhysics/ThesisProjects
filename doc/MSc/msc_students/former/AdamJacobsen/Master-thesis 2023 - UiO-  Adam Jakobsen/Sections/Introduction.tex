@@ -1,0 +1,72 @@
+\chapter{Introduction}
+\section{Motivation}
+
+%Cardiovascular disease 
+
+Cardiovascular disease is the leading cause of death worldwide. According to the World Health Organization (WHO), an estimated 17.9 million people die each year due to cardiovascular disease \cite{world-health-organisation-2021}. Arrhythmia, which is characterized by an irregular heart rhythm, is particularly concerning, as it can cause sudden cardiac arrest, often leading to sudden death without warning.
+
+%To better understand and treat arrhythmias and other pathological heart conditions, computational simulations of cardiac electrophysiology (EP) can be useful.
+
+
+
+
+Computer simulations have been an integral tool in cardiovascular research for several decades, helping to elucidate complex cardiac mechanisms alongside experimental and clinical studies. In 1952, Hodgkin and Huxley laid the groundwork for computational models of excitable tissue~\cite{Hodgkin1952-ra}, although it soon became apparent that significant advancements in both algorithm and computational power would be necessary in order to simulate the electrical activity of these tissues. By 1960, Denis Noble had harnessed the power of the University College London Ferranti Mercury computer to simulate the action potential using a modified version of the Hodgkin-Huxley equations~\cite{Noble2012-tc}. This pioneering work demonstrated the potential of computational approaches to complement and extend experimental and clinical research in cardiac electrophysiology.
+
+Today, in light of decades of computational advances, computer simulations can help to understand the mechanisms behind cardiac arrhythmias and to design personalized treatment strategies based on simulations specific to each patient~\cite{EP-review}.
+For example, Pop et al.~\cite{pig} employed models using magnetic resonance imaging (MRI) data from pig hearts and showed good correspondence of computer simulations with experimental heart voltage data. This method accurately predicted ventricular tachycardia~\cite{VT}, a form of arrhythmia, as well as \textit{in-vivo} electrophysiology (EP) studies.
+
+EP simulations are typically performed by solving a system of reaction-diffusion equations~\cite{R-D-PANFILOV20191} and provide detailed information about the local electric properties of the heart. However, the steep electric potential gradients that occur in the heart require EP simulations to have high spatial and temporal resolution to achieve accurate results. This requirement makes traditional EP simulations computationally expensive and time-consuming, limiting their clinical applications. In contrast, neural networks, once trained, have been shown to provide accurate predictions in a fraction of a second compared to the 12+ hours required by traditional simulation methods~\cite{YinMinglang2023PAND}.
+Recently, Physics-Informed Neural Networks(PINNs), popularized by Raissi et al.\cite{RAISSI2019686}, has surfaced as a powerful way to solve ordinary differential equations(ODEs) and partial differential equations (PDEs). These neural networks take advantage of the knowledge of the physical system, allowing for a flexible and efficient framework that can adapt to a wide range of physical phenomena without the need for extensive reconfiguration and present a promising alternative to traditional methods such as Finite Element Methods(FEM). Unlike FEM, which relies on mesh-based discretizations and can become progressively more computationally intensive with increasing problem complexity, PINNs offer a mesh-free solution, promising fast evaluation times once trained~\cite{grossmann2023physicsinformed}.
+%Although this is not a physics-informed model, the authors demonstrate that predictions can be made in a fraction of a second, as opposed to the 12+ hours required by traditional simulation methods.
+%To address this challenge, developing computational methods that can achieve the same level of accuracy but in a shorter period of time can prove beneficial in a clinical setting. 
+%Recently, deep learning models have surfaced as a powerful way to solve ordinary differential equations (ODEs) and partial differential equations (PDEs). Specifically, Physics-informed Neural Networks are a type of neural networks that take advantage of knowledge of the physical system, and have been shown to be more accurate, cost-effective, and provide faster convergence rates than traditional neural networks\cite{RAISSI2019686}.
+
+
+\section{State of the (He)art}
+The field of PINN-based computational cardiac electrophysiology  is at an emerging stage. As of now, the literature on this topic is sparse, consisting of five studies, reflecting the novelty of this research area. The work of Sahli et al.~\cite{SAHLI} in 2020 marks the first contribution to this young field. This particular study provided a solution for activation mapping in cardiac EP using PINNs. The authors were able to predict conduction velocities (CV), a measure of how fast electrical signals propagate through the tissue, as well as activation times. Succeedingly, in 2022, Nazarov et al.~\cite{Nazarov} mainly concentrated on a phenomenological model, while Martin et al.~\cite{EP-PINNs} employed a canine atrial model~\cite{ALIEV1996293}. Both of these were conducted using structured one-dimensional and two-dimensional computational domains, without using anatomically correct domains for training PINNs. Notably, Martin et al.~\cite{EP-PINNs} have demonstrated the effectiveness of PINNs even in cases with noisy and sparse data, as well as in solving inverse problems to estimate tissue properties.
+
+Building upon these foundations, recent studies have further explored the application of PINNs in cardiac electrophysiology. Xie and Yao \cite{PDL} proposed a physics-constrained deep learning approach for inverse ECG modeling, integrating the same cardiac electrophysiological model as \cite{EP-PINNs} to model spatio-temporal cardiac electrodynamics from sparse simulated sensor observations. Their method demonstrated significant improvements in handling measurement noise and model uncertainty in inverse electrocardiogram problems. In another study, Xie and Yao \cite{inverse_ECG} presented a physics-constrained deep active learning framework for spatio-temporal modeling of cardiac electrodynamics by employing a non-MRI-derived 3D geometry of the heart. By using dropout layers, the authors were able to quantify model uncertainties and re-create action potential from sparse measurements in the presence of noise.
+
+While not being a physics-informed model, a recent publication in the HeartRhythm Journal has also expanded upon prior research by employing operator-learning neural networks and patient-specific three-dimensional geometries. Nevertheless, this study concentrated solely on the activation phase of the heart, without addressing the complete depolarization (activation) and repolarization processes, as in the other studies mentioned~\cite{YinMinglang2023PAND}.
+%Although not a physics-informed model, a recent article in the HeartRhythm Journal has extended existing research using operator-learning neural networks and patient-specific three-dimensional geometries. However, this study focused on the activation stage, not covering the entire depolarization and repolarization process
+
+%While significant progress has been made in the application of deep learning models for EP simulations, there is a clear need for further research to integrate more complex theoretical models and patient-specific data such as magnetic resonance images (MRI) of the heart. Specifically, combining MRIs to create a computational domain and more accurate EP models that include the entire action potential remains a challenge.
+Although significant progress has been made in the application of deep learning models for EP simulations, there is a clear need for further research to integrate more complex theoretical models of EP dynamics and patient-specific data, such as MRI of the heart. Leveraging MRI data to construct computational domains that mirror the unique anatomical features of an individual's heart is an important step in personalized healthcare, as every patient's heart is unique. Moreover, MRIs provide insights into intricate aspects of heart tissue, including fiber direction and areas of scarring, which influence the heart's electrical conduction. Incorporating MRIs into simulations helps in creating more accurate models of the heart and in bridging the gap between clinical practices and theoretical models by ensuring that the simulations are grounded in real, observable phenomena. This level of detail, combined with the predictive capabilities of deep-learning, can thus potentially make the models more relevant and applicable to clinical settings.
+
+
+\section{Objective}
+The overarching objective of this thesis is to explore the application of PINNs in cardiac EP simulations by addressing the following goals and hypotheses.\\
+
+\textbf{Goals:}
+
+\begin{enumerate}
+    \item  Evaluate the efficacy of PINNs in simulating electric waves in the heart as compared to classical methods.\\
+    %This goal aims to assess the potential advancements in simulation accuracy and efficiency that PINNs might bring to cardiac EP studies, in comparison with traditional simulation methods.
+
+    \item  Investigate the application of PINNs in the simulation of electric waves in 2D MRI-slice-based heart geometries with scar location data.\\
+    %This goal focuses on the adaptability and effectiveness of PINNs in more intricate and realistic cardiac models, particularly those derived from MRI data.
+
+    \item  Investigate the ability of PINNs to generalize to scenarios with varying electrical conductivities.\\
+    %This goal explores the predictive capabilities of PINNs, especially their ability to extrapolate the parameters of partial differential equations beyond the initial training data range.
+    
+\end{enumerate}
+
+\textbf{Hypotheses:}
+
+\begin{enumerate}
+    \item  The use of PINNs will result in faster simulations of electric waves in  2D MRI-slice-based heart geometries compared to traditional methods.\\
+    
+
+    \item  PINNs can accurately simulate electrophysiological wave propagation in 2D MRI-slice-based heart geometries, including the incorporation of image informed scar tissue data.\\
+    
+
+    \item  A trained PINN can effectively extrapolate PDE parameters, such as conductivities, beyond the range of training data, providing accurate and reliable predictions.\\
+    
+\end{enumerate}
+
+
+In summary, these goals and hypotheses aim to examine the efficacy, adaptability, and predictive strength of PINNs in cardiac electrophysiology simulations. This thesis pushes the boundaries of cardiac PINN techniques by incorporating scars from late gadolinium-enhanced MRI, advancing toward patient-specific models. Additionally, the conductivity extrapolations represent a step toward general-purpose PINN models that can be used in varying scenarios without needing retraining or fine-tuning.
+
+
+
+

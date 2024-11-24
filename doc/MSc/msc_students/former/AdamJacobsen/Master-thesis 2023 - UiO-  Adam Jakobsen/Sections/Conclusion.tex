@@ -1,0 +1,38 @@
+\chapter{Conclusions}
+\section{Conclusions}
+%This study explored the application of PINNs in simulating cardiac electrophysiology, specifically focusing on 1D and 2D structured geometries, and MRI-based 2D unstructured geometries both with isotropic and homogeneous conductivity scenario as well as in anisotropic heterogeneous conductivity senarios. 
+This research investigated the use of PINNs for simulating cardiac electrophysiology on 1D and 2D structured geometries, as well as MRI-based 2D unstructured geometries in both isotropic and homogeneous conductivity conditions, and anisotropic heterogeneous conductivity scenarios.
+The findings indicate that PINNs are highly effective in reproducing the dynamics of electrophysiological wave propagation with high accuracy, even in the presence of sparse and noisy data. In the structured geometries, the models demonstrated accurate performance across different training sample sizes and noise levels, with a good accordance with previously reported RMSE values~\cite{EP-PINNs}.
+
+In the context of MRI-based geometries, PINNs proved capable of handling complex anatomical details, accurately simulating the effects of scar tissue and varying fiber orientations on electrical conduction. The anisotropic model experiments demonstrated the generalization capabilities of PINNs, showing only a slight increase in error during extrapolation beyond the training data range and providing fast simulation times in a fraction of a second once trained. These results underscore the significant advantages of using PINNs over traditional methods like FEM in terms of inference speed, adaptability, and computational efficiency.
+
+Overall, this study confirms the feasibility of using PINNs for personalized cardiac electrophysiology simulations, paving the way for potential clinical applications that require rapid and accurate simulations.
+\section{Limitations}
+Although the application of PINNs in cardiac electrophysiology presents several advantages, there are some limitations.
+\begin{itemize}
+
+\item We trained and tested our PINNs using highly specific simulation scenarios, with pre-specified geometries, biophysics models, electrical properties, and boundary and initial conditions. Though we demonstrated that PINNS can extrapolate to novel  electrical conductivity values, there is much more work to be done with regards to Cardiac EP PINN generalizability.
+
+\item The training process for PINNs is computationally expensive, requiring dedicated GPU resources and long training times ($6+\mathrm{h}$) for the anisotropic MRI-based model. The memory requirement when calculating the residuals was a substantial limitation, requiring around $40\mathrm{Gb}$ of dedicated GPU-memory. 
+
+\item Looking into the variability of the models reveals high variation when data are both sparse and noisy. In clinical settings, consistently obtaining high-quality, high-resolution data can be challenging, which may affect the robustness and reliability of the models.
+
+\item For clinical applications where decisions based on model predictions can directly impact patient outcome, quantifying the uncertainty of these predictions is essential. Developing methods to quantify uncertainty in PINN predictions can enhance the reliability and safety of these models in clinical practice.
+
+\item The current ionic current model uses the recovery variable, $W$, which isn't measurable in practice.
+
+\item The objective of this study was to explore the potential of PINNs within cardiac EP simulations as a proof of concept, and as such we did not conduct an extensive hyperparameter search. The performance of PINNs is highly sensitive to the choice of hyperparameters and determining the optimal set involves navigating a vast search space. The slow training process complicates this task further, especially when employing traditional methods like grid or random search. However, there are more advanced techniques, such as Bayesian optimization, that leverage prior knowledge from previous trials to explore the search space more efficiently, though these methods were not fully explored.
+\item Neural networks, including PINNs, often act as "black boxes," making it difficult to interpret their internal workings and the reasons behind their predictions. This lack of interpretability can be a significant barrier to clinical adoption, where understanding the rationale behind a model's prediction is essential. 
+\item Small sample sizes when testing variability, especially in the anisotropic case (only 5 samples).
+\end{itemize}
+
+\section{Future Work}
+The promising results of this study open several avenues for future research in the field of computational cardiology using PINNs.
+
+Expanding the current 2D MRI-based models to three-dimensional simulations will offer a more thorough and anatomically precise depiction of cardiac electrophysiology. Within the existing framework, this extension can be readily achieved by adding an input node and modifying the diffusion term to accommodate 3D spatial derivatives.
+
+Integrating cardiac electrophysiology with cardiac mechanics can provide a more complete model of the human heart.
+
+In the presence of electrically disturbing scars, pathological electrophysiological waves called reentry can form. Reproducing such waves with a PINN has not been performed in MRI-based geometries. Future work should include modeling reentry in MRI-based geometries.
+
+Applying PINNs to inverse problems, such as identifying scar regions or potential ablation sites, could significantly aid in the diagnosis and treatment of arrhythmias.
