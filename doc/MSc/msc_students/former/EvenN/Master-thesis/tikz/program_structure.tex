@@ -1,0 +1,71 @@
+\begin{tikzpicture}[
+>={Latex[width=2mm,length=2mm]},
+base/.style = {rectangle, rounded corners, draw=black,
+	minimum width=4cm, minimum height=2cm, text
+	centered, font=\sffamily},
+blueBox/.style = {base, fill=blue!30, drop shadow},
+redBox/.style = {base, fill=red!30, drop shadow},
+whiteBox/.style = {base, fill=white, drop shadow},
+scale=0.8, 
+node distance=1.5cm, 
+every node/.style={fill=white, font=\sffamily},
+align=center]
+
+% Add boxes
+\node (WF) [redBox] {
+	\texttt{WaveFunctions}
+};
+\node (System) [whiteBox, above of=WF, yshift=+2cm] {
+	\texttt{System}
+};
+\node (Optimization) [blueBox, right of=System, xshift=+4cm] {
+	\texttt{Optimization}
+};
+\node (Sampler) [blueBox, right of=WF, xshift=+4cm] {
+	\texttt{Sampler}
+};
+\node (Basis) [blueBox, left of=System, xshift=-4cm] {
+	\texttt{Basis}
+};
+\node (Metropolis) [blueBox, left of=WF, xshift=-4cm] {
+	\texttt{Metropolis}
+};
+\node (RNG) [blueBox, below of=WF, yshift=-2cm] {
+	\texttt{RNG}
+};
+\node (InitialWeights) [blueBox, right of=RNG, xshift=+4cm] {
+	\texttt{InitialWeights}
+};
+\node (InitialState) [blueBox, left of=RNG, xshift=-4cm] {
+	\texttt{InitialState}
+};
+\draw[->] (RNG) 		 -- node[above] {1} ++(InitialWeights);
+\draw[->] (InitialWeights) 			 -- node[above] {2} ++(WF);
+\draw[->] (RNG) 		 -- node[above] {3} ++(InitialState);
+\draw[->] (RNG) 		 -- node[above] {4} ++(Metropolis);
+\draw[->] (WF) 			 -- node[above] {5} ++(Metropolis);
+\draw[->] (Metropolis) 	 -- node[below] {6} ++(WF);
+\draw[->] (Metropolis) 	 -- node[above right] {7} ++(System);
+\draw[->] (Basis) 		 -- node[above left] {8} ++(WF);
+\draw[->] (Sampler) 	 -- node[above left] {9} ++(System);
+\draw[->] (WF) 			 -- node[above] {10} ++(Sampler);
+\draw[->] (Optimization) -- node[right] {11} ++(Sampler);
+\draw[->] (Optimization) -- node[above] {12} ++(System);
+\draw[->] (WF) 			 -- node[above right] {13} ++(Optimization);
+
+\node[anchor=west] at (-9,-7) {1 - Set random initial weights};
+\node[anchor=west] at (-9,-8){2 - Set weights in wave functions};
+\node[anchor=west] at (-9,-9) {3 - Set random initial positions};
+\node[anchor=west] at (-9,-10) {4 - Propose random move};
+\node[anchor=west] at (-9,-11) {5 - Evaluate wave functions};
+\node[anchor=west] at (-9,-12) {6 - Update positions};
+\node[anchor=west] at (-9,-13) {7 - Accept or reject step};
+
+\node[anchor=west] at (1,-7) {8 - Get basis used in Slater determinant};
+\node[anchor=west] at (1,-8) {9 - Sample};
+\node[anchor=west] at (1,-9) {10 - Compute local energy};
+\node[anchor=west] at (1,-10) {11 - Calculate instant gradients};
+\node[anchor=west] at (1,-11) {12 - Calculate energy derivatives};
+\node[anchor=west] at (1,-12) {13 - Calculate average gradients};
+
+\end{tikzpicture}

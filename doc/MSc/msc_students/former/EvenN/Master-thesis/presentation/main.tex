@@ -1,0 +1,261 @@
+\documentclass{beamer}
+\input{preliminares.tex}
+\input{preamble.tex}
+
+\author{Even Marius Nordhagen} 
+\institute[UiO] { University of Oslo \\ 
+                  \medskip
+                  \textit{evenmn@fys.uio.no}
+                }
+\date{\today} 
+\title{Studies of Quantum Dots using Machine Learning}
+
+\begin{document}
+
+\begin{frame}
+\titlepage 
+\end{frame}
+
+\mframe{\frametitle{Outline}
+\begin{itemize}
+	\item Theory
+	\begin{itemize}
+		\item Quantum Mechanics
+		\item Machine Learning
+	\end{itemize}
+	\item Methods
+	\begin{itemize}
+		\item Variational Monte Carlo
+		\item Restricted Boltzmann Machines
+	\end{itemize}
+	\item Results
+	\item Conclusion
+	\item (Code)
+\end{itemize}
+}
+
+\mframe{
+	\begin{center}
+		Theory
+	\end{center}
+}
+
+\mframe{\frametitle{Quantum Mechanics}
+The mechanics of a quantum system is described by the time-dependent Schrödinger equation,
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+	i\hbar\frac{\partial}{\partial t}\ket{\Psi(\bs{r},t)}=\hat{\mathcal{H}}\ket{\Psi(\bs{r},t)}
+\end{empheq}
+
+}
+
+\mframe{\frametitle{The Time-independent Schrödinger Equation}
+For a stationary system, the Schrödinger equation reduces to
+	\begin{equation}
+	E_n=\frac{\int d\bs{r}\psinc\hat{\mathcal{H}}\psin}{\int d\bs{r}\psinc\psin}
+	\end{equation}
+which gives the energy of state $n$.
+}
+
+
+\mframe{\frametitle{Harmonic Oscillator}
+
+\begin{equation}
+\begin{aligned}
+\hat{\mathcal{H}} &= -\frac{1}{2}\nabla^2 + \frac{1}{2} \omega^2r^2\\
+&= \langle\hat{T}\rangle + \langle\hat{V}\rangle
+\end{aligned}
+\end{equation}
+
+\begin{figure}
+	\centering
+	\input{../pgf/HO_1P.tex}
+\end{figure}
+
+}
+
+\mframe{\frametitle{Circular Quantum Dots}
+	\begin{equation}
+	\begin{aligned}
+	\hat{\mathcal{H}} &= -\frac{1}{2}\nabla_1^2 -\frac{1}{2}\nabla_2^2 + \frac{1}{2} \omega^2r_1^2 + \frac{1}{2} \omega^2r_2^2 + \frac{1}{r_{ij}}\\
+	&= \langle\hat{T}_1\rangle + \langle\hat{T}_2\rangle + \langle\hat{V}_1\rangle + \langle\hat{V}_2\rangle + \langle\hat{V}_{\text{int}}\rangle
+	\end{aligned}
+	\end{equation}
+	\begin{figure}
+		\centering
+		\input{../pgf/HO_2P.tex}
+	\end{figure}
+	
+}
+
+\mframe{\frametitle{Machine Learning}
+	
+	\begin{shadequote}{}
+		Machine learning is the science of getting computers to act without being explicitly programmed.
+	\end{shadequote}
+	
+}
+
+\mframe{\frametitle{Feed-forward Neural Network}
+	\begin{figure}[scale=0.2]
+		\centering
+		\input{../tikz/multilayer_perceptron.tex}
+	\end{figure}
+}
+
+\mframe{\frametitle{Restricted Boltzmann machines}
+	\begin{figure}
+		\centering
+		\input{../tikz/restricted_boltzmann_machine.tex}
+	\end{figure}
+}
+
+\mframe{
+	\begin{center}
+		Methods
+	\end{center}
+}
+
+\mframe{\frametitle{Variational Monte Carlo (VMC)}
+Exploit the variational principle in order to obtain the ground state energy
+	\begin{equation}
+	\begin{aligned}
+	E_0 < E_{\text{VMC}} &= \frac{\int d\bs{r}\Psi_T(\bs{r})^*\hat{\mathcal{H}}\Psi_T(\bs{r})}{\int d\bs{r}\Psi_T(\bs{r})^*\Psi_T(\bs{r})}\\
+	&= \int d\bs{r}\underbrace{\frac{\Psi_T(\bs{r})^*\Psi_T(\bs{r})}{\int d\bs{r}\Psi_T(\bs{r})^*\Psi_T(\bs{r})}}_{P(\bs{r})}\cdot\underbrace{\frac{1}{\Psi_T(\bs{r})}\hat{\mathcal{H}}\Psi_T(\bs{r})}_{E_L(\bs{r})}
+	\end{aligned}
+	\end{equation}
+	
+}
+
+\mframe{\frametitle{Monte Carlo Integration}
+	We attempt to solve the integral by sampling from the probability density function $P(\bs{r})$
+	\begin{equation}
+	\begin{aligned}
+	E_{\text{VMC}} &= \int d\bs{r} E_L(\bs{r})P(\bs{r}) \\
+	&\approx\frac{1}{M}\sum_{i=1}^ME_L(\bs{r}_i)
+	\end{aligned}
+	\end{equation}
+}
+
+\mframe{\frametitle{Trial Wave Function}
+	\begin{equation}
+	P(\bs{r})\propto\Psi_T(\bs{r})^*\Psi_T(\bs{r})
+	\end{equation}
+	
+	Use the Slater-Jastrow function as our trial wave function
+	\begin{equation}
+	\Psi_T(\bs{r})=|\hat{D}(\bs{r})|J(\bs{r})
+	\end{equation}
+	where the Slater matrix, $\hat{D}(\bs{r})$, contains all the single-particle functions
+	\begin{equation}
+	\hat{D}(\bs{r})=
+	\begin{pmatrix}
+	\phi_1(\boldsymbol{r}_1) & \phi_2(\boldsymbol{r}_1) & \hdots & \phi_N(\boldsymbol{r}_1)\\
+	\phi_1(\boldsymbol{r}_2) & \phi_2(\boldsymbol{r}_2) & \hdots & \phi_N(\boldsymbol{r}_2)\\
+	\vdots & \vdots & \ddots & \vdots \\
+	\phi_1(\boldsymbol{r}_N) & \phi_2(\boldsymbol{r}_N) & \hdots & \phi_N(\boldsymbol{r}_N)
+	\end{pmatrix}
+	\end{equation}
+}
+
+\mframe{\frametitle{Single-particle Functions}
+	The Hermite functions,
+	\begin{equation}
+	\phi_n(\bs{r})\propto H_n(\bs{r})\exp(-\frac{1}{2}\alpha\omega|\bs{r}|^2),
+	\end{equation}
+	are used as the single-particle functions for quantum dots in standard VMC. The Gaussian can be factorized out from the Slater determinant.
+	\begin{equation}
+	|\hat{D}(\bs{r};\alpha)|\propto\exp(-\frac{1}{2}\alpha\omega|\bs{r}|^2)
+	\begin{vmatrix}
+	H_1(\boldsymbol{r}_1) & H_2(\boldsymbol{r}_1) & \hdots & H_N(\boldsymbol{r}_1)\\
+	H_1(\boldsymbol{r}_2) & H_2(\boldsymbol{r}_2) & \hdots & H_N(\boldsymbol{r}_2)\\
+	\vdots & \vdots & \ddots & \vdots \\
+	H_1(\boldsymbol{r}_N) & H_2(\boldsymbol{r}_N) & \hdots & H_N(\boldsymbol{r}_N)
+	\end{vmatrix}
+	\end{equation}
+}
+
+\mframe{\frametitle{Restricted Boltzmann Machine}
+	We use the marginal distribution of the visible units as the single-particle functions in the Slater determinant, and see if them can model the correlations 
+	\begin{equation}
+	\phi_n(\bs{r})\propto H_n(\bs{r})P(\bs{r};\bs{a},\bs{b},\bs{W})
+	\end{equation}
+	where $P(\bs{r})$ is the marginal distribution of the visible units.
+	\begin{equation}
+	|\hat{D}(\bs{r};\bs{a},\bs{b},\bs{W})|\propto P(\bs{r};\bs{a},\bs{b},\bs{W})
+	\begin{vmatrix}
+	H_1(\boldsymbol{r}_1) & H_2(\boldsymbol{r}_1) & \hdots & H_N(\boldsymbol{r}_1)\\
+	H_1(\boldsymbol{r}_2) & H_2(\boldsymbol{r}_2) & \hdots & H_N(\boldsymbol{r}_2)\\
+	\vdots & \vdots & \ddots & \vdots \\
+	H_1(\boldsymbol{r}_N) & H_2(\boldsymbol{r}_N) & \hdots & H_N(\boldsymbol{r}_N)
+	\end{vmatrix}
+	\end{equation}
+}
+
+
+\mframe{\frametitle{Jastrow Factor}
+The Jastrow factor is added to account for the correlations
+
+Simple Jastrow factor
+\begin{equation}
+J(\bs{r}; \bs{\beta}) = \exp\left(\sum_{i=1}^N\sum_{j>i}^N{\beta_{ij}r_{ij}}\right).
+\end{equation}
+
+Padé-Jastrow factor
+\begin{equation}
+J(\bs{r};\beta) = \exp\bigg(\sum_{i=1}^N\sum_{j>i}^N\frac{a_{ij}r_{ij}}{1+\beta r_{ij}}\bigg).
+\end{equation}
+}
+
+\mframe{
+	\begin{center}
+		Results
+	\end{center}
+}
+
+\iffalse
+\mframe{\frametitle{Ground State Energy}
+	\begin{tabularx}{\textwidth}{lR{1.5cm}R{1.6cm}R{1.6cm}R{1.5cm}R{1.3cm}} \hline\hline
+		\label{tab:cputimefit}
+		\makecell{$\omega$ \\ \phantom{=}} & RBM & RBM+SJ & RBM+PJ & HF\footnote{Produced by the HF code developed by \citeauthor{mariadason_quantum_2018}} & Exact\footnote{\citeauthor{taut_two_1993}, \citetitle{taut_two_1993}, \citeyear{taut_two_1993}}} \\ \hline \\
+	1/6 & 0.7036(1) & 0.67684(7) & 0.66715(6) & 0.768675 & 2/3 \\ 
+	1 & 3.0803(2) & 3.02108(5) & 2.999587(5) & 3.1690 & 3 \\ \hline\hline
+\end{tabularx}
+}
+\fi
+
+\mframe{\frametitle{Computational Cost}
+	\begin{figure}
+		\centering 
+		\input{../pgf/cpu_2D.tex}
+	\end{figure} 
+}
+
+\mframe{
+	\begin{center}
+		Conclusion
+	\end{center}
+}
+
+\mframe{\frametitle{Retrospect}
+	\begin{itemize}
+		\item RBM is able to account for most of the correlations
+		\item RBM+PJ implies to give a lower ground state energy and model the correlations better than a traditional VMC
+		\item RBM+SJ is both more expensive and less accurate than its fellow methods, and we see no reason to choose it
+	\end{itemize}
+}
+
+\mframe{\frametitle{Future Work}
+	\begin{itemize}
+		\item Repeat the exercise using spherical coordinates - interactions are easier to model in spherical coordinates
+		\item Check the ability of modeling the three-body correlations, considering nuclear systems
+		\item Reduce the computational cost
+	\end{itemize}
+}
+
+\mframe{
+	\begin{center}
+		Thank you!
+	\end{center}
+}
+
+\end{document}

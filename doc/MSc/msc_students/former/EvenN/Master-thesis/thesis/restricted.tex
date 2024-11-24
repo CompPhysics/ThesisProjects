@@ -1,0 +1,222 @@
+\chapter{Boltzmann Machines} \label{chp:restricted}
+\epigraph{Available energy is the main object at stake in the struggle for existence and the evolution of the world.}{Ludwig Boltzmann, \cite{rajasekar_ludwig_2006}}
+\iffalse
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{Images/example.png}
+	\caption{Caption}
+\end{figure}
+\fi
+
+Boltzmann machines are generative, energy-based neural network models that fall under the category unsupervised learning. In unsupervised learning, unlike supervised learning which we discussed in chapter \ref{chp:machinelearning}, the network is fed with an input data set only, i.e., we do not have any targets for supervising the network during the training. The task is then to find structures in the data, comparing data sets to each other and categorize the data sets concerning their similarities and differences (clustering).
+
+They were invented by \citet{ackley_learning_1985} in 1985, where Hinton often is referred to as "The Godfather of Deep Learning"\footnote{Hinton's contribution to machine learning can hardly be overstated. He was co-author of the paper popularizing the backpropagation algorithm \cite{rumelhart_learning_1986}, supervisor of Alex Krizhevsky who designed AlexNet \cite{krizhevsky_imagenet_2012} and the main author of the paper introducing the regularization technique \textit{dropout} \cite{hinton_improving_2012}.} and are based on the Boltzmann distribution, hence the name. Boltzmann machines with constrained connectivity, known as restricted Boltzmann machines, have found applications in classification \cite{larochelle_classification_2008}, feature learning \cite{coates_analysis_2011} and many-body quantum mechanics \cite{carleo_solving_2017} as discussed before. In this chapter, we will discuss the Boltzmann machines in general, and leave out all the quantum mechanics. The actual connection between quantum mechanics and the Boltzmann machines will be presented in chapter \ref{chp:rbmimplementation}, which is the implementation chapter for the Boltzmann machines.
+
+We have above seen how the weights in supervised learning can be adjusted using the backward propagation algorithm, but it does not work when we do not have prior known targets. Instead, a set of probabilities controls the weights, and we let the log-likelihood function define the cost function. This is known as Bayesian statistics and is presented in the next section.
+
+\section{Statistical foundation} \label{sec:bayes}
+In this section, we will use Bayesian statistics to exploit the link between some data $\bs{x}$, called the \textit{hypothesis}, and some other data $\bs{y}$ called the \textit{evidence}.  We will first do it in a general way before we link it to machine learning in the next section. Bayesian statistics appear in many fields of science, as it is a basic and often useful probability theory. It is based on Bayes' theorem, which gives rise to some marginal and conditional distributions. The expressions can either be set up in the continuous space or the discrete space, but here we will stick to the latter as we in practice will deal with discrete data. 
+
+We start expressing the joint probability distribution of measuring both $\bs{x}$ and $\bs{y}$ using the general relation,
+\begin{equation}
+P(\bs{x},\bs{y})=P(\bs{x}|\bs{y})P(\bs{y})=P(\bs{y}|\bs{x})P(\bs{x}),
+\label{eq:jointprob}
+\end{equation}
+which basically states that the probability of observing $\bs{x}$ \textit{and} $\bs{y}$ is just the probability of observing $\bs{x}$ multiplied with the probability of observing $\bs{y}$ given $\bs{x}$. 
+$p(\bs{x}|\bs{y})$ is the conditional distribution of $\bs{x}$ and gives the probability of $\bs{x}$ given that $\bs{y}$ is true. The opposite applies for $P(\bs{y}|\bs{x})$. $P(\bs{x})$ and $P(\bs{y})$ are called the marginal probabilities for $\bs{x}$ and $\bs{y}$, and by reordering equation \eqref{eq:jointprob}, we obtain Bayes' theorem
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+P(\bs{x}|\bs{y})=\frac{P(\bs{y}|\bs{x})P(\bs{x})}{P(\bs{y})}.
+\end{empheq}
+The marginal probability of $\bs{y}$, $P(\bs{y})$, is given by the sum over all the possible joint probabilities when $\bs{y}$ is fixed,
+\begin{equation}
+P(\bs{y})=\sum_i P(x_i,\bs{y}) = \sum_i P(\bs{y}|x_i)P(x_i),
+\end{equation}
+and from this we observe that Bayes' theorem gives us the \textit{posterior} probability, $P(\bs{x}|\bs{y})$, given the \textit{prior} probability, $P(\bs{x})$, and the \textit{likelihood}, $P(\bs{y}|\bs{x})$, seen from
+\begin{equation}
+P(\bs{x}|\bs{y})=\frac{P(\bs{y}|\bs{x})P(\bs{x})}{\sum_i P(\bs{y}|x_i)P(x_i)}.
+\end{equation}
+However, the summation gets extremely expensive quickly, and is intractable even for small systems. This was a big problem for a long time, but with the advent of powerful computers, algorithms like Markov chain Monte-Carlo can be used to estimate the posterior without knowing the \textit{normalization constant}, $P(\bs{y})$. More about that in chapter \ref{chp:methods}. 
+
+In the section on supervised learning, the cost function was an important concept, and so is the case in unsupervised learning. However, how do we define a cost function when we do not have any targets? We find the answer by revealing the similarities between logistic regression and Bayesian statistics. In logistic regression, we find the probability that a system is in a particular state and define the cost function as the log-likelihood. We can do the same in unsupervised learning, and define the cost function as
+\begin{equation}
+\mathcal{C}(\bs{y})=\ln\prod_{i=1}^lP(\bs{x}_i|\bs{y})=\sum_{i=1}^l\ln P(\bs{x}_i|\bs{y}),
+\end{equation}
+which is the log-likelihood. Maximizing the likelihood is the same as maximizing the log-likelihood, which again corresponds to minimizing the distance between the unknown distribution $Q$ underlying $\bs{x}$ and the distribution $P$ of the Markov random field $\bs{y}$. This distance is expressed in terms of the Kullback-Leibler divergence (KL divergence), which for a finite state space $\Omega$ is given by
+\begin{equation}
+\text{KL}(Q||P)=\sum_{\bs{x}\in\Omega}Q(\bs{x})\frac{Q(\bs{x})}{P(\bs{x})}.
+\end{equation}
+The KL divergence is a measure of the difference between two \textit{probability density functions} (PDFs), and is zero for two identical PDFs. The divergence is often called a distance, but that is an unsatisfying description as it is non-symmetric ($\text{KL}(Q||P))\neq\text{KL}(P||Q)$) in general. 
+
+To proceed further, we will introduce latent variables in form of hidden units. Suppose we want to model an $m$-dimensional unknown probability distribution $Q$. Typically, not all the variables $\bs{s}$ are observed components, they can also be latent variables. If we split $\bs{s}$ into \textit{visible} variables $\bs{x}$ and hidden variables $\bs{h}$, and under the assumption that $\bs{x}$ and $\bs{h}$ are variables in an energy function $E(\bs{x},\bs{h})$, we can express the joint probability as the Boltzmann distribution
+\begin{equation}
+P(\bs{x},\bs{h})=\frac{\exp(-E(\bs{x},\bs{h}))}{Z}
+\end{equation}
+where $Z$ is the partition function, which is the sum of the probability of all possible states, which was already introduced in equation \eqref{eq:partition}. We have ignored the factor $k_BT$ by setting it to 1. Where the visible units correspond to components of an observation, the hidden units introduce the system to more degrees of freedom. This allows us to describe complex distributions over the visible variables by means of simple conditional distributions \cite{fischer_training_2014}. Those conditional distributions will be described later, but let us first take a look at the marginal distributions.
+
+\subsection{Marginal distributions}
+We have already used the term marginal distribution, which means that we get rid of a set of variables by integrating the joint probability over all of them. The marginal probability of $\bs{x}$ is given by
+\begin{equation}
+P(\bs{x})=\sum_{\bs{h}}P(\bs{x},\bs{h})=\frac{1}{Z}\sum_{\bs{h}}\exp(-E(\bs{x},\bs{h})).
+\end{equation}
+The sum over the $\bs{h}$ vector is just a short-hand notation where we sum over all the possible values of all the variables in $\bs{h}$. Further, the marginal probability of $\bs{h}$ is expressed similarly, with
+\begin{equation}
+P(\bs{h})=\sum_{\bs{x}}P(\bs{x},\bs{h})=\frac{1}{Z}\sum_{\bs{x}}\exp(-E(\bs{x},\bs{h})).
+\end{equation}
+$P(\bs{x})$ is important as it gives the probability of a particular set of visible units $\bs{x}$, while $P(\bs{h})$ will not be used in the same scope in this work. 
+
+\subsection{Conditional distributions}
+The conditional distributions can be found from Bayes' theorem, and read
+\begin{equation}
+P(\bs{h}|\bs{x})=\frac{P(\bs{x},\bs{h})}{P(\bs{x})}=\frac{\exp(-E(\bs{x},\bs{h}))}{\sum_{\bs{h}}\exp(-E(\bs{x},\bs{h}))}
+\end{equation}
+and
+\begin{equation}
+P(\bs{x}|\bs{h})=\frac{P(\bs{x},\bs{h})}{P(\bs{h})}=\frac{\exp(-E(\bs{x},\bs{h}))}{\sum_{\bs{x}}\exp(-E(\bs{x},\bs{h}))}.
+\end{equation}
+The conditional probabilities are especially important in Gibbs sampling, where we want to update the visible units $\bs{x}$ given the hidden units $\bs{h}$ and \textit{vice versa}. 
+
+\subsection{Maximum log-likelihood estimate}
+Now suppose that the energy function also is a function of some parameters $\bs{\theta}$. We have already expressed the log-likelihood function, 
+\begin{equation}
+\ln P(\bs{x}|\bs{\theta})=\ln\bigg[\frac{1}{Z}\sum_{\bs{h}}\exp(-E(\bs{x},\bs{h}))\bigg]=\ln\sum_{\bs{h}}\exp(-E(\bs{x},\bs{h}))-\ln\sum_{\bs{x},\bs{h}}\exp(-E(\bs{x},\bs{h}))
+\end{equation}
+and by maximizing this we find the maximum log-likelihood estimate. This estimate is important in neural networks since we always seek to maximize the likelihood in the training process. The function is maximized when 
+\begin{equation}
+\begin{aligned}
+\frac{\partial\ln P(\bs{x}|\bs{\theta})}{\partial\bs{\theta}}&=\frac{\partial}{\partial\bs{\theta}}\bigg(\ln\sum_{\bs{h}}\exp(-E(\bs{x},\bs{h}))\bigg)-\frac{\partial}{\partial\bs{\theta}}\bigg(\ln\sum_{\bs{x},\bs{h}}\exp(-E(\bs{x},\bs{h}))\bigg)\\
+&=-\sum_{\bs{h}}P(\bs{h}|\bs{x})\frac{\partial E(\bs{x},\bs{h})}{\partial\bs{\theta}}+\sum_{\bs{x},\bs{h}}P(\bs{x},\bs{h})\frac{\partial E(\bs{x},\bs{h})}{\partial\bs{\theta}}=0.
+\end{aligned}
+\end{equation}
+Similarly to the neural networks presented in chapter \ref{chp:machinelearning}, we cannot find a closed-form expression for this, and we need to solve it iteratively. 
+
+\section{Unrestricted Boltzmann machines}
+Unrestricted Boltzmann machines, or merely Boltzmann machines, are energy-based, generative neural networks based on the more primitive Hopfield network. They consist of a set of units, and similarly to the feed-forward neural networks presented in section \ref{sec:neural_network}, a weight matrix is connecting the units. However, in a standard unrestricted Boltzmann machine, we only have one layer where all the units connect to all other units, and a bias unit is commonly added to work as a constant term. In figure \eqref{fig:boltzmann_machine}, we illustrate a plain Boltzmann machine consisting of $N=6$ units and one bias unit. 
+
+\begin{figure}
+	\centering
+	\input{../tikz/boltzmann_machine.tex}
+	\caption{Unrestricted Boltzmann machine. Black lines are connections between all the units, where for instance the line between $s_1$ and $s_6$ is related to the weight $w_{16}$. The blue lines are related to the bias weights, and for instance, the line going from the bias unit to $s_3$ is related to $b_3$.}
+	\label{fig:boltzmann_machine}
+\end{figure}
+
+By multiplying each unit with all the other units and the weight connecting them, one obtains the system energy, which should not be confused with the physical energy of a quantum state. For the simplest case, the energy reads
+\begin{equation}
+E(\bs{s})=- \sum_{i=1}^Ns_ib_i-\sum_{i=1}^N\sum_{j=i}^N s_iw_{ij}s_j,
+\label{eq:unrestrictedboltzmannmachine}
+\end{equation}
+where $\bs{s}$ are the units and $w_{ij}$ is the weight connecting the units $s_i$ and $s_j$. The bias unit is fixed to 1, as always, and the weight between the bias unit and the unit $s_i$ is denoted by $b_i$. In its most simple form, the units can only take binary values, and we, therefore, call it a binary-unit Boltzmann machine. The energy formula is then identical to the system energy of Hopfield networks, but what distinguishes a Boltzmann machine from a Hopfield network is that the units are \textit{stochastic}. By stochastic, we mean that their values are randomly determined, introducing some randomness to the system. Also, the energy of an Ising model takes the same form as equation \eqref{eq:unrestrictedboltzmannmachine}. Other architectures are also available, and for the restricted Boltzmann machine we will look at the Gaussian-binary unit model.
+
+The reader has might already foreseen the next step, which is to use the Boltzmann distribution to define the probability of finding the system in a particular state $E(\bs{s};\bs{w},\bs{b})$, as discussed in the previous section. The probability distribution function (PDF) is then given by
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+P(\bs{s})=\frac{1}{Z}\exp(-E(\bs{s})),
+\label{eq:boltzmanndist}
+\end{empheq}
+where $Z$ again is the partition function. The PDF contains weights, which can be adjusted to change the distribution. In a supervised scheme, one can update the parameters in order to minimize the Kullback-Leibler divergence to a prior known distribution and in that manner reproduce the known distribution. In unsupervised learning, we cannot do this, but hopefully, we can obtain a reasonable distribution by minimizing the system energy.
+
+A Boltzmann machine is also a Markov random field, as the stochastic processes satisfy the Markov property. Loosely speaking, this means that all the probabilities of going from one state to another are known, making it possible to predict the future of the process based solely on its present state. The property is also determined by "memorylessness", meaning that the next state of the system depends only on the current state and not on the sequence of events that preceded it \cite{fischer_training_2014}. The Markov chain is an essential part of the sampling methods that will we discuss in chapter \ref{chp:methods}.
+
+\section{Restricted Boltzmann machines} \label{sec:RBM}
+When there is an unrestricted guy, a restricted guy must exist as well. What the term restricted means in this context, is that we ignore all the connections between units in the same layer, and keep only the inter-layer ones. In a restricted Boltzmann machine (RBM), only the units in the first layer are the observable, while the units in the next layer are latent or hidden. In the same manner as in equation \eqref{eq:unrestrictedboltzmannmachine}, we can look at the linear case and multiply each unit with the corresponding weight, but now we need to distinguish between a visible unit $x_i$ and a hidden unit $h_j$. For the same reason, we divide all the bias weights into a group connected to the visible units, $a_i$, and a group connected to the hidden units, $b_j$. The system energy then reads
+\begin{equation}
+E(\bs{x},\bs{h})=- \sum_{i=1}^Fx_ia_i- \sum_{j=1}^Hh_jb_j-\sum_{i=1}^F\sum_{j=i}^H x_iw_{ij}h_j,
+\label{eq:binarybinary}
+\end{equation}
+which is called a binary-binary unit or Bernoulli-Bernoulli unit RBM. $H$ is the number of hidden units, and $F$ is the number of visible units, later known as the degrees of freedom. In figure \eqref{fig:restricted_boltzmann_machine}, a restricted Boltzmann machine with three visible units and three hidden units is illustrated.
+
+\begin{figure}
+	\centering
+	\input{../tikz/restricted_boltzmann_machine.tex}
+	\caption{Restricted Boltzmann machine. Black lines represent the inter-layer connections, where for instance the line between $x_1$ and $h_1$ is related to the weight $w_{11}$. The red lines are related to the input bias weights, and for instance, the line going from the bias unit to $x_3$ is called $a_3$. Similarly, the blue lines are connections between the hidden units and the bias, and for instance, the line going from the bias unit to $h_3$ is denoted by $b_3$.}
+	\label{fig:restricted_boltzmann_machine}
+\end{figure}
+
+\subsection{Gaussian-binary units}
+So far, we have discussed the linear models only, but as for feed-forward neural networks, we need non-linear models to solve non-linear problems. A natural next step is the model with Gaussian-binary units, which has a Gaussian mapping between the visible unit bias and the visible units and possibly also between the two layers. The energy expression of an architecture with Gaussian mapping between the visible units and the bias only takes the form
+\begin{equation}
+E(\bs{x},\bs{h})= \sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma_i^2} - \sum_{j=1}^Hh_jb_j-\sum_{i=1}^F\sum_{j=i}^H \frac{x_iw_{ij}h_j}{\sigma_i^2},
+\label{eq:gaussianbinary}
+\end{equation}
+where $\sigma_i$ is the width of the Gaussian distribution, which can take an arbitrary number. Inserting the energy expression into equation \eqref{eq:boltzmanndist}, we obtain the Gaussian-binary joint probability distribution,
+\begin{equation}
+P(\bs{x},\bs{h})\propto\exp\Big(-\sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma^2}\Big)\prod_{j=1}^H\exp\Big(h_jb_j+\sum_{i=1}^F\frac{h_jw_{ij}x_i}{\sigma^2}\Big),
+\label{eq:RBMWF1}
+\end{equation}
+where the first factor (the exponential function) is actually the definition of a Gaussian function and the product has a complexity proportional to the number of hidden nodes. Generative sampling algorithms, as Gibbs sampling, use this distribution directly, while other sampling tools, like Metropolis sampling, need the marginal distribution. To find the marginal distribution of the visible units, we just need to take the sum over $h=0$ and $h=1$ as the hidden units are binary. The final expression is given by
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+P(\bs{x})\propto\exp\Big(-\sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma^2}\Big)\prod_{j=1}^H\bigg(1+\exp\Big(b_j+\sum_{i=1}^F\frac{w_{ij}x_i}{\sigma^2}\Big)\bigg),
+\label{eq:RBMWF2}
+\end{empheq}
+were the transition from equation \eqref{eq:gaussianbinary} is shown thoroughly in appendix \ref{app:rbmderive}. Since the visible units take continuous values, we need to integrate to find the marginal distribution of the hidden units, but since we never will use that distribution in this work, we will ignore the marginal distributions of the hidden units.
+
+The conditional distributions are important in Gibbs sampling as they are used to determine the value of the hidden and visible nodes and update the weights. The distribution of $h$ given $x$ is used to update the hidden units and reads
+\begin{equation}
+P(\bs{h}|\bs{x})=\frac{P(\bs{x},\bs{h})}{P(\bs{x})}=\prod_{j=1}^H\frac{\exp(h_jb_j+\sum_{i=1}^Fx_iw_{ij}h_j/\sigma^2)}{1+\exp(b_j+\sum_{i=1}^Fx_iw_{ij}/\sigma^2)}.
+\end{equation}
+Similarly, the conditional distribution of $x$ given $h$ is used to update the visible units and turns out to be just the normal distribution,
+\begin{equation}
+P(\bs{x}|\bs{h})=\mathcal{N}(\bs{x};\bs{a}+\bs{w}^T\bs{h},\sigma^2),
+\label{eq:normal}
+\end{equation}
+with the width of the Gaussian distribution determining the variance. Note that the mean is $\bs{\mu}=\bs{a}+\bs{w}^T\bs{h}$, which is the vector obtained when going backwards in the restricted Boltzmann machine (multiplying the hidden units with the weights).
+
+In Metropolis sampling, we only use the marginal distribution of the visible units, so the weights to the hidden units are additional variational parameters. For completeness reasons, we will discuss the Gibbs sampling, but we will in practice stick to the Metropolis sampling. More about the different sampling tools can be found in chapter \ref{chp:methods}. We also need the gradient of the log-likelihood function in order to train the network. The likelihood function is defined as the probability of $\bs{x}$ given a set of parameters $\bs{\theta}$, which relate to our problem as $P(\bs{x}|\bs{a},\bs{b},\bs{w})$. We therefore get three maximum log-likelihood estimates,
+\begin{equation}
+\begin{aligned}
+\frac{\partial\ln P(\bs{x}|\bs{a},\bs{b},\bs{w})}{\partial\bs{a}}&=\frac{\bs{x}-\bs{a}}{\sigma^2}\\
+\frac{\partial\ln P(\bs{x}|\bs{a},\bs{b},\bs{w})}{\partial\bs{b}}&=\bs{n}\\
+\frac{\partial\ln P(\bs{x}|\bs{a},\bs{b},\bs{w})}{\partial\bs{w}}&=\frac{\bs{x}\bs{n}^T}{\sigma^2}
+\end{aligned}
+\label{eq:loglikelihood}
+\end{equation}
+where we have defined a vector $\bs{n}$ as the (element-wise) logistic function
+\begin{equation}
+\bs{n}(\bs{v})\equiv\frac{1}{1+\exp(-\bs{v})}
+\end{equation}
+with $\bs{v}$ as the vector containing all the elements in the last exponent in equation \eqref{eq:RBMWF2},
+\begin{equation}
+\bs{v}\equiv\bs{b}+\frac{\bs{w}^T\bs{x}}{\sigma^2}.
+\end{equation}
+We decided to set up the vectorized expressions as that is what we will use in practice. In addition to $\bs{n}$, we will later introduce the its counterpart, $\bs{p}(\bs{v})=\bs{n}(-\bs{v})$, and the names make sense as $\bs{n}$ has a negative expression in the exponent, while $\bs{p}$ has a positive expression in the exponent. The expressions in equation \eqref{eq:loglikelihood} will later be used to maximize the likelihood with respect to the respective set of parameters. 
+
+\section{Partly restricted Boltzmann machines}
+One can also imagine a partly restricted architecture, where we have intern connections between the visible units, but not the hidden units. This is what we have decided to call a partly restricted Boltzmann machine, and are very similar to restricted Boltzmann machines but with another level of flexibility. A such neural network with three visible units and three hidden units is illustrated in figure \eqref{fig:partly_restricted_boltzmann_machine}. Compared to a standard restricted Boltzmann machine, we get an extra term in the energy expression where the visible units are connected. It is easy to see that the expression should be
+\begin{figure}
+	\centering
+	\input{../tikz/partly_restricted_boltzmann_machine.tex}
+	\caption{Partly restricted Boltzmann machine. Black lines represent inter-layer connections, where for instance the line between $x_1$ and $h_1$ is related to the weight $w_{11}$. The red lines are related to the input bias weights, and for instance, the line going from the bias unit to $x_3$ is related to $a_3$. Similarly, the blue lines are related to the hidden units bias weights, and for instance, the line going from the bias unit to $h_3$ is related to $b_3$. Finally, the purple lines are the intra-layer connections related to the intra-layer weights. The weight between unit $x_1$ and $x_2$ is called $c_{12}$. }
+	\label{fig:partly_restricted_boltzmann_machine}
+\end{figure}
+\begin{equation}
+E(\bs{x},\bs{h})= \sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma_i^2} - \sum_{i=1}^F\sum_{j>i}^Fx_ic_{ij}x_j- \sum_{j=1}^Hh_jb_j-\sum_{i=1}^F\sum_{j=i}^H \frac{x_iw_{ij}h_j}{\sigma_i^2} 
+\label{eq:partlygaussianbinary}
+\end{equation}
+with $c_{ij}$ as the weights between the visible units. In the rest of this project, we are interested in the marginal distribution of the visible units only, which becomes
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+P(\bs{x})\propto\exp\Big(-\sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma^2}+\sum_{i=1}^F\sum_{j>i}^Fx_ic_{ij}x_j\Big)\prod_{j=1}^H\bigg(1+\exp\Big(b_j+\sum_{i=1}^F\frac{w_{ij}x_i}{\sigma^2}\Big)\bigg)
+\label{eq:PRBMWF}
+\end{empheq}
+by again using the approach detailed in appendix \ref{app:rbmderive}. In chapter \ref{chp:rbmimplementation}, we utilize that this marginal distribution can be split in a Gaussian part, a \textit{partly restricted} part and a product part. Then we see that the expression of the gradient of the log-likelihood function becomes the same with respect to $\bs{a},\bs{b}$ and $\bs{w}$ compared to the restricted Boltzmann machine, which means that we only need to calculate the expression of the gradient of the log-likelihood with respect to $\bs{c}$. This is given by the outer product
+\begin{equation}
+\frac{\partial\ln P(\bs{x}|\bs{a},\bs{b},\bs{c},\bs{w})}{\partial \bs{c}}=\bs{x}\bs{x}^T,
+\label{eq:partlyparty}
+\end{equation}
+which also is written on a vectorized form.
+
+\section{Deep Boltzmann machines}
+We can also construct deep Boltzmann machines, also known as deep belief networks, where we stack single-layer Boltzmann machines. There are many ways to construct those networks, where the number of layers, unit types, number of units, and the degree of restriction can be chosen as the programmer wants. The number of combinations is endless, but in order to make use of the dept, all the layers should have different configurations. Otherwise, the deep network can be reduced to a shallower network. In figure \eqref{fig:deep_restricted_boltzmann_machine}, a restricted Boltzmann machine of two hidden layers is illustrated. We have chosen three hidden units in each layer and three visible units. It should be trivial to imagine how the network can be expanded to more layers. As the main focus so far has been on restricted Boltzmann machines, also the deep networks will be assumed to be restricted, although both partly restricted and unrestricted can be constructed. The system energy of a deep restricted Boltzmann machine of $L$ layers can be expressed as
+\begin{figure}
+	\centering
+	\input{../tikz/deep_boltzmann_machine.tex}
+	\caption{Deep restricted Boltzmann machine. Black lines represent the inter-layer connections, where for instance the line between $x_1^{(1)}$ and $h_1^{(1)}$ is related to the weight $w_{11}^{(1)}$ and similar for the other layer. The purple lines are related to the input bias weights, and for instance, the line going from the bias unit to $x_3$ is related to $a_3$. The red lines are related to the left-hand side hidden units bias weights, the line going from the bias unit to $h_3^{(1)}$ is related to $b_3^{(1)}$. The same applies for the right-hand side bias weights.}
+	\label{fig:deep_restricted_boltzmann_machine}
+\end{figure}
+\begin{equation}
+E(\bs{x},\bs{h})= \sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma_i^2} - \sum_{l=1}^L\sum_{j=1}^{H_L}h_j^{(l)}b_j^{(l)}-\sum_{l=1}^L\sum_{i=1}^F\sum_{j=i}^{H_L} \frac{x_iw_{ij}^{(l)}h_j^{(l)}}{\sigma_i^2}
+\label{eq:deepgaussianbinary}
+\end{equation}
+where $H_L$ is the number of hidden units in layer $L$. The marginal probability distribution of the visible units read
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+P(\bs{x})\propto\exp\Big(-\sum_{i=1}^F\frac{(x_i-a_i)^2}{2\sigma^2}\Big)\prod_{l=1}^L\prod_{j=1}^{H_L}\bigg(1+\exp\Big(b_j^{(l)}+\sum_{i=1}^F\frac{w_{ij}^{(l)}x_i}{\sigma^2}\Big)\bigg).
+\label{eq:DRBMWF}
+\end{empheq}
+which again can be obtained from the general expressions in appendix \ref{app:rbmderive}.

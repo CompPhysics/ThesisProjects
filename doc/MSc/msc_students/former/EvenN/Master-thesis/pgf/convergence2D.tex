@@ -1,0 +1,64 @@
+\begin{tikzpicture} [scale=0.9, spy using outlines=
+	{rectangle, magnification=8,size=2cm, height=1cm, connect spies}]
+	\begin{axis} [name=2D, 
+	xlabel=Iteration, 
+	ylabel={$E/\hbar$}, 
+	grid=major, 
+	clip=false,
+	every axis plot/.append style={thick},
+	legend cell align={left},
+	legend style={at={(1.45,1.1)}, anchor=south east, draw=white!80.0!black},
+	legend columns = 6
+	]
+	
+	\addplot[color2] table [x expr=\coordindex+1, 
+	y index=0, 
+	mark=none] {../data/GD_2D_MC16777216.dat};
+	\addlegendentry{GD};
+	
+	\addplot[color1] table [x expr=\coordindex+1, 
+	y index=0, 
+	mark=none] {../data/SGD_2D_MC16777216.dat}; 
+	\addlegendentry{SGD};
+	
+	\addplot[color0] table [x expr=\coordindex+1, 
+	y index=0, 
+	mark=none, 
+	color=blue] {../data/ADAM_2D_MC16777216.dat}; 
+	\addlegendentry{ADAM};
+	
+	\addplot [dashed,mark=none,black] coordinates {(0,3) (100,3)};
+	\addlegendentry{Exact};
+	
+	\node[] at (axis cs: 50,3.178) {2D, $\omega=1.0$};
+	\coordinate (spypoint1) at (axis cs:75,2.995001);
+	\coordinate (magnifyglass1) at (axis cs:50,3.1);
+	\end{axis}
+	\spy [size=2.0cm] on (spypoint1)
+	in node[fill=white] at (magnifyglass1);
+	
+	\begin{axis} [name=3D, 
+	xshift=7.9cm, 
+	xlabel=Iteration, 
+	grid=major, 
+	clip=false,
+	every axis plot/.append style={thick}]	
+	\addplot[color2] table[x expr=\coordindex+1, y index=0, mark=none] {../data/GD_3D_MC16777216.dat};  
+	%\addlegendentry{GD};
+	
+	\addplot[color1] table[x expr=\coordindex+1, y index=0, mark=none] {../data/SGD_3D_MC16777216.dat};  
+	%\addlegendentry{SGD};
+	
+	\addplot[color0] table[x expr=\coordindex+1, y index=0, mark=none] {../data/ADAM_3D_MC16777216.dat}; 
+	%\addlegendentry{ADAM};
+	
+	\addplot+ [dashed,mark=none,color=black] coordinates {(0,2) (100,2)};
+	%\addlegendentry{Exact};
+	
+	\node[] at (axis cs: 50,2.1355) {3D, $\omega=0.5$};
+	\coordinate (spypoint2) at (axis cs:75,1.997);
+	\coordinate (magnifyglass2) at (axis cs:50,2.077);
+	\end{axis} 
+	\spy [size=2.0cm] on (spypoint2)
+	in node[fill=white] at (magnifyglass2);
+\end{tikzpicture}

@@ -1,0 +1,687 @@
+\chapter{Selected Results} \label{chp:results}
+\epigraph{Results! Why, man, I have gotten a lot of results. I know several thousand things that won't work.}{Thomas A. Edison, \cite{noauthor_edisonian_nodate}}
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.6]{../Images/art.eps}
+	\caption{Radial one-body density profiles for two-dimensional quantum dots with $N=12$ electrons, popularly titled an artificial Magnesium atom. The four graphs correspond to four different oscillator frequencies, where the weakest oscillator gives the broadest density distribution. It's quite artistic, isn't it?}
+\end{figure}
+
+We are finally ready to discuss the most exciting part of this thesis, namely the results. Since this work, after all, is about physics, the physical insight should be our focus and in this chapter we finally get the opportunity to discuss pure physics. However, we will also use this section for the comparison of the restricted Boltzmann machine (RBM) and the standard variational Monte Carlo method (VMC) to decide which one that is the better and in which situations they differ. We will look at three versions of the RBM; a Slater determinant with the Boltzmann machines as the single-particle functions (RBM), as described in chapter \ref{chp:rbmimplementation}, an RBM with the simple Jastrow factor described in section \ref{sec:rbmsj} (RBM+SJ) and an RBM with the Padé-Jastrow factor described in section \ref{sec:jastrow} (RBM+PJ). For VMC, we use the Slater-Jastrow ansatz, i.e., the trial wave function consists of a Padé-Jastrow factor and a Slater determinant containing standard single-particle functions, as detailed in chapter \ref{chp:WFE}. 
+
+As we are capable of studying various systems, system sizes $N$, system strengths $\omega$, and innumerous hyper-parameter settings by different methods, the number of results we are able to produce is uncountable. In total, we have looked at more than 150 different quantum dot systems using the four methods mentioned above, which means that we have generated a large set of results. Just a small subset of those results will be presented and discussed in this chapter, while a more extensive collection of results is presented in appendix \ref{chp:totalresults}. The results presented below were selected since they describe physically interesting properties and compare the various methods in an informative way. Typically, we will choose systems and configurations that are comparable to references, such that we can benchmark the results. Our primary focus will be on ground state energy and electron density calculations, and we will stick to natural units as discussed in appendix \ref{app:units}. A brief recap is that for quantum dots, the energy is given in units of Planck's reduced constant, $E'=E/\hbar$, length is scaled as $x'=x/\sqrt{\hbar/m}$ where $m$ is the mass of a particle, which implies that the $d$-dimensional density, $\rho_d(\bs{r})$, is given in units of $(\hbar/m)^{-d/2}$. For atoms, we use Hartree atomic units, meaning that the length is given in units of the Bohr radius, $a_0$, the $d$-dimensional density is given in units of $a_0^{-d}$ and the energy is scaled as $E'=E/(\hbar^2/m_ea_0)$.
+
+Before we move on to the physical results, we will take a quick look at some more technical results, more precisely the computational cost of various wave function structures and the energy convergence using various optimization tools. For validation purposes, we will present a few selected results on the case without repulsive interaction and compare it to analytical results. After that, we study the case with repulsive interaction on a much larger scale, where we first look at quantum dots and then on double atoms.
+
+\begin{figure}
+	\centering 
+	\input{../pgf/cpu.tex}
+	\caption{CPU-time per iteration for $M=2^{20}=1,048,576$ cycles as a function of the number of electrons, N, for two- dimensional (left) and three-dimensional (right) quantum dots. Table with numbers and more information about simulations can be found in appendix \ref{chp:totalresults}, section \ref{sec:cputime}. For abbreviations see the text.}
+	\label{fig:cpu_time}
+\end{figure} 
+
+\section{Computational cost}
+Many-body quantum simulations are frequently found on lists of the most computationally expensive simulations for scientific purposes, which is caused by the large amount of information that is stored in the wave function. Albeit the VMC method is known to have a high performance-cost ratio, it is still not cheap. In this section, we will find the average cost of VMC and compare it to the cost of the RBM methods described above. In figure \eqref{fig:cpu_time}, the CPU-time is plotted as a function of the number of electrons for two-dimensional (left) and three-dimensional (right) quantum dots. To obtain accurate CPU-times, all the simulations were run on the Abel computer cluster with $M=2^{20}=1,048,576$ Monte Carlo cycles per iteration. The time presented is the average time over at least four independent runs with thousands of iterations each. To see the actual numbers that the plots are based on, go to appendix \ref{chp:totalresults}, section \ref{sec:cputime}. 
+
+Our immediate observation is that the methods are pairwise quite similar, with RBM and VMC as the cheapest methods, and RBM+SJ and RBM+PJ as the most expensive ones. This is not surprising, as the RBM requires a neural network, VMC requires a Jastrow factor while RBM+SJ and RBM+SJ requires both a neural network and a Jastrow factor. For two-dimensional dots, the RBM is the cheapest among all the methods, but for larger systems ($N=42,56$ with $N$ as the number of electrons), VMC gets cheaper due to an explosion in CPU-time for the RBM. This explosion can be explained by our choice of the number of hidden nodes, $H$, which consequently is set to the number of electrons, i.e., $H=N$, which by \citet{nordhagen_computational_2018} was found to give the lowest energy for small quantum dots. Since the RBM has $N\cdot d\cdot (1+H)+H$ variational parameters with $d$ as the number of dimensions, the number of variational parameters for a two-dimensional dot with $N=90$ electrons is 16,470! On the other hand, the VMC method is equipped with two variational parameters for all system sizes, which obviously make the parameter update less costly. We also observe that the RBM+PJ is cheaper than the RBM+SJ for systems up to $N=42$, but after that, the RBM+SJ gets slightly cheaper. This might be surprising, as the simple Jastrow contains $N^2$ variational parameters, but a possible explanation is that BLAS is optimized for large matrix-vector operations and is thus fully utilized first when the matrices get large. We observe the same behavior for the three-dimensional dots as for the two-dimensional dots, and the discussion above is representative for them as well.
+
+The standard way of estimating the scaling of a VMC algorithm is to fit the power function $f(x)=ax^b$ to the cost graph. As all the simulations were performed with the same hyper-parameters and with equal external factors, we fix the first parameter $a$ and focus on the second parameter $b$ only. It is this latter parameter that specifies the scaling, i.e.; we say that the method scales as $N^b$. For comparison reasons, we set $a=0.5$ as this was found to be a good average value. In table \eqref{tab:cputimefit}, the optimal $b$ from linear regression is presented for our four methods in two and three dimensions. We want to emphasize that we only did the regression for CPU-times up to $N=56$ in two dimensions and $N=40$ in three dimensions, partly because we only have data for all methods in this interval and partly because the CPU-time for the RBM explodes for large dots. We believe that this was the best way to do it in order to make the various methods comparable. 
+
+\begin{table}
+	\caption{The scaling of the computational cost of two-dimensional (2D) and three-dimensional (3D) quantum dots as a function of the number of electrons. The numbers presented in the table are the optimal $b$-value found fitting the power function $f(N)=0.5N^b$ to the cost graph. For abbreviations see the text.}
+	\begin{tabularx}{\textwidth}{CCCCC} \hline\hline
+		\label{tab:cputimefit}
+		\makecell{\\ \phantom{=}} & RBM & RBM+SJ & RBM+PJ & VMC \\ \hline \\
+		2D & 1.498 & 1.639 & 1.621 & 1.515 \\ 
+		3D & 1.584 & 1.710 & 1.729 & 1.605 \\ \hline\hline
+	\end{tabularx}
+\end{table}
+
+The numbers in the table match our impression from figure \eqref{fig:cpu_time}, where RBM and VMC pairwise were found to be more expensive than RBM+SJ and RBM+PJ. For all the methods, the scaling was found to be between linear and quadratic as a function of the number of electrons, which is surprising as the update of the Slater matrix scales as $\sim N^2$. 
+
+\section{Energy convergence}
+We want our calculations to converge fast and to be stable, and that is what the optimization tool is responsible for. In figure \eqref{fig:convergenceoptimization}, we compare standard gradient descent (GD) to stochastic gradient descent (SGD) and ADAM for quantum dots with $N=2$ interacting electrons in two and three dimensions. The optimization algorithms were detailed in section \ref{sec:optimizationalgorithms}. The gradient descent methods are plain, i.e., without momentum and adaptive learning rate, while the ADAM optimizer has momentum and adaptivity by nature. The frequency $\omega=1.0$ is used for the two-dimensional case since we know that the exact energy is $E=3.0$ for this case \cite{taut_two_1993}. Similarly, we use the frequency $\omega=0.5$ for the three-dimensional case since the exact energy is $E=2.0$ \cite{taut_two_1994}. 
+
+\begin{figure}
+	\centering 
+	\subfloat{{\input{../pgf/convergence2D.tex}}}
+	\caption{Convergence of estimated ground state energy, $E$, for quantum dots with $N=2$ calculated using the VMC method, detailed in the text. We compare the optimization tools gradient descent (GD), stochastic gradient descent with 10 batches (SGD) and the ADAM optimizer. The left-hand side plot shows a two-dimensional quantum dot of frequency $\omega=1.0$ with exact energy $E=3.0$ \cite{taut_two_1993}. The right-hand side plot shows a three-dimensional quantum dot of frequency $\omega=0.5$ with exact energy $E=2.0$ \cite{taut_two_1994}. The learning rate was set to $\eta=0.5$ and the number of Metropolis steps was $M=2^{24}=16,777,216$. All energies are given in units of $\hbar$ (natural units).}
+	\label{fig:convergenceoptimization}
+\end{figure} 
+
+The first thing we observe is that all three optimization tools manage to converge to the exact energy (see spy window). The stochastic and non-stochastic gradient descent methods behave similarly, but we observe that the SGD goes below the exact energy before it stabilizes. The ADAM optimizer, on the other hand, fluctuates much more, which can be described by the momentum, as discussed in section \ref{sec:momentum}. It is also important to remember that we use VMC, which is equipped with two variational parameters only, and thus is easier to control. The ADAM optimizer is known to be good at machine learning problems where we have many variational parameters, so we will stick to it even though gradient descent seems like a clever choice seen from the figure. Another point is that the circular quantum dots have neat potentials without local minima. When we move on to more complex systems, ADAM generally works better according to the literature.
+
+\begin{figure}
+	\centering 
+	\subfloat{{\input{../pgf/convergence42.tex}}}
+	\caption{Energy convergence for quantum dots where we use the ADAM optimizer. We look at a two-dimensional quantum dot with $N=2$ electrons and frequency $\omega=1.0$, and compare VMC, RBM, RBM+SJ and RBM+PJ to the exact value $E=3.0$ found by \citet{taut_two_1993}. The learning rate was set to $\eta=0.5$ and the number of Metropolis steps used for each iteration was $M=2^{20}=1,048,576$. All energies are given in units of $\hbar$ (Hartree units), see text for abbreviations.}
+	\label{fig:convergence42}
+\end{figure} 
+
+Further, we compare the energy convergence of the various methods in figure \eqref{fig:convergence42}. VMC and RBM+PJ apparently give the lowest energy, followed by the RBM+SJ and RBM. Also the scale of the fluctuations (noise) seems to be in the same order, agreeing with the zero-variance property \cite{assaraf_zero-variance_2003}. While VMC, RBM+SJ and RBM+PJ all immediately converge and stabilize, RBM first converges to a value before it after more than 1000 iterations converges further to a new value. This illustrates that it can be hard to decide whether or not the RBM has converged, and an intelligent system is needed in order to see if the simulation can be stopped or not. In practice, we often turn of the convergence check and let the simulation run the maximum number of iterations. It is apparent that the RBM is harder to train than the other methods, which is a result of the absence of a Jastrow factor.
+
+\section{No repulsive interaction} \label{sec:norepulsive}
+We start with the non-interacting case in order to validate the implemented code. For this case, we know the exact energy and the exact electron density for both quantum dots and atoms, which makes it a good test for the implementation. The physical significance is though limited as such systems do not appear in the real world. We will start with the quantum dot, and then move on to atoms. 
+
+\subsection{Quantum dots}
+The quantum dot system is the system we will keep most of the attention on, and for that reason, we will also validate the implemented quantum dot code thoroughly. As we use the harmonic oscillator potential to describe the attraction in the quantum dots, the system has well-known analytical results for the most common observable. The quantum dots have analytical ground state energies given by equation \eqref{eq:HOenergies} and the number of particles in a closed-shell given by the magic numbers in equation \eqref{eq:HOclosedshell}. For some selected number of electrons and frequencies $\omega=0.5$ and $\omega=1.0$, we compare our obtained energies to the analytical energies in the table \eqref{tab:quantumdotswointeraction}. We observe that both the standard VMC, with $\alpha=1$, and standard RBM, with all parameters set to zero, can reproduce the analytical expression. This is as expected since the exact wave functions are found when the parameters have these particular values. RBM+SJ and RBM+PJ were omitted as we expect them to give similar results to RBM and VMC.
+
+\begin{table}[h]
+	\caption{The energy of quantum dots with frequencies $\omega=0.5$, 1.0 and $N$ non-interacting electrons. Exact values are obtained by $E=\omega(n+1/2)$, and all values are given in units of $\hbar$. The standard error is zero down to machine precision, and for abbreviations see the text.}
+	\label{tab:quantumdotswointeraction}
+	\begin{tabularx}{\textwidth}{r|rR{2cm}R{2cm}R{2cm}|R{2cm}R{2cm}R{2cm}} \hline\hline
+		&& \multicolumn{3}{c}{$\omega=0.5$}&\multicolumn{3}{c}{$\omega=1.0$}\\ \hline
+		\makecell{\\ \phantom{=}}& $N$ & \multicolumn{1}{c}{RBM} & \multicolumn{1}{c}{VMC} & \multicolumn{1}{c}{Exact} & \multicolumn{1}{c}{RBM} & \multicolumn{1}{c}{VMC} & \multicolumn{1}{c}{Exact} \\ \hline \\
+		
+		\parbox[t]{2mm}{\multirow{3}{*}{\rotatebox[origin=c]{90}{2D}}}
+		&2 & 1.0 & 1.0 & 1 & 2.0 & 2.0 & 2\\
+		%&6 & 5.0 & 5.0 & 5 & 10.0 & 10.0 & 10 \\
+		&12 & 14.0 & 14.0 & 14 & 28.0 & 28.0 & 28\\
+		%&20 & 30.0 & 30.0 & 30 & 60.0 & 60.0 & 60\\
+		&30 & 55.0 & 55.0 & 55 & 110.0 & 110.0 & 110\\ \hline \\
+		
+		\parbox[t]{2mm}{\multirow{3}{*}{\rotatebox[origin=c]{90}{3D}}}
+		&2 & 1.5 & 1.5 & 1.5 & 3.0 & 3.0 & 3 \\
+		%&8 & 9.0 & 9.0 & 9 & 18.0 & 18.0 & 18 \\
+		&20 & 30.0 & 30.0 & 30 & 60.0 & 60.0 & 60 \\
+		%&40 & 75.0 & 75.0 & 75 & 150.0 & 150.0 & 150 \\
+		&70 & 157.5 & 157.5 & 157.5 & 315.0 & 315.0 & 315 \\ \hline\hline
+	\end{tabularx}
+\end{table}
+
+We will also focus on the electron density throughout the results, and compare the obtained densities to the analytical ones is a good indicator of whether the implementation is correct or not. In figure \eqref{fig:OB_nointeraction} the radial one-body density is plotted for quantum dots with $N=2$ non-interacting electrons and frequency $\omega=1.0$ in two- (left) and three dimensions (right). We use VMC and RBM, and compare to the exact density profile found from the definition of an electron density in section \ref{eq:electron_density}. We observe that both VMC and RBM are more or less able to reproduce the exact distribution, which indicates that we have done the implementation correctly. However, the densities get noisy when they approach $r=0$, most notably in three dimensions, which is caused by the way we calculate the radial one-body density. In section \ref{sec:electrondensityimplementation}, we saw that the innermost bins are also the smallest, which means that particles are less likely to be observed there when the number of Monte Carlo cycles is finite. Apart from this noise, the density plot in two and three dimensions are identical, which can be explained mathematically by the fact that the non-interacting electron densities are trivially separable.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat[2D]{\includegraphics[width=7cm]{../plots/int0/onebody/2D/2P/GD_MC2pow30_w1p0.png}}
+	\subfloat[3D]{\includegraphics[width=7cm]{../plots/int0/onebody/3D/2P/GD_MC2pow30_w1p0.png}}
+	\caption{Radial one-body density plots for quantum dots with $N=2$ non-interacting electrons and frequency $\omega=1.0$. We look at both a two-dimensional dot (left) and a three-dimensional dot (right) with density profiles produced using VMC and RBM, and comparing to the analytical case $\rho(r)\propto\exp(-r^2)$. For abbreviations see the text.}
+	\label{fig:OB_nointeraction}
+\end{figure}
+
+Furthermore, we present the spatial one-body distribution and radial two-body distribution and compare to analytical results in figure \eqref{fig:ED_nointeraction}, in order to validate also these implementations. For the one-body density plots, we see that the both RBM, VMC and the exact plot are very similar. The radial two-body density plots are found in the same way as the radial one-body density plots, and we again observe some noise close to $r=0$. We also get a cross on the simulated density profile, which occurs since we in practice only simulate one quadrant and add the three other quadrants to make the plot more intuitive and illustrative. Apart from that, the simulated two-body density plots for RBM and VMC seem to match the exact plot. As we have seen before, the electron densities are separable without interaction, which means that the radial two-body density presented here simply is the radial one-body density rotated in space. 
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{2.cm}{\rotatebox[origin=t]{90}{One-body}}}\hspace{0.1cm}
+	\subfloat{\includegraphics[width=5.1cm]{../plots/int0/onebody2/2D/2P/1.000000w/RBM_ADAM_MC268435456.png}}
+	\subfloat{\includegraphics[width=5.1cm]{../plots/int0/onebody2/2D/2P/1.000000w/VMC_GD_MC2pow30_blue_small.png}}
+	\subfloat{\includegraphics[width=5.1cm]{../plots/int0/onebody2/2D/2P/1.000000w/Exact.png}}
+	
+	\subfloat{\raisebox{2.cm}{\rotatebox[origin=t]{90}{Two-body}}}\hspace{0.1cm}
+	\subfloat[RBM]{{\includegraphics[width=5.1cm]{../plots/int0/twobody/RBM/2D/2P/1.000000w/RBM_GD_MC2pow30.png}}}
+	\subfloat[VMC]{{\includegraphics[width=5.1cm]{../plots/int0/twobody/VMC/2D/2P/1.000000w/VMC_GD_MC2pow30.png}}}
+	\subfloat[Exact]{{\includegraphics[width=5.1cm]{../plots/int0/twobody/VMC/2D/2P/1.000000w/exact.png}}}
+	
+	\caption{Electron density plots for a two-dimensional quantum dot with $N=2$ non-interacting electrons and frequency $\omega=1.0$ produces using RBM and VMC. The upper plots are the (spatial) one-body density distribution, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. The lower plots are the radial two-body density distributions. Besides, we compare the results to the exact densities, given by $\rho(x,y)\propto\exp(-x^2-y^2)$ and $\rho(r_i,r_j)\propto\exp(-r_i^2-r_j^2)$, respectively. For abbreviations see the text.}
+	\label{fig:ED_nointeraction}
+\end{figure}
+
+As discussed before, the electron density should be normalized such that the integral over the density function $\rho$ corresponds to the number of particles $N$. For the one-body density, this corresponds to $\int dr\rho(r)=N$ for the radial density profile and $\int dxdy\rho(x,y)=N$ for the spatial density distribution and for the two-body radial density profile the normalization condition is $\int dr_idr_j\rho(r_i,r_j)=N$. However, there is no standard way of normalizing these densities when they are calculated using bins like us, as the normalization constant depends on the number of bins \textit{et cetera}. This is not very important either; we are only interested in the relative densities and the shapes of the density plots. We have been consequent when normalizing the density plots, such that the various density magnitudes can be compared to each other.
+
+\iffalse
+\newpage
+\subsection{Double quantum dots}
+For the double quantum dots, we can also find analytical energies without interaction, as explained in section \ref{sec:doubledots}. We first find the matrix 
+\begin{equation*}
+\hat{h}_{\nu\lambda}=\mel{\phi_{\nu}^{\text{HO}}(x)}{\hat{\mathcal{H}}_{\text{HO}}}{\phi_{\lambda}^{\text{HO}}(x)}+\mel{\phi_{\nu}^{\text{HO}}(x)}{\hat{\mathcal{H}}_{\text{+}}}{\phi_{\lambda}^{\text{HO}}(x)}
+\end{equation*}
+for a satisfying number of harmonic oscillator functions (basis functions). All the symbols are detailed in section \ref{sec:doubledots}. The energies are the eigenvalues of the matrix, which were obtained by the script \texttt{doublewell\_functions.py}. For one particle in one-dimensional potentials, we get the energy $E=0.3095$ for $\omega=1.0$ and $b=2$, and $E=0.1916$ for $\omega=0.5$ and $b=4$. This gives the analytical energies presented in table \eqref{tab:doubledotswointeraction}. 
+\begin{table} [H]
+	\caption{Energy of double quantum dots of frequency $\omega$ and with a splitting parameter $b$ containing two non-interacting electrons. The methods used were detailed in the introductory words of this chapter.}
+	\label{tab:doubledotswointeraction}
+	\begin{tabularx}{\textwidth}{lrrrR{3.5cm}R{3.5cm}R{3.5cm}} \hline\hline
+		D & $\omega$ & $b$ & \makecell{\\ \phantom{=}} & RBM & VMC & Exact \\ \hline \\
+		
+		2D & 0.5 & 4.0 && - & - & 0.8832 \\
+		& 1.0 & 2.0 && - & 1.6207(2) & 1.619 \\
+		3D & 0.5 & 4.0 && - & - & 1.3832 \\
+		& 1.0 & 2.0 && - & - & 2.619 \\ \hline\hline
+	\end{tabularx}
+\end{table}
+
+The VMC reproduces the energies perfectly, while the RBM does not...
+\fi
+
+\newpage
+\subsection{Atoms}
+Lastly, we will look at atoms with non-interacting electrons in order to validate our code. The analytical energy of those atoms is given by the Bohr formula presented in equation \eqref{eq:bohrformula}. In table \eqref{tab:atomswointeraction}, the lowest closed-shell atoms Helium, Beryllium and Neon are listed with their exact energy and the obtained energy using VMC with hydrogen-like orbitals. Besides, we add calculations of the Hydrogen ground state energy as another simple test. What distinguish the implementation of atoms from the implementation of quantum dots, is that we are forced to include variational parameters in the Slater determinant for the atoms with atomic number $Z>2$. However, as all the energies are reproduced to machine-precision with the variational parameter $\alpha=1.0$, we have a clear indication that also this part works as it should.
+
+\begin{table}[H]
+	\caption{Energy of neutral atoms with atomic number $Z$ and non-interacting electrons. The energy is given in atomic units, see appendix \ref{app:units}. The variance is zero to machine-precision for all listed results. For abbreviations see the text.}
+	\label{tab:atomswointeraction}
+	\begin{tabularx}{\textwidth}{R{3.5cm}lrrR{2.5cm}R{2.5cm}} \hline\hline
+		& Atom & $Z$ & \makecell{\\ \phantom{=}} & VMC & Exact \\ \hline \\
+		
+		& H & 1 && -0.5 & -0.5 \\
+		& He & 2 && -4.0 & -4 \\
+		& Be & 4 && -20.0 & -20 \\
+		& Ne & 10 && -200.0 & -200 \\ \hline\hline
+	\end{tabularx}
+\end{table}
+
+For completeness reasons, we also present the radial one-body density for Helium in figure \eqref{fig:helium_nointeraction}. The density is multiplied with $r^2$ in order to reveal the structure, and later in section \ref{sec:atomsresults} to compare the obtained density to other references. We see that the produced density curve is more or less identical to the exact density curve, found from the definition in section \ref{eq:electron_density}.
+
+\begin{figure}[H]
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\includegraphics[width=9cm]{../plots/int0/onebody/helium.png}}
+	\caption{Radial one-body density plot for the non-interacting Helium atom produced using VMC. The density was multiplied with $r^2$ in order to reveal the structures. For abbreviations see the text.}
+	\label{fig:helium_nointeraction}
+\end{figure}
+
+\cleardoublepage
+\section{Quantum dots} \label{sec:quantumdotresults}
+We now move on to the more interesting case with repulsive interaction between the electrons. Analytical results are in general unavailable for this case, apart from a few semi-analytical energies and wave functions for the two- and three-dimensional quantum dots. We will for this system calculate the ground state energy, the one-body density, and the two-body density. 
+
+The simulations are dependent on an array of parameters and factors, and in order to achieve good results, these hyper-parameters need to be reasonable. Firstly, the simulations are very sensitive about the learning rate, which needs to be small to avoid the quantum force to explode, but still large enough for the system to converge in an adequate number of iterations. Appropriate learning rates were found to be between $\eta=0.5$ and 0.00001 dependent on the system, where large systems and/or systems with low frequency required the lowest learning rates. Also, the step length needs to be specified cleverly, as we want to sample over the space where the particles physically can be located in a reasonable number of cycles. For a narrow oscillator potential (high frequency), the step length needs to be smaller than for a wide oscillator (low frequency). The acceptance ratio is directly dependent on the step length, where we want a high acceptance ratio to keep the computational cost low. However, we experienced that a too high acceptance ratio is neither favorable, as it can cause a very slow convergence or even a divergence. Also, the statistical error is largely dependent on the step length, and keeping an acceptance ratio at around 0.995 was found to be optimal, with a step length spanning from 0.01 to 1.0. The initial particle configurations and initial parameters are crucial to make the simulations converge rapidly. Lastly, the statistical error naturally also depends on the number of Monte Carlo cycles, where a high number of cycles is preferred as discussed in section \ref{sec:vmc}. We have applied an adaptive step number, which means that the number of cycles per iteration is increased for the last iterations. Firstly, this makes the final energy more accurate due to better statistics. Secondly, we get less noisy electron density plots by using this technique. All results below are produced using $2^{20}=1,048,576$ number of steps per iteration until the energy has converged. Then we run 10 more iterations with the number of steps increased to $2^{24}=16,777,216$ and for the very last iteration we run $2^{28}=268,435,456$ or $2^{30}=1,073,741,824$ steps.
+
+Initially, we look at two-dimensional quantum dots with up to $N=56$ electrons and three-dimensional quantum dots with up to $N=40$ electrons and frequencies spanning from  $\omega=0.1$ to $\omega=1.0$. For those systems, we will compute the ground state energy, the one-body density, and the two-body density. After that, we move on to some special cases where the dots have low frequency ($\omega=0.01$) and large dots ($N>56$) to test how far we can go. For those systems, we will typically focus on either the ground state energy or the one-body density dependent on what we want to investigate. For instance, we will focus on the one-body density for low-frequency dots because of the search for Wigner localization. We also have a thorough discussion of how the energy is distributed between kinetic and potential energy, and compare this to the virial theorem.
+
+\afterpage{
+	\begin{landscape}
+		\begin{table}
+			\captionsetup{width=0.9\hsize}
+			\caption{The ground state energy of two-dimensional circular quantum dots with frequency $\omega$ containing $N$ electrons. The HF results are taken from \citet{mariadason_quantum_2018}, the DMC results are taken from \citet{hogberget_quantum_2013} and semi-analytical results (Exact) are taken from \citet{taut_two_1994}. For abbreviations see the text. The energy is given in units of $\hbar$, and the numbers in parenthesis are the statistical uncertainties in the last digit.}
+			\begin{tabularx}{\hsize}{llR{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}} \hline\hline
+				\label{tab:quantumdotswinteraction2D1}
+				\makecell{\\ $N$ \\ \phantom{=}} & $\omega$ & \multicolumn{1}{c}{RBM} & \multicolumn{1}{c}{RBM+SJ} & \multicolumn{1}{c}{RBM+PJ} & \multicolumn{1}{c}{\makecell{HF \\ (Ref.\cite{mariadason_quantum_2018})}} & \multicolumn{1}{c}{VMC} & \multicolumn{1}{c}{\makecell{DMC \\ (Ref.\cite{hogberget_quantum_2013})}} & \multicolumn{1}{c}{\makecell{Exact \\ (Ref.\cite{taut_two_1994})}} \\ \hline \\
+				2 & 0.1 & 0.4728(1) & 0.44856(1) & 0.440975(8) & 0.525635 & 0.44129(1) & 0.44079(1) \\ 
+				& 1/6 & 0.7036(1) & 0.67684(7) & 0.66715(6) & 0.768675 & 0.66710(1) & - & 2/3 \\
+				& 0.28 & 1.07050(4) & 1.03470(7) & 1.021668(7) & 1.14171 & 1.02192(1) & 1.02164(1) \\
+				& 0.5 & 1.72293(7) & 1.67739(9) & 1.659637(6) & 1.79974 & 1.65974(1) & 1.65977(1)  \\
+				& 1.0 & 3.0803(2) & 3.02108(5) & 2.999587(5) & 3.16190 & 2.99936(1) & 3.00000(1) & 3.0 \\ 
+				\hline \\
+				
+				6 & 0.1 & 3.697(1) & 3.63825(9) & 3.5700(2) & 3.85238 & 3.5695(1) & 3.55385(5) \\ 
+				& 0.28 & 7.9273(9) & 7.7313(2) & 7.6203(2) & 8.01957 & 7.6219(1) & 7.60019(6) \\
+				& 0.5 & 12.241(1) & 11.9659(5) & 11.8074(2) & 12.2713 & 11.8104(2) & 11.78484(6) \\
+				& 1.0 & 20.716(1) & 20.3393(8) & 20.1832(2) & 20.7192 & 20.1918(2) & 20.15932(8) \\ \hline \\
+				
+				12 & 0.1 & 12.679(1) & 12.5964(7) & 12.3416(4) & 12.9247 & 12.29962(9) & 12.26984(8) \\ 
+				& 0.28 & 26.389(2) & 26.051(1) & 25.7331(5) & 26.5500 & 25.7049(4) & 25.63577(9) \\
+				& 0.5 & 40.440(3) & 39.6340(7) & 39.2743(6) & 40.2161 & 39.2421(5) & 39.1596(1) \\
+				& 1.0 & 67.632(3) & 66.1898(8) & 65.7911(7) & 66.9113 & 65.7026(4) & 65.7001(1) \\ \hline
+			\end{tabularx}
+		\end{table}
+		
+		\begin{table}
+			\label{tab:quantumdotswinteraction2D2}
+			\begin{tabularx}{\hsize}{llR{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}} \\
+				20 & 0.1 & 30.824(2) & 30.567(3) & 30.1553(9) & 31.1902 & 30.0403(2) & 29.9779(1) \\ 
+				& 0.28 & 63.788(4) & 62.786(3) & 62.148(1) & 63.5390 & 62.0755(7) & 61.9268(1) \\
+				& 0.5 & 96.410(1) & 94.920(4) & 94.104(1) & 95.7328 & 94.0433(9) & 93.8752(1) \\
+				& 1.0 & 159.428(3) & 156.816(4) & 156.104(1) & 158.004 & 155.8900(4) & 155.8822(1) & \phantom{=} \\ 
+				\hline \\
+				
+				30 & 0.1 & 61.829(5) & 61.198(2) & 60.774(2) & & 60.585(1) & 60.4205(2) \\ 
+				& 0.28 & 126.958(6) & 125.413(2) & 124.437(2) & & 124.195(2) & 123.9683(2) \\
+				& 0.5 & 191.495(7) & 188.995(5) & 187.488(2) & & 187.325(3) & 187.0426(2) \\
+				& 1.0 & 315.364(8) & 309.997(6) & 308.989(2) & & 308.576(1) & 308.5627(2) \\ \hline \\
+				
+				42 & 0.1 & 109.892(6) & 109.48(2) & 108.183(1) & &  107.928(2) & 107.6389(2) \\ 
+				& 0.28 & 224.462(8) & 224.184(9) & 222.200(5) & & 220.224(2) & 219.8426(2) \\
+				& 0.5 & 337.523(8) & 333.582(9) & 331.410(3) & & 331.276(3) & 330.6306(2) \\
+				& 1.0 & 553.40(1) & 545.817(9) & 543.746(3) & & 542.977(2) & 542.9428(8) \\ \hline \\
+				
+				56 & 0.1 & 179.789(6) & 179.59(1) & 178.501(5) & & 176.774(3) & 175.9553(7) \\ 
+				& 0.28 & 364.85(1) & 364.165(9) & 359.83(2) & & 359.63(1) & 358.145(2) \\
+				& 0.5 & 547.46(1) & 545.74(1) & 538.810(7) & & 538.686(9) & 537.353(2) \\
+				& 1.0 & 894.12(2) & 882.93(1) & 881.010(5) & & 879.514(3) & 879.3986(6) \\ \hline\hline
+			\end{tabularx}
+		\end{table}
+		
+		\begin{table}
+			\captionsetup{width=0.9\hsize}
+			\caption{The ground state energy of two-dimensional circular quantum dots with frequency $\omega$ containing $N$ electrons.  The HF results are taken from \citet{mariadason_quantum_2018}, the DMC results are taken from \citet{hogberget_quantum_2013} and semi-analytical results (Exact) are taken from \citet{taut_two_1993}. For abbreviations see the text. The energy is given in units of $\hbar$, and the numbers in parenthesis are the statistical uncertainties in the last digit.} 
+			\begin{tabularx}{\hsize}{llR{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}R{2.65cm}} \hline\hline
+				\label{tab:quantumdotswinteraction3D1}
+				\makecell{\\ $N$ \\ \phantom{=}} & $\omega$ & \multicolumn{1}{c}{RBM} & \multicolumn{1}{c}{RBM+SJ} & \multicolumn{1}{c}{RBM+PJ} & \multicolumn{1}{c}{\makecell{HF \\ (Ref.\cite{mariadason_quantum_2018})}} & \multicolumn{1}{c}{VMC} & \multicolumn{1}{c}{\makecell{DMC \\ (Ref.\cite{hogberget_quantum_2013})}} & \multicolumn{1}{c}{\makecell{Exact \\ (Ref.\cite{taut_two_1993})}} \\ \hline \\
+				2 & 0.1 & 0.5177(1) & 0.50214(3) & 0.500080(6) & 0.529065 & 0.500083(7) & 0.499997(3) & 0.5 \\
+				& 0.28 & 1.2261(1) & 1.20475(4) & 1.201710(6) & 1.23722 & 1.201752(6) & 1.201725(2) \\
+				& 0.5 & 2.0269(1) & 2.00371(4) & 1.999912(5) & 2.03851 & 1.999977(5) & 2.000000(2) & 2.0 \\
+				& 1.0 & 3.7574(1) & 3.73543(4) & 3.729827(5) & 3.77157 & 3.730030(5) & 3.730123(3) \\ 
+				\hline \\
+				
+				8 & 0.1 & 5.8910(6) & 5.7498(4) & 5.718(4) & 5.86255 & 5.7126(1) & 5.7028(1) \\ 
+				& 0.28 & 12.650(1) & 12.2492(4) & 12.2056(2) & 12.3987 & 12.2050(2) & 12.1927(1) \\
+				& 0.5 & 19.487(2) & 19.0241(4) & 18.9747(2) & 19.1916 & 18.9759(1) & 18.9611(1) \\
+				& 1.0 & 33.302(1) & 32.7159(6) & 32.6820(2) & 32.9246 & 32.6863(2) & 32.6680(1) \\ 
+				\hline \\
+				
+				20 & 0.1 & 27.813(2) & 27.470(1) & 27.3382(8) & & 27.3144(5) & 27.2717(2) \\ 
+				& 0.28 & 57.700(4) & 56.600(1) & 56.4477(6) & & 56.4297(5) & 56.3868(2) \\
+				& 0.5 & 87.840(4) & 85.893(1) & 85.7153(6) & & 85.7161(5) & 85.6555(2) \\
+				& 1.0 & 146.292(4) & 143.209(2) & 142.9409(6) & & 142.9560(7) & 142.8875(2) \\ \hline \\
+				
+				40 & 0.1 & 89.45(8) & 89.618(4) & 88.596(4) & & 88.182(1) \\ 
+				& 0.28 & 182.714(6) & 181.877(4) & 179.630(1) & & 179.567(1) \\
+				& 0.5 & 275.262(7) & 271.030(4) & 269.782(2) & & 269.746(1) \\
+				& 1.0 & 452.732(8) & 442.874(4) & 442.630(1) & & 442.602(2) \\ \hline\hline
+			\end{tabularx}
+		\end{table}
+	\end{landscape}
+}
+
+\subsection{Ground state energy} \label{sec:groundstateenergy}
+The ground state energy is a natural starting point as our methods govern the minimization of the energy and it easily can be compared to benchmarks. By exploiting the symmetry of quantum dots with $n=2$ electrons, \citeauthor{taut_two_1993} was able to obtain semi-analytical energies for some specific frequencies $\omega$. More specifically, he found the energy to be $E=3$ for the frequency $\omega=1$ and $E=2/3$ for the frequency $\omega=1/6$ for the two-dimensional case \cite{taut_two_1993}, and $E=2$ for the frequency $\omega=1/2$ and $E=1/2$ for the frequency $\omega=1/10$ for the three-dimensional case \cite{taut_two_1994}. For other references, we need to rely on what researchers have found before us. Since diffusion Monte Carlo (DMC) is known to give very accurate results, we will mainly compare our results to the DMC computations of \citet{hogberget_quantum_2013}, which exist for quantum dots with up to $N=56$ electrons in two dimensions and with up to $N=20$ electrons in three dimensions. Comparing the energy to the Hartree-Fock (HF) limit is also interesting as the HF method approximates the electron-electron interactions by a mean-field, while the RBM needs to model the interactions itself. Practically, the RBM should give a lower energy than the HF method as the latter traditionally is notably computationally cheaper. We use the HF computations of \citet{mariadason_quantum_2018} for two-dimensional quantum dots with up to $N=20$ electrons and three-dimensional quantum dots with up to $N=8$ electrons. Computations for larger dots were not included, as they seem to not have converged.
+
+Ground state energy computations of two- and three dimensional quantum dots are found in tables \eqref{tab:quantumdotswinteraction2D1} and \eqref{tab:quantumdotswinteraction3D1} respectively. They are computed by an RBM, RBM+SJ, RBM+PJ, and VMC, in addition to the HF limit and DMC that are present for reference purposes. The exact values are found in the last column with the same name. We observe that the method where less physical intuition is used, RBM, is the one that gives the highest energies among our implemented methods. This is as expected as no Jastrow factor is added to account for the correlations. For small quantum dots ($N<8$), the RBM energy is lower than the HF limit, and for low frequencies ($\omega<0.5$) the RBM energy is generally also lower. However, for higher frequencies and larger dots, the HF limit is lower than the energy obtained with the RBMs. It is apparent that the mean-field approximation works better than the RBM when the interactions get less important. When we add more intuition in the form of a simple Jastrow factor, the energy drops significantly, especially for high frequencies. It is, therefore, lower than the HF limit for all simulations, and surprisingly close to the reference considering the simple form of the Jastrow factor. The statistical errors of the RBM+SJ is in general smaller than for RBM, which is a good indication that the method provides a better ground state estimate as the actual ground state obeys a zero-variance property. 
+
+Furthermore, we added a more complex Jastrow factor in the form of a Padé-Jastrow factor, and we observe that the energy drops further. The RBM+PJ provides energies entirely on par with VMC, in many cases even lower. Notably, RBM+PJ provides the lowest energies among our implemented methods for dots with two electrons, and the statistical errors are also the lowest. This hints that RBM+PJ can obtain a better ground state estimate than VMC for the smallest dots, which makes sense as the former method is more flexible than VMC. However, for large dots, RBM+PJ provides slightly higher energies than VMC, which we suspect is a result of the large number of variational parameters, and thus a too complex model for the problem. If we recall that the number of hidden units is set to the number of electrons, the number of variational parameters increases rapidly as the number of electrons increases. To see if the problem occurs because the model has not converged, we have decreased the number of hidden nodes for some selected systems, and it has given promising results.
+
+We also see that all the methods can obtain energies closer to the reference energy in three dimensions compared to two dimensions. This is a well-known concept and occurs because we have more degrees of freedom. One can imagine that the electrons can move in the space instead of just on a plane, which makes it easier to form a configuration that minimizes the energy. 
+
+Efforts were made to reproduce the results using a partly restricted Boltzmann machine and a deep belief network, but due to convergence problems and energy fluctuations, the methods were not investigated further. 
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=2$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/2P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/2P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=6$}}}\hspace{0.05cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/6P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/6P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=12$}}}\hspace{0.1cm}
+	\subfloat[RBM]{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/12P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat[VMC]{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/12P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}
+	
+	\caption{One-body density plots for two-dimensional quantum dots with frequency $\omega=1.0$, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. From the top, the plots present quantum dots with $N=2$, 6 and 12 electrons, and were all obtained using RBM (right column) and VMC (left column). The ADAM optimizer was used, and after convergence the number of Monte Carlo cycles was $M=2^{30}=1,073,741,824$. The plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:OB_interaction_1p0w1}
+\end{figure}
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=20$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/20P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/20P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=30$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/30P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/30P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=42$}}}\hspace{0.1cm}
+	\subfloat[RBM]{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/42P/1.000000w/RBM_ADAM_MC2pow28_smooth_blue.png}}}\hspace{-0.0cm}
+	\subfloat[VMC]{{\includegraphics[width=7.8cm]{../plots/int1/onebody2/2D/42P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue.png}}}
+	
+	\caption{One-body density plots for two-dimensional quantum dots with frequency $\omega=1.0$, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. From the top, the plots present quantum dots with $N=20$, 30 and 42 electrons, and were all obtained using RBM (right column) and VMC (left column). The ADAM optimizer was used, and after convergence the number of Monte Carlo cycles was $M=2^{30}=1,073,741,824$. The plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:OB_interaction_1p0w2}
+\end{figure}
+
+\subsection{One-body density} \label{sec:onebodyresults}
+Another quantity of particular interest is the one-body density. For all the systems presented in tables \eqref{tab:quantumdotswinteraction2D1} and \eqref{tab:quantumdotswinteraction3D1} we have also calculated the one-body density. However, since all of those plots would occupy tens of pages, we will not present all of them here. Instead, we select a few sample plots that might be interesting for the reader and give a representative picture of the density. The total collection of one-body density plots can be found in section \ref{sec:onebody} in appendix \ref{chp:totalresults}. 
+
+We have computed the one-body density in two different ways: by dividing the space into annuluses and obtaining the radial density profile, as discussed in section \ref{sec:electrondensityimplementation}, and by dividing the space into a grid of equally sized bins and obtaining the density profile throughout the space. The former is computationally beneficial as the density typically is stored in $n$ bins compared to $n^2$ bins for the second method, but the latter is clearly able to store more information. The second method is thereby able to give more informative plots, but when we want to compare the various methods, a radial density profile is more convenient. In other words, there are pros and cons associated with both methods, and we will, therefore, present both to give an as comprehensive description of the results as possible. 
+
+Initially, we will present the spatial density profiles for two-dimensional quantum dots of frequency $\omega=1.0$. In figure \eqref{fig:OB_interaction_1p0w1} and \eqref{fig:OB_interaction_1p0w2}, the evolution of the one-body density for dots of sizes $N=2$, 6, 12, 20, 30 and 42 are presented, produced with RBM and VMC. To maximize the amount of information in the plots, we have included a graph presenting the cross-section through $x=0$ on the $yz$-plane and a contour plot of the density on the $xy$-plane, in addition to a 3D surface plot of the density. What we observe is that the density profile is smooth, with more peaks as the number of particles increases, representing high densities. For an odd number of shells ($N=2$, 12 and 30) the density has its maximum at the center of the dot, resulting in equal shapes where for example the shape of $N=12$ is seen as the top of $N=30$. On the other hand, for an even number of shells ($N=6$, 20 and 42) the highest density is found at a ridge that encircles the center, and also here the shape of for example $N=20$ is seen as the top of $N=42$. It is apparent that those are the configurations that minimize the energy, with a structure following directly from the Pauli principle, as the electrons are forced to distribute over multiple shells. Even when we remove the interaction between the electrons, we get the same characteristic wave shape, though narrower. The RBM provides sharper and more distinct peaks than the VMC, but at least the extrema seem to be located at the same radii. These differences are caused by the ways the methods model the correlations, where the VMC employs the Padé-Jastrow factor, and the RBM needs to find the best way to account for the correlations itself. To connect the observations to something everyone is familiar with, we can compare the density plots to water ripples if one sees it from the smallest to the largest dot. \citet{hogberget_quantum_2013} discusses this in his master thesis, and his one-body densities are consistent with what we have obtained. However, for $N=42$ the RBM provides a density profile that has ripples in both radial and angular direction, indicating that the simulation has not fully converged to the minimum. This might be an effect of the large number of variational parameters. One-body density plots for the same systems using an RBM+SJ and RBM+PJ were generated, but in order to limit us to a few plots we decided to keep the extremes here, and placed the others in appendix \ref{chp:totalresults}.
+
+In figure \eqref{fig:OB_interaction_23D}, we stick to frequency $\omega=1.0$ for small two- and three-dimensional quantum dots and compare the results obtained by VMC, RBM, RBM+SJ, and RBM+PJ. We investigate dots with $N=2$, 6 and 12 in two dimensions and $N=2$, 8 and 20 in three dimensions, which corresponds to one shell ($S=1$), two shells ($S=2$) and three shells ($S=3$), respectively. For all the numbers of shells, we immediately see that the density plots are identical for two- and three-dimensional dots. The same phenomenon was observed for quantum dots with non-interacting electrons in figure \eqref{fig:OB_nointeraction}, which can easily be explained as the wave function is trivially separable. However, this is not the situation when we look at the interacting case, and it was therefore not obvious to us that the same phenomenon would occur here. Physically, this means that the electrons configure in the same way in three dimensions as in two dimensions, 
+\begin{figure}[H]
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{$S=1$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue_small.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody/2D/2P/1.000000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody/3D/2P/1.000000w/ADAM_MC1048576.png}}}\\ [-0.2cm]
+	
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{$S=2$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue_small.png}}}\hspace{-0.0cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody/2D/6P/1.000000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody/3D/8P/1.000000w/ADAM_MC1048576.png}}}\\ [-0.2cm]
+	
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{$S=3$}}}\hspace{0.1cm}
+	\subfloat[VMC, 2D]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/12P/1.000000w/VMC_ADAM_MC2pow28_smooth_blue_small.png}}}\hspace{-0.0cm}
+	\subfloat[2D]{{\includegraphics[width=5.1cm]{../plots/int1/onebody/2D/12P/1.000000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat[3D]{{\includegraphics[width=5.1cm]{../plots/int1/onebody/3D/20P/1.000000w/ADAM_MC1048576.png}}}
+	
+	\caption{One-body density plot for small quantum dots with frequency $\omega=1.0$. We look at the three lowest shells $S=1$, 2 and 3 corresponding to $N=2$, 6, and 12 electrons in two dimensions and $N=2$, 8 and 20 electrons in three dimensions. In the first column, the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. In the middle column, the corresponding radial density profiles are obtained using RBM, RBM+SJ, RBM+PJ and VMC. On the right-hand side, the radial density profiles for the three-dimensional dots are given using the same methods. ADAM optimizer was used, and after convergence, the number of Monte-Carlo cycles was $M=2^{30}=1,073,741,824$. The surface plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:OB_interaction_23D}
+\end{figure}
+\noindent
+where the average distance from a "shell" to the center of the dot is dimensionless. Besides the physics, we are also interested in analyzing the performance of the various methods. We observe that all the methods give quite similar radial density profiles, but RBM is always the guy standing out. Apparently, the RBM tends to exaggerate the peaks discussed above and gives an even more wavy density plot, as also observed in figures \eqref{fig:OB_interaction_1p0w1} and \eqref{fig:OB_interaction_1p0w2}. Further, the RBM+SJ is more similar to the VMC and RBM+PJ, which are almost identical. This is consistent with the energy analysis in section \ref{sec:groundstateenergy}, where we found VMC and RBM+PJ to be the most accurate methods, followed by RBM+SJ and RBM. We also observe some noise close to $r=0$, which is caused by the fact that the number of Monte Carlo cycles is finite and we in practice have bins of different sizes.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{3cm}{\rotatebox[origin=t]{90}{$\omega=0.1$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/20P/0.100000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/42P/0.100000w/ADAM_MC1048576.png}}}\\
+	
+	\subfloat{\raisebox{3cm}{\rotatebox[origin=t]{90}{$\omega=0.5$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/20P/0.500000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/42P/0.500000w/ADAM_MC1048576.png}}}\\
+	
+	\subfloat{\raisebox{3cm}{\rotatebox[origin=t]{90}{$\omega=1.0$}}}\hspace{0.1cm}
+	\subfloat[20P]{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/20P/1.000000w/ADAM_MC1048576.png}}}\hspace{-0.5cm}
+	\subfloat[42P]{{\includegraphics[width=8cm]{../plots/int1/onebody/2D/42P/1.000000w/ADAM_MC1048576.png}}}
+	
+	\caption{One-body density plot for two-dimensional quantum dots with oscillator frequencies $\omega=0.1$, 0.5 and 1.0 and $N=20$, 42 electrons. The ADAM optimizer was used, and after convergence the number of Monte-Carlo cycles was $M=2^{28}=268,435,456$. For abbreviations see the text.}
+	\label{fig:OB_interaction}
+\end{figure}
+
+We now move on to larger two-dimensional dots and lower frequencies than $\omega=1.0$ to see if the physics is conserved also when the interactions get stronger. In figure \eqref{fig:OB_interaction}, we plot the radial density profile for two-dimensional quantum dots with $N=20,42$ and frequencies $\omega=0.1$, 0.5 and 1.0 to compare all the methods again. What we see is that the peaks discussed above are conserved for lower frequencies, and they change slightly as the frequency drops. Also, the density distribution is spatially expanded as the frequency drops, since the force pushing the electrons towards the center of the dot gets weaker. All the methods VMC, RBM+PJ, and RBM+SJ appear to give quite similar density plots, but for lower frequencies, the difference gets gradually more visible. In particular, the peaks for frequency $\omega=0.1$ do no longer match for the various methods. Especially RBM and RBM+SJ differ from VMC and RBM+PJ, which is again a clear indication that the final results are heavily dependent on the way the methods account for the correlations. RBM+SJ tends to slightly exaggerate the peaks in the density plots, and RBM takes the exaggeration to the next level. This trend was also observed in the plots in figures (\ref{fig:OB_interaction_1p0w1}, \ref{fig:OB_interaction_1p0w2}, \ref{fig:OB_interaction_23D}), and technically speaking, this means that the method is capable of finding the most likely places to find the electrons, but fails to determine the actual density there. We have also seen that the one-body density is shape-invariant for the frequencies $\omega=0.5$ and 1.0 except for their radial extent. For that reason, it is not very exciting to further study those high frequencies, and in section \ref{sec:lowfrequencies} we move on to low-frequency dots.
+
+\subsection{Two-body density}
+We have on multiple occasions in this thesis discussed the electron density, and we have also mentioned the two-body density. The two-body density gives the probability of finding an electron at a certain position, given the position of another electron. Unlike the one-body density, this density, therefore, gives the information of how the particles distribute pairwise, and it is therefore very informative when we want to study the electron-electron correlations. Similarly to the one-body density, we can both plot the radial two-body density profile and the actual two-body density distribution throughout the space. However, since the latter results in a higher-dimensional object, we stick to the radial density profile. Also for this quantity, it would be convenient to have references to benchmark our results, but for some reason, it is hard to find papers that discuss the two-body density for quantum dots. Nevertheless, someone needs to be the first, and we will use the plots to discuss physics and compare the various methods in the best possible way. Again, we will emphasize that a negative radial distance does not make sense, so all the quadrants in the two-body density plots are the same and presented in this way to make them more illustrative and intuitive. We will focus on the two-dimensional case, as the three-dimensional case becomes similar in the same way as for the one-body density. 
+
+In figure \eqref{fig:TB_interaction_2P}, we plot the two-body density for a two-dimensional quantum dot with $N=2$ and frequencies $\omega=0.1$, 0.5 and 1.0. For the frequency $\omega=1.0$, the density plots for all the methods give quite similar results, but the RBM provides a higher two-body density in the middle of the quantum dot, compared to the other methods. This can be seen from the magnitude of the density at the center, but also the density itself is narrower than for its fellow methods, making it more compact. This can be explained by the absence of a Jastrow factor. Also, the RBM+SJ gives a slightly narrower distribution than the RBM+PJ and VMC, so it is apparent that the Padé-Jastrow factor results in a more repulsive factor than the simple Jastrow factor. The same indication can be seen at the density at the origin, which is low for RBM+PJ and VMC, but high for RBM and RBM+SJ. Furthermore, we know that the potential, and thus the interactions, get more dominating as the frequency drops. For VMC and RBM+PJ, this can be observed by a significant circle of higher density at a certain distance from the origin both for $\omega=0.5$ and $\omega=0.1$, which physically means that both particles are less likely to be found in the center of the dot at the same time. If one particle is close to the center, the other particle is probably far from the center and \textit{vice versa}. For the RBM+SJ, this behavior can only be observed 
+
+\begin{landscape}
+	\begin{figure}
+		\centering
+		\captionsetup{width=0.9\hsize}
+		\captionsetup[subfigure]{labelformat=empty}
+		\subfloat{\raisebox{2cm}{\rotatebox[origin=t]{90}{$\omega=0.1$}}}\hspace{0.1cm}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.100000w/RBM_ADAM_MC1048576.png}}}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.100000w/RBMSJ_ADAM_MC1048576.png}}}
+		\subfloat{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.100000w/RBMPJ_ADAM_MC1048576.png}}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.100000w/VMC_ADAM_MC1048576.png}}}
+		
+		\subfloat{\raisebox{2cm}{\rotatebox[origin=t]{90}{$\omega=0.5$}}}\hspace{0.1cm}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.500000w/RBM_ADAM_MC1048576_zoomed.png}}}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.500000w/RBMSJ_ADAM_MC1048576_zoomed.png}}}
+		\subfloat{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.500000w/RBMPJ_ADAM_MC1048576_zoomed.png}}
+		\subfloat{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/0.500000w/VMC_ADAM_MC1048576_zoomed.png}}}\\
+		
+		\subfloat{\raisebox{2cm}{\rotatebox[origin=t]{90}{$\omega=1.0$}}}\hspace{0.1cm}
+		\subfloat[RBM]{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/1.000000w/RBM_ADAM_MC1048576_zoomed.png}}}
+		\subfloat[RBM+SJ]{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/1.000000w/RBMSJ_ADAM_MC1048576_zoomed.png}}}
+		\subfloat[RBM+PJ]{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/1.000000w/RBMPJ_ADAM_MC1048576_zoomed.png}}}
+		\subfloat[VMC]{{\includegraphics[width=5.7cm]{../plots/int1/twobody/2D/2P/1.000000w/VMC_ADAM_MC1048576_zoomed.png}}}
+		
+		\caption{Two-body density plots for two-dimensional quantum dots with $N=2$ electrons and oscillator frequencies $\omega=0.1$, 0.5 and 1.0. The ADAM optimizer was used, and after convergence the number of Monte-Carlo cycles was $M=2^{28}=268,435,456$. For abbreviations see the text.}%
+		\label{fig:TB_interaction_2P}
+	\end{figure}
+\end{landscape}
+\begin{figure}[H]
+	\centering
+	\captionsetup{width=0.9\hsize}
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=6$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=7cm]{../plots/int1/twobody/2D/6P/0.500000w/RBM_ADAM_MC1048576.png}}}
+	\subfloat{{\includegraphics[width=7cm]{../plots/int1/twobody/2D/6P/0.500000w/VMC_ADAM_MC1048576.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=20$}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=7cm]{../plots/int1/twobody/2D/20P/0.500000w/RBM_ADAM_MC1048576.png}}}
+	\subfloat{{\includegraphics[width=7cm]{../plots/int1/twobody/2D/20P/0.500000w/VMC_ADAM_MC1048576.png}}}\\
+	
+	\subfloat{\raisebox{2.5cm}{\rotatebox[origin=t]{90}{$N=42$}}}\hspace{0.1cm}
+	\subfloat[RBM]{\includegraphics[width=7cm]{../plots/int1/twobody/2D/42P/0.500000w/RBM_ADAM_MC1048576.png}}
+	\subfloat[VMC]{{\includegraphics[width=7cm]{../plots/int1/twobody/2D/42P/0.500000w/VMC_ADAM_MC1048576.png}}}
+	
+	\caption{Two-body density plots for two-dimensional quantum dots with an even number of closed shells ($N=6$, 20 and 42 electrons) and oscillator frequency $\omega=0.5$. The ADAM optimizer was used, and after convergence, the number of Monte-Carlo cycles was $M=2^{28}=268,435,456$. For abbreviations see the text.}%
+	\label{fig:TB_interaction_20P}
+\end{figure}
+\noindent
+for $\omega=0.1$, while the RBM is not able to reproduce this phenomenon at all. This indicates that the RBM is not able to model the correlations correctly, and it needs a Jastrow factor to account for them. The resolutions of the plots get lower when we decrease the frequency, as the particles spread over a larger area and therefore more bins.
+
+The calculations are repeated for two-dimensional quantum dots with frequency $\omega=0.5$ and an even number of closed shells ($N=6$, 20 and 42), with radial two-body density plots presented in figure \eqref{fig:TB_interaction_20P}. The first thing we observe is that the RBM manages to obtain the correct peaks, but all the peaks are circular unlike the density plots from the VMC, and they are also more distinct and higher than for VMC. This is the same effect we saw in the one-body density plots, which we argued was caused by the different approaches to model the correlations. If we now keep our attention on the VMC plots, it is apparent that two particles will not be observed in the middle of the dot at the same time, as the density there is almost absent. For $N=6$, a particle pair is most likely to be found at the same radius around $r=2$, which matches the one-body density plot. When we move on to $N=20$, the most probable location is not ambiguous anymore, but an electron pair is likely to be found at the same radius at around $r=1$, which matches the highest peak in the one-body density plot. However, the density is also high along both axes, which means that if one of the electrons moves towards the center of the dot, the other will also move towards the center. This is probably a consequence of the repulsive interactions. For $N=42$, finding two electrons at the same radius is not the most likely case anymore. This is because the electrons now spread over a large area. The density plot clearly has some distinct peaks around $r_i\sim 2$ and $r_j\sim 1$, matching the peaks found in the one-body density plots. For dots with an odd number of closed shells, the same tendency was found, but the peaks were found at the intersection between the quadrants, again matching the one-body density. 
+
+\iffalse
+\begin{figure}[H]
+	\centering 
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat[RBM]{{\input{pgf/RBM_2D.tex}}}
+	\subfloat[RBM+SJ]{{\input{pgf/RBMSJ_2D.tex}}}\\
+	\subfloat[RBM+PJ]{{\input{pgf/RBMPJ_2D.tex}}}
+	\subfloat[VMC]{{\input{pgf/VMC_2D.tex}}}
+	\caption{The kinetic-potential energy ratio $\langle\hat{T}\rangle/\langle\hat{V}\rangle$ plotted as a function of the oscillator frequency for two-dimensional circular quantum dots. The frequencies $\omega=0.01, 0.1, 0.28, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0$ were run. For abbreviations see the text.}
+	\label{fig:energysplitVMC2D}
+\end{figure}
+\fi
+
+\subsection{Energy distribution} \label{sec:energydistributions}
+If we now recall the general Hamiltonian presented in chapter \ref{chp:manybody}, the total energy is just the sum of the kinetic, potential, and interaction energy. As our methods attempt to solve the Schrödinger equation directly, it is trivial to find the distribution between the various energy sources, which in general is interesting when we want to find the most important contributor to the energy. Additionally, we can use those results to verify the virial theorem presented in section \ref{sec:virial}, and it is also interesting to see if the different methods give different energy distributions. In figure \eqref{fig:energydistribution}, we plot the ratio between the kinetic and potential energy as a function of oscillator frequency for two-dimensional quantum dots with up to $N=20$ electrons for all our methods. The plots are based on the numbers in the tables (\ref{tab:splitfrequencyQDVMC}-\ref{tab:splitfrequencyQDRBMPJ}) in appendix \ref{chp:totalresults}. 
+
+\input{../pgf/energy_distribution.tex}
+
+Firstly, the graphs are very similar for all the methods, which means that they all give the same distribution between kinetic and potential energy, although they do not provide the same energy. This is an interesting observation and means that the obtained kinetic and potential energy are both different for the various methods when the total energy is different. Physically, this indicates that the electron configurations are fundamentally different for the different methods, which is the only factor that can cause a change in potential energy. This is already observed in the one-body density plots. Further, we see a significant trend where the ratio drops as the frequency is decreased, implying that the potential energy dominates the kinetic energy at low frequencies, which is a known phenomenon already mentioned several times throughout this thesis. For all the methods, the ratio is also lower for larger dots, which is a result of gradually more interaction energy as the number of particles increases.
+
+\begin{table}
+	\caption{This table shows how the total energy ($\langle\hat{H}\rangle$) is distributed between kinetic energy ($\langle\hat{T}\rangle$), external potential energy ($\langle\hat{V}_{\text{ext}}\rangle$) and interaction energy ($\langle\hat{V}_{\text{int}}\rangle$) for two-dimensional quantum dots with $N=12$ electrons and at a wide range of frequencies $\omega$. The energy is given in units of $\hbar$, and the numbers in parenthesis are the statistical uncertainties in the last digit. For abbreviations see the text.}
+	\label{tab:splitfrequencyQD20P}
+	\begin{tabularx}{\textwidth}{R{0.5cm}rrcR{2.3cm}R{2.3cm}R{2.3cm}R{2.3cm}R{0.3cm}} \hline\hline
+		&\makecell{\\ \phantom{$N$}} & $\omega$ && \multicolumn{1}{c}{$\langle \hat{H}\rangle$} & \multicolumn{1}{c}{$\langle \hat{T}\rangle$} & \multicolumn{1}{c}{$\langle \hat{V}_{\text{ext}} \rangle$} & \multicolumn{1}{c}{$\langle \hat{V}_{\text{int}} \rangle$} \\ \hline \\
+		&RBM & 0.01 && 6.217(2) & 0.1236(4) & 2.244(2) & 3.849(2) \\
+		&& 2.0 && 269.086(8) & 43.262(8) & 95.17(2) & 130.65(1) \\
+		&& 10.0 && 961.03(4) & 260.2(1) & 364.8(1) & 336.06(7) \\
+		\hline \\
+		
+		&RBM+SJ & 0.01 && 6.239(2) & 0.1372(6) & 2.184(2) & 3.919(3) \\
+		&& 2.0 && 265.66(9) & 39.31(8) & 95.78(1) & 130.57(2) \\
+		&& 10.0 && 952.71(2) & 237.65(4) & 392.06(7) & 323.00(3) \\
+		\hline \\
+		
+		&RBM+PJ & 0.01 && 6.210(1) & 0.1208(5) & 2.189(2) & 3.900(2) \\
+		&& 2.0 && 262.598(1) & 34.758(6) & 108.546(9) & 119.293(7) \\
+		&& 10.0 && 947.33(2) & 257.67(5) & 348.35(6) & 341.31(3) \\ 
+		\hline \\
+		
+		&VMC & 0.01 && 6.2097(8) & 0.1005(4) & 2.270(3) & 3.839(3) \\
+		&& 2.0 && 262.5339(9) & 38.402(3) & 95.681(7) & 128.451(5) \\
+		&& 10.0 && 945.596(8) & 231.56(4) & 389.26(7) & 324.77(3) \\
+		\hline\hline
+	\end{tabularx}
+\end{table}
+
+If we further recall the virial theorem presented in section \ref{sec:virial}, it states that the kinetic energy is related to the potential energies in a certain way. If we assume that the interaction potential goes as $V_{\text{int}}\propto r^{-1}$, we can write the virial theorem as
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+2\langle \hat{T} \rangle=2\langle \hat{V}_{\text{ext}} \rangle-\langle \hat{V}_{\text{int}} \rangle,
+\label{eq:modifiedvirial}
+\end{empheq}
+according to equation \eqref{eq:simplevirial}. We could try to verify this formula from figure \eqref{fig:energydistribution}, but in order to do this accurately, we will list up the energy distributions for some selected systems. For a two-dimensional quantum dot with $N=20$ electrons the energy distribution is given in table \eqref{tab:splitfrequencyQD20P} for some selected frequencies. By doing the math, we see that the virial theorem is not satisfied for any of the methods or frequencies! For the lowest frequency, the theorem is far from being correct, but as the frequency increases the error decreases. To estimate the accuracy of the theorem, we introduce a ratio
+\begin{equation}
+R=\frac{2\langle\hat{T}\rangle}{2\langle\hat{V}_{\text{ext}}\rangle-\langle\hat{V}_{\text{int}}\rangle}
+\end{equation}
+which naturally is $R_{\text{exact}}=1$ if our version of the virial theorem is satisfied. To estimate the error, we calculate the absolute error $E_{\omega}=||R_{\omega}-1||$. Take, for example VMC, we get $E_{\omega=0.01}=0.713$, $E_{\omega=2}=0.221$ and $E_{\omega=10}=0.021$, which shows that equation \eqref{eq:modifiedvirial} gradually gets more accurate as the potential energy gets more important. To see why this is the case, we need to go back to the original virial theorem given in equation \eqref{eq:virialtheorem}. By inserting the interaction energy, we see that our modified virial theorem is inaccurate, and breaks down when the interaction energy dominates. However, it should be quite accurate when the interaction energy is not so important, which is consistent with our results. 
+
+Another interesting thing is how the energy is distributed for the various methods. Most notably, we see that VMC and RBM+PJ provide different distributions between the different methods, albeit the total energy is more or less identical. Physically, this means that the RBM+PJ finds another configuration than VMC to minimize the energy, which is exciting as the former method is supposed to be more flexible than the latter. For more frequencies and system sizes, please look at appendix \ref{chp:totalresults}.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{RBM}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.100000w/RBM_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.100000w/RBM_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/12P/0.100000w/RBM_ADAM_MC1048576.png}}}\\ [-0.cm]
+	
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{VMC}}}\hspace{0.1cm}
+	\subfloat[$N=2$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.100000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$N=6$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.100000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$N=12$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/12P/0.100000w/VMC_ADAM_MC1048576.png}}}
+	
+	\caption{One-body density of two-dimensional circular quantum dots with frequency $\omega=0.1$ with $N=2$, 6 and 12 electrons, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. The surface plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:lowfreqRBM}
+\end{figure}
+
+\newpage
+\subsection{Low frequency dots} \label{sec:lowfrequencies}
+In section \ref{sec:onebodyresults}, we found the one-body density to be shape-invariant for high-frequency dot with $\omega\geq0.28$. However, when we further decreased the frequency down to $\omega=0.1$, the density profiles changed significantly, and we got other extrema and so on. This section aims to investigate the transitions between the various shapes with frequencies down to $\omega=0.01$. We start by looking at quantum dots with frequency $\omega=0.1$, and in figure \eqref{fig:lowfreqRBM} we compare the radial density profiles for $N=2$, 6 and 12 produced by RBM to the results produced by VMC. What we observe is that the density plots are completely different. While VMC provides a single peak with some bumps on the top, RBM gives several peaks for all the numbers of electrons. The numbers of peaks apparently is equal to the number of electrons, which indicates that the RBM finds the electrons to be localized at some fixed spots. The two methods model the correlations in completely different ways, and as the correlations become more important for low frequencies, it was expected that the results would also be different. However, the obtained ground state energies by the two methods are not so different for the same systems, indicating that the electron density plots are better at reveal differences between the methods than the energy itself. 
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{RBM+PJ}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.280000w/RBMPJ_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.100000w/RBMPJ_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.010000w/RBMPJ_ADAM_MC2pow28_smooth_blue_small.png}}}\\ [-0.cm]
+	
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{VMC}}}\hspace{0.1cm}
+	\subfloat[$\omega=0.28$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.280000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$\omega=0.1$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.100000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$\omega=0.01$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/2P/0.010000w/VMC_ADAM_MC2pow28_smooth_blue_small.png}}}
+	
+	\caption{One-body density of two-dimensional circular quantum dots with $N=2$ electrons and frequencies $\omega=0.28$, 0.1 and 0.01, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. The surface plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:lowfreq2P}
+\end{figure}
+
+Further, we fix the number of electrons to be $N=2$, and vary the frequency from $\omega=0.28$ down to $\omega=0.01$ with density profiles produced by VMC and RBM+PJ found in figure \eqref{fig:lowfreq2P}. Those methods were selected as they hitherto have shown the most promising results and we want to see if the RBM+PJ can reveal effects that the VMC is not able to capture. We see that the two methods obtain very similar density plots, where they agree that a ridge around the center of the dot should be more distinct as the frequency drops. If we go back to figure \eqref{fig:energydistribution}, we saw that the kinetic energy was negligible for the lowest energies, and the effect is, therefore, an indication of the Wigner localization effect discussed in section \ref{sec:wigner}. As in the classical limit, the two electrons will repel each other and seldom be located at the same place when their kinetic energy is low. RBM+PJ possibly provides a sharper ridge for $\omega=0.01$, which is closer to the DMC results found from \citet{hogberget_quantum_2013} and thus perhaps more correct. However, the energy provided by RBM+PJ and VMC are more or less identical (0.074107 and 0.074070 respectively), which means that the potential difference does not give effect to the energy.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{RBM+PJ}}}\hspace{0.1cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.280000w/RBMPJ_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.100000w/RBMPJ_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.010000w/RBMPJ_ADAM_MC1048576.png}}}\\ [-0.cm]
+	
+	\subfloat{\raisebox{1.5cm}{\rotatebox[origin=t]{90}{VMC}}}\hspace{0.1cm}
+	\subfloat[$\omega=0.28$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.280000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$\omega=0.1$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.100000w/VMC_ADAM_MC1048576.png}}}\hspace{-0.cm}
+	\subfloat[$\omega=0.01$]{{\includegraphics[width=5.1cm]{../plots/int1/onebody2/2D/6P/0.010000w/VMC_ADAM_MC2pow28_smooth}}}
+	
+	\caption{One-body density of two-dimensional circular quantum dots with $N=6$ electrons and frequencies $\omega=0.28$, 0.1 and 0.01, where the surface plot and the contour plot on the $xy$-plane illustrate the density and the graph on the $yz$-plane represents the cross-section through $x=0$. The surface plots are noise-reduced using a Savitzky-Golay filter, and for abbreviations see the text.}
+	\label{fig:lowfreq6P}
+\end{figure}
+
+We repeat the exercise for quantum dots with $N=6$ electrons, and obtain the plots in figure \eqref{fig:lowfreq6P}. When using VMC, we observe the same tendency as for the dots with $N=2$ electrons, where we get an additional peak in the density plot as the frequency decreases. However, for RBM+PJ, we do not get this peak in the center, but rather a significant density drop. This is contrary to the DMC one-body density plots obtained by \citet{hogberget_quantum_2013}, where it is a sharp peak in the center. The density plot for quantum dots is also known to approach the classical limit as the frequency is decreased \cite{ghosal_incipient_2007}, where the potential energy is minimized when we have one electron in the center and five electrons surrounding it. In other words, RBM+PJ appears to be wrong for this case. 
+
+In order to give a more qualitative comparison of the various methods, we also present the radial one-body density profile of the quantum dots of frequency $\omega=0.01$ with $N=2$ and $N=6$ electrons, see figure \eqref{fig:lowfreq}. We see that all the methods agree for $N=2$, where RBM+PJ gives the most distinct peak, followed by VMC, RBM+SJ and RBM. For $N=6$, however, the various methods give completely different density profiles. As discussed for the spatial density profile, we believe that the VMC is the most correct because of the peak in the center. 
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat{{\includegraphics[width=\textwidth/2]{../plots/int1/onebody/2D/2P/0.010000w/ADAM_MC1048576.eps}}}
+  	\subfloat{{\includegraphics[width=\textwidth/2]{../plots/int1/onebody/2D/6P/0.010000w/ADAM_MC10485762.eps}}}
+	
+	\caption{One-body density of two-dimensional quantum dots of frequency $\omega=0.01$ and $N=72$, 90. The ADAM optimizer was used, and after convergence the number of Monte-Carlo cycles was $M=2^{28}=268,435,456$. For abbreviations see the text.}
+	\label{fig:lowfreq}
+\end{figure}
+
+\iffalse
+\subsection{$S\neq0$}
+When the number of particles in the quantum dot is among the magic numbers presented in equation \eqref{eq:HOclosedshell}, the ground state is guaranteed to be found at $L=S=0$. However, if we want to look at dots of other sizes, this is often not true, and we will, therefore, look at some cases with $S\neq 0$. We will still stick to $L=0$ and closed-shell systems.
+
+Imagine a dot of four particles with $S=1$ (three have spin-up, and the last has spin-down). The ground state is obviously found when a spin up and a spin down particle is in the lowest energy state, and the remaining particles are in the first excited energy state. Since the lowest states and the first excited states with spin up are filled up, this is a closed shell system.
+
+Again, our results will be benchmarked to DMC, with references Ref.\cite{pederiva_diffusion_2000} and Ref.\cite{ghosal_incipient_2007}. The former reference also presents Hartree-Fock results which we also will use. 
+
+The results are listed in table \eqref{tab:sneq0}, where we use a restricted Boltzmann machine with Padé-Jastrow factor (RBM+PJ) and standard variational Monte-Carlo (VMC). 
+
+We find both the RBM+PJ and VMC to reproduce the reference energy in all the cases. 
+
+\begin{table}
+	\caption{The ground state energy of two-dimensional circular quantum dots of frequency $\omega$ for a given spin configuration ($L$,$S$). The results were obtained by a restricted Boltzmann machine with Padé-Jastrow factor (RBM+PJ) and standard variational Monte-Carlo (VMC). For reference, the Hartree-Fock limit results from Ref.\cite{pederiva_diffusion_2000} (HF) and diffusion Monte-Carlo results from Refs.\cite{pederiva_diffusion_2000},\cite{ghosal_incipient_2007} (DMC) are listed. All energies are given in units of $\hbar$, and the numbers in parenthesis are the statistical uncertainties in the last digit.}
+	\label{tab:sneq0}
+	\begin{tabularx}{\textwidth}{rrXrrXR{2.3cm}R{2.3cm}R{2.3cm}R{2.3cm}} \hline\hline
+		\makecell{\\ $N$ \\ \phantom{=}} & \makecell{$\omega$} & \phantom{R} & $L$ & $S$ & \phantom{R} & \multicolumn{1}{c}{RBM+PJ} & \multicolumn{1}{c}{VMC} & \multicolumn{1}{c}{\makecell{HF\\ (Ref.\cite{pederiva_diffusion_2000})}} & \multicolumn{1}{c}{\makecell{DMC\\ (Ref.\cite{pederiva_diffusion_2000})$^a$\\ (Ref.\cite{ghosal_incipient_2007})$^b$}} \\ \hline \\
+		4 & 0.28 && 0 & 1 && 3.7475(2) & 3.7711(5) & 3.9033 & 3.7135(3)$^a$\\ \\
+		8 & 0.28 && 0 & 1 && 12.828(3) & 12.849(1) & 13.1887 & 12.6903(7)$^a$ \\
+		& 0.25 && 0 & 1 && 11.807(1) & 11.852(1) & - & 11.6697(1)$^b$ \\ \\
+		9 & 0.28 && 0 & 3/2 && 15.886(4) & 15.812(4) & 16.1544 & 15.4784(7)$^a$\\
+		&3.0 && 0 & 3/2 && 97.164(4) & 96.936(7) & - & 97.0095(3)$^b$\\ \\
+		11 & 0.28 && 0 & 1/2 && 22.285(2) & 22.252(1) & 22.8733 & 22.0750(4)$^a$ \\ \hline\hline
+	\end{tabularx}
+\end{table}
+\fi
+
+\subsection{Large dots}
+In order to test the code, we also decided to run for systems with $N>56$. This has no scientific significance, other than testing how far a VMC code can go. One thing is that the computations get extremely expensive as the number of particles increases, but we have also seen that the statistical error increases as the system size increases. This means that we cannot just crack up the wall clock time and wait when studying large systems; at some point, the standard error gets insufficiently large, and we need to increase the number of Monte Carlo cycles further. The learning rate also needs to be decreased as the system sizes increase, which requires more iterations.  We look at weakly interacting particles, so we will not get any relativistic effects even when adding many particles. In table \eqref{tab:largeQD}, the ground state energy of quantum dots with frequency $\omega=1.0$ and $N=72$, 90 electrons in two dimensions and $N=70$ particles in three dimensions is listed. We observe that the difference between VMC and RBM is quite significant, especially for $N=90$ electrons in two dimensions. We suspect that this simulation simply has not converged. 
+
+\begin{table}
+	\caption{Energy of large quantum dots with $N=72$ and 90, and $\omega=1.0$. All energies are given in units of $\hbar$, and the numbers in parenthesis are the statistical uncertainties in the last digit. For abbreviations see the text.}
+	\label{tab:largeQD}
+	\begin{tabularx}{\textwidth}{R{1.6cm}R{2cm}R{2cm}R{3cm}R{3cm}} \hline\hline
+		& \makecell{\\ \phantom{$N$}} & $N$ & RBM & VMC \\ \hline \\
+		& 2D & 72 & 1355.37(2) & 1340.520(7) \\
+		&& 90 & 2194.12(9) & 1990.89(2) \\
+		& 3D & 70 & 1129.40(2) & 1108.950(4) \\
+		\hline \hline
+	\end{tabularx}
+\end{table}
+
+In figure \eqref{fig:largedotsOB}, the radial one-body density profile is plotted for two-dimensional quantum dots with frequency $\omega=1.0$ and $N=72$, 90 electrons. Again, we observe the same peaks as we observed in section \ref{sec:onebodyresults}, and the number of peaks substantiates that we get an additional peak every time we add a closed-shell. However, for $N=90$, the peaks are not as significant as before, most notably for the RBM, which is another evidence that the simulation has not converged.
+
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat[$N=72$]{\includegraphics[width=8cm]{../plots/int1/onebody/2D/72P/1.000000w/ADAM_MC1048576.png}}\hspace{-0.5cm}
+	\subfloat[$N=90$]{\includegraphics[width=8cm]{../plots/int1/onebody/2D/90P/1.000000w/ADAM_MC1048576.png}}\\
+	\caption{Radial one-body density profile of large quantum dots with $N=72$ and 90, and frequency $\omega=1.0$ produced with RBM and VMC. The methods were detailed in the introductory words to this chapter, and for abbreviations see the text.}
+	\label{fig:largedotsOB}
+\end{figure}
+
+\iffalse
+\begin{figure}[H]
+	\centering
+	\subfloat[RBM]{\includegraphics[scale=0.4]{../plots/int1/twobody/2D/72P/1.000000w/RBM_ADAM_MC2pow28.png}}
+	\subfloat[VMC]{\includegraphics[scale=0.4]{../plots/int1/twobody/2D/72P/1.000000w/RBM_ADAM_MC2pow28.png}}
+	\caption{One-body density of large two-dimensional circular quantum dots with frequency $\omega=1.0$ containing 72 particles.}
+	\label{fig:largedotsTB}
+\end{figure}
+\fi
+
+\iffalse
+\section{Double quantum dots}
+Double quantum dots are systems that are very interesting when it comes to testing the Boltzmann machines. Even though we know the wave functions for the non-interacting case, they are expansions that are computationally expensive to work with.
+
+\subsection{Ground state energy}
+For the interacting case, we will use Alocias Mariadason's VMC calculations with and without a Hartree-Fock basis as a reference. Additionally, Høgberget provides a DMC energy for the case with two particles and $\omega=1.0$. All the results are given in table \eqref{tab:doubleQD}.
+\begin{table}
+	\caption{Double quantum dots. F is the number of functions used in the expansion.}
+	\label{tab:doubleQD}
+	\begin{tabularx}{\textwidth}{rrXR{2.3cm}R{2.3cm}R{2.3cm}R{2.3cm}R{2.3cm}} \hline\hline
+		\makecell{\\ $N$ \\ \phantom{=}} & $\omega$ & \phantom{R} & \multicolumn{1}{c}{VMC (F=1)} & \multicolumn{1}{c}{RBM+PJ} & \multicolumn{1}{c}{\makecell{VMC (F$>$1)\\ (Ref.\cite{mariadason_quantum_2018})}} & \multicolumn{1}{c}{\makecell{VMC+HF\\ (Ref.\cite{mariadason_quantum_2018})}} & \multicolumn{1}{c}{\makecell{DMC\\ (Ref.\cite{hogberget_quantum_2013})}} \\ \hline \\
+		2 & 0.1 && 0.41982(4) & 0.41939(3)\\
+		& 0.28 && 0.9365(1) & 0.92618(4) \\
+		& 0.5 && 1.4847(2) & 1.44004(4) \\
+		& 1.0 && 2.6331(5) & 2.38342(3) & 2.42238(4) & 2.36618(4) & 2.3496(1) \\ \hline \\
+		
+		4 & 0.1 \\
+		& 0.28 \\
+		& 0.5 \\
+		& 1.0 && - & - & 7.95247(4) & 7.90232(4) & - \\ \hline \\
+		
+		6 & 0.1 \\
+		& 0.28 \\
+		& 0.5 \\
+		& 1.0 && - & - & 16.61419(4) & 16.55609(4) \\ \hline \\
+		
+		8 & 0.1 \\
+		& 0.28 \\
+		& 0.5 \\
+		& 1.0 && - & - & \\ \hline \hline
+	\end{tabularx}
+\end{table}
+What we observe, is that the Boltzmann machine with a Padé-Jastrow factor outperforms a Hermite expansion of 10 functions, which is surprising. The reason might be that the Boltzmann machine consists of a sum over all hidden nodes, which makes it behave similar to an expansion. However, the Boltzmann machine was then again beat by the Hermite expansion with a Hartree-Fock basis. 
+\fi
+
+\newpage
+\section{Atoms}\label{sec:atomsresults}
+The next systems we will address are the real atomic systems, which have been investigated by physicists since the childhood of quantum mechanics. This section is added to show the flexibility of the implemented code, which can easily be expanded to new systems. We use the simple hydrogen-like orbitals in our calculations, detailed in section \ref{sec:atomic}. In table \eqref{tab:atomswinteraction} we present the ground state energy of the four smallest closed-shell atoms Helium, Beryllium, Neon, and Magnesium, including an overview of how the energy is distributed and the ratio between kinetic and potential energy. We also compare the obtained results to experimental values. What we see is that the total energy is similar but slightly higher than our reference, which is as expected as we use a simple basis.
+
+\begin{table}[H]
+	\caption{Ground state energy of neutral atoms with atomic number $Z$ produced by VMC. We present the total energy ($\langle\hat{H}\rangle$), the external potential energy ($\langle\hat{V}_{\text{ext}}\rangle$), the interaction energy ($\langle\hat{V}_{\text{int}}\rangle$), the kinetic-potential energy ratio ($\langle\hat{T}\rangle/\langle\hat{V}\rangle$) and experimental values (Expr.). The latter were taken from \citet{degroote_faddeev_2013}, table 4.4. The energy is given in atomic units, and the numbers in parenthesis is the statistical error. For abbreviations see the text.}
+	\label{tab:atomswinteraction}
+	\begin{tabularx}{\textwidth}{lrrR{2cm}R{1.9cm}|R{1.7cm}R{1.7cm}R{1.7cm}R{1.7cm}} \hline\hline
+		Atom & $Z$ & \makecell{\\ \phantom{=} \\ \phantom{=}} & 
+		\multicolumn{1}{c}{\makecell{Expr.\\ (Ref.\cite{degroote_faddeev_2013})}} & \multicolumn{1}{c}{$\langle\hat{H}\rangle$} & \multicolumn{1}{c}{$\langle\hat{T}\rangle$} & \multicolumn{1}{c}{$\langle\hat{V}_{\text{ext}}\rangle$} & \multicolumn{1}{c}{$\langle\hat{V}_{\text{int}}\rangle$} & \multicolumn{1}{c}{$\langle\hat{T}\rangle/\langle\hat{V}\rangle $} \\ \hline \\
+		
+		He & 2 && -2.9037 & -2.8719(3) & 2.813(3) & -6.696(4) & 1.010(7) & -0.495 \\
+		Be & 4 && -14.6674 & -14.4992(5) & 15.465(6) & -34.987(7) & 5.023(1) & -0.516 \\
+		Ne & 10 && -128.9383 & -128.09(1) & 133.4(2) & -318.4(2) & 56.94(5) & -0.510 \\ 
+		Mg & 12 && -200.054 & -196.81(4) & 251.9(2) & -557.0(2) & 108.23(6) & -0.379 \\ \hline\hline
+	\end{tabularx}
+\end{table}
+
+If we once again recall the virial theorem first introduced in section \ref{sec:virial}, it reads
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+2\langle\hat{T}\rangle = -(\langle\hat{V}_{\text{ext}}\rangle + \langle\hat{V}_{\text{int}}\rangle)
+\label{eq:virialratio}
+\end{empheq}
+for atoms and molecules under the assumption that $V_{\text{int}}\propto r^{-1}$. For quantum dots, we found this assumption to be inaccurate, and our modified virial theorem broke down for strongly interacting systems. To see if the same happens fro atoms, we again introduce the ratio between the kinetic and potential energy, $R=\langle\hat{T}\rangle/\langle\hat{V}\rangle$, which for this system should be $R=-0.5$ in order to fulfill equation \eqref{eq:virialratio}. In the last column of table \ref{tab:atomswinteraction}, this ratio is presented for the various atoms, and for Helium, Beryllium and Neon we see that the ratio actually is close to -0.5. However, for Magnesium, the value is off, which could either be a result of too strong attraction force from the nucleus or some errors in the calculations. We believe that it is the latter, as we get an accurate result with Neon, and perhaps the model has just not converged. 
+\begin{figure}
+	\centering
+	\captionsetup[subfigure]{labelformat=empty}
+	\subfloat[Helium]{\includegraphics[width=\textwidth/2]{../plots/int1/atoms/He/ADAM_MC2pow28.png}}
+	\subfloat[Beryllium]{\includegraphics[width=\textwidth/2]{../plots/int1/atoms/Be/ADAM_MC2pow28.png}}\\
+	\subfloat[Neon]{\includegraphics[width=\textwidth/2]{../plots/int1/atoms/Ne/ADAM_MC2pow28.png}}
+	\subfloat[Magnesium]{\includegraphics[width=\textwidth/2]{../plots/int1/atoms/Mg/ADAM_MC2pow28.png}}
+	\caption{Radial one-body density profiles, $\rho(r)$, as a function of the radial distance from the nucleus, multiplied with $r^2$ in order to reveal fluctuations. We look at the Helium atom (upper left), the Beryllium atom (upper right), the Neon atom (lower left) and the Magnesium atom (lower right). VMC was used, which is detailed in the text. The number of Monte Carlo cycles used was $M=2^{28}=268,435,456$ and the ADAM optimizer was used. Hartree atomic units were used, see appendix \ref{app:units}.}
+	\label{fig:atomsonebody}
+\end{figure}
+Further, we look at the radial one-body density profiles, which are presented in figure \eqref{fig:atomsonebody} for our four atoms. To reveal details, they are multiplied with $r^2$ as for example \citet{hogberget_quantum_2013} has done before us. We observe that the densities mostly are similar to his DMC results, which again substantiates that our framework and electron density computations work as they should. However, for Magnesium, the density plot is slightly different, which probably is related to the potential bug discussed above. 

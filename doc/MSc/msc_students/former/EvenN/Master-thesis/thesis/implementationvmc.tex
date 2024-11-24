@@ -1,0 +1,739 @@
+\chapter{Implementation: Variational Monte Carlo} \label{chp:WFE}
+\epigraph{There are only two hard things in Computer Science: cache invalidation and naming things.}{Phil Karlton, \cite{fowler_bliki:_nodate}}
+\iffalse
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.4]{Images/example.png}
+	\caption{Caption}
+\end{figure}
+\fi
+
+In this chapter, de will describe the implemented variational Monte Carlo (VMC) code, which was developed from scratch in C++. As the code itself is around 7000 significant\footnote{Significant lines of code in this sense means lines that are not blank or commented. Counted by the \textit{cloc} program \cite{aldanial_cloc_2019}.} lines of code, we will go through selected and often not obvious parts. As often said, \textit{good planning is half the battle}, which largely relates to writing VMC code. The code was rewritten and restructured several times before we ended on the final version. As a starting point, we used the VMC framework implemented by \citet{ledum_simple_2016}, which was meant as an example implementation in the course \textit{FYS4411 - Computational Physics II: Quantum Mechanical Systems}. The entire source code can be found on the authors GitHub account, \url{http://www.github.com/evenmn/VMC}.
+
+We developed the code with a focus on three main goals: it should be efficient, flexible, and readable. It needs to be flexible in order to support the Boltzmann machines as our trial wave function guess, and since we will try out various Jastrow factors, it should be easy to add and remove wave function elements. Since quantum mechanical simulations, in general, are very expensive, it is crucial to develop efficient code to be able to study systems of some size. Lastly, we aim to write readable code such that others can reuse the code in its entirety or parts of it later.  How we work to achieve the goals will be illustrated by code mainly picked from the \lstinline{WaveFunction} class, which is the heart of the code.
+
+For all matrix operations, we use the open-source template library for linear algebra Eigen throughout the code. Eigen provides an elegant interface, with support for all the needed matrix and vector operations. Additionally, Eigen is built on the standard software libraries for numerical linear algebra, BLAS, and LAPACK, which are incredibly fast. These contribute significantly to the performance of the code. 
+
+\section{Flexibility and readability}
+We have done several things in order to keep the code as readable as possible. Firstly, the code was written in an object-orientated scheme which makes it more intuitive to a human as discussed in chapter \ref{chp:scientificprogramming}. The Hamiltonians, optimizers, wave functions, sampling methods, and even the random number generator were treated as objects, making the code more or less as object-orientated as possible. An object-oriented code makes it also makes it straight-forward to define a system since we can specify the preferred object. Below, we define a two-dimensional quantum dot system of $N=6$ electrons with frequency $\omega=1.0$, learning rate $\eta=0.1$, number of Metropolis cycles $M=2^{20}=1,048,576$ and max number of iterations set to 1000.
+
+\begin{lstlisting}[language={C++}, caption={Example on how a quantum dot system can be initialized.}, label={lst:qd}]
+System *QD = new System();
+
+QD->setNumberOfDimensions(2);
+QD->setNumberOfParticles(6);
+QD->setNumberOfMetropolisSteps(int(pow(2, 20)));
+QD->setFrequency(1.0);
+QD->setLearningRate(0.1);
+
+QD->setBasis(new Hermite(QD));
+QD->setHamiltonian(new HarmonicOscillator(QD));
+
+QD->setWaveFunctionElement(new Gaussian(QD));
+QD->setWaveFunctionElement(new SlaterDeterminant(QD));
+QD->setWaveFunctionElement(new PadeJastrow(QD));
+
+QD->runSimulation(numberOfIterations=1000);
+\end{lstlisting}
+We observe that one first needs to define an object to represent the system, and then the other settings are connected to the system in the form of subclasses. The reader might notice that we use the \textbf{lowerCamelCase} naming convention for function and variable names, which means that each word begins with a capital letter except the first word. For classes, we use the \textbf{UpperCamelCase} to distinguish from function names. Using the camel case is known to make the code readable, and apart from, for example, the popular \textbf{snake\_case}, we do not need delimiters between the words, which saves some space. After the naming convention is decided, we are still responsible for giving reasonable names, which is not always an easy task, as Karlton points out. When one sees the name, one should know exactly what the variable/function/class is or does. Besides, as a code format, we use the ClangFormat, which provides a consequent way of formatting the code. 
+
+The snippet above also demonstrates how the code was made flexible when it comes to the wave function. One can construct a wave function consisting of various elements by simply calling the \lstinline{setWaveFunctionElement} multiple times. This creates a wave function vector, \lstinline{m_waveFunctionVector}, in the background containing all the elements, which makes it easy to compose the wave function in whatever preferred way. All the elements can be combined. The reader might stub on the use of the element \lstinline{Gaussian}, is not the trial wave function defined by the Slater determinant multiplied with a Padé-Jastrow factor? It is, but as we will see later in section \ref{sec:factorizing}, the Gaussian part can be factorized out from the Slater determinant when using a Hermite basis. However, we will now start from the fundamental assumption that the trial wave function consists of a Slater determinant and a Jastrow factor, and take it from there.
+
+\section{Decompose the trial wave function}
+In our VMC implementation, the trial wave function, $\Psi_T(\bs{R})$, is assumed to consist of a single Slater determinant and a Jastrow factor to take care of the repulsive interactions. In section \ref{sec:trial}, we saw that the electronic Slater determinant can be split up in a spin-up part and a spin-down part, giving the trial wave function
+\begin{equation}
+\Psi_T(\bs{R})=|\hat{D}_{\uparrow}(\bs{R})|\cdot|\hat{D}_{\downarrow}(\bs{R})|J(\bs{R})
+\end{equation}
+where $\bs{R}$ is the collective coordinates of all the particles, where we exclude the spin as it is assumed to not affect the energy. $J(\bs{R})$ is an arbitrary Jastrow factor, while the Slater determinant is the determinant of the matrix $\hat{D}(\bs{R})$, henceforth the Slater matrix. To convince the reader that the Slater determinant and the Jastrow factor can be treated separately, we will consider a general trial wave function consisting of $p$ wave function elements $\{\Psi_1, \Psi_2\hdots\Psi_p\}$,
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\Psi_T(\bs{R}) = \prod_{i=1}^p\Psi_i(\bs{R}),
+\label{eq:elementproduct}
+\end{empheq}
+where $\Psi_i(\bs{R})$ in principle can be any function of the coordinates $\bs{R}$. However, we will later see that the parameter update simplifies if we restrict each variational parameter $\theta_j$ to appear in an element only. Before that, we will look at how the kinetic energy can be expressed in terms of independent factors.
+
+\subsection{Kinetic energy computations} \label{sec:kinetic}
+The local energy computation is the heart of the VMC code, and the aim for an efficient and flexible code starts here. It was first defined in equation \eqref{eq:localenergy}, and by inserting a general Hamiltonian $\hat{\mathcal{H}}=-1/2\nabla^2+V$ with $V$ covering all the potential energy, we obtain
+\begin{equation}
+E_L=\sum_{k=1}^F\Big[-\frac{1}{2}\Big(\frac{1}{\Psi_T(\bs{R})}\nabla_k^2\Psi_T(\bs{R})\Big) + V\Big],
+\end{equation}
+where we have $F=Nd$ degrees of freedom. As always, $N$ is the number of particles and $d$ is the number of dimensions. The first term, which is the kinetic energy term, is the only wave function-dependent one, and we will in this section split it up concerning the elements. The potential energy term, $V$, is not directly dependent on the wave function and will therefore not be further touched here. 
+
+From the definition of the derivative of a logarithm, we have that
+\begin{equation}
+\frac{1}{\Psi_T(\bs{R})}\nabla_k\Psi_T(\bs{R})=\nabla_k\ln\Psi_T(\bs{R}),
+\label{eq:derlogdef}
+\end{equation}
+which can be used to prove the following relation 
+\begin{equation}
+\frac{1}{\Psi_T(\bs{R})}\nabla_k^2\Psi_T(\bs{R})=\nabla_k^2\ln\Psi_T(\bs{R}) + (\nabla_k\ln\Psi_T(\bs{R}))^2.
+\label{eq:secderlogdef}
+\end{equation}
+Expressing the kinetic energy in terms of this relation is useful because most of the elements can be treated easily in the log-space. By using the fact that the trial wave function is a product of all the elements, the term above is calculated by
+\begin{equation}
+\frac{1}{\Psi_T(\bs{R})}\nabla_k^2\Psi_T(\bs{R})=\sum_{i=1}^p\nabla_k^2\ln\Psi_i(\bs{R}) + \Big(\sum_{i=1}^p\nabla_k\ln\Psi_i(\bs{R})\Big)^2
+\end{equation}
+such that the total kinetic energy is given by
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+-\frac{1}{2}\frac{1}{\Psi_T(\bs{R})}\nabla^2\Psi_T(\bs{R})=-\frac{1}{2}\bigg[\sum_{i=1}^p\nabla^2\ln\Psi_i(\bs{R}) + \sum_{k=1}^{F}\Big(\sum_{i=1}^p\nabla_k\ln\Psi_i(\bs{R})\Big)^2\bigg].
+\label{eq:splittedkineticenergy}
+\end{empheq}
+This can be found when all local derivatives $\nabla^2\ln\Psi_i(\bs{R})$ and $\nabla_k\ln\Psi_i(\bs{R})$ are given. By assuming that the former is returned by a function \lstinline{computeLaplacian()} and the latter is returned by a function \lstinline{computeGradient(k)}, we compute the kinetic energy using the following function
+\lstset{basicstyle=\scriptsize}
+\begin{lstlisting}[language=c++]
+double System::getKineticEnergy()
+{
+	double kineticEnergy = 0;
+	for (auto &i : m_waveFunctionElements) {
+		kineticEnergy += i->computeLaplacian();
+	}
+	for (int k = 0; k < m_degreesOfFreedom; k++) {
+		double nablaLnPsi = 0;
+		for (auto &i : m_waveFunctionElements) {
+			nablaLnPsi += i->computeGradient(k);
+		}
+		kineticEnergy += nablaLnPsi * nablaLnPsi;
+	}
+	return -0.5 * kineticEnergy;
+}
+\end{lstlisting}
+Note that some of the variables are declared globally, here the vector \lstinline{m_waveFunctionElements} and the integer \lstinline{m_degreesOfFreedom} are denoted by an \lstinline{m_} to distinguish them from the variables declared locally. 
+
+\subsection{Parameter gradients}
+In section \ref{sec:parameterupdate}, we presented how the parameters can be updated by minimizing the energy expectation value. We recall that the only closed-form expression needed in addition to the local energy is $\nabla_{\theta_j}\ln\Psi_T(\bs{r}_j)$, which needs to be found. By applying equation \eqref{eq:elementproduct}, we find that
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_{\theta_j}\ln\Psi_T(\bs{R})=\sum_{i=1}^p\nabla_{\theta_j}\ln\Psi_i(\bs{R})=\nabla_{\theta_j}\ln\Psi_{\theta_j}(\bs{R}),
+\end{empheq}
+where $\Psi_{\theta_j}(\bs{R})$ is the only element which contains the parameter $\theta_j$. With this in mind, we need to find closed-form expressions of $\nabla_{\theta_j}\ln\Psi_{\theta_j}(\bs{R})$ for all wave function elements $\Psi_{\theta_j}(\bs{R})$ that are associated with a variational parameter $\theta_{j}$.
+
+In the code, we store all the parameters in a \textit{parameter matrix} where each element has its own row of parameters. Similarly, we create a \textit{gradient matrix} of the same dimensions to store the gradients $\nabla_{\theta_j}\ln\Psi_{\theta_j}(\bs{R})$ for each variational parameter. The function which collect all the gradients is implemented straight-forwardly, and is given by
+\begin{lstlisting}[language=c++]
+Eigen::MatrixXd System::getAllParameterGradients()
+{
+	for (int i = 0; i < m_numberOfElements; i++) {
+		m_gradients.row(i) = m_waveFunctionElements[i]->computeParameterGradient();
+	}
+	return m_gradients;
+}
+\end{lstlisting}
+where \lstinline{m_gradients} has the same number of rows as the number of elements and the same number of columns as the maximum number of parameters in an element $i$. The function \lstinline{computeParameterGradient()} returns a vector with all the gradients $\nabla_{\theta_j}\ln\Psi_i(\bs{R})$ of the respective element. Even though the gradients are used to update the parameters, we will postpone the discussion of the parameter update to section \ref{sec:update}.
+
+\subsection{Probability ratio} \label{sec:probabilityratio}
+In the two previous sections, we have seen how the derivatives of the wave function elements can be used in order to obtain the local energy and the parameter update. However, we also need the evaluation of the wave function elements themselves to decide whether or not a move should be accepted. If we go back to equation \eqref{eq:acceptance}, we see that what is actually needed is the ratio between the present and the previous probability, $P(\bs{R}_{\text{new}})/P(\bs{R}_{\text{old}})$. Further, we can write this as the product of the probability ratios of all the wave function elements, 
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\frac{P(\bs{R}_{\text{new}})}{P(\bs{R}_{\text{old}})}=\frac{|\Psi_T(\bs{R}_{\text{new}})|^2}{|\Psi_T(\bs{R}_{\text{old}})|^2}=\prod_{i=1}^p\frac{|\Psi_i(\bs{R}_{\text{new}})|^2}{|\Psi_i(\bs{R}_{\text{old}})|^2},
+\end{empheq}
+again utilizing equation \eqref{eq:elementproduct}. Finding closed-form expressions for those ratios is not only beneficial because it is needed in the actual implementation, as we work in the log-space those ratios often take clean forms which are cheap to evaluate. Below, we will calculate those ratios for all the elements since we are going to use that directly in the sampling. We name the function returning the ratio for a particular element \lstinline{evaluateRatio()}, and we obtain the total probability ratio in the following way
+\begin{lstlisting}[language=c++]
+double System::evaluateProbabilityRatio()
+{
+	double ratio = 1;
+	for (auto &i : m_waveFunctionElements) {
+		ratio *= i->evaluateRatio();
+	}
+	return ratio;
+}
+\end{lstlisting}
+
+With this, we have introduced the four central functions of the wave function elements: \lstinline{computeLaplacian()}, \lstinline{computeGradient(k)}, \lstinline{computeParameterGradient()} and \lstinline{evaluateRatio()}. In the following, we will evaluate the Slater determinant and see how it can be split further in more elements. 
+
+\section{Slater determinant}
+As we have seen above, the Slater determinant is the fundamental part of the trial wave function, together with the Jastrow factor. The main problem with the Slater determinant is that it is costly to deal with as the number of particles increases. To find the gradient of the Slater determinant, as requested by equation \eqref{eq:splittedkineticenergy}, we need to compute the inverse of the Slater matrix, which by standard LU decomposition scales as $\sim M^3$ for an $M\times M$ matrix \cite{trahan_computational_2006}. Fortunately, there exist algorithms that let us obtain the inverse of the matrix by recursive relations, scaling as $\sim M^2$. This will be detailed in section \ref{sec:efficientcalculationsofslaterdeterminant}.
+
+Additionally, in section \ref{sec:trial}, we showed that the Slater determinant can be split in a spin-up part and a spin-down part, reducing its dimensionalities from $N\times N$ to two $N/2\times N/2$ matrices, with $N$ as the number of electrons. For an equal number of spin-up and spin-down electrons, this reduces in principle the cost of computing the Slater determinant with 87.5\%! Also, factorizing out common factors from the Slater determinant will give some speed-up. In this section, we will mostly discuss the various methods to make the update of the Slater matrix more efficient. We will start from the general determinant containing spin-$\sigma$ coordinates,
+\begin{equation}
+\Psi_{\text{sd}}(\bs{R})=|\hat{D}_{\sigma}(\bs{R})|\propto
+\begin{vmatrix}
+\phi_1(\boldsymbol{r}_1) & \phi_2(\boldsymbol{r}_1) & \hdots & \phi_{N}(\boldsymbol{r}_1)\\
+\phi_1(\boldsymbol{r}_2) & \phi_2(\boldsymbol{r}_2) & \hdots & \phi_{N}(\boldsymbol{r}_2)\\
+\vdots & \vdots & & \vdots \\
+\phi_1(\boldsymbol{r}_{N}) & \phi_2(\boldsymbol{r}_{N}) & \hdots & \phi_{N}(\boldsymbol{r}_{N})
+\end{vmatrix}.
+\end{equation}
+which we denote by $\Psi_{\text{sd}}$ to emphasize that it is one of the wave function elements found in the product in equation \eqref{eq:elementproduct}. 
+$\phi_j(\bs{r}_i)$ is the single-particle function occupying the matrix element $D_{ij}$.
+
+
+
+\subsection{Factorizing out elements} \label{sec:factorizing}
+We have now seen how the Slater determinant can be split up in a spin-up part and a spin-down part. Before we evaluate these determinants, we should try to make the elements of the Slater matrices as simple as possible to save computational time. If all the elements have the same factor, the computations will get much cheaper if the factor is factorized out of the matrix. How this is possible can easiest be seen if we express the Slater determinant on a summation form,
+\begin{equation}
+\Psi_{\text{sd}}(\bs{R})\propto\sum_{q}(-1)^q\hat{P}\phi_1(\bs{r}_1)\phi_2(\bs{r}_2)\hdots\phi_N(\bs{r}_N),
+\label{eq:slatersum}
+\end{equation}
+where the sum runs over all the possible permutations and $\hat{P}$ is the permutation operator, permuting coordinates pairwise. If all the (spatial) single particle functions $\phi_j(\bs{r}_i)$ can be split in two functions $f_j(\bs{r}_i)$ and $g(\bs{r}_i)$ where the latter is common for all the single particle functions,
+\begin{equation}
+\phi_j(\bs{r}_i)=f_j(\bs{r}_i)g(\bs{r}_i)
+\end{equation}
+the Slater determinant can be rewritten as
+\begin{equation}
+\begin{aligned}
+\Psi_{\text{sd}}(\bs{R})&\propto\sum_{p}(-1)^p\hat{P}f_1(\bs{r}_1)g(\bs{r}_1)f_2(\bs{r}_2)g(\bs{r}_2)\hdots f_N(\bs{r}_N)g(\bs{r}_N)\\
+&=g(\bs{r}_1)g(\bs{r}_2)\hdots g(\bs{r}_N)\sum_{p}(-1)^p\hat{P}f_1(\bs{r}_1)f_2(\bs{r}_2)\hdots f_N(\bs{r}_N)\\
+&=\prod_{i=1}^Ng(\bs{r}_i)
+\begin{vmatrix}
+f_1(\boldsymbol{r}_1) & f_2(\boldsymbol{r}_1) & \hdots & f_N(\boldsymbol{r}_1)\\
+f_1(\boldsymbol{r}_2) & f_2(\boldsymbol{r}_2) & \hdots & f_N(\boldsymbol{r}_2)\\
+\vdots & \vdots & \ddots & \vdots \\
+f_1(\boldsymbol{r}_N) & f_2(\boldsymbol{r}_N) & \hdots & f_N(\boldsymbol{r}_N)
+\end{vmatrix}.
+\end{aligned}
+\end{equation}
+This is very useful when dealing with some common basises. For instance, the Hermite basis is given by 
+\begin{equation}
+\phi_j(\bs{r}_i)\propto H_j(\bs{r}_i)\exp(-\frac{1}{2}\omega|\bs{r}_i|^2)
+\end{equation}
+where $H_j(\bs{r}_i)$ are the Hermite polynomials and the Gaussian part fulfills the requirement of $g(\bs{r}_i)$. Therefore, we can construct a Slater determinant containing the Hermite polynomials only, treating the Gaussian as an independent element. This is not only preferable from an efficiency point of view, by doing this the variational parameter in the Gaussian is also removed from the determinant, which means that we can implement the determinant without worrying about the variational parameters. With this in mind, we will first treat the Gaussian element, obtaining its derivative and optimization schemes. Moreover, in section \ref{sec:slaterdeterminant} we will discuss how the determinant can be treated efficiently. 
+
+\subsection{Gaussian} \label{sec:simplegaussian}
+When factorizing out the Gaussian part from the Slater determinant, we obtain the element
+\begin{equation}
+\Psi_{\text{sg}}(\bs{R}; \alpha)=\prod_{j=1}^Ng(\bs{r}_j)=\exp\Big(-\frac{1}{2}\omega\alpha\sum_{j=1}^Nr_j^2\Big)=\exp\Big(-\frac{1}{2}\omega\alpha\sum_{j=1}^{F}x_j^2\Big),
+\end{equation}
+with $N$ as number of particles, $d$ as the number of dimensions and $F=Nd$ as the degrees of freedom. $\omega$ is the oscillator strength and $\alpha$ is a variational parameter, which for non-interacting atoms is 1. Because of the presence of $r_i^2$ the function can easily be treated both in Cartesian and spherical coordinates, but in this thesis we will focus on the former. We now use $j$ as our summation index, and reserve $i$ for the moved particle and $k$ as our the differentiating index. When changing a coordinate $x_i$ from $x_i^{\text{old}}$ to $x_i^{\text{new}}$, the probability ratio can easily be found to be 
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\label{eq:simplegaussianprobabilityratio}
+\frac{|\Psi_{\text{sg}}(\bs{R}_{\text{new}})|^2}{|\Psi_{\text{sg}}(\bs{R}_{\text{old}})|^2}=\exp\Big(\omega\alpha\big((x_{i}^{\text{old}})^2-(x_{i}^{\text{new}})^2\big)\Big),
+\end{empheq}
+which is pretty cheap to evaluate. The gradient of $\ln\Psi_{\text{sg}}$ with respect to the coordinate $x_k$ is
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_k\ln\Psi_{\text{sg}}=-\omega\alpha x_k,
+\end{empheq}
+and the corresponding Laplacian is
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla^2\ln\Psi_{\text{sg}}=-\omega\alpha F.
+\end{empheq}
+We observe that the factor $\omega\alpha$ is found in all the expressions above and only needs to be calculated again when the parameter $\alpha$ is updated, which is updated according to
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_{\alpha}\ln\Psi_{\text{sg}} = -\frac{1}{2}\omega\sum_{j=1}^Fx_j^2.
+\end{empheq}
+The implementation is very straight-forward, and looks like
+\begin{lstlisting}[language=c++]
+double Gaussian::evaluateRatio()
+{
+	return m_probabilityRatio;
+}
+
+double Gaussian::computeGradient(const int k)
+{
+	return -m_omegalpha * m_positions(k);
+}
+
+double Gaussian::computeLaplacian()
+{
+	return -m_omegalpha * m_degreesOfFreedom;
+}
+
+Eigen::VectorXd Gaussian::computeParameterGradient()
+{
+	m_gradients(0) = -0.5 * m_omega * m_positions.cwiseAbs2().sum();
+	return m_gradients;
+}
+\end{lstlisting}
+where \lstinline|m_omegalpha| is $\omega\alpha$. The probability ratio is calculated using
+\begin{lstlisting}[language=c++]
+double void Gaussian::updateProbabilityRatio(int changedCoord)
+{
+	m_probabilityRatio = exp(m_omegalpha * (m_positionsOld(changedCoord) * m_positionsOld(changedCoord) - m_positions(changedCoord) * m_positions(changedCoord)));
+}
+\end{lstlisting}
+We see that matrix-vector operations are used when it is possible, which makes the computations very fast.
+
+\iffalse
+\subsection{Hydrogen-like orbitals} \label{sec:hydrogenlike}
+The Hydrogen-like orbitals were presented in \eqref{eq:hydrogenlike}, but as we discussed earlier they cause some problems for atoms of the size of Neon and larger due to complex numbers. Instead, we decided to look at hydrogen-like orbitals with solid harmonics. Even though they do not have problems with complex numbers, they are quite complicated to differentiate, and the closed form will therefore be found by symbolic differentiating on the computer. However, we will do the exercise for the simplest case, which is sufficient for finding the Hydrogen and Helium ground states. This reads
+\begin{equation}
+\Psi_{\text{hl}}( \bs{R};\alpha)=\exp\Big(-Z\alpha\sum_{j=1}^Nr_j\Big)
+\end{equation}
+where $r_j$ is the distance from particle $j$ to the center. We then differentiate with respect to coordinate $x_k$, and obtain
+\begin{equation}
+\nabla_k\ln\Psi_{\text{hl}}=-Z\alpha\frac{x_k}{r_{k'}}
+\end{equation}
+The Laplacian is then given by
+\begin{equation}
+\nabla_k^2\ln\Psi_{\text{hl}}=-Z\alpha\Big(1-\frac{x_k^2}{r_{k'}^2}\Big)\frac{1}{r_{k'}}
+\end{equation}
+and the differentiation with respect to the variational parameter $\alpha$ is
+\begin{equation}
+\partial_{\alpha}\ln\Psi_{\text{hl}}=-Z\sum_{j=1}^Nr_j.
+\end{equation}
+
+For closed-form expressions for higher-order wave functions, please run the script \lstinline{generateHydrogenOrbitals.py}.
+\fi
+
+\subsection{The determinant} \label{sec:slaterdeterminant}
+As discussed in section \ref{sec:trial}, the Slater determinant can be split in a spin-up part and a spin-down part, and further the common functions can be factorized out as shown in section \ref{sec:factorizing}. This means that the remaining determinant is not the full Slater determinant, and to distinguish it from the real Slater determinant, $\Psi_{\text{sd}}(\bs{R})$, we will denote the element by "det", $\Psi_{\text{det}}(\bs{R})$. This determinant can of course still be splitted like the Slater determinant, 
+\begin{equation}
+\Psi_{\text{det}}(\bs{R})=
+|\hat{D}_{\uparrow}(\bs{R}_{\uparrow})|\cdot |\hat{D}_{\downarrow}(\bs{R}_{\downarrow})|,
+\end{equation}
+where $r_{\uparrow}$ are the coordinates of particles with spin up (defined as the first $N_{\uparrow}$ coordinates) and $r_{\downarrow}$ are the coordinates of particles with spin down (defined as the last $N_{\downarrow}$ coordinates). 
+
+We can now exploit the logarithmic scale, by using that the logarithm of a product corresponds to summarize the logarithm of each factor,
+\begin{equation}
+\ln\Psi_{\text{det}}(\bs{R})=\ln|\hat{D}_{\uparrow}(\bs{R}_{\uparrow})|+\ln|\hat{D}_{\downarrow}(\bs{R}_{\downarrow})|
+\end{equation}
+such that we only need to care about one of the determinants when differentiating, dependent on whether the coordinate we differentiate with respect to is among the spin-up or the spin-down coordinates,
+\begin{equation}
+\nabla_k\ln\Psi_{\text{det}}(\bs{R})=
+\begin{cases} 
+\nabla_k\ln|\hat{D}_{\uparrow}(\bs{R}_{\uparrow})| & \text{if} \quad k<N_{\uparrow}\\
+\nabla_k\ln|\hat{D}_{\downarrow}(\bs{R}_{\downarrow})| & \text{if} \quad k\geq N_{\uparrow}.
+\end{cases}
+\end{equation}
+Before we go further, we will introduce a more general notation which covers both the cases:
+\begin{equation}
+\hat{D}(\bs{R})\equiv \hat{D}_{\sigma}(\bs{R}_{\sigma})
+\end{equation}
+where $\sigma$ is the spin projection. When summarizing, the sum is always over all relevant coordinates. Furthermore, we have that
+\begin{equation}
+\nabla_k\ln|\hat{D}(\bs{R})|=\frac{\nabla_k|\hat{D}(\bs{R})|}{|\hat{D}(\bs{R})|}
+\end{equation}
+and
+\begin{equation}
+\nabla_k^2\ln|\hat{D}(\bs{R})|=\frac{\nabla_k^2|\hat{D}(\bs{R})|}{|\hat{D}(\bs{R})|}-\bigg(\frac{\nabla_k|\hat{D}(\bs{R})|}{|\hat{D}(\bs{R})|}\bigg)^2
+\end{equation}
+which are consistent with the equations \eqref{eq:derlogdef} and \eqref{eq:secderlogdef}. At this point, there are (at least) two possible paths to the final expressions. We can keep on using matrix operations and find the expressions of $\nabla_k|\hat{D}(\bs{R})|/|\hat{D}(\bs{R})|$ and $\nabla_k^2|\hat{D}(\bs{R})|/|\hat{D}(\bs{R})|$ using Jacobi's formula, or we can switch to element representations of the matrices. We choose the latter, because we believe that is the path of least resistance. 
+
+The determinant of an arbitrary matrix $\hat{A}$ can be expressed by its comatrix $\hat{C}$ in the following way,
+\begin{equation}
+|\hat{A}|=\sum_{ij}a_{ij}c_{ji}
+\end{equation}
+where $a_{ij}$ are the matrix elements of $\hat{A}$ and $c_{ij}$ are the element of the comatrix. Going further, an element $c_{ij}$ can be expressed in terms of an element from the inverse of $\hat{A}$, $a_{ij}^{-1}$ \cite{morten_hjorth-jensen_computational_2019},
+\begin{equation}
+c_{ij}=a_{ij}^{-1}|\hat{A}|.
+\end{equation}
+Relating this to our particular problem, we can express 
+\begin{equation}
+\begin{aligned}
+\frac{\nabla_k|\hat{D}(\bs{R})|}{|\hat{D}(\bs{R})|}&=\frac{\nabla_k\sum_{ij}d_{ij}c_{ji}}{\sum_{ij}d_{ij}c_{ji}}=\frac{\sum_j\nabla_kd_{kj}c_{jk}}{\sum_{ij}d_{ij}c_{ji}}\\
+&=\frac{\sum_j\nabla_kd_{kj}d_{jk}^{-1}|\hat{D}|}{\sum_{ij}d_{ij}d_{ji}^{-1}|\hat{D}|}=\sum_j\nabla_kd_{kj}d_{jk}^{-1}
+\end{aligned}
+\label{eq:slaterelementshit}
+\end{equation}
+where $d_{ij}$ are elements of $\hat{D}$ and we have used the fact that the elements $\nabla_kd_{ij}$ contribute to the sum if and only if $i=k$, such that the sum over $i$ collapses. Moreover, we use that multiplying a matrix with its inverse is identity, i.e, $\sum_{ij}d_{ij}d_{ji}^{-1}=1$ and the determinants cancel. Similarly, we get 
+\begin{equation}
+\frac{\nabla_k^2|\hat{D}(\bs{R})|}{|\hat{D}(\bs{R})|}=\sum_j\nabla_k^2d_{kj}d_{jk}^{-1}
+\end{equation}
+for the Laplacian. We are then ready to write up the final expressions for the gradient and Laplacian of the logarithm of the Slater determinant,
+\begin{equation}
+\begin{aligned}
+\nabla_k\ln|\hat{D}(\bs{R})|&=\sum_{j}d_{jk}^{-1}\nabla_k\phi_{j}(\bs{r}_k)\\
+\nabla_k^2\ln|\hat{D}(\bs{R})|&=\sum_jd_{jk}^{-1}(\bs{R})\nabla_k^2\phi_{j}(\bs{R}_k)-\Big(\sum_jd_{jk}^{-1}\nabla_k\phi_{j}(\bs{r}_k)\Big)^2
+\end{aligned}
+\label{eq:derivativelndet}
+\end{equation}
+where we have used that $d_{ij}=\phi_j(\bs{r}_i)$ with $\phi_j(\bs{r}_i)$ as the spatial functions found in the Slater determinant, see above.
+
+\subsubsection{Efficient calculation of the determinant} \label{sec:efficientcalculationsofslaterdeterminant}
+As aforementioned, dealing with the Slater determinant is very computational expensive, mainly because of the requirement of the inverse Slater matrix. However, by revealing that only one row in the Slater matrix is updated for each step, we can update the inverse recursively. We use the same element representation as above, and express the ratio between the new and the old determinant as
+\begin{equation}
+R\equiv \frac{|\hat{D}(\bs{R}_{\text{new}})|}{|\hat{D}(\bs{R}_{\text{old}})|}=\frac{\sum_{j}d_{ij}(\bs{R}_{\text{new}})c_{ij}(\bs{R}_{\text{new}})}{\sum_{j}d_{ij}(\bs{R}_{\text{old}})c_{ij}(\bs{R}_{\text{old}})}=\sum_{j}d_{ij}(\bs{R}_{\text{new}})d_{ji}^{-1}(\bs{R}_{\text{old}})
+\label{eq:slaterratio}
+\end{equation}
+which is very similar to the calculation given in equation \eqref{eq:slaterelementshit}. To calculate the inverse matrix $\hat{D}^{-1}$ efficiently, we need to calculate
+\begin{equation}
+S_j=\sum_{l=1}^Nd_{il}(\bs{R}_{\text{new}})d_{lj}^{-1}(\bs{R}_{\text{old}})
+\label{eq:slaters}
+\end{equation}
+for all columns but the one associated with the moved particle, $i$. For all columns where $j\neq i$, we then find the new elements using
+\begin{equation}
+d_{kj}^{-1}(\bs{R}_{\text{new}})=d_{kj}^{-1}(\bs{R}_{\text{old}})-\frac{S_j}{R}d_{ki}^{-1}(\bs{R}_{\text{old}})
+\label{eq:slaterinverse}
+\end{equation}
+while the remaining column, $i$, is updated using the simple formula \cite{morten_hjorth-jensen_computational_2019}
+\begin{equation}
+d_{ki}^{-1}(\bs{R}_{\text{new}})=\frac{1}{R}d_{ki}^{-1}(\bs{R}_{\text{old}}).
+\label{eq:slaterinverse2}
+\end{equation}
+Those procedures makes the inverting scale as $\sim M^2$ instead of $\sim M^3$, which is largely beneficial for large systems.
+
+We assume that we do not have any variational parameter in the determinant, and obtain three expressions of the case when a particle with spin up is moved and three of the case when a particle with spin down is moved,
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\begin{aligned}
+&\quad\text{if}\quad k<N_{\uparrow}:\\
+\frac{|\Psi_{\text{sd}}(\bs{R}_{\text{new}})|^2}{|\Psi_{sd}(\bs{R}_{\text{old}})|^2}&=
+\frac{|\hat{D}_{\uparrow}(\bs{R}_{\uparrow}^{\text{new}})|^2}{|\hat{D}_{\uparrow}(\bs{R}_{\uparrow}^{\text{old}})|^2}\\
+\nabla_k\ln|\hat{D}_{\uparrow}(\bs{R}_{\uparrow})|&=\sum_{j=1}^{N_{\uparrow}}\nabla_kd_{jk}(\bs{R}_{\uparrow})d_{kj}^{-1}(\bs{R}_{\uparrow})
+\end{aligned}
+\label{eq:slaterupdateup}
+\end{empheq}
+
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\begin{aligned}
+&\quad\text{if}\quad k\geq N_{\uparrow}:\\
+\frac{|\Psi_{\text{sd}}(\bs{R}_{\text{new}})|^2}{|\Psi_{sd}(\bs{R}_{\text{old}})|^2}&=
+\frac{|\hat{D}_{\downarrow}(\bs{R}_{\downarrow}^{\text{new}})|^2}{|\hat{D}_{\downarrow}(\bs{R}_{\downarrow}^{\text{old}})|^2}\\
+\nabla_k\ln|\hat{D}_{\downarrow}(\bs{R}_{\downarrow})|&=\sum_{j=N_{\uparrow}}^{F}\nabla_kd_{jk}(\bs{R}_{\downarrow})d_{kj}^{-1}(\bs{R}_{\downarrow})
+\end{aligned}
+\end{empheq}
+
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla^2\ln|\hat{D}(\bs{R})|=\sum_{k=1}^F\bigg[\sum_{j=1}^{F}\nabla_k^2d_{jk}(\bs{R})d_{kj}^{-1}(\bs{R})-\Big(\sum_{j=1}^{F}\nabla_kd_{ik}(\bs{R})d_{ki}^{-1}(\bs{R})\Big)^2\bigg]
+\label{eq:slaterlaplacian}
+\end{empheq}
+
+We have now presented the theory behind finding the ratio between the new and the old probability and the gradients of the determinant (equation (\ref{eq:slaterupdateup}-\ref{eq:slaterlaplacian})), and we have described how we efficiently can find the inverse of the Slater matrix (equation (\ref{eq:slaterratio}-\ref{eq:slaterinverse2})). However, to make things more clear, we will outline some selected parts of the Slater determinant implementation.
+
+In the code, we create a Slater matrix, \lstinline{m_slaterMatrix} where all the elements are stored. This matrix contains both $\hat{D}_{\uparrow}$ and $\hat{D}_{\downarrow}$, and has therefore dimensions $N\times N/2$. Furthermore, we store the gradient of the elements concerning all the $F$ elements in a matrix \lstinline{m_slaterMatrixDer}, which naturally gets the dimensions $F\times N/2$. We also create a matrix \lstinline{m_slaterMatrixSecDer} to store all the Laplacians of the elements, which also has the dimensions $F\times N/2$. In all of them, we only need to update a row when a particle is moved, which makes it quite efficient. The \lstinline{m_slaterMatrixDer} is updated in the following way
+
+\begin{lstlisting}[language={c++}]
+void SlaterDeterminant::updateSlaterMatrixDerRow(const int row)
+{
+	int particle = int(row / m_numberOfDimensions);
+	int dimension = row % m_numberOfDimensions;
+	for (int col = 0; col < m_numberOfParticlesHalf; col++) {
+		m_slaterMatrixDer(row, col) = m_basis->basisElementDer(col, dimension, m_positions.col(particle));
+	}
+}
+\end{lstlisting}
+where each element is taken from the \lstinline{basisElementDer} function in the \lstinline{Basis} class. This function returns just the derivative of the single particle function called for the chosen basis set. Note also that only the coordinates of the moved particle, stored in a column of the \lstinline{m_positions} matrix, is needed for the update. The update of \lstinline{m_slaterMatrix} and \lstinline{m_slaterMatrixSecDer} are very straight-forward and similar to the example above, so we will not discuss them further.
+
+Something that might be less intuitive is how to update the inverse of the Slater matrix. We also store this in a dedicated matrix \lstinline{m_slaterMatrixInverse}, and we use LU decomposition only to initialize it. After that, we use the formulas above to update the inverse. We implement it as
+
+\begin{lstlisting}[language={c++}]
+void SlaterDeterminant::updateRatio()
+{
+	m_ratio = m_slaterMatrix.row(m_particle) * m_slaterMatrixInverse.col(m_particle);
+}
+
+void SlaterDeterminant::updateSlaterMatrixInverse(int start, int end)
+{
+	updateRatio();
+	for (int j = start; j < m_particle; j++) {
+		double S = m_slaterMatrix.row(m_particle) * m_slaterMatrixInverse.col(j);
+		m_slaterMatrixInverse.col(j) -= S * m_slaterMatrixInverse.col(m_particle) / m_ratio;
+	}
+	for (int j = m_particle+1; j < end; j++) {
+		double S = m_slaterMatrix.row(m_particle) * m_slaterMatrixInverse.col(j);
+		m_slaterMatrixInverse.col(j) -= S * m_slaterMatrixInverse.col(m_particle) / m_ratio;
+	}
+	m_slaterMatrixInverse.col(m_particle) /= m_ratio;
+}
+\end{lstlisting}
+where \lstinline{m_ratio} is a global variable also returned by the function \lstinline{evaluateRatio} (see section \ref{sec:probabilityratio}). Note that the loops never affect the $i$'th columns, where particle $i$ is moved (in the code denoted by the global variable \lstinline{m_particle}). The arguments to the function \lstinline{updateSlaterMatrixInverse} specify which part of the matrix that should be updated, based on whether the moved particle has spin-up or spin-down. We will end our discussions of the Slater determinant by presenting the implementation of the gradient and the Laplacian of the logarithm of the determinant. These were decided to be stored in the vectors \lstinline{m_determinantDer} and \lstinline{m_determinantSecDer} for $\nabla_k|\hat{D}(\bs{R})|/|\hat{D}(\bs{R})|$ and $\nabla_k^2|\hat{D}(\bs{R})|/|\hat{D}(\bs{R})|$ respectively. These vectors are updated using vector operations in the following fashion
+\begin{lstlisting}[language={c++}]
+void SlaterDeterminant::updateSlaterDeterminantDerivatives(int start, int end)
+{
+	for (int i = start * m_numberOfDimensions; i < end * m_numberOfDimensions; i++) {
+		int particle = int(i / m_numberOfDimensions);
+		m_determinantDer(i) = m_slaterMatrixDer.row(i) * m_slaterMatrixInverse.col(particle);
+		m_determinantSecDer(i) = m_slaterMatrixSecDer.row(i) * m_slaterMatrixInverse.col(particle);
+	}
+}
+\end{lstlisting}
+We avoid a double loop by taking a inner product instead. However, we are left with one loop which can also be avoided using smart matrix operations.
+
+\section{Jastrow factor}
+The second part of a standard VMC trial wave function is the Jastrow factor, which is meant to take care of the electron-electron correlations. The optimization scheme of this element is not as complex as the determinant, and this section will, therefore, be notably shorter than the previous. We will first discuss the two Jastrow factors given in section \ref{sec:jastrow} and chapter \ref{chp:VMCwRBM}: the simple Jastrow and the Padé-Jastrow factor, and then we look at how the distance matrix can be updated efficiently. 
+
+\subsection{Simple Jastrow factor}
+Recall the simple Jastrow factor from \eqref{eq:SimpleJastrow},
+\begin{equation}
+\Psi_{\text{sj}}(\bs{R};\bs{\beta})=\exp\bigg(\sum_{i=1}^N\sum_{j>i}^N\beta_{ij}r_{ij}\bigg).
+\end{equation}
+with $N$ as the number of particles, $r_{ij}$ as the distance between particle $i$ and $j$ and $\beta_{ij}$ as variational parameters. This is a quite simple element, but one challenge is that we operate in Cartesian coordinates, while the expressed Jastrow factor obviously is easier to deal with in polar coordinates. Since we need to differentiate this with respect to all degrees of freedom, we need to be attentive not confusing the particle indices with the coordinate indices. Let us reserve $j'$ as the coordinate index and $j$ as the index of the corresponding particle. The relationship between $j'$ and $j$ is then \textit{always} $j=j'\setminus D$, where the backslash means integer division. The other way around, we have $j'=j+d$ where $d$ is the respective dimension of the coordinate $j'$. With that notation, the probability ratio is given by
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\frac{|\Psi_{\text{sj}}(\bs{R}_{\text{new}})|^2}{|\Psi_{\text{sj}}(\bs{R}_{\text{old}})|^2}=\exp\bigg(2\sum_{j=1}^N\beta_{ij}(r_{ij}^{\text{new}}-r_{ij}^{\text{old}})\bigg)
+\end{empheq}
+where $i'$ again is the moved particle. The gradient is straight-forward to find, and reads
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_{k'}\ln\Psi_{\text{sj}}=\sum_{j=1}^N\beta_{kj}\frac{x_{k'}-x_{j'}}{r_{kj}}
+\end{empheq}
+where $j'$ is related to the same dimension as $k'$. Here we use $x_{j'}$ as a general coordinate, no matter if it is associated with the $x$-direction or not. This also applies to the Laplacian,
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla^2\ln\Psi_{\text{sj}}=\sum_{k'=1}^{F}\sum_{j=1}^N\frac{\beta_{kj}}{r_{kj}}\bigg[1-\Big(\frac{x_{k'}-x_{j'}}{r_{kj}}\Big)^2\bigg].
+\end{empheq}
+Finally, the parameter update is given by
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_{\beta_{ml}}\ln\Psi_{\text{sj}}=r_{ml}.
+\end{empheq}
+For this element, the most important thing we can do to keep the computational cost as low as possible is to reveal that only a row and a column of the distance matrix is changed as we change a coordinate. Updating the entire distance matrix means updating $N^2$ elements, while updating a row and a column means updating $2N$ elements, which is an essential difference for large systems. This is detailed in section \ref{sec:distancematrix}.
+
+We also observe that the factor $(x_{k'}-x_{j'})/r_{kj}$ is found in both the gradient and the Laplacian, so by storing this matrix, we can speed-up the computations. Most naturally, the matrix has dimensions $F\times F$, but using that we only are interested in the elements where $x_{k'}$ and $x_{j'}$ have the same dimension and that the diagonal is zero, only $F$ of the elements need to be found. Further, the matrix is obviously anti-symmetric, so we only need to calculate $F/2$ of the elements. When one particle is moved, only the elements related to the moving particle need to be updated, which is $2(N-1)$ elements. Again, we utilize that the matrix is anti-symmetric and get the following efficient update scheme
+\begin{lstlisting}[language={c++}]
+void SimpleJastrow::updatePrincipalDistance(int i)
+{
+	int i_d = i % m_numberOfDimensions;
+	for (int j_p = 0; j_p < i_p; j_p++) {
+		int j = i_d + j_p * m_numberOfDimensions;
+		m_principalDistance(i, j) = (m_positions(i) - m_positions(j)) / m_distanceMatrix(i_p, j_p);
+		m_principalDistance(j, i) = -m_principalDistance(i, j);
+	}
+	for (int j_p = i_p + 1; j_p < m_numberOfParticles; j_p++) {
+		int j = i_d + j_p * m_numberOfDimensions;
+		m_principalDistance(i, j) = (m_positions(i) - m_positions(j)) / m_distanceMatrix(i_p, j_p);
+		m_principalDistance(j, i) = -m_principalDistance(i, j);
+	}
+}
+\end{lstlisting}
+with \lstinline{i_p} as the moved particle, \lstinline{i_d} as the direction the particle is moved in and \lstinline|i| as the coordinate index. Similarly, the loop goes over the particles \lstinline{j_p} with the associated coordinate \lstinline{j}. Note that we split the loop in two parts to avoid calculating the distance from a particle to itself. This trick is also done in many of the other functions in the simple Jastrow class, also in the Padé-Jastrow factor class. 
+
+\subsection{The Padé-Jastrow factor}
+The Padé-Jastrow factor is a more complicated Jastrow factor, and was specified in equation \eqref{eq:PadeJastrow}, 
+\begin{equation}
+\Psi_{\text{pj}}(\bs{R}; \beta) = \exp\bigg(\sum_{i=1}^N\sum_{j>i}^N\frac{a_{ij}r_{ij}}{1+\beta r_{ij}}\bigg),
+\end{equation}
+where $\beta$ is a variational parameter and the $a_{ij}$ is \textbf{not} a variational parameter, but rather constants dependent on the spin of particles $i$ and $j$. Similarly to the simple Jastrow, we also here need to distinguish between particle indices and coordinate indices because of the radial distances $r_{ij}$. We do the same trick with denoting $j'$ by the coordinate index and $j$ as the particle index, and obtain the gradient 
+\begin{equation}
+\nabla_{k'}\ln\Psi_{\text{pj}}=\sum_{j\neq k=1}^N\frac{a_{kj}}{(1+\beta r_{kj})^2}\frac{x_{k'}-x_{j'}}{r_{kj}}
+\end{equation}
+with respect to the coordinate $x_{k'}$. By again differentiating this with respect to $x_{k'}$, we obtain the Laplacian
+\begin{equation}
+\nabla^2\ln\Psi_{\text{pj}}=\sum_{k'=1}^{F}\sum_{j\neq k=1}^N\frac{a_{kj}}{(1+\beta r_{kj})^2}\bigg[1-\Big(1+2\frac{\beta r_{kj}}{1+\beta r_{kj}}\Big)\Big(\frac{x_{k'}-x_{j'}}{r_{kj}}\Big)^2\bigg]\frac{1}{r_{kj}}.
+\end{equation}
+Similar to the simple Jastrow factor, we again observe the factor $(x_{k'}-x_{j'})/r_{kj}$ in both the gradient and the Laplacian, which can be stored as a matrix and updated in the same way as described for the simple Jastrow factor. The last expression we need is the one used to update the variational parameter $\beta$, which is found to be
+\begin{equation}
+\nabla_{\beta}\ln\Psi_{\text{pj}}=-\sum_{i=1}^N\sum_{j>i}^N\frac{a_{ij}r_{ij}^2}{(1+\beta r_{ij})^2}.
+\end{equation}
+
+In addition to the factor $g_{i'j'}\equiv(x_{k'}-x_{j'})/r_{kj}$, there are multiple factors that we can store to make the computations cheaper. The factor $f_{ij}\equiv a_{ij}/(1+\beta r_{ij})^2$ is found both in the gradient, Laplacian and parameter gradient, and storing it will save a significant amount of computational time. Lastly, the factor $h_{ij}\equiv r_{ij}/(1+\beta r_{ij})$ is found in several places and will be stored as well. As a summary, we use
+\begin{equation}
+f_{ij}=\frac{a_{ij}}{(1+\beta r_{ij})^2}\quad\quad g_{i'j'}=\frac{x_{i'}-x_{j'}}{r_{ij}}\quad\quad h_{ij}=\frac{r_{ij}}{1+\beta r_{ij}}.
+\end{equation}
+and obtain the simplified expressions
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\begin{aligned}
+\frac{|\Psi_{\text{pj}}(\bs{R}_{\text{new}})|^2}{|\Psi_{\text{pj}}(\bs{R}_{\text{old}})|^2}&=\exp\Big(2\sum_{j=1}^Na_{ij}(h_{ij}^{\text{new}}-h_{ij}^{\text{old}})\Big)\\
+\nabla_{k'}\ln\Psi_{\text{pj}} &=\sum_{j\neq k=1}^Nf_{kj}\cdot g_{k'j'}\\
+\nabla^2\ln\Psi_{\text{pj}} &= \sum_{k'=1}^F\sum_{j\neq k=1}^N\frac{f_{kj}}{r_{kj}}\Big[1-(1+2\beta h_{kj})g_{k'j'}^2\Big]\\
+\nabla_{\beta}\ln\Psi_{\text{pj}}&=-\sum_{l=1}^N\sum_{j>l}^Na_{lj}h_{lj}^2=-\sum_{l=1}^N\sum_{j>l}^Nf_{lj}r_{lj}^2
+\end{aligned}
+\end{empheq}
+with unmarked indices ($j$) as the particle related ones and the marked ($j$) as the coordinate related ones. $i$ is the moved particle. We now proceed further to the update of the distance matrix, which is where we can find the remaining optimization possibilities. 
+
+\subsection{Updating the distance matrix} \label{sec:distancematrix}
+The distance matrix, which is used in the Jastrow factors, gives an illustrating example on how we can avoid repeating calculations. The matrix, henceforth named $M$, contains the relative distances between all the particles, for three particles given by
+\begin{eqnarray}
+M=
+\begin{pmatrix}
+r_{11} & r_{12} & r_{13} \\
+r_{21} & r_{22} & r_{23} \\
+r_{31} & r_{32} & r_{33}
+\end{pmatrix}
+=
+\begin{pmatrix}
+0 & r_{12} & r_{13} \\
+r_{12} & 0 & r_{23} \\
+r_{13} & r_{23} & 0
+\end{pmatrix}
+\end{eqnarray}
+where $r_{ij}$ means the distance between particles $i$ and $j$. Since $r_{ij}=r_{ji}$ and $r_{ii}=0$, the matrix becomes symmetric with zeros on the diagonal, which means that we only need to calculate $N(N-1)/2$ elements instead of $N^2$. Further, we can utilize that only a particle is moved at a time, which means that only a row and a column are changed when a particle is moved. For instance, if particle 1 is moved, the upper row and the left-hand-side column in matrix $M$ need to be updated. In our program, we have implemented this in the following way
+\lstset{basicstyle=\scriptsize}
+\begin{lstlisting}[language=c++]
+double Metropolis::calculateDistanceMatrixElement(const int i, const int j) 
+{
+	double dist = 0;
+	int parti   = m_numberOfDimensions*i;
+	int partj   = m_numberOfDimensions*j;
+	for(int d=0; d<m_numberOfDimensions; d++) {
+		double diff = m_positions(parti+d)-m_positions(partj+d);
+		dist += diff*diff;
+	}
+	return sqrt(dist);
+}
+
+void Metropolis::calculateDistanceMatrixCross(const int particle) {
+	for(int i=0; i<m_numberOfParticles; i++) {
+		m_distanceMatrix(particle, i) = calculateDistanceMatrixElement(particle, i);
+		m_distanceMatrix(i, particle) = m_distanceMatrix(particle, i);
+	}
+}
+\end{lstlisting}
+where the function \lstinline{calculateDistanceMatrixElement(i,j)} returns element \lstinline{i,j} of the matrix, which is called from the function \lstinline{calculateDistanceMatrixCross(particle)}. The latter takes the moved particle index as input, and updates the necessary row and column of the matrix. 
+
+For systems of non-interacting particles, the distance matrix is redundant, and should therefore not be calculated. We have solved this by giving all the wave function elements and the Hamiltonians a number which indicated whether they require the distance matrix or not, as mentioned above. If no part of the code needs the distance matrix, it is never calculated. We also calculate the radial position globally when any part of the code requires it. The components are stored in a vector named \lstinline{radialVector}, applying the same optimization ideas as the distance matrix. 
+
+\section{Sampling} \label{sec:sampling}
+Also, when it comes to the sampling itself, there exist optimization schemes to speed-up the process. Remember that the sampling algorithm often is repeated millions of times for each iteration, so even a small impact can give a massive speed-up. We will initially present the brute force sampling implementation in its entirety before we move on to the importance of sampling implementation. For the latter, we will discuss the optimization possibilities and connect them to the actual implementation.
+
+\subsection{Brute force sampling}
+The brute force sampling was introduced in section \ref{sec:bruteforce}, and is the most basic sampling method implemented. The sampling function \lstinline{BruteForce::acceptMove}, which returns true if the move is accepted, is implemented as
+
+\begin{lstlisting}[language=c++]
+bool BruteForce::acceptMove()
+{
+	int i = m_RNG->nextInt(m_degreesOfFreedom);
+
+	m_positionsOld = m_positions;
+	m_radialVectorOld = m_radialVector;
+	m_distanceMatrixOld = m_distanceMatrix;
+
+	m_positions(i) += (m_RNG->nextDouble() - 0.5) * m_stepLength;
+	if (m_calculateDistanceMatrix) {
+		Metropolis::calculateDistanceMatrixCross(int(i / m_numberOfDimensions));
+	}
+	if (m_calculateRadialVector) {
+		Metropolis::calculateRadialVectorElement(int(i / m_numberOfDimensions));
+	}
+	m_system->updateAllArrays(m_positions, m_radialVector, m_distanceMatrix, i);
+
+	double p = m_system->evaluateProbabilityRatio();
+	if (p < m_RNG->nextDouble()) {
+		m_positions = m_positionsOld;
+		m_distanceMatrix = m_distanceMatrixOld;
+		m_radialVector = m_radialVectorOld;
+		m_system->resetAllArrays();
+		return false;
+	}
+	return true;
+}
+\end{lstlisting}
+where \lstinline|i| is the changed coordinate which is drawn from the random number generator \lstinline|m_RNG|. Initially the old positions, radial vector and distance matrix are stored in case the move is rejected, and then a new move is proposed in positive or negative direction. If the radial vector or distance matrix (or both) are needed somewhere in the code, they are updated in this function, using the ideas and implementation presented in section \ref{sec:distancematrix}. The they are distributed to the wave function elements using the function \lstinline|updateAllArrays|.
+
+In the end, the probability ratio is evaluated using the function \lstinline|evaluateProbabilityRatio| presented in section \ref{sec:probabilityratio}. If this ratio is larger than a random number between 0 and 1, the move is accepted, and otherwise, we set all the arrays back to the old ones (also the ones in the wave function elements). 
+
+\subsection{Importance sampling}
+The importance of sampling implementation is very similar to the brute force sampling implementation, and we will, therefore, not repeat it. However, we need to calculate the quantum force and the ratio between the new and the old Green's function, which can be calculated in clever ways to keep the code efficient. 
+
+We have already seen that the quantum force takes the same form as the gradient of the trial wave function, $\bs{F}(\bs{R})=2(\nabla\Psi_T(\bs{R}))/\Psi_T(\bs{R})$, and we can therefore simply reuse the function \lstinline|computeGradient|, which is a part of the local energy computations from section \ref{sec:kinetic}. We call this from the function \lstinline|ImpotanceSampling::QuantumForce|, which contains the few lines of code
+
+\begin{lstlisting}[language=c++]
+double ImportanceSampling::QuantumForce(const int i)
+{
+	double QF = 0;
+	for (auto &j : m_waveFunctionVector) {
+		QF += j->computeGradient(i);
+	}
+	return 2 * QF;
+}
+\end{lstlisting}
+where the force in dimension \lstinline|i| is returned. The Green's function was first presented in section \ref{sec:importancesampling}, and at first glance it might look computational expensive to evaluate. Fortunately, we only need the ratio between the old and the new function which can be found in a quite simple fashion. Actually, both the diffusion constant $D$ and the time step $\Delta t$ cancel in the exponent, and the ratio can be expressed in the elegant form
+\begin{equation}
+g(\bs{R}',\bs{R},\Delta t)\equiv\frac{G(\bs{R}',\bs{R},\Delta t)}{G(\bs{R},\bs{R}',\Delta t)}=\exp((\bs{R}'-\bs{R})\cdot(\bs{F}(\bs{R})-\bs{F}(\bs{R}'))/2)
+\label{eq:greensratio}
+\end{equation}
+where $\bs{R}$ and $\bs{R}'$ differ by one element and so does $\bs{F}(\bs{R})$ and $\bs{F}(\bs{R}')$. It can therefore be evaluated in a very efficient scheme
+\begin{lstlisting}
+double ImportanceSampling::GreenRatio(const int i)
+{
+	double dQF = m_quantumForceOld(i) - m_quantumForceNew(i);
+	return exp(0.5 * dQF * m_dx) + 1;
+}
+\end{lstlisting}
+where \lstinline|dQF| is the difference between the new and the old force and \lstinline|m_dx| is the distance particle \lstinline|i| is moved. 1 appears from the term where \lstinline|m_dx| is zero, such that we get zero in the exponent. 
+
+\section{Update of parameters} \label{sec:update}
+The parameter update is a central part of a VMC implementation, and a good VMC implementation requires a good optimization algorithm. Since the optimization functions are called outside the sampling, they are just called a fraction of times, compared to the function called from the sampling. Therefore, we will not put too much effort into making them efficient, but they should still be thought-through. We will here discuss the gradient descent method with momentum and monotonic decaying step and the ADAM optimizer. The \lstinline|Optimizer| class contains a pure virtual function \lstinline|updateParameters| which is thus forced to be included in the optimizer subclasses. This function returns the update of the new parameters and is the function we will discuss in this section.
+
+\subsection{Gradient descent}
+Gradient descent is a simple optimization algorithm, and so is the implementation. Based on the theory presented in section \ref{sec:gd}, the implementation is really straight-forward and reads
+\begin{lstlisting}
+Eigen::MatrixXd GradientDescent::updateParameters()
+{
+	m_step += 1;
+	double monotonic = 1 / pow(m_step, m_monotonicExp);
+	m_v = m_gamma * m_v + m_eta * Optimization::getEnergyGradient() * monotonic;
+	return m_v;
+}
+\end{lstlisting}
+where \lstinline|m_v| is the momentum vector and \lstinline|m_monotonicExp| describes how fast the rate should decrease. Further, \lstinline|m_gamma| is the momentum parameter defining the relative size of the momentum. The function \lstinline|Optimization::getEnergyGradient| returns a matrix with the gradients of the energy expectation value with respect to all the parameters, given in equation \eqref{eq:gradientenergy}.
+
+\subsection{ADAM optimizer}
+The ADAM optimizer implementation also is very straight-forwardly based on the algorithm given in section \ref{sec:adam}. The momentum vectors were implemented as matrices to match the dimensions of the parameter matrix. By matrix operations, we could also have made the function efficient, but since that is not the aim here, we decided to keep the loops in order to make the code readable. The implementation looks like
+\begin{lstlisting}
+Eigen::MatrixXd ADAM::updateParameters()
+{
+	m_step += 1;
+	m_g = Optimization::getEnergyGradient();
+	m_m = m_beta1 * m_m + (1 - m_beta1) * m_g;
+	m_v = m_beta2 * m_v + (1 - m_beta2) * m_g.cwiseAbs2();
+	m_mHat = m_m / (1 - pow(m_beta1, m_step));
+	m_vHat = m_v / (1 - pow(m_beta2, m_step));
+	for (int i = 0; i < m_numberOfElements; i++) {
+		for (int j = 0; j < m_maxParameters; j++) {
+			m_theta(i, j) = m_eta * m_mHat(i, j) / (sqrt(m_vHat(i, j) + m_epsilon));
+		}
+	}
+	return m_theta;
+}
+\end{lstlisting}
+where effort was made naming variables consistently with what we did in section \ref{sec:adam}. The parameter matrix, named \lstinline|m_parameters|, can then easily be updated by the code
+\begin{lstlisting}
+if (m_myRank == 0) {
+	m_sampler->computeAverages();
+	m_parameters -= m_optimization->updateParameters();
+}
+\end{lstlisting}
+where \lstinline|m_optimization| is the specified optimizer and \lstinline|m_myrank| is the \textit{rank} of the process. Parallel processing is not discussed yet, but we will describe it briefly in the following section.
+
+\section{Parallel processing}
+The code was parallelized using MPI to make studies of large systems possible. This means that the code can run multiple parallel treads and in that manner, utilize the processors. Most notably, this allows us to run on computer clusters which typically reduce the running time with a factor 10-100. We will not explain how MPI works in detail, nor will we detail the implementation of MPI since the commands are distributed over the entire code. The thing we present is a sketch of the idea behind the parallelization used for our particular code.
+
+One of the things that makes VMC preferred over other many-body methods is that the algorithm quite easy can be split into independent parts, which encourages parallelization. The entire sampling can be split into as many parallel processes as needed, such that the code can be run on an arbitrary number of CPUs. We typically distinguish between wall clock time, $t_{clock}$ and CPU time $t_{cpu}$ where the former is the time measured by a clock, and the latter is the total computation time from all the CPUs. The speed-up will in general not be 100\%, i.e., $t_{clock}\neq t_{cpu}/n$ with $n$ as the number of processes, mainly because all of the samplings should have the same burn-in period as if we only run one process, but also because the code that is not part of the sampling cannot be parallelized and needs to be run on the same CPU. The process that takes care of this part is the primary process with rank 0.
+
+In algorithm \ref{alg:mpi}, we have sketched very roughly how the parallelization goes. We first run the entire sampling individually for all the $n$ processes, and if something goes wrong, we call the \lstinline|MPI_Abort| function. To align the processes before we collect all the cumulative values, we use the function \lstinline|MPI_Barrier| and we use \lstinline|MPI_Reduce| for the actual collection. After that, the average energies are calculated \textit{by the main process only}, and in the end, the updated parameters are broadcast to all the other processes. Note that this is just a sketch where we avoid the arguments and the actual implementation of the MPI functions. This is of course found in the code.
+
+\IncMargin{1em}
+\begin{algorithm}
+	\SetAlgoLined
+	MPI\_Init() (Initialize MPI)\;
+	\While{not converged}{
+		$E_L=0$\;
+		gradient $=0$\;
+		Egradient $=0$\;
+		\For{$i\leftarrow 1$ \KwTo $M$}{
+			$E_L+=(\hat{\mathcal{H}}\Psi)/\Psi$\;
+			gradient $+=\nabla_{\theta}\ln\Psi$\;
+			Egradient $+=(\hat{\mathcal{H}}\Psi)/\Psi*\nabla_{\theta}\ln\Psi$\;
+		}
+		\If{something goes wrong}{
+			MPI\_Abort() (Terminate all processes)\;
+		}
+		MPI\_Barrier() (Align processes)\;
+		MPI\_Reduce($E_L$, gradients, Egradients) (Collect cumulative values)\;
+		\If{myrank $==0$}{
+			$\overline{E}_L = E_L/M$\;
+			$\overline{\text{gradient}}=\text{gradient}/M$\;
+			$\overline{\text{Egradient}}=\text{Egradient}/M$\;
+			$G=2*(\overline{\text{Egradient}}-\overline{E}_L*\overline{\text{Egradient}})$\;
+			$\theta-=\eta G$\;
+		}
+		MPI\_Bcast($\theta$) (Broadcast parameters)\;
+	}
+	MPI\_Finalize() (Finalize MPI)\;
+	\KwResult{Optimal variational parameters $\theta$.}
+	\caption{Sketch of the parallelization.}
+	\label{alg:mpi}
+\end{algorithm}\DecMargin{1em}
+
+\section{Electron density} \label{sec:electrondensityimplementation}
+We presented the theory behind the electron density in section \ref{sec:electrondensity}, where we saw that the $P$-body density is given by an integral over all probability density functions $|\Psi(\bs{R}_1,\hdots,\bs{R}_N)|^2$ but $P$ of them. Usually, we look at the one-body density or the two-body density, leaving out one or two particles from the integration. Further in section \ref{sec:electrondensityqmc}, we gave a brief explanation of how the one-body density can be found using Monte Carlo integration in a VMC scheme. In this section, we will discuss the technique in more detail, and of course, give the actual implementation.
+
+In our particular implementation, we have technically calculated the one-body density in two different ways; dividing the space into annuluses\footnote{An annulus is a ring-shaped object with a region bounded by two concentric circles.} to calculate the radial electron distribution and dividing the space into a grid to calculate the spatial electron distribution. The former is convenient when we want to present the density in a two-dimensional plot, making a comparison between multiple methods easy. Often, the one-body density is only dependent on the radial distance from the center, and then it is sufficient to look at the radial density profile. On the other hand, the spatial density profile contains more information between the position of the particles, which is interesting when the density is also dependent on the angle.
+
+\begin{figure}
+	\centering
+	\input{../tikz/onebody_bins.tex}
+	\caption{This figure is meant to illustrate how the one-body density is calculated using Monte-Carlo integration. One divides the space into $n$ bins (here 5), and count the number of particles in each bin throughout the sampling. Afterward, the bins need to be normalized.}
+	\label{fig:onebody}
+\end{figure}
+For the radial density profile, we in practice deal with bins formed as annuluses of equal width $\Delta r$, the two-dimensional case is illustrated in figure \eqref{fig:onebody}. This means that the bins do not have an equal extent, and we need to compensate for this by dividing by the respective volume. In two dimensions, a bin $i$ has the area
+\begin{equation}
+A_i=(2i+1)\pi \Delta r^2
+\end{equation}
+and in three dimensions the volume of bin $i$ is
+\begin{equation}
+V_i=4(i(i+1)+1/3)\pi \Delta r^3.
+\end{equation}
+The most intuitive way of finding the correct bin of a particle, is to loop through all the bins and check if the particles belongs to the particular bin.however, this is a rather inefficient method of doing it, and it can be done much smarter revealing that a particle of radius $r$ belong to the bin of index
+\begin{equation}
+i=r\setminus \Delta r + 1
+\end{equation}
+where $\setminus$ indicates integer division. 
+
+By defining a vector \lstinline|m_particlesPerBin| with the length number of bins, we can find the number of particles in each bin by a simple loop over all particles,
+\begin{lstlisting}
+void Sampler::computeOneBodyDensity(const Eigen::VectorXd radialVector)
+{
+	for (int i_p = 0; i_p < m_numberOfParticles; i_p++) {
+		int bin = int(radialVector(i_p) / m_radialStep) + 1;
+		m_particlesPerBin(bin)++;
+	}
+}
+\end{lstlisting}
+where \lstinline|m_radialStep| is the width of each annulus, above denoted by $d$. In the end, \lstinline|m_particlesPerBin| is printed to file, and we do the normalization when a script reads this file, see \lstinline|plot_ob_density.py|. For the case where we look at the spatial density distribution, all the bins have equal size, and the approach is therefore straight-forward. Also, for the two-body density, we can choose to either calculate the radial or the spatial density distribution, but as the spatial distribution becomes many-dimensional, we stick to the radial distribution for this quantity. This distribution is calculated in a similar way to the one-body density, and it will not be further detailed. 
+
+\section{Random number generator}
+In Monte Carlo integration, we are dependent on random numbers that are received from a random number generator (RNG). The RNG should have two main properties: It should give many independent, uncorrelated random numbers and it should be fast. The former depends on the \textit{period} of the RNG, where a long period gives many independent numbers. 
+
+In this work, we have used the Mersenne Twister random number generator, as it has a period of $2^{19937}-1$ which is known as the Mersenne prime. This is an incredibly large number and should be more than sufficient for our purpose. We use the built-in package in C++, \lstinline|std::mt19937|, which is also quite fast.

@@ -1,0 +1,74 @@
+\chapter{Evaluation of a general Gaussian-binary RBM wave function} \label{app:rbmderive}
+In this appendix, we start from a general Gaussian-binary restricted Boltzmann machine (RBM) and set up the system energy and joint probability distribution. Thereafter, we derive the marginal distribution which will later be used as the wave function. Closed-form expressions for the logarithmic gradient and the Laplacian of the wave function to be used in the local energy calculations, as we as the parameter gradient used in the parameter update will be given. We start from the most basic Gaussian-binary restricted Boltzmann machine in the form of 
+\begin{equation}
+\begin{aligned}
+E(\bs{x},\bs{h})&=\sum_{i=1}^{F}\frac{(x_i-a_i)^2}{2\sigma_i^2}-\sum_{j=1}^Hb_jh_j-\sum_{i=1}^F\sum_{j=1}^{H}\frac{x_iw_{ij}h_j}{\sigma_i^2}\\
+&=\sum_{i=1}^{F}\frac{(x_i-a_i)^2}{2\sigma_i^2}-\sum_{j=1}^Hh_j\Big(b_j+\sum_{i=1}^{F}\frac{x_iw_{ij}}{\sigma_i^2}\Big)
+\end{aligned}
+\end{equation}
+as discussed in chapter \ref{chp:machinelearning}. If we now denote the expression in the last parenthesis by $f_j(\bs{x};\bs{\theta})$ where $\bs{\theta}$ includes all the parameters, we end up with the expression of the general Gaussian-binary restricted Boltzmann machine,
+\begin{equation}
+E(\bs{x},\bs{h})=\sum_{i=1}^{F}\frac{(x_i-a_i)^2}{2\sigma_i^2}-\sum_{j=1}^Hh_jf_j(\bs{x};\bs{\theta})
+\end{equation}
+where $f_j(\bs{x};\bs{\theta})$ in principle can be any function of $\bs{x}$ and $\bs{\theta}$. From this expression, we obtain the joint probability distribution
+\begin{equation}
+\begin{aligned}
+P(\bs{x},\bs{h})&=\frac{1}{Z}\exp(-\beta E(\bs{x},\bs{h}))\\
+&\propto\exp(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}) \exp(\sum_{j=1}^H\Big(h_jf_j(\bs{x};\bs{\theta})\Big))\\
+&\propto\exp(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}) \prod_{j=1}^H\exp\Big(h_jf_j(\bs{x};\bs{\theta})\Big)
+\end{aligned}
+\end{equation}
+where we fix $\beta=1/k_BT=1$ and ignore the partition function $Z$. Our main interest is the marginal distribution, which we will derive in detail.
+
+\section{Marginal distribution}\label{sec:derive}
+In chapter \ref{chp:machinelearning}, we presented the marginal distribution of the visible nodes as 
+\begin{equation}
+P(\bs{x})=\sum_{\{\bs{h}\}}P(\bs{x},\bs{h})
+\end{equation}
+which for our function is 
+\begin{equation}
+\begin{aligned}
+P(\boldsymbol{x})&\propto\sum_{\{\boldsymbol{h}\}}\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big) \prod_{j=1}^H\exp\Big(h_jf_j(\bs{x},\bs{\theta})\Big)\\
+&=\sum_{h_1=0}^1\sum_{h_2=0}^1\hdots\sum_{h_H=0}^1\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big)\exp\Big(h_1f_1\Big)\exp\Big(h_2f_2\Big)\hdots\exp\Big(h_Hf_H\Big)\\
+%&=\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big)\sum_{h_1=0}^1\sum_{h_2=0}^1\hdots\sum_{h_H=0}^1\exp\Big(h_1f_1\Big)\exp\Big(h_2f_2\Big)\hdots\exp\Big(h_Hf_H\Big)\\
+&=\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big)\sum_{h_1=0}^1\exp\Big(h_1f_1\Big)\sum_{h_2=0}^1\exp\Big(h_2f_2\Big)\hdots\sum_{h_H=0}^1\exp\Big(h_Hf_H\Big)\\
+&=\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big)\prod_{j=1}^H\sum_{h_j=0}^1\exp\Big(h_jf_j\Big)\\
+&=\exp\Big(\sum_{i=1}^F \frac{(x_i - a_i)^2}{2\sigma^2}\Big) \prod_{j=1}^H \bigg[1+ \exp\Big(f_j(\bs{x};\bs{\theta})\Big)\bigg]
+\end{aligned}
+\end{equation}
+where we exploit that only an element in the product contains a certain hidden node $h_j$.
+
+\section{Conditional distribution}
+WRITE
+
+\section{Closed-form expressions of gradients}\label{sec:derivatives}
+By defining the single-particle function as the marginal probability, we have seen that the wave function of a general Gaussian-binary restricted Boltzmann machine takes the form
+\begin{equation}
+\Psi(\bs{x};\bs{a},\bs{\theta})=\exp(-\sum_{i=1}^{F}\frac{(x_i-a_i)^2}{2\sigma^2})\prod_{j=1}^H\Big[1+\exp(f_j(\bs{x};\bs{\theta}))\Big]
+\label{eq:GBRBM}
+\end{equation}
+where $f_j(\bs{x};\bs{\theta})$ is an arbitrary function of the coordinates $\bs{x}$ and the weights $\bs{\theta}$. The Gaussian part is straight-forward to differentiate, so we will keep our attention on the product,
+\begin{equation}
+\Psi_{\text{rp}}(\bs{x};\bs{\theta})=\prod_{j=1}^H\Big[1+\exp(f_j(\bs{x};\bs{\theta}))\Big].
+\end{equation}
+We will henceforth no longer specify the arguments $\bs{x}$ and $\bs{\theta}$ of the functions, as all the functions take the same arguments. By introducing the functions
+\begin{equation}
+p_j\equiv \frac{1}{1+\exp(+f_j)}\quad\wedge\quad n_j\equiv \frac{1}{1+\exp(-f_j)},
+\end{equation}
+where the last one is the sigmoid function, we find the gradient and Laplacian of $\ln\Psi_{rp}$ to be
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_k\ln\Psi_{\text{rp}}=\sum_{j=1}^Hn_j\nabla_k(f_j)
+\end{empheq}
+and
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\nabla_k^2\ln\Psi_{\text{rp}}=\sum_{j=1}^Hn_j\big[\nabla_k^2(f_j)+p_j\big(\nabla_k(f_j)\big)^2\big]
+\end{empheq}
+respectively. Those expressions can be used to find the kinetic energy directly, as the kinetic energy contribution from this specific element is just the sum over the gradients and Laplacians, $T=\sum_{k=1}^F[\nabla_k^2\ln\Psi_{\text{rp}}+(\nabla_k\ln\Psi_{\text{rp}})^2]$. An arbitrary parameter $\theta_i$ can be updated according to the log-likelihood function which turns out to be just the derivative of the log-likelihood function
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\frac{\partial}{\partial \theta_i}\ln \Psi_{\text{rp}}=\sum_{j=1}^Hn_j\frac{\partial}{\partial\theta_i}(f_j)
+\end{empheq}
+and the ratio between the new and the old wave function elements can be found by the product
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+\frac{\Psi_{\text{rp}}^{\text{new}}}{\Psi_{\text{rp}}^{\text{old}}}=\prod_{j=1}^H\frac{p_j^{\text{old}}}{p_j^{\text{new}}}.
+\end{empheq}
+As a conclusion, what we actually need to calculate to find respective expressions for each wave function element is $\nabla_k(f_j)$, $\nabla_k^2(f_j)$ and $\partial_{\theta_i}(f_j)$, which is naturally simpler than differentiating the entire wave function element. This applies to all elements on the form presented in equation \eqref{eq:GBRBM}, including general Gaussian-binary restricted Boltzmann machines and deep Boltzmann machines as long as all the units are Gaussian-binary.

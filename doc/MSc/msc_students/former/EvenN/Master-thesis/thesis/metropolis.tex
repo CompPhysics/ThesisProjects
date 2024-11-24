@@ -1,0 +1,98 @@
+\chapter{The Metropolis Algorithm} \label{chp:metropolis}
+Metropolis sampling is a Markov chain Monte Carlo method, which generates a Markov chain using a proposal density for new steps, and the method also rejects unsatisfying moves. In its most simple form, a particle is moved in a random direction, which was the original method invented by \citet{metropolis_equation_1953} back in 1953. Later, the method was improved by \citet{hastings_monte_1970}, giving rise to the more general Metropolis-Hastings algorithm. The genius of the Metropolis algorithms is that the acceptance of a move is not based on the probabilities themselves, but rather the ratio between the new and the old probabilities. In that way, we avoid calculating the normalizing factor, which is often computationally intractable.
+
+We will first discuss Markov chains in general, before we connect them to the original Metropolis algorithm, henceforth called \textit{brute-force sampling}, and then the Metropolis-Hastings algorithm, also called \textit{importance sampling}. If we denote the current state by $\bs{R}$, and the proposed state by $\bs{R}'$, we have a transition rule $P(\bs{R}'|\bs{R})$ for going from $\bs{R}$ to $\bs{R}'$ and a transition rule $P(\bs{R}|\bs{R}')$ for going the opposite way. If we then assume that the rules satisfy \textit{ergodicity} and \textit{detailed balance}, we have the following relationship:
+\begin{equation}
+P(\bs{R}'|\bs{R})P(\bs{R})=P(\bs{R}|\bs{R}')P(\bs{R}'),
+\end{equation}
+which is actually a restatement of Bayes' theorem presented in section \ref{sec:bayes}. The next step is to rewrite the transition rules in terms of a proposal distribution $T(\bs{R}'|\bs{R})$ and an acceptance probability $A(\bs{R}',\bs{R})$,
+\begin{equation}
+P(\bs{R}'|\bs{R})=T(\bs{R}'|\bs{R})A(\bs{R}',\bs{R}).
+\end{equation}
+In order to satisfy the detailed balance, we need to choose $A(\bs{R}',\bs{R})$ such that
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+A(\bs{R}',\bs{R})=\text{min }\left[1,\frac{T(\bs{R}|\bs{R}')P(\bs{R}')}{T(\bs{R}'|\bs{R})P(\bs{R})}\right],
+\label{eq:acceptance}
+\end{empheq}
+where we limit $A$ to maximum 1 as the probability should not exceed 1. We want to accept a move with probability $A(\bs{R}',\bs{R})$. One way to do that is to draw a number from a uniform distribution between 0 and 1. If this number is lower than the acceptance, the move should be accepted and rejected otherwise.
+
+\subsection{Brute-force sampling} \label{sec:bruteforce}
+In its simplest form, the move is proposed randomly both in magnitude and direction. Mathematically, we can write this as
+\begin{equation}
+\bs{R}'=\bs{R}+\Delta xd\bs{R}
+\end{equation}
+where $\Delta x$ is the step length and $d\bs{r}$ has a random magnitude and direction (typically which particle to move). We obtain the naïve acceptance probability when requiring $T(\bs{R}'|\bs{R})=T(\bs{R}|\bs{R}')$, such that the it simplifies to
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+A(\bs{R}',\bs{R})=\text{min }\left[1,\frac{P(\bs{R}')}{P(\bs{R})}\right].
+\end{empheq}
+However, with this approach, an unsatisfying number of moves will be rejected as the particles can be moved in all directions, which results in a significant waste of computing power. A better method is \textbf{importance sampling}, since the particles are moved according to the quantum force. 
+
+\subsection{Importance sampling} \label{sec:importancesampling}
+Importance sampling is a more intelligent sampling method than the brute-force sampling, since the new position is based on an educated guess. To understand how it works, we need to take a quick look at diffusion processes. We start from the Fokker-Planck equation,
+\begin{equation}
+\frac{\partial P(\bs{R},t)}{\partial t}=D\nabla\left(\nabla-\bs{F}\right)P(\bs{R},t)
+\label{eq:fokkerplanck}
+\end{equation}
+which describes how a probability distribution $P(\bs{R},t)$ evolves in appearance of a drift force $\bs{F}$. In the case $\bs{F}=\bs{0}$, the equation reduces to the diffusion equation with $D$ as the diffusion constant. This simplifies to $D=1/2$ in natural units. 
+
+The Langevin equation states that a diffusion particle tends to move parallel to the drift force in the coordinate space, with $\bs{\eta}$ introducing some random noise. The equation reads
+\begin{equation}
+\frac{\partial \bs{R}(t)}{\partial t}=D\bs{F}(\bs{R}(t))+\bs{\eta}.
+\label{eq:langevin}
+\end{equation}
+Given a position $\bs{R}$, the new position $\bs{R}'$ can be be found by applying forward-Euler on the Langevin equation, obtaining
+\begin{equation}
+\bs{R}'=\bs{R}+D\Delta t\bs{F}(\bs{R}) + \bs{\xi}\sqrt{\Delta t}
+\end{equation}
+where $\Delta t$ is a fictive time step and $\bs{\xi}$ is a Gaussian random variable. Further, we want to find an expression of the drift force $\bs{F}$ which makes the system converge to a stationary state. A stationary state is found when the probability density function, $P(\bs{R})$, is constant in time, i.e., when the left-hand side of the Fokker-Planck equation is zero. In that case, we can rewrite the equation as
+\begin{equation}
+\nabla^2P(\bs{R})=P(\bs{R})\nabla\bs{F}(\bs{R})+\bs{F}(\bs{R})\nabla P(\bs{R}).
+\end{equation}
+where the parenthesis are written out and we have moved the term that is independent of the force $\bs{F}$ to the left-hand side. Moreover, we assume that the drift force takes the form $\bs{F}(\bs{R})=g(\bs{R})\nabla P(\bs{R})$ based on the fact that the force should point in the direction of the steepest slope. We can then go ahead and write
+\begin{equation}
+\nabla^2 P(\bs{R})\big(1-P(\bs{R})g(\bs{R})\big)=\nabla\big(g(\bs{R})P(\bs{R})\big)\nabla P(\bs{R})
+\end{equation}
+where the quantity $\nabla^2 P(\bs{R})$ is factorized out from two of the terms. The equation is satisfied when $g(\bs{R})=1/P(\bs{R})$, such that the drift force evolves to the well-known form
+\begin{equation}
+\bs{F}(\bs{R})=\frac{\nabla P(\bs{R})}{P(\bs{R})}=2\frac{\nabla\Psi_T(\bs{R})}{\Psi_T(\bs{R})}=2\nabla\ln\Psi_T(\bs{R}),
+\end{equation}
+which is also known as the \textit{quantum force}. 
+
+The remaining part concerns the acceptance of the moves. For this, we need to find the sampling distributions $T(\bs{R}'|\bs{R})$ from equation \eqref{eq:acceptance}, which are just the solutions of the Fokker-Planck equation. The solutions read
+\begin{equation}
+G(\bs{R}',\bs{R},\Delta t)\propto\exp\Big(-\big(\bs{R}'-\bs{R}-D\Delta t\bs{F}(\bs{R})\big)^2/4D\Delta t\Big),
+\end{equation}
+which is categorized as a Green's function. In general, the essential property of any Green's function is that it provides a way to describe the response of an arbitrary differential equation solution. For our particular case, it correspond to $\mathcal{N}(\bs{R}'|\bs{R}+D\Delta t \bs{F}(\bs{R}),2D\Delta t)$ which is the normal distribution with mean $\bs{\mu}=\bs{R}+D\Delta t \bs{F}(\bs{R})$ and variance $\sigma=2D\Delta t$. By using this, the acceptance probability of the importance sampling can finally be written as
+\begin{empheq}[box={\mybluebox[5pt]}]{equation}
+A(\bs{R}'|\bs{R})=\text{min }\left[1,\frac{G(\bs{R},\bs{R}',\Delta t)P(\bs{R}')}{G(\bs{R}',\bs{R}, \Delta t)P(\bs{R})}\right],
+\end{empheq}
+where the marginal probabilities are still given by equation \eqref{eq:probvmc}. 
+
+\subsection{Gibbs sampling}
+Gibbs sampling has, throughout the years, gained high popularity in the machine learning community when it comes to training Boltzmann machines. There are probably many factors that contribute to this, where the performance is one of them. Another proper motivation is the absent of tuning parameters, which makes the method more comfortable to deal with compared to many of its competitors. The method is an instance of the Metropolis-Hastings algorithm and is therefore classified as another Markov chain Monte Carlo method. It differs from the Metropolis methods discussed above by the fact that all the moves are accepted, such that we do not waste computational time on rejected moves. Nevertheless, we should not use this argument alone to motivate the use of Gibbs sampling, as the algorithm usually and preferably rejects less than 1\% of the moves in importance sampling.
+
+We will in the following briefly describe the mathematical foundation of the method, before we, for the sake of clarity, connect it to the restricted Boltzmann machines. The method is built on the concept that, given a multivariate distribution, it is simpler to sample from a conditional distribution than to marginalize by integrating over a joint distribution. This is the reason why we do not need the marginal distributions in Gibbs sampling, but rather the conditional distributions. In the most general, Gibbs sampling proposes a rule for going from a sample $\bs{x}^{(i)}=(x_1^{(i)},x_2^{(i)},\hdots,x_n^{(i)})$ to another sample $\bs{x}^{(i+1)}=(x_1^{(i+1)},x_2^{(i+1)},\hdots,x_n^{(i+1)})$, similar to the Metropolis algorithm. However, in Gibbs sampling the transition from $x_j^{(i)}$ to $x_j^{(i+1)}$ is performed according to the conditional distribution specified by
+\begin{equation}
+P\big(x_j^{(i+1)}|x_1^{(i+1)},\hdots,x_{j-1}^{(i+1)},x_{j+1}^{(i)},\hdots,x_n^{(i)}\big).
+\end{equation}
+The marginal distribution of a subset of variables can then be approximated by simply considering the samples for that subset of variables, ignoring the rest. 
+
+For a restricted Boltzmann machine, this becomes a two-step sampling process as we have two layers, such that we use the conditional probabilities $P(\bs{x}|\bs{h})$ and $P(\bs{h}|\bs{x})$ to update the visible and hidden units respectively. For the restricted Boltzmann machine with Gaussian-binary units presented in section \ref{sec:RBM}, the conditional probability of $h_j=0$ given a set of visible nodes $\bs{x}$ is
+\begin{equation}
+P(h_j=0|\bs{x})=\frac{1}{1+\exp(+b_j+\sum_{i=1}^Nx_iw_{ij}/\sigma^2)}
+\end{equation}
+and the corresponding conditional probability of $h_j=1$ is
+\begin{equation}
+P(h_j=1|\bs{x})=\frac{1}{1+\exp(-b_j-\sum_{i=1}^Nx_iw_{ij}/\sigma^2)},
+\end{equation}
+which is by the way again our friend the sigmoid function. Note that $P(h_j=0|\bs{x})+P(h_j=1|\bs{x})=1$, indicating that a hidden node $h_j$ can only take 0 or 1, hence binary. When updating the hidden node, one typically calculate the sigmoid $P(h_j=1|\bs{x})$ and set $h_j$ to 1 if this probability is larger than 1/2, and set it to 0 otherwise. 
+
+For the update of the visible nodes, we see from equation \eqref{eq:normal} that the visible nodes are chosen after the normal distribution,
+\begin{equation}
+P(x_i|\bs{h})=\mathcal{N}\Big(a_i+\sum_{j=1}^Hw_{ij}h_j,\sigma^2\Big),
+\end{equation}
+which introduces some stochasticity to the system. By going back and forth in the Boltzmann machine multiple times (a round trip corresponds to an iteration), the hope is that the expectation values can be approximated by averaging over all the iterations. 
+
+As pointed out earlier, the Gibbs sampling will not be implemented in this work, but we describe it for completeness purposes. The reason for this is that the method has not shown promising results for our specific problem, and we will instead rely on Metropolis sampling. We have already tested the Gibbs sampling in another similar project on small quantum dots \cite{nordhagen_computational_2018}, and so have others like \citet{flugsrud_vilde_moe_solving_nodate}. The results are matching and show poor performance compared to the Metropolis-Hastings algorithm.
+
+However, the Gibbs sampling method should not be underestimated. \citet{carleo_solving_2017} showed its importance when solving the Ising model using a restricted Boltzmann machine and Gibbs sampling, and in traditional Boltzmann machines, the Gibbs sampling is the preferred tool.
