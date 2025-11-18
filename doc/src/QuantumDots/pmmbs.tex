@@ -1,0 +1,214 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Computational Physics}}\\[0.3cm]
+    {\large \textbf{Parametric Matrix Models for Solving the Black--Scholes Equation}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+The Black--Scholes partial differential equation (PDE) is one of the central equations in quantitative finance. 
+It describes the fair price of European options as a function of time, volatility, and underlying asset price. 
+Solutions to the PDE can be obtained analytically in certain cases, but more complex derivatives or modified market assumptions require numerical methods such as finite differences or finite elements.
+
+Machine learning methods have recently gained attention as surrogate approximators for PDE solutions, offering the potential for efficient evaluation and parameter sensitivity exploration. 
+However, most neural-network approaches are not constructed to respect the underlying analytical properties of the PDE. 
+They often lack interpretability, extrapolation reliability, and stability.
+
+In contrast, \textit{Parametric Matrix Models} (PMMs), introduced by Cook \textit{et al.} (Nature Communications 16, 5929 (2025)), provide a physics-inspired framework rooted in matrix equations and operator theory. 
+The PMM architecture replaces traditional neural networks with parametrized matrices whose spectra and eigenvectors generate outputs. 
+These models:
+\begin{itemize}
+    \item are universal function approximators,
+    \item allow analytic continuation,
+    \item incorporate physical constraints directly into their structure,
+    \item have excellent extrapolation properties,
+    \item often require far fewer trainable parameters than neural networks.
+\end{itemize}
+
+This thesis aims to combine the theory of PMMs with the financial mathematics of the Black--Scholes equation to build a reduced-order surrogate model for option pricing. 
+The goal is to investigate whether PMMs can serve as highly efficient and interpretable models for PDE-based pricing in computational finance.
+
+\section*{2. Scientific Motivation}
+
+The Black--Scholes PDE is given by
+\[
+\frac{\partial V}{\partial t}
++ \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2}
++ r S \frac{\partial V}{\partial S}
+- rV = 0,
+\]
+with terminal condition $V(S,T) = \max(S-K,0)$.
+
+Traditional numerical solvers compute the full PDE solution on a discretized spatial grid. 
+This is computationally expensive when evaluating the price repeatedly for different parameter values $(\sigma, r, K)$. 
+A PMM surrogate model may achieve:
+\begin{itemize}
+    \item reduced computational complexity,
+    \item efficient multi-parameter interpolation,
+    \item automatic incorporation of analyticity of the solution,
+    \item excellent performance across a compact domain of input features.
+\end{itemize}
+
+Applying PMMs to the Black--Scholes equation also offers a test case for more complex PDEs in physics, finance, and engineering.
+
+\section*{3. Objectives of the Thesis}
+
+The main objective of this thesis is to develop, implement, and test a parametric matrix model (PMM) for solving the Black--Scholes PDE. The work involves theoretical analysis, numerical implementation, and extensive benchmarking.
+
+\subsection*{Objective 1: Understanding PMMs and Reduced-Order Methods}
+\begin{itemize}
+    \item Study and summarize the PMM framework introduced by Cook \textit{et al.}  
+    \item Analyze connections to eigenvector continuation, reduced basis methods, and implicit-function models.
+\end{itemize}
+
+\subsection*{Objective 2: Numerical Foundation of the Black--Scholes PDE}
+\begin{itemize}
+    \item Derive the Black--Scholes equation and its analytical solution.
+    \item Implement a stable finite-difference solver as the reference solution.
+\end{itemize}
+
+\subsection*{Objective 3: Parametric Matrix Model for PDE Surrogate Learning}
+\begin{itemize}
+    \item Construct PMMs where the input features are $(S, t, \sigma, r, K)$ or suitable lower-dimensional encodings.
+    \item Explore Hermitian vs.\ unitary PMM formulations.
+    \item Investigate how boundary conditions and payoff constraints can be embedded into secondary matrices.
+\end{itemize}
+
+\subsection*{Objective 4: Training, Optimization, and Stability}
+\begin{itemize}
+    \item Implement gradient-based learning using the analytic gradients described in the PMM paper.
+    \item Train models on option–price datasets generated from the PDE solver.
+    \item Study extrapolation behavior with respect to large or small volatility, deep in/out-of-the-money regimes, and long maturities.
+\end{itemize}
+
+\subsection*{Objective 5: Benchmarking and Comparisons}
+\begin{itemize}
+    \item Compare PMMs with:
+    \begin{itemize}
+        \item feed-forward neural networks,
+        \item physics-informed neural networks,
+        \item standard surrogate models (Gaussian processes, Kernel Ridge Regression).
+    \end{itemize}
+    \item Evaluate:
+    \begin{itemize}
+        \item accuracy,
+        \item computational efficiency,
+        \item number of trainable parameters,
+        \item extrapolation quality.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{Objective 6: Extensions}
+Possible extensions depending on time:
+\begin{itemize}
+    \item PMM-based solution of the time-dependent heat equation (via Black--Scholes transformation).
+    \item Multi-asset options (two-dimensional PDE).
+    \item American option approximation via penalty methods.
+\end{itemize}
+
+\section*{4. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Month 1--2: Literature Study}
+\begin{itemize}
+    \item Read the PMM paper and supporting literature on reduced-basis methods.
+    \item Study the derivation and numerical properties of the Black--Scholes PDE.
+    \item Begin preliminary numerical experiments.
+\end{itemize}
+
+\textbf{Deliverable:} A short report summarizing PMMs and the Black--Scholes PDE.
+
+\bigskip
+
+\textbf{Month 3--4: Numerical Solvers and Data Generation}
+\begin{itemize}
+    \item Implement a finite-difference solver for Black--Scholes.
+    \item Generate datasets for a range of volatilities, interest rates, and maturities.
+    \item Test grid-convergence and accuracy.
+\end{itemize}
+
+\textbf{Deliverable:} Verified PDE solver and dataset.
+
+\bigskip
+
+\textbf{Month 5--6: PMM Model Construction}
+\begin{itemize}
+    \item Construct primary and secondary matrices.
+    \item Test small-scale PMMs (e.g.\ 5x5, 7x7) on simplified payoff functions.
+    \item Begin training using analytic gradients.
+\end{itemize}
+
+\textbf{Deliverable:} First working PMM surrogate for one-parameter models.
+
+\vspace{0.5cm}
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Month 7--9: Full PMM Training and Analysis}
+\begin{itemize}
+    \item Train PMMs across full parameter domain.
+    \item Assess accuracy, convergence, and extrapolation.
+    \item Optimize hyperparameters and matrix sizes.
+\end{itemize}
+
+\textbf{Deliverable:} Fully trained PMM for Black--Scholes pricing.
+
+\bigskip
+
+\textbf{Month 10--11: Benchmarking and Comparisons}
+\begin{itemize}
+    \item Compare PMM with neural networks and other regression models.
+    \item Evaluate computational speed and parameter efficiency.
+\end{itemize}
+
+\textbf{Deliverable:} Benchmarking report with figures and tables.
+
+\bigskip
+
+\textbf{Month 12: Thesis Writing and Finalization}
+\begin{itemize}
+    \item Complete thesis manuscript.
+    \item Prepare defense presentation.
+\end{itemize}
+
+\textbf{Deliverable:} Final thesis and presentation.
+
+\section*{5. Expected Outcomes}
+
+\begin{itemize}
+    \item A full numerical implementation of PMMs applied to the Black--Scholes equation.
+    \item Demonstration of PMM capabilities as surrogate PDE solvers.
+    \item Quantitative comparisons with traditional machine learning and numerical PDE methods.
+    \item A master thesis document summarizing:
+    \begin{itemize}
+        \item theoretical background,
+        \item numerical implementations,
+        \item parameter studies,
+        \item performance analysis.
+    \end{itemize}
+\end{itemize}
+
+\section*{6. References}
+
+\begin{enumerate}
+    \item P. Cook, D. Jammooa, M. Hjorth-Jensen, D. D. Lee, \textit{Parametric Matrix Models}, \textit{Nature Communications}, 16, 5929 (2025).
+    \item F. Black and M. Scholes, ``The Pricing of Options and Corporate Liabilities'', \textit{Journal of Political Economy}, 81 (1973).
+    \item J. C. Hull, \textit{Options, Futures, and Other Derivatives}, Pearson.
+    \item Additional references to be added as needed.
+\end{enumerate}
+
+\end{document}
