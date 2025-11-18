@@ -1,166 +1,262 @@
-Below is a complete LaTeX project description for a one-year Master’s thesis, focused on Physical Matrix Models (PMMs) applied to Trotterized Unitary Coupled Cluster (UCC) methods for the pairing Hamiltonian in quantum computing.
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\geometry{margin=2.5cm}
 
-The text is fully self-contained and structured as a formal Master’s thesis topic description, including:
-	•	Introduction / scientific background
-	•	Problem formulation
-	•	Project outline
-	•	Milestones (with timeline)
-	•	Expected outcomes
+\begin{document}
 
-You may drop this directly into your departmental LaTeX template.
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Computational Physics}}\\[0.3cm]
+    {\large \textbf{Parametric Matrix Models for Trotterized Unitary Coupled Cluster Dynamics of the Pairing Hamiltonian}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
 
-⸻
+\vspace{1cm}
 
-LaTeX Thesis Topic Description
+\section*{1. Introduction}
 
-\section*{Master Thesis Project Proposal}
+Quantum computing offers new paradigms for solving strongly correlated
+quantum many-body problems in nuclear physics, quantum chemistry, and
+condensed matter systems. Among the most prominent variational quantum
+algorithms is the \emph{unitary coupled cluster} (UCC) approach, where
+a parametrized unitary ansatz
+\[
+U(\boldsymbol{\theta}) = e^{T(\boldsymbol{\theta}) - T^\dagger(\boldsymbol{\theta})}
+\]
+is used to prepare approximate ground states of interacting
+Hamiltonians, such as the pairing Hamiltonian relevant for
+superconductivity and nuclear pairing correlations.
 
-\subsection*{Title}
-\textbf{Physical Matrix Models for Trotterized Unitary Coupled Cluster Theory:\\
-Applications to the Pairing Hamiltonian on Quantum Computers}
+On a digital quantum computer, UCC operators must be decomposed into
+sequences of elementary quantum gates using Trotter--Suzuki
+factorizations. The finite Trotter step size $\Delta t$ (or, more
+generally, the finite number of Trotter steps) introduces systematic
+errors. Reducing $\Delta t$ improves accuracy but increases the number
+of gates, which is problematic for near-term noisy intermediate-scale
+quantum (NISQ) devices.
 
-\subsection*{Introduction}
+Recently, Cook \textit{et al.} introduced \emph{Parametric Matrix
+Models} (PMMs) as a physics-inspired machine learning framework based
+on parametrized Hermitian or unitary matrices and their
+eigenvalues/eigenvectors. PMMs are universal function approximators
+that work directly with matrix equations, and they have been used to
+perform \emph{zero-error Trotter step extrapolation} in quantum
+simulations by learning the dependence of observables on the Trotter
+step size and extrapolating to the continuum limit.
 
-The rapid development of quantum computing has opened the possibility of simulating 
-strongly-correlated quantum systems beyond the capabilities of classical algorithms. 
-Among the emerging techniques, \emph{Physical Matrix Models} (PMMs) represent a 
-recent and powerful data-driven framework for learning physical operators and spectra 
-directly from quantum evolution data. PMMs provide an interpretable, 
-Hamiltonian-like surrogate model that can generalize beyond the training region, 
-and have shown remarkable performance in learning effective generators from 
-Trotterized quantum circuits.
+This master thesis aims at combining the PMM framework with
+Trotterized UCC simulations of a pairing Hamiltonian (reduced BCS
+Hamiltonian) relevant for nuclear structure and superconductivity. The
+project will focus on classical simulations of the quantum circuits
+(e.g.\ in Qiskit or similar libraries), generation of Trotterized
+data, and the construction and training of PMMs to extrapolate
+observables and energies to the $\Delta t \to 0$ limit in an efficient
+and interpretable way.
 
-At the same time, the \emph{Unitary Coupled Cluster} (UCC) Ansatz plays a central 
-role in variational quantum eigensolvers (VQE) for quantum chemistry and nuclear 
-structure problems. Implementing UCC requires the construction of deep parameterized 
-unitaries based on Trotterized exponentials of excitation operators. For systems 
-governed by pairing correlations—such as in nuclear shell-model pairing Hamiltonians, 
-superconducting grains, or reduced BCS-type systems—the UCC approach provides 
-a physically motivated representation of correlated states, yet suffers from 
-Trotter errors and circuit-depth limitations on current quantum hardware.
+\section*{2. Scientific Background and Motivation}
 
-This project aims to combine these two frameworks: \textbf{using PMMs to analyze, 
-learn, and correct Trotterized UCC evolutions} for the \emph{pairing Hamiltonian}. 
-The student will investigate whether PMMs can (i) learn effective generators of 
-UCC circuits, (ii) extrapolate Trotter-step errors to the $dt\to 0$ limit, and 
-(iii) provide improved estimates of energy spectra and ground-state properties.  
-Both classical simulations and runs on real quantum hardware (e.g. IBM Quantum) 
-will be part of the investigation.
+The pairing Hamiltonian is a minimal yet non-trivial model for
+fermionic superfluidity and nuclear pairing:
+\[
+H = \sum_{p} \varepsilon_p\, N_p - G \sum_{p,q} P_p^\dagger P_q,
+\]
 
-\subsection*{Scientific Goals}
+where $N_p$ are number operators, $P_p^\dagger$ and $P_p$ are pair
+creation and annihilation operators, $\varepsilon_p$ are
+single-particle energies, and $G$ is the pairing strength. This
+Hamiltonian exhibits strong correlations and can be mapped to a spin
+representation suitable for quantum simulation.
 
-The overarching goals of this thesis are:
+The UCC ansatz for the pairing Hamiltonian is constructed from
+physically motivated excitation operators that create and annihilate
+pairs, and the corresponding unitary transformation is implemented on
+a quantum device via Trotter factorizations. For a time-independent
+effective Hamiltonian or UCC generator $K$, one typically uses
+approximations of the form
+\[
+e^{-i K \Delta t} \approx \prod_j e^{-i K_j \Delta t},
+\]
+
+where $K = \sum_j K_j$ and the $K_j$ are simpler terms whose
+exponentials can be directly decomposed into quantum gates. Repeating
+this product $n$ times approximates a longer evolution or a more
+accurate UCC operator, but also increases circuit depth and noise.
+
+The key challenges are:
 \begin{itemize}
-    \item To implement Trotterized UCC ansätze for the pairing Hamiltonian.
-    \item To generate evolution data using both classical simulation and real quantum hardware.
-    \item To develop and train PMMs capable of learning the effective Hamiltonians underlying these Trotter circuits.
-    \item To examine whether PMMs can \emph{extrapolate} $dt\rightarrow 0$ limits reliably and provide improved spectral estimates.
-    \item To benchmark PMM-based predictions against exact diagonalization and standard UCC/VQE simulations.
+    \item Quantifying and mitigating Trotter errors in realistic UCC circuits.
+    \item Extrapolating observables (e.g.\ ground-state energies, pair occupation numbers) to the zero Trotter-step limit using data obtained at relatively large $\Delta t$ that are feasible on NISQ devices.
+    \item Designing extrapolation schemes that respect the underlying analytic structure of the quantum evolution and that can be efficiently trained from limited data.
 \end{itemize}
 
-\subsection*{Project Outline}
+PMMs provide a natural framework for this problem. By learning an
+effective Hermitian matrix model whose eigenvalues and eigenvectors
+reproduce the dependence of observables on $\Delta t$ and the UCC
+parameters, one can perform robust extrapolations and gain additional
+insight into the analytic structure of the Trotterized dynamics.
 
-The project consists of four interconnected components:
+\section*{3. Objectives}
 
-\paragraph{1. Theoretical and Computational Background}
+The overall goal of this thesis is to develop and test a parametric
+matrix model for Trotterized UCC simulations of the pairing
+Hamiltonian on quantum computers. The work combines quantum many-body
+theory, quantum computing, and physics-inspired machine learning.
+
+\subsection*{Objective 1: Theory and Literature Review}
+
 \begin{itemize}
-    \item Review the theory of Physical Matrix Models (AE-PMM, unitary PMM, and variants).
-    \item Study the pairing Hamiltonian:
-    \[
-        H = \sum_{i} \epsilon_i N_i - G \sum_{i,j} P_i^\dagger P_j,
-    \]
-    where $N_i$ counts particles in level $i$ and $P_i^\dagger$ creates a pair.
-    \item Review the Unitary Coupled Cluster Singles and Doubles (UCCSD) Ansatz and its Trotterization.
-    \item Understand Trotter errors and their scaling in UCC circuits.
+    \item Review the theory of the pairing Hamiltonian (reduced BCS model) and its applications in nuclear physics and superconductivity.
+    \item Study the unitary coupled cluster method and its use in quantum algorithms (UCCSD and pairing-specific UCC variants).
+    \item Understand Trotter--Suzuki expansions and their role in implementing UCC unitaries on quantum hardware.
+    \item Study the theory of Parametric Matrix Models as introduced by Cook \textit{et al.}, including:
+          \begin{itemize}
+              \item affine Hermitian PMMs and unitary PMMs,
+              \item eigenvalue-based and observable-based PMM architectures,
+              \item the example of zero-error Trotter step extrapolation presented in the article.
+          \end{itemize}
 \end{itemize}
 
-\paragraph{2. Trotterized UCC Circuits for the Pairing Hamiltonian}
+\subsection*{Objective 2: Classical Simulation of the Pairing Hamiltonian and UCC Circuits}
+
 \begin{itemize}
-    \item Construct UCC operators for pairing (pair excitation channels).
-    \item Implement first- and higher-order Trotter expansions.
-    \item Classically simulate the time evolution operator $U(dt)$ for varying $dt$.
-    \item Extract eigenvalue spectra, state overlaps, and training datasets for PMMs.
+    \item Implement the pairing Hamiltonian in a suitable basis (e.g.\ spin representation via Jordan--Wigner or Bravyi--Kitaev transformation).
+    \item Construct classical simulations of UCC-type quantum circuits for small systems (few pairs and levels) using a quantum computing framework (e.g.\ Qiskit).
+    \item Implement Trotterized approximations to the UCC operator and generate data for energies and selected observables as functions of:
+          \begin{itemize}
+              \item Trotter step size $\Delta t$,
+              \item number of Trotter steps,
+              \item pairing strength $G$ and single-particle spacing,
+              \item UCC parameters (e.g.\ amplitudes).
+          \end{itemize}
 \end{itemize}
 
-\paragraph{3. PMM Training and Extrapolation}
+\subsection*{Objective 3: Design and Implementation of Parametric Matrix Models}
+
 \begin{itemize}
-    \item Train AE-PMM models to learn the effective generator $M_{\text{eff}}(dt)$ from Trotter data.
-    \item Use eigenvector overlap tracking to resolve branch ambiguities.
-    \item Extrapolate energies using:
-    \begin{enumerate}
-        \item PMM extrapolation: eigenvalues of $M_0$.
-        \item Polynomial baseline extrapolation in $dt$.
-    \end{enumerate}
-    \item Compare PMM-learned operators to the exact pairing Hamiltonian.
-    \item Investigate generalizability: extrapolation to unseen interaction strengths $G$ or different initial states.
+    \item Design PMM architectures tailored to this problem:
+          \begin{itemize}
+              \item primary matrices as Hermitian functions of input features (e.g.\ $\Delta t$, $G$, variational parameters),
+              \item secondary matrices corresponding to effective observables (e.g.\ effective pairing Hamiltonian, pair occupation).
+          \end{itemize}
+    \item Explore both:
+          \begin{itemize}
+              \item eigenvalue-based PMMs (learning effective Hamiltonians),
+              \item observable-based PMMs (learning expectation values directly).
+          \end{itemize}
+    \item Implement these PMMs in a numerical environment (Python/NumPy/PyTorch or similar), using the complex-valued gradient methods described in the PMM framework.
 \end{itemize}
 
-\paragraph{4. Quantum Hardware Experiments}
+\subsection*{Objective 4: Zero-Error Trotter Step Extrapolation}
+
 \begin{itemize}
-    \item Implement shallow UCC circuits using Qiskit on IBM Quantum devices.
-    \item Collect real Trotter evolution data subject to gate noise and measurement errors.
-    \item Train noise-aware PMMs on experimental data.
-    \item Evaluate whether PMMs improve physical predictions relative to raw hardware outputs.
+    \item Train PMMs on simulated UCC data obtained at moderate Trotter step sizes $\Delta t$.
+    \item Use the trained PMMs to extrapolate observables and energies to $\Delta t \to 0$.
+    \item Compare PMM-based extrapolation with:
+          \begin{itemize}
+              \item polynomial extrapolation,
+              \item standard neural network regressors (MLPs),
+              \item other baseline methods (e.g.\ spline fits).
+          \end{itemize}
+    \item Analyze the accuracy and stability of PMM extrapolations for:
+          \begin{itemize}
+              \item ground-state energy,
+              \item occupation numbers and pairing gaps,
+              \item possibly time-dependent observables if time evolution is considered.
+          \end{itemize}
 \end{itemize}
 
-\subsection*{Milestones and Timeline}
+\subsection*{Objective 5: Performance Analysis and Physical Interpretation}
 
-\paragraph{Month 1--2: Background and Setup}
 \begin{itemize}
-    \item Literature review (PMMs, Trotter methods, UCC theory, pairing models).
-    \item Implement pairing Hamiltonian and exact diagonalization benchmark.
-    \item Implement UCC operators and classical Trotter simulations.
+    \item Quantify the efficiency of the PMM in terms of:
+          \begin{itemize}
+              \item number of trainable parameters,
+              \item data requirements,
+              \item computational cost (training and inference).
+          \end{itemize}
+    \item Investigate the analytic structure learned by the PMM (e.g.\ avoided crossings in effective spectra as functions of $\Delta t$ or $G$).
+    \item Discuss implications for near-term quantum devices and possible extensions to more complex Hamiltonians or ansätze.
 \end{itemize}
 
-\paragraph{Month 3--5: Trotter Data Generation}
+\section*{4. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Literature Review and Theoretical Foundation}
 \begin{itemize}
-    \item Generate datasets for multiple $dt$ values and system sizes.
-    \item Implement eigenvalue tracking across $dt$.
-    \item Validate against exact solutions.
+    \item Study the pairing Hamiltonian, UCC methods, and Trotter--Suzuki decompositions.
+    \item Review PMM theory and the specific zero-error Trotter extrapolation example.
+\end{itemize}
+\textbf{Deliverable:} Written summary of theoretical background and key references.
+
+\bigskip
+
+\textbf{Months 3--4: Classical Quantum Circuit Simulation}
+\begin{itemize}
+    \item Implement small pairing Hamiltonian instances and map them to qubit Hamiltonians.
+    \item Build UCC ansätze tailored to pairing (e.g.\ pair excitation operators).
+    \item Implement Trotterized UCC circuits in a simulator and generate benchmark data for energies and observables versus $\Delta t$.
+\end{itemize}
+\textbf{Deliverable:} Verified classical simulation code and initial dataset.
+
+\bigskip
+
+\textbf{Months 5--6: PMM Architecture and Prototype}
+\begin{itemize}
+    \item Implement basic PMM architectures (Hermitian and unitary variants).
+    \item Test PMMs on simplified regression tasks (e.g.\ emulating energies as functions of $\Delta t$ for fixed parameters).
+    \item Refine the choice of input features and PMM hyperparameters.
+\end{itemize}
+\textbf{Deliverable:} Working prototype PMM code and preliminary tests.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--9: Full PMM Training and Extrapolation Studies}
+\begin{itemize}
+    \item Generate comprehensive datasets over a range of pairing strengths and UCC parameters.
+    \item Train PMMs on Trotterized data and perform $\Delta t \to 0$ extrapolations.
+    \item Systematically compare with polynomial and neural network extrapolations.
+\end{itemize}
+\textbf{Deliverable:} Trained PMM models and detailed numerical analysis of extrapolation quality.
+
+\bigskip
+
+\textbf{Months 10--11: Performance Evaluation and Physical Interpretation}
+\begin{itemize}
+    \item Analyze the efficiency and robustness of PMMs.
+    \item Investigate learned effective spectra and analytic properties.
+    \item Explore potential extensions (e.g.\ different ansätze, other interaction channels).
+\end{itemize}
+\textbf{Deliverable:} Draft of results and discussion chapters for the thesis.
+
+\bigskip
+
+\textbf{Month 12: Thesis Writing and Finalization}
+\begin{itemize}
+    \item Complete the thesis manuscript, including introduction, methods, results, and conclusions.
+    \item Prepare the final oral presentation.
+\end{itemize}
+\textbf{Deliverable:} Final thesis document and defense presentation.
+
+\section*{5. Expected Outcomes}
+
+\begin{itemize}
+    \item A complete computational framework for simulating Trotterized UCC circuits for the pairing Hamiltonian.
+    \item A set of parametric matrix models tailored to zero-error Trotter step extrapolation in quantum simulations.
+    \item Quantitative benchmarks comparing PMMs to standard extrapolation and machine learning approaches.
+    \item Insight into how physics-informed matrix models can improve the reliability and interpretability of quantum algorithms for strongly correlated systems.
 \end{itemize}
 
-\paragraph{Month 6--8: PMM Development and Training}
-\begin{itemize}
-    \item Implement PyTorch-based PMM training pipeline.
-    \item Train AE-PMM and unitary PMM models on simulated Trotter data.
-    \item Study extrapolation to $dt \rightarrow 0$.
-\end{itemize}
+\section*{6. References}
 
-\paragraph{Month 9--11: Hardware Implementation and Analysis}
-\begin{itemize}
-    \item Implement UCC-pairing circuits on IBMQ.
-    \item Collect noisy Trotter data; train PMMs on real-device data.
-    \item Compare noise mitigation and performance relative to classical simulations.
-\end{itemize}
+\begin{enumerate}
+    \item P. Cook, D. Jammooa, M. Hjorth-Jensen, D. D. Lee, \textit{Parametric Matrix Models}, Nature Communications 16, 5929 (2025).
+    \item A. relevant review on unitary coupled cluster methods for quantum computing (to be added).
+    \item Standard references on the pairing Hamiltonian and reduced BCS models in nuclear physics and superconductivity (to be added).
+    \item Additional references on Trotter--Suzuki decompositions and NISQ-era quantum algorithms (to be added).
+\end{enumerate}
 
-\paragraph{Month 12: Writing and Finalization}
-\begin{itemize}
-    \item Consolidate results and produce the thesis.
-    \item Prepare publication-quality figures and analysis.
-    \item Draft paper (optional) summarizing PMM-based extrapolation for UCC.
-\end{itemize}
-
-\subsection*{Expected Outcomes}
-
-The student is expected to deliver:
-\begin{itemize}
-    \item A fully-developed PMM training pipeline applied to Trotterized UCC circuits.
-    \item Demonstrations of $dt\to 0$ extrapolation using PMMs versus polynomial extrapolation.
-    \item Quantitative comparison of PMM-learned Hamiltonians with the exact pairing Hamiltonian.
-    \item A thorough analysis of PMM performance on real quantum hardware data.
-    \item Open-source code and reproducible benchmarks.
-\end{itemize}
-
-This project offers a strong blend of theoretical physics, numerical methods, machine learning, and quantum computing with potential for scientific publication.
-
-
-⸻
-
-If you want, I can also generate:
-
-✅ a matching LaTeX Beamer slide deck outlining the project
-✅ a ready-to-run codebase for the pairing Hamiltonian + UCC + PMMs
-✅ a Jupyter notebook template for the student
-✅ a detailed literature review section to include in the thesis proposal
-
-Just tell me what you’d like next!
+\end{document}
