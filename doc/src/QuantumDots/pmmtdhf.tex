@@ -1,0 +1,247 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Computational Physics}}\\[0.3cm]
+    {\large \textbf{Parametric Matrix Models for Time-Dependent Hartree--Fock Dynamics}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+Time-Dependent Hartree--Fock (TDHF) theory plays a central role in nuclear many-body physics, quantum chemistry, and ultracold atomic systems. It provides a mean-field description of the real-time evolution of an interacting quantum system using one-body density matrices. The TDHF equations,
+\[
+i\hbar \frac{d}{dt}\rho(t) = [h[\rho(t)], \rho(t)],
+\]
+describe nonlinear quantum dynamics where the single-particle Hamiltonian $h[\rho]$ depends self-consistently on the density matrix itself.  
+
+TDHF is a foundation for describing:
+\begin{itemize}
+    \item nuclear collective motion,
+    \item fission and fusion dynamics,
+    \item giant resonances,
+    \item real-time quantum evolution in cold-atom traps,
+    \item mean-field quantum chemistry and time-dependent DFT.
+\end{itemize}
+
+Despite its utility, TDHF simulations are computationally demanding due to:
+\begin{itemize}
+    \item large Hilbert-space dimension,
+    \item nonlinear evolution,
+    \item high cost of repeated time-stepping,
+    \item sensitivity to parameter changes (interaction strengths, trap parameters, coupling constants).
+\end{itemize}
+
+\textbf{Parametric Matrix Models} (PMMs), introduced by Cook \textit{et al.} (Nature Communications 16, 5929 (2025)), offer a physics-inspired surrogate modelling framework based on matrix equations. PMMs replace neural networks with parametric Hermitian or unitary matrices whose eigenvalues and eigenvectors generate outputs. Because the TDHF equations are themselves matrix differential equations with a strong operator algebra structure, PMMs provide a natural and theoretically motivated surrogate model for reduced-order TDHF dynamics.
+
+This thesis aims to combine PMMs with TDHF to construct efficient, interpretable, reduced-basis surrogate models for real-time quantum many-body evolution.
+
+\section*{2. Scientific Motivation}
+
+The TDHF equation describes the evolution of the density matrix $\rho(t)$ via a unitary propagator:
+\[
+\rho(t+dt) = U(dt)\,\rho(t)\,U^\dagger(dt), 
+\qquad
+U(dt) = \exp\!\left(-\frac{i}{\hbar} h[\rho(t)]\, dt\right),
+\]
+with the Hamiltonian depending self-consistently on $\rho(t)$.
+
+Solving TDHF requires:
+\begin{itemize}
+    \item self-consistent construction of $h[\rho]$ at each time step,
+    \item matrix exponentiation at each time step,
+    \item numerical stability control for long-time simulations.
+\end{itemize}
+
+For parameter sweeps (e.g., different coupling constants, nuclear shapes, trap strengths, interaction terms), full TDHF simulations are extremely costly.
+
+PMMs offer several advantages:
+\begin{itemize}
+    \item the ability to emulate unitary time evolution;
+    \item analytic continuation of dynamics into the complex plane;
+    \item built-in preservation of unitarity and Hermiticity;
+    \item significant reduction in model size vs.\ neuron-based models;
+    \item direct embedding of operator commutation relations.
+\end{itemize}
+
+The central hypothesis is that PMMs can reproduce TDHF trajectories as implicit functions of interaction parameters and initial conditions—offering a fast surrogate model that still respects the operator structure and physical constraints.
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: Theory of TDHF and PMMs}
+\begin{itemize}
+    \item Study the TDHF equations for selected quantum systems (nuclear, atomic, or simplified models).
+    \item Review the theory of PMMs, including Hermitian and unitary forms.
+    \item Understand the analytic gradient evaluation described by Cook \textit{et al.}
+\end{itemize}
+
+\subsection*{Objective 2: Numerical TDHF Solver and Data Generation}
+\begin{itemize}
+    \item Implement a standard TDHF solver using:
+    \begin{itemize}
+        \item explicit or implicit Runge--Kutta,
+        \item Crank--Nicolson,
+        \item Magnus expansion,
+        \item or a split-operator method.
+    \end{itemize}
+    \item Generate trajectory datasets (density matrices, expectation values, observables).
+    \item Explore simple test systems:
+    \begin{itemize}
+        \item Lipkin-Meshkov-Glick (LMG) model,
+        \item Two-level pairing models,
+        \item Harmonic oscillator trap with mean-field interactions,
+        \item Small Hubbard or spin-chain systems.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{Objective 3: PMM Construction for Time Evolution}
+\begin{itemize}
+    \item Build a PMM where:
+    \begin{itemize}
+        \item primary matrices mimic the structure of the effective Hamiltonian,
+        \item unitary primary matrices mimic the TDHF propagator,
+        \item secondary matrices encode observables of interest.
+    \end{itemize}
+    \item Investigate affine PMMs and multiplicative (unitary) PMMs.
+    \item Embed commutation relations of the many-body Hamiltonian as constraints.
+\end{itemize}
+
+\subsection*{Objective 4: Training and Optimization}
+\begin{itemize}
+    \item Train PMMs to reproduce TDHF trajectories as functions of:
+    \begin{itemize}
+        \item interaction strengths,
+        \item coupling constants,
+        \item initial conditions,
+        \item model parameters (e.g., pairing strength, trap frequency).
+    \end{itemize}
+    \item Use analytic gradients and unitary transformations for optimization.
+    \item Investigate overfitting, stability, and extrapolation behavior.
+\end{itemize}
+
+\subsection*{Objective 5: Benchmarking and Validation}
+\begin{itemize}
+    \item Compare PMMs against:
+    \begin{itemize}
+        \item full TDHF solver,
+        \item recurrent neural networks (LSTMs / GRUs),
+        \item physics-informed neural networks,
+        \item reduced-basis TDHF methods (eigenvector continuation).
+    \end{itemize}
+    \item Evaluate accuracy over time, error accumulation, and conservation laws:
+    \begin{itemize}
+        \item norm conservation,
+        \item energy conservation,
+        \item particle number.
+    \end{itemize}
+\end{itemize}
+
+\subsection*{Objective 6: Possible Extensions}
+\begin{itemize}
+    \item PMM emulation of TDHF linear-response spectra.
+    \item PMM acceleration of TDHF in higher dimensions.
+    \item TDHFB (Hartree–Fock–Bogoliubov) extension using block-matrix PMMs.
+\end{itemize}
+
+\section*{4. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and Background}
+\begin{itemize}
+    \item Study TDHF theory and typical numerical implementations.
+    \item Study PMM theory in detail.
+    \item Select model systems (e.g., LMG, two-level systems, small Hubbard chain).
+\end{itemize}
+\textbf{Deliverable:} Literature review on TDHF and PMMs.
+
+\bigskip
+
+\textbf{Months 3--4: TDHF Solver and Dataset Production}
+\begin{itemize}
+    \item Implement TDHF solvers for selected systems.
+    \item Test convergence in time step and basis size.
+    \item Generate data for a range of coupling constants and initial states.
+\end{itemize}
+\textbf{Deliverable:} Verified TDHF solver and dataset.
+
+\bigskip
+
+\textbf{Months 5--6: PMM Architecture Development}
+\begin{itemize}
+    \item Construct PMMs for time evolution.
+    \item Test small (e.g., $n=5$ or $n=7$) matrices on short trajectories.
+    \item Integrate analytic gradients.
+\end{itemize}
+\textbf{Deliverable:} First working PMM reproducing basic TDHF trajectories.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--9: Full PMM Training and Stability Analysis}
+\begin{itemize}
+    \item Train PMMs over large parameter domains.
+    \item Evaluate long-time stability and conservation laws.
+    \item Study spectrum and analytic structure of PMM primary matrices.
+\end{itemize}
+\textbf{Deliverable:} Fully trained PMM for TDHF dynamics.
+
+\bigskip
+
+\textbf{Months 10--11: Benchmarking and Comparisons}
+\begin{itemize}
+    \item Compare PMMs with NN-based surrogates and reduced-basis TDHF.
+    \item Produce tables/plots of accuracy, stability, and computational cost.
+\end{itemize}
+\textbf{Deliverable:} Comprehensive benchmarking report.
+
+\bigskip
+
+\textbf{Month 12: Writing and Final Submission}
+\begin{itemize}
+    \item Write and revise the full thesis manuscript.
+    \item Prepare the final oral presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{5. Expected Outcomes}
+
+\begin{itemize}
+    \item A full TDHF simulation code and dataset.
+    \item A PMM-based surrogate model for nonlinear quantum time evolution.
+    \item Demonstrated parameter-efficiency of PMMs relative to neural networks.
+    \item Insight into embedding physical constraints directly into machine learning architectures.
+    \item A complete master thesis document summarizing theory, methods, and results.
+\end{itemize}
+
+\section*{6. References}
+
+\begin{enumerate}
+    \item P. Cook, D. Jammooa, M. Hjorth-Jensen, D. D. Lee, \textit{Parametric Matrix Models}, Nature Communications 16, 5929 (2025).
+    \item P. Ring and P. Schuck, \textit{The Nuclear Many-Body Problem}.
+    \item K. Hagino and Y. Tanimura, reviews on TDHF and nuclear dynamics.
+    \item Additional references to be added as appropriate.
+\end{enumerate}
+
+\end{document}
+
+
+
+If you want, I can also provide:
+
+A Beamer slide version of this proposal,
+A full thesis skeleton with chapters (TDHF theory, PMMs, implementation, results),
+Python or C++ code templates for TDHF and PMMs,
+TikZ diagrams illustrating TDHF evolution and the PMM architecture.
+
+
+Would you like any of these additions?
