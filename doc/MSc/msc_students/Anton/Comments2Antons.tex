@@ -1,0 +1,949 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsfonts,bm,mathtools}
+\usepackage{physics}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\usetheme{Madrid}
+
+\title{Review of Chapters 1--2}
+\author{MHJ inputs to Antons}
+\date{April 27}
+
+\begin{document}
+
+\frame{\titlepage}
+
+%================================================
+\section{Overall assessment}
+%================================================
+
+\begin{frame}{Overall Assessment}
+The first two chapters present a strong and technically ambitious MSc thesis project. They are well written and at the right level. 
+
+\medskip
+
+The work combines:
+\begin{itemize}
+    \item heat transfer,
+    \item electromagnetics,
+    \item finite element methods,
+    \item physics-informed machine learning,
+    \item graph neural networks,
+    \item industrial induction heating applications.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{General Strengths}
+As far as the first read your drafts of chapters 1 and 2 show:
+\begin{itemize}
+    \item good interdisciplinary scope,
+    \item clear computational science framework,
+    \item relevant industrial motivation,
+    \item sensible modular decomposition into electromagnetic and thermal surrogate models,
+    \item awareness of verification through analytical tests and manufactured solutions.
+\end{itemize}
+
+\medskip
+
+The text is strongest when it connects physical modeling, numerical methods, and machine-learning architecture.
+\end{frame}
+
+\begin{frame}{Things that can be improved}
+The main topics to improve are  not the scientific directions, but rather some details in the presentation.
+
+\medskip
+
+At present, chapters 1 and 1 sometimes read as:
+\[
+\text{technically correct summary}
+\quad\text{rather than}\quad
+\text{fully developed scientific argument}.
+\]
+
+\medskip
+
+The most important improvement is to strengthen the narrative:
+\[
+\text{physics problem}
+\rightarrow
+\text{computational bottleneck}
+\rightarrow
+\text{surrogate-model strategy}
+\rightarrow
+\text{physics-informed graph-learning formulation}.
+\]
+\end{frame}
+
+%================================================
+\section{Chapter 1}
+%================================================
+
+\begin{frame}{Chapter 1: Theoretical Background}
+Chapter 1 covers the correct topics:
+\begin{itemize}
+    \item heat equation,
+    \item Maxwell equations and magnetoquasistatics,
+    \item induction heating,
+    \item finite element methods,
+    \item physics-informed neural networks,
+    \item graph neural networks.
+\end{itemize}
+
+\medskip
+
+This is the right theoretical foundation for the thesis.
+
+\medskip
+
+However, the chapter would benefit from more mathematical depth and stronger transitions between topics.
+\end{frame}
+
+\begin{frame}{Chapter 1: Strengths}
+Strengths:
+\begin{itemize}
+    \item The scope is appropriate.
+    \item The physical motivation is clear.
+    \item The connection between induction heating and coupled electromagnetic--thermal physics is well chosen.
+    \item FEM is correctly introduced as the conventional numerical benchmark.
+    \item PINNs and GNNs are relevant to the computational problem.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Chapter 1: Main imporvements}
+The chapter is occasionally too compact and catalog-like.
+
+\medskip
+
+It would be improved by explicitly explaining why each ingredient is needed.
+
+\medskip
+
+For example:
+\[
+\text{induction heating}
+\Rightarrow
+\text{Maxwell equations + heat equation}
+\Rightarrow
+\text{FEM benchmark}
+\Rightarrow
+\text{computational cost}
+\Rightarrow
+\text{physics-informed surrogate model}.
+\]
+
+\medskip
+
+This would make the chapter read more like a thesis argument and less like a list of background topics.
+\end{frame}
+
+%================================================
+\section{Equations for Chapter 1}
+%================================================
+
+\begin{frame}{Suggested Equation for Section 1.1.1: Heat Equation}
+A central equation to include explicitly is the transient heat equation:
+\[
+\rho c_p \frac{\partial T}{\partial t}
+=
+\nabla\cdot(k\nabla T) + Q.
+\]
+
+Here:
+\begin{itemize}
+    \item \(T(\mathbf{x},t)\) is temperature,
+    \item \(\rho\) is density,
+    \item \(c_p\) is heat capacity,
+    \item \(k\) is thermal conductivity,
+    \item \(Q\) is the volumetric heat source.
+\end{itemize}
+
+\medskip
+
+For induction heating, \(Q\) should later be connected to electromagnetic losses.
+\end{frame}
+
+\begin{frame}{Suggested Equation: Boundary and Initial Conditions}
+The heat problem should be completed with boundary and initial data:
+\[
+T(\mathbf{x},0)=T_0(\mathbf{x}),
+\]
+\[
+T = T_D \quad \text{on } \Gamma_D,
+\]
+\[
+-k\nabla T\cdot \mathbf{n}=q_N \quad \text{on } \Gamma_N.
+\]
+
+For convective cooling, include Robin boundary conditions:
+\[
+-k\nabla T\cdot \mathbf{n}
+=
+h(T-T_\infty)
+\quad \text{on } \Gamma_R.
+\]
+
+This makes the PDE problem mathematically complete.
+\end{frame}
+
+\begin{frame}{Suggested Equations for Section 1.1.2: Maxwell Equations}
+The electromagnetic section should begin from Maxwell's equations:
+\[
+\nabla\cdot \mathbf{D}=\rho_e,
+\]
+\[
+\nabla\cdot \mathbf{B}=0,
+\]
+\[
+\nabla\times \mathbf{E}=-\frac{\partial \mathbf{B}}{\partial t},
+\]
+\[
+\nabla\times \mathbf{H}=\mathbf{J}+\frac{\partial \mathbf{D}}{\partial t}.
+\]
+
+Then state the magnetoquasistatic approximation relevant for induction heating:
+\[
+\nabla\times \mathbf{H}\approx \mathbf{J}.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equations: Constitutive Relations}
+Include constitutive relations:
+\[
+\mathbf{B}=\mu \mathbf{H},
+\qquad
+\mathbf{J}=\sigma \mathbf{E}.
+\]
+
+For temperature-dependent materials:
+\[
+\sigma=\sigma(T),
+\qquad
+\mu=\mu(T),
+\qquad
+k=k(T).
+\]
+
+This is important because the thesis emphasizes temperature-dependent material properties and coupled electromagnetic-thermal modeling.
+\end{frame}
+
+\begin{frame}{Suggested Equations: Magnetic Vector Potential}
+Use the magnetic vector potential:
+\[
+\mathbf{B}=\nabla\times \mathbf{A}.
+\]
+
+Then Faraday's law gives, in a suitable gauge,
+\[
+\mathbf{E}=-\frac{\partial \mathbf{A}}{\partial t}-\nabla \varphi.
+\]
+
+For frequency-domain harmonic fields:
+\[
+\mathbf{A}(\mathbf{x},t)=\Re\{\mathbf{A}(\mathbf{x})e^{i\omega t}\}.
+\]
+
+A common magnetoquasistatic equation is
+\[
+\nabla\times\left(\nu\nabla\times \mathbf{A}\right)
++
+i\omega\sigma \mathbf{A}
+=
+\mathbf{J}_{\mathrm{src}},
+\]
+where \(\nu=1/\mu\).
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 1.1.3: Joule Heating}
+The electromagnetic and thermal models should be connected through Joule heating.
+
+For harmonic fields, a standard time-averaged source is
+\[
+Q_{\mathrm{Joule}}
+=
+\frac{1}{2}\sigma |\mathbf{E}|^2.
+\]
+
+Using the vector potential approximation,
+\[
+\mathbf{E}\approx -i\omega \mathbf{A},
+\]
+one obtains
+\[
+Q_{\mathrm{Joule}}
+=
+\frac{1}{2}\sigma \omega^2 |\mathbf{A}|^2.
+\]
+
+This equation is central for induction heating and should be highlighted.
+\end{frame}
+
+%================================================
+\section{FEM equations}
+%================================================
+
+\begin{frame}{Suggested Equation for Section 1.2.1: Weak Heat Form}
+The FEM section should include at least one full weak-form derivation.
+
+Starting from
+\[
+\rho c_p \frac{\partial T}{\partial t}
+-
+\nabla\cdot(k\nabla T)
+=
+Q,
+\]
+multiply by a test function \(v\) and integrate:
+\[
+\int_\Omega \rho c_p v \frac{\partial T}{\partial t}\,d\Omega
+-
+\int_\Omega v\nabla\cdot(k\nabla T)\,d\Omega
+=
+\int_\Omega vQ\,d\Omega.
+\]
+
+Integrating by parts gives:
+\[
+\int_\Omega \rho c_p v \frac{\partial T}{\partial t}\,d\Omega
++
+\int_\Omega k\nabla v\cdot \nabla T\,d\Omega
+=
+\int_\Omega vQ\,d\Omega
++
+\int_{\partial\Omega} v k\nabla T\cdot \mathbf{n}\,dS.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation: FEM Matrix Form}
+After finite-element discretization,
+\[
+T(\mathbf{x},t)\approx \sum_j T_j(t)N_j(\mathbf{x}),
+\]
+the semi-discrete system becomes
+\[
+M \dot{\mathbf{T}} + K\mathbf{T}=\mathbf{f},
+\]
+with
+\[
+M_{ij}=\int_\Omega \rho c_p N_iN_j\,d\Omega,
+\]
+\[
+K_{ij}=\int_\Omega k\nabla N_i\cdot\nabla N_j\,d\Omega,
+\]
+\[
+f_i=\int_\Omega N_i Q\,d\Omega.
+\]
+
+This gives an explicit bridge between FEM and graph-based learning on mesh nodes.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 1.2.2: Time Discretization}
+For backward Euler:
+\[
+M\frac{\mathbf{T}^{n+1}-\mathbf{T}^{n}}{\Delta t}
++
+K\mathbf{T}^{n+1}
+=
+\mathbf{f}^{n+1}.
+\]
+
+Equivalently:
+\[
+\left(M+\Delta t K\right)\mathbf{T}^{n+1}
+=
+M\mathbf{T}^{n}
++
+\Delta t\,\mathbf{f}^{n+1}.
+\]
+
+This is important because the thermal surrogate appears to learn a time-stepping map:
+\[
+\mathbf{T}^{n}\mapsto \mathbf{T}^{n+1}.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 1.2.3: Coupled EM--Thermal Loop}
+A clear coupled model can be written as:
+\[
+\nabla\times\left(\nu(T)\nabla\times \mathbf{A}\right)
++
+i\omega\sigma(T)\mathbf{A}
+=
+\mathbf{J}_{\mathrm{src}},
+\]
+\[
+\rho c_p(T)\frac{\partial T}{\partial t}
+=
+\nabla\cdot(k(T)\nabla T)
++
+\frac{1}{2}\sigma(T)\omega^2|\mathbf{A}|^2.
+\]
+
+This pair of equations summarizes the physical coupling targeted by the thesis.
+\end{frame}
+
+%================================================
+\section{ML equations}
+%================================================
+
+\begin{frame}{Suggested Equation for Section 1.3: Neural Network Map}
+Introduce the supervised-learning viewpoint:
+\[
+\hat{\mathbf{y}} = f_\theta(\mathbf{x}),
+\]
+with a data loss
+\[
+\mathcal{L}_{\mathrm{data}}(\theta)
+=
+\frac{1}{N}\sum_{i=1}^N
+\norm{f_\theta(\mathbf{x}_i)-\mathbf{y}_i}^2.
+\]
+
+Then explain that physics-informed learning augments this with PDE residuals.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 1.3.1: PINN Loss}
+For a PDE
+\[
+\mathcal{N}[u](\mathbf{x},t)=0,
+\]
+a PINN uses
+\[
+u_\theta(\mathbf{x},t)\approx u(\mathbf{x},t),
+\]
+and minimizes
+\[
+\mathcal{L}(\theta)
+=
+\mathcal{L}_{\mathrm{data}}
++
+\lambda_{\mathrm{PDE}}\mathcal{L}_{\mathrm{PDE}}
++
+\lambda_{\mathrm{BC}}\mathcal{L}_{\mathrm{BC}}
++
+\lambda_{\mathrm{IC}}\mathcal{L}_{\mathrm{IC}}.
+\]
+
+The PDE residual term is
+\[
+\mathcal{L}_{\mathrm{PDE}}
+=
+\frac{1}{N_c}\sum_{j=1}^{N_c}
+\left|
+\mathcal{N}[u_\theta](\mathbf{x}_j,t_j)
+\right|^2.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 1.3.2: Graph Neural Network}
+For a mesh graph
+\[
+\mathcal{G}=(\mathcal{V},\mathcal{E}),
+\]
+a message-passing GNN can be written as
+\[
+\mathbf{m}_{ij}^{(\ell)}
+=
+\phi_e^{(\ell)}
+\left(
+\mathbf{h}_i^{(\ell)},
+\mathbf{h}_j^{(\ell)},
+\mathbf{e}_{ij}
+\right),
+\]
+\[
+\mathbf{m}_i^{(\ell)}
+=
+\sum_{j\in \mathcal{N}(i)}
+\mathbf{m}_{ij}^{(\ell)},
+\]
+\[
+\mathbf{h}_i^{(\ell+1)}
+=
+\phi_v^{(\ell)}
+\left(
+\mathbf{h}_i^{(\ell)},\mathbf{m}_i^{(\ell)}
+\right).
+\]
+
+This should be connected explicitly to unstructured finite-element meshes.
+\end{frame}
+
+%================================================
+\section{Chapter 2}
+%================================================
+
+\begin{frame}{Chapter 2: Methods}
+Chapter 2 is very good and the strongest part of the draft.
+
+\medskip
+
+Its main strengths are:
+\begin{itemize}
+    \item modular decomposition into EM and thermal surrogates,
+    \item graph representation of the computational mesh,
+    \item physics-informed losses,
+    \item explicit training strategies,
+    \item verification through analytical and manufactured solutions.
+\end{itemize}
+
+\medskip
+
+The chapter is appropriate for MSc level, but several parts would benefit from more explicit equations and clearer justification.
+\end{frame}
+
+\begin{frame}{Chapter 2: Main Improvements}
+The most important improvements are:
+\begin{enumerate}
+    \item explain why the graph representation is the right one,
+    \item define node and edge features more explicitly,
+    \item write the physics-informed loss in full,
+    \item clarify the EM surrogate target variable,
+    \item explain training choices and alternatives,
+    \item make verification criteria quantitative.
+\end{enumerate}
+\end{frame}
+
+%================================================
+\section{Equations for Chapter 2}
+%================================================
+
+\begin{frame}{Suggested Equation for Section 2.1: Surrogate Motivation}
+A concise way to express the surrogate-learning goal is:
+\[
+\mathcal{S}_{\mathrm{FEM}}:
+(\Omega,\mathbf{p},\mathbf{J}_{\mathrm{src}})
+\mapsto
+(\mathbf{A},T),
+\]
+where \(\mathbf{p}\) denotes material and geometric parameters.
+
+The learned surrogate approximates:
+\[
+\mathcal{S}_{\theta}
+\approx
+\mathcal{S}_{\mathrm{FEM}},
+\]
+but with much smaller evaluation cost:
+\[
+\mathrm{cost}(\mathcal{S}_{\theta})
+\ll
+\mathrm{cost}(\mathcal{S}_{\mathrm{FEM}}).
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.2: Mesh Graph}
+Represent the finite-element mesh as
+\[
+\mathcal{G}=(\mathcal{V},\mathcal{E}),
+\]
+where:
+\[
+i\in\mathcal{V}
+\quad\leftrightarrow\quad
+\text{mesh node},
+\]
+\[
+(i,j)\in\mathcal{E}
+\quad\leftrightarrow\quad
+\text{mesh adjacency}.
+\]
+
+Node features may include:
+\[
+\mathbf{h}_i^{(0)}
+=
+\left[
+x_i,y_i,z_i,T_i^n,k_i,\rho_i,c_{p,i},\sigma_i,\mu_i
+\right].
+\]
+
+Edge features may include:
+\[
+\mathbf{e}_{ij}
+=
+\left[
+\mathbf{x}_j-\mathbf{x}_i,\,
+\norm{\mathbf{x}_j-\mathbf{x}_i}
+\right].
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.3: Modular Decomposition}
+The coupled problem can be decomposed as:
+\[
+\mathbf{A}^{n}
+=
+\mathcal{M}_{\theta}^{\mathrm{EM}}
+\left(
+\mathcal{G},\mathbf{J}_{\mathrm{src}},\sigma(T^n),\mu(T^n)
+\right),
+\]
+\[
+Q_{\mathrm{Joule}}^{n}
+=
+\frac{1}{2}\sigma(T^n)\omega^2|\mathbf{A}^{n}|^2,
+\]
+\[
+T^{n+1}
+=
+\mathcal{M}_{\phi}^{\mathrm{thermal}}
+\left(
+\mathcal{G},T^n,Q_{\mathrm{Joule}}^n,k(T^n),\rho,c_p
+\right).
+\]
+
+This explicitly states the modular surrogate structure.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.4.1: Thermal Time-Step Residual}
+Using backward Euler,
+\[
+R_T^{n+1}
+=
+\rho c_p
+\frac{T_\theta^{n+1}-T^n}{\Delta t}
+-
+\nabla\cdot(k\nabla T_\theta^{n+1})
+-
+Q^{n+1}.
+\]
+
+The thermal physics-informed loss can be based on
+\[
+\mathcal{L}_{\mathrm{phys}}^T
+=
+\frac{1}{N_c}\sum_{i=1}^{N_c}
+\left|R_T^{n+1}(\mathbf{x}_i)\right|^2.
+\]
+
+This should be explicitly connected to the weak form if the residual is computed in FEM-style form.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.4.2: Thermal Loss}
+A complete thermal loss may be:
+\[
+\mathcal{L}_{T}
+=
+\mathcal{L}_{\mathrm{data}}^T
++
+\lambda_{\mathrm{phys}}\mathcal{L}_{\mathrm{phys}}^T
++
+\lambda_{\mathrm{BC}}\mathcal{L}_{\mathrm{BC}}^T.
+\]
+
+For supervised FEM data:
+\[
+\mathcal{L}_{\mathrm{data}}^T
+=
+\frac{1}{N}\sum_{i=1}^N
+\left|
+T_{\theta,i}^{n+1}
+-
+T_{\mathrm{FEM},i}^{n+1}
+\right|^2.
+\]
+
+For boundary points:
+\[
+\mathcal{L}_{\mathrm{BC}}^T
+=
+\frac{1}{N_b}\sum_{i\in\partial\Omega}
+\left|
+\mathcal{B}[T_\theta](\mathbf{x}_i)-g(\mathbf{x}_i)
+\right|^2.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.4.3: Thermal Inputs and Outputs}
+State explicitly that the thermal GNN learns a map:
+\[
+\mathcal{M}_{\theta}^{T}:
+\left(
+\mathcal{G},
+\mathbf{T}^n,
+\mathbf{Q}^n,
+\mathbf{p}
+\right)
+\mapsto
+\mathbf{T}^{n+1}.
+\]
+
+For multi-step rollout:
+\[
+\mathbf{T}^{n+m}
+=
+\left(\mathcal{M}_{\theta}^{T}\right)^m
+\left(
+\mathbf{T}^{n}
+\right).
+\]
+
+This clarifies whether the model is trained for one-step prediction or long-term simulation.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.5.1: EM Weak Form}
+For the frequency-domain MQS equation:
+\[
+\nabla\times(\nu\nabla\times \mathbf{A})
++
+i\omega\sigma\mathbf{A}
+=
+\mathbf{J}_{\mathrm{src}},
+\]
+multiply by a test function \(\mathbf{v}\):
+\[
+\int_\Omega
+(\nabla\times \mathbf{v})\cdot
+\nu(\nabla\times \mathbf{A})\,d\Omega
++
+\int_\Omega
+i\omega\sigma \mathbf{v}\cdot \mathbf{A}\,d\Omega
+=
+\int_\Omega
+\mathbf{v}\cdot\mathbf{J}_{\mathrm{src}}\,d\Omega.
+\]
+
+This is a useful equation to include in the methods chapter.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.5.2: Nondimensionalization}
+Introduce characteristic scales:
+\[
+\mathbf{x}=L\mathbf{x}',
+\qquad
+\mathbf{A}=A_0\mathbf{A}',
+\qquad
+\mathbf{J}=J_0\mathbf{J}'.
+\]
+
+Then dimensionless groups can be identified, for example:
+\[
+\chi
+=
+\omega\sigma\mu L^2.
+\]
+
+This parameter measures the relative importance of eddy-current effects and is related to the magnetic diffusion length or skin-depth scale.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.5.3: Magnetostatic Limit}
+In the magnetostatic limit,
+\[
+\omega\sigma\mathbf{A}\approx 0,
+\]
+so
+\[
+\nabla\times(\nu\nabla\times\mathbf{A})
+=
+\mathbf{J}_{\mathrm{src}}.
+\]
+
+This should be clearly identified as the low-frequency or negligible eddy-current limit.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.5.4: Eddy-Current Case}
+In the eddy-current case, retain the conductive term:
+\[
+\nabla\times(\nu\nabla\times\mathbf{A})
++
+i\omega\sigma\mathbf{A}
+=
+\mathbf{J}_{\mathrm{src}}.
+\]
+
+The model output may be complex:
+\[
+\mathbf{A}=\mathbf{A}_R+i\mathbf{A}_I.
+\]
+
+Thus the network may predict:
+\[
+\mathcal{M}_{\theta}^{\mathrm{EM}}:
+\mathcal{G}\mapsto
+(\mathbf{A}_R,\mathbf{A}_I).
+\]
+
+This should be stated explicitly.
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.5.6: EM Loss}
+A natural EM loss is:
+\[
+\mathcal{L}_{\mathrm{EM}}
+=
+\mathcal{L}_{\mathrm{data}}^{A}
++
+\lambda_{\mathrm{phys}}\mathcal{L}_{\mathrm{phys}}^{A}
++
+\lambda_{\mathrm{BC}}\mathcal{L}_{\mathrm{BC}}^{A}.
+\]
+
+For complex-valued vector potential:
+\[
+\mathcal{L}_{\mathrm{data}}^{A}
+=
+\frac{1}{N}\sum_i
+\left(
+\norm{\mathbf{A}_{R,\theta,i}-\mathbf{A}_{R,\mathrm{FEM},i}}^2
++
+\norm{\mathbf{A}_{I,\theta,i}-\mathbf{A}_{I,\mathrm{FEM},i}}^2
+\right).
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.6: Error Metrics}
+Use quantitative error metrics such as:
+\[
+\epsilon_{L^2}
+=
+\frac{
+\norm{\mathbf{u}_\theta-\mathbf{u}_{\mathrm{ref}}}_2
+}{
+\norm{\mathbf{u}_{\mathrm{ref}}}_2
+},
+\]
+\[
+\epsilon_{\infty}
+=
+\frac{
+\norm{\mathbf{u}_\theta-\mathbf{u}_{\mathrm{ref}}}_\infty
+}{
+\norm{\mathbf{u}_{\mathrm{ref}}}_\infty
+}.
+\]
+
+For time-dependent rollouts:
+\[
+\epsilon_{\mathrm{rollout}}(m)
+=
+\frac{
+\norm{\mathbf{T}_\theta^{n+m}-\mathbf{T}_{\mathrm{FEM}}^{n+m}}_2
+}{
+\norm{\mathbf{T}_{\mathrm{FEM}}^{n+m}}_2
+}.
+\]
+\end{frame}
+
+\begin{frame}{Suggested Equation for Section 2.6.1: Manufactured Solution}
+For the method of manufactured solutions, choose an exact function \(u_{\mathrm{ex}}\), then define the forcing:
+\[
+f(\mathbf{x},t)
+=
+\mathcal{N}[u_{\mathrm{ex}}](\mathbf{x},t).
+\]
+
+Then the numerical or learned solution is compared against \(u_{\mathrm{ex}}\).
+
+For example, for heat conduction:
+\[
+T_{\mathrm{ex}}(\mathbf{x},t)
+=
+\sin(\pi x)\sin(\pi y)e^{-t},
+\]
+and
+\[
+Q_{\mathrm{MMS}}
+=
+\rho c_p \frac{\partial T_{\mathrm{ex}}}{\partial t}
+-
+\nabla\cdot(k\nabla T_{\mathrm{ex}}).
+\]
+\end{frame}
+
+%================================================
+\section{Language and style}
+%================================================
+
+\begin{frame}{Language and Style: Strengths}
+The writing is generally:
+\begin{itemize}
+    \item clear,
+    \item technically competent,
+    \item concise,
+    \item appropriate for an MSc thesis.
+\end{itemize}
+
+\medskip
+
+The terminology is mostly correct, and the chapter structure is understandable.
+\end{frame}
+
+\begin{frame}{Language and Style: Improvements}
+Recommended improvements:
+\begin{itemize}
+    \item avoid overly generic phrases such as ``used in many applications'',
+    \item add transitions between theoretical topics,
+    \item explain why each equation is relevant to the thesis,
+    \item split dense technical paragraphs,
+    \item make the central contribution more explicit.
+\end{itemize}
+
+\medskip
+
+The writing should move from:
+\[
+\text{summary of known methods}
+\]
+toward:
+\[
+\text{argument for the chosen computational strategy}.
+\]
+\end{frame}
+
+%================================================
+\section{Level assessment}
+%================================================
+
+\begin{frame}{Level Assessment}
+The level is appropriate for a MSc thesis in computational science.
+
+\medskip
+
+Assessment:
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+Category & Assessment \\
+\midrule
+Physics & Strong MSc level \\
+Numerical methods & Strong MSc level \\
+Machine learning integration & Above average MSc level \\
+Mathematical presentation & Good, but should be expanded \\
+Scientific narrative & Good, but too compressed \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Final Verdict}
+The thesis is already a very good MSc-level project.
+
+\medskip
+
+With the improvements suggested here, especially:
+\begin{itemize}
+    \item stronger mathematical derivations,
+    \item clearer graph-learning formulation,
+    \item explicit physics-informed losses,
+    \item more critical discussion of limitations,
+\end{itemize}
+
+it could become a top-tier MSc thesis and approach early PhD-level quality in parts.
+\end{frame}
+
+\begin{frame}{Five Highest-Impact Improvements}
+The most important revisions are:
+\begin{enumerate}
+    \item strengthen the narrative flow in Chapter 1,
+    \item add one full derivation of a weak form,
+    \item write all physics-informed losses explicitly,
+    \item expand the graph representation section,
+    \item add a critical comparison with FEM and alternative surrogate methods.
+\end{enumerate}
+\end{frame}
+
+\end{document}
