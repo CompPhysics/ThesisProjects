@@ -1,0 +1,60 @@
+Hi AnSo, jeg gikk gjennom slik jeg forstod det du har gjort, men det er sikkert mye jeg har misforstått. 
+
+Her er noen froslag, men det baserer seg på om jeg har forstått riktig det du har gjort. Tekst på engelsk da jeg brukte en miks av egen notater samt Claude Code!!
+
+
+
+### 1. PCA analysis
+
+**What has been done is solid.** Fitting PCA on the full 33 362-sample dataset and overlaying the labelled subsets is the standard starting point and the figure in the PDF already shows something scientifically interesting: the defect-suitable 3D materials (purple) cluster tightly in a corner of the first two principal components, and the 2D materials (orange) separate clearly. That separation alone justifies the rest of the study.
+
+**Additional PCA analyses worth doing:**
+
+*PCA fitted only on the suitable subset.* This is mathematically valid but the interpretation is tricky. The resulting components capture directions of maximum variance *within* the suitable class, not directions that distinguish it from the rest. The practical danger is overfitting the projection to a 47-sample set — with 3 585 features and 47 points, the covariance matrix is rank-deficient and the top components will partly reflect noise. It is a useful exploratory tool to understand *internal* structure of the suitable class (e.g. are diamond-like materials and nitrides separated?), but it should not be used to project or score new materials, because the projection is not calibrated against the full data distribution. A fairer alternative is **Linear Discriminant Analysis (LDA)** fitted on suitable vs unsuitable labels, which explicitly finds the direction of maximum class separation rather than maximum variance.
+
+*PCA on suitable and unsuitable separately, then compared.* Comparing the top components from each subspace is informative: if the first component of the suitable subspace aligns closely with a component that has near-zero variance in the unsuitable subspace (or vice versa), that component is a strong discriminative feature even if it would be discarded by PCA on the full dataset. Concretely, compute the cosine similarities between the loading vectors of the two separate PCAs — large cosines mean the two classes share structure in that direction, small cosines mean the direction is specific to one class.
+
+*Variance explained by class label.* A simple but often overlooked test: after fitting PCA on the full dataset, run a univariate statistical test (e.g. one-way ANOVA or a Mann-Whitney U test) on each principal component score, comparing the suitable against the unsuitable samples. This ranks the components by how much class-discriminative information they carry, which is not the same as how much total variance they carry. Components 20–50 often carry the most discriminative signal while contributing little to overall explained variance — this is exactly why reducing to the top 128 components by variance alone may discard useful information.
+
+*Reconstruction error as a novelty score.* Fit PCA on the unsuitable (or full) dataset and compute the reconstruction error for each material. Suitable materials that are genuinely unusual should have higher reconstruction error. This gives a continuous novelty score without any classifier.
+
+
+
+### 2. Neural network
+
+**Using all data as input.** The main risk with 3 585 input features and a labelled set of only 47 (suitable) + 243 (unsuitable) = 290 samples is severe overfitting. Even a shallow network has far more parameters than training examples in this regime. The comparison of labelling strategies is the right scientific question: if the network result changes dramatically depending on whether unsuitable materials are chosen randomly, magnetically, or by polarity, that tells you the boundary is not stable and the model is fitting noise. Worth reporting explicitly as a finding rather than a problem to hide.
+
+**Network on PCA-reduced data (128 components).** Sensible. But 128 components explaining what fraction of variance? If the first 128 components explain only 40–50% of total variance (which is plausible with 3 585 features from heterogeneous materials data), then more than half the signal is discarded before the network even sees the data. It is worth plotting the cumulative explained variance curve and reporting where 128 falls on it, and also testing a threshold-based reduction (e.g. retain components up to 90% explained variance) rather than a fixed count.
+
+**PCA fitted only on the suitable dataset as input to the network.** Not recommended as a preprocessing step for a classifier. The reason: the projection is fitted on labels, so information about the labels is already baked into the feature space before the classifier is trained — this inflates apparent performance on cross-validation (a form of data leakage if the PCA step is not inside the cross-validation loop). If it is done at all, the PCA must be refitted on the training fold only at every cross-validation split, which substantially complicates the pipeline for modest expected benefit.
+
+**Other suggestions for the network:**
+
+- **Class imbalance handling.** With 47 suitable vs ~33 000 unlabelled plus 243 unsuitable, a naive network will learn to predict "unsuitable" for everything and report 99% accuracy. Use class-weighted loss, oversampling of the minority class (SMOTE works reasonably in PCA-reduced space), or a one-class classifier trained only on suitable materials.
+- **Uncertainty quantification.** A standard softmax classifier gives a confidence score, but for materials discovery a calibrated probability matters: a material predicted "suitable" with 51% confidence is not the same as one at 95%. Monte Carlo dropout or a simple ensemble of 10 networks with different random seeds gives uncertainty estimates at low computational cost.
+- **Feature importance after training.** For a network trained on PCA-reduced inputs, projecting the input gradient back through the PCA loading matrix gives approximate per-original-feature importances. This can reveal which physical features (e.g. average electronegativity, bond angle distribution) drive the suitability prediction — a scientifically meaningful result for the materials community.
+
+
+
+### 3. Autoencoders
+
+**Autoencoder + neural network for classification.** Yes, this is useful and well-motivated here, for three reasons specific to this dataset.
+
+First, the dataset is largely *unlabelled* (33 362 materials, only ~300 labelled). An autoencoder can be trained in a fully unsupervised way on all 33 362 materials to learn a compressed latent representation, and then a small classifier is trained on top of that representation using only the 300 labelled samples. This is the standard **semi-supervised** approach: the autoencoder learns general structure of the material space from the large unlabelled pool, and the classifier only needs to learn a boundary in the compressed space. With 300 labelled examples and a 128-dimensional latent space this is a much better-conditioned problem than a classifier on raw 3 585-dimensional inputs.
+
+Second, the **reconstruction error** of the autoencoder is itself a useful signal. A material that the autoencoder cannot reconstruct well is unusual — either it is a genuine outlier (possibly suitable for a novel mechanism) or a data quality issue. Plotting reconstruction error vs. PCA position connects the two analyses.
+
+Third, a **variational autoencoder (VAE)** rather than a plain autoencoder gives a continuous, smooth latent space with a probabilistic interpretation. In that latent space one can do interpolation between known suitable materials and sample new latent points close to the suitable cluster, then decode them to get candidate material descriptors. This is a simple form of generative materials design and would be a strong additional contribution to a master's thesis.
+
+Practical architecture suggestion: encoder with two or three hidden layers (e.g. 3585→512→256→128), symmetric decoder, trained with mean-squared-error reconstruction loss on Z-score normalised inputs. The bottleneck dimension of 128 matches the PCA reduction already used, making the two representations directly comparable. After training, freeze the encoder and attach a two-layer classifier head (128→64→2 with softmax) trained on the labelled subset.
+
+
+
+### 4. Other suggestions
+
+**One-class SVM or Isolation Forest.** These are anomaly-detection methods trained *only* on the suitable class. Given the extreme class imbalance, treating suitability as a novelty-detection problem rather than a binary classification problem is scientifically defensible: the question becomes "does this material look like a known suitable host?" rather than "is this material more like the suitable group or the unsuitable group?". One-class methods are less sensitive to the choice of negative examples, which appears to be a genuine ambiguity in the labelling strategy.
+
+**Graph neural networks (GNNs) on crystal structure.** The dataset includes structure data. Representing each material as a crystal graph (atoms as nodes, bonds as edges) and using a GNN such as CGCNN or MEGNet would likely outperform featurised tabular approaches for bandgap-related tasks, because GNNs capture local chemical environment directly rather than through hand-engineered descriptors. This is a more substantial addition, but the pretrained weights from the original CGCNN paper are publicly available and could be fine-tuned rather than trained from scratch.
+
+**Ablation study on feature groups.** The features come from four physically distinct sources: composition, structure, site, and DOS/bandstructure. Training separate models (or the same model with one feature group zeroed out at a time) and comparing performance would reveal which physical information drives classification. This is straightforward to implement and produces a table that is both interpretable and publishable.
+
