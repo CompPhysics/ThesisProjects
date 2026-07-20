@@ -1,0 +1,112 @@
+Tilbakemelding avsnitt 2.3 og 2.4
+
+Jeg syns dette ern bra start Anso.
+
+Disse to avsnitta, 2.3 og 2.4, inneholder de riktige hovedtemaene for ei oppgave
+som kombinerer tetthetsfunksjonalteori med maskinlæring,
+men de trenger noen revisjoner i nåværende form. Hovedproblemet er ikke
+ambisjonsnivået, men at flere sentrale påstander trenger en viss revisjon. Avsnitta
+fremstår foreløpig mer som arbeidsnotater enn som ferdige
+teorikapitler på masternivå. Du bør derfor revidere disse avsnitta  betydelig før
+metodene og resultatene vurderes på grunnlag av dem.
+
+### Seksjon 2.3: Tetthetsfunksjonalteori
+
+Seksjonen har en fornuftig overordnet struktur:
+mangelegeme-Schrödingerligningen, Born–Oppenheimer-approksimasjonen,
+Hartree–Fock, variasjonsprinsippet, Hohenberg–Kohn-teoremene,
+Kohn–Sham-ligningene og selvkonsistente beregninger. Flere viktige
+presiseringer er imidlertid nødvendige.
+
+- Påstanden om at DFT kan beregne «alle materialegenskaper» fra en grunntilstandsberegning er (for en som ikke er en midlere felt afezionado) vel i det sterkeste laget. DFY, og familien av midlere felt metoder er som kjøkknredskaper og fungerer som input til mer avanserte mange-legem metoder. DFT er i prinsippet eksakt for grunntilstandsobservabler, men optiske, spektroskopiske og eksiterte egenskaper krever ofte tidsavhengig DFT, mangelegememetoder eller ytterligere approksimasjoner.
+- Grunntilstanden betyr ikke ganske enkelt «null temperatur og ingen tidsvariasjon». Den er den laveste energitilstanden og en stasjonær tilstand. Det finnes også DFT-formuleringer for endelig temperatur.
+- Ligning (2.3) bør kontrolleres nøye med hensyn til fortegn, faktorer på \(1/2\), summeringsindekser og enheter. Teksten ser ut til å blande SI-notasjon og atomære enheter, og de kinetiske leddene er ikke skrevet konsekvent.
+- Forklaringen av Born–Oppenheimer-approksimasjonen trenger litt flere ord og kanskje noe mer diskusjon. Det bør presiseres hva som neglisjeres, hva som blir igjen i den elektroniske Hamilton-operatoren, og at kjernenes innbyrdes frastøtning beholdes som et posisjonsavhengig ledd.
+- Produktbølgefunksjonen i ligning (2.6) er Hartree-approksimasjonen, ikke Hartree–Fock. Hartree–Fock inkluderer utveksling gjennom en antisymmetrisk Slater-determinant, men neglisjerer elektronkorrelasjon.
+- Teksten omtaler «det første Kohn–Sham-teoremet». Det riktige er Hohenberg–Kohn-teoremene. Kohn–Sham-teorien innfører et hjelpesystem av ikke-vekselvirkende elektroner og orbitaler som hovedsakelig har en beregningsmessig funksjon, mens tettheten er fysisk.
+- Utvekslings-korrelasjonsfunksjonalet bør skrives mer presist. Det kan være nyttig å innføre
+  \[
+  E[n]=T_s[n]+E_{\mathrm H}[n]+E_{\mathrm{ext}}[n]+E_{\mathrm{xc}}[n],
+  \]
+  og definere hvert ledd eksplisitt.
+- Kohn–Sham-ligningen bør angi det fullstendige effektive potensialet \(v_{\mathrm{eff}}=v_{\mathrm{ext}}+v_{\mathrm H}+v_{\mathrm{xc}}\), samt tydelig spesifisere om atomære enheter brukes. Spinnindekser eller okkupasjonstall bør inkluderes der det er relevant.
+- «DFT er eksakt» må kvalifiseres: den formelle teorien er eksakt dersom det eksakte utvekslings-korrelasjonsfunksjonalet er kjent; praktiske beregninger er approksimative. Begrensningsdelen bør minst omtale LDA/GGA/hybridfunksjonaler, underestimering av båndgap, selvvekselvirkningsfeil, dispersjonskrefter, sterkt korrelerte systemer og avhengighet av pseudopotensialer, basissett, \(k\)-punktsampling og konvergenskriterier.
+- Den beregningsmessige delen bør beskrive den selvkonsistente felt-sløyfen mer presist, inkludert tetthetsblanding, konvergenskriterier og at konvergens ikke nødvendigvis innebærer at man har funnet den globale grunntilstanden.
+
+
+### Seksjon 2.4: Maskinlæring
+
+Seksjonen gir en nyttig innføring i nevrale nettverk,
+datasettoppdeling, optimering, PCA, LDA, ANOVA og
+autoenkodere. Samtidig er det noen  
+litt uferdige notater og statistiske påstander som bør korrigeres.
+
+Definisjonen av maskinlæring bør gjøres mer presis og mindre
+antropomorf. Et nevralt nettverk kan introduseres som en parametrisk
+funksjon \(f_\theta(x)\) som trenes ved å minimere en bestemt
+tapsfunksjon. Notasjonen \(f^*(x,\theta)=y^*\) er forvirrende, siden
+\(f^*\) vanligvis betegner den optimale funksjonen, mens \(\theta\)
+betegner parametrene.
+
+Flere ligninger bør korrigeres:
+
+- Uttrykket for binær kryssentropi har inkonsistente variabler og mangler middelverdi. Det bør for eksempel skrives
+  \[
+  L=-\frac1N\sum_i [y_i\log p_i+(1-y_i)\log(1-p_i)].
+  \]
+- Gradient descent bør skrives som en oppdatering av modellparametrene,
+  \[
+  \theta_{k+1}=\theta_k-\eta\nabla_\theta L(\theta_k),
+  \]
+  ikke som en gradient med hensyn på input \(x\).
+- «ADAM» bør kort defineres som en adaptiv optimeringsalgoritme basert på første- og andreordens moment.
+- Avsnittet om backpropagation er uferdig og bør enten fullføres med ett kort, konkret eksempel eller fjernes.
+- Underfitting skyldes ikke bare for få trenings-epoker. Det kan også skyldes for liten modellkapasitet, dårlige trekk, for sterk regularisering eller optimeringsproblemer. Overfitting bør diskuteres ved hjelp av trenings- og valideringskurver samt passende regularisering eller tidlig stopp.
+
+Diskusjonen av oppdeling av data er særlig viktig i dette
+prosjektet. Parametrene for standardisering må bestemmes utelukkende
+fra treningssettet. Du bør også diskutere ubalanserte
+klasser, stratifikasjon, duplikater eller nesten identiske materialer,
+samt mulig lekkasje mellom kjemisk nært beslektede strukturer. En
+tilfeldig oppdeling kan gi for optimistiske resultater dersom
+strukturelt like forbindelser finnes både i trenings- og
+testsettet. En gruppebasert eller sammensetningsbevisst oppdeling kan
+være mer vitenskapelig informativ.
+
+PCA-delen har dimensjonsmessige inkonsistenser. Orienteringen til
+designmatrisen må fastsettes én gang, for eksempel observasjoner i
+rader og egenskaper i kolonner—og deretter brukes
+konsekvent. Kovariansmatrisen bør inneholde faktoren \(1/(N-1)\), og
+hovedkomponentene bør defineres gjennom en egenverdidekomponering
+eller singulærverdidekomponering. Rekonstruksjonsligningene bør
+skrives om i samsvar med dette.
+
+Diskusjonen av LDA og ANOVA bør også revideres. LDA er ikke bare en
+metode for å maksimere varians; den maksimerer forholdet mellom
+mellomklasse- og innenklasse-spredning, vanligvis gjennom et
+generalisert egenverdiproblem og en samlet kovariansmatrise. For ANOVA
+er \(F>1\) alene ikke tilstrekkelig til å vise en meningsfull
+forskjell; frihetsgrader, en \(F\)-test og en \(p\)-verdi eller et
+konfidensintervall er nødvendig. Når det bare er to grupper, bør
+sammenhengen med to-utvalgs-\(t\)-testen nevnes. Kosinuslikheten
+ligger generelt i intervallet \([-1,1]\), ikke \([0,1]\), og
+ortogonalitet innebærer ikke generelt lineær uavhengighet for en hel
+samling vektorer.
+
+Til slutt bør delen om autoenkodere forklare enkoder, latent
+representasjon, dekoder, rekonstruksjonstap og betydningen av latent
+dimensjon. Overgangen fra PCA og autoenkodere til den binære
+klassifikatoren bør tydelig angi hvilket formål hver metode har,
+hvilke input-egenskaper som brukes, og hvordan ytelsen evalueres. Som
+et minimum bør nøyaktighet rapporteres sammen med presisjon,
+sensitivitet, F1-skår, ROC-AUC eller PR-AUC, samt usikkerhet eller
+variasjon over gjentatte datasettoppdelinger.
+
+Samlet sett er den konseptuelle planen passende, 
+men jeg syns begge seksjonene krever en litt mer grundig teknisk gjennomgang. Du bør også tenke 
+på ei tettere kopling til beregningene som faktisk utføres senere i
+oppgava.
+
+
+Alt for nå, håper det ikke er for mye, men du er på god veg. Lykke til videre.
+Morten
