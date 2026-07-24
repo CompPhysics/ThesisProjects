@@ -1,0 +1,347 @@
+
+### Main scientific strengths
+
+The project has several strong features:
+
+- It addresses a real bottleneck in nuclear many-body theory: identifying and diagonalizing the physically relevant part of an enormous configuration space.
+- SQD is naturally compatible with the shell model, where basis states can be represented as Slater determinants and encoded by bit strings.
+- The applicant appears to have an unusually relevant combination of expertise in shell-model calculations, ab initio interactions, Monte Carlo sampling, HPC implementation, and quantum-computing applications.
+- The approach is testable because light nuclei and restricted valence spaces allow exact diagonalization.
+- Symmetries such as particle number, parity, angular momentum, and possibly isospin provide valuable structure that can reduce sampling noise and improve the classical reconstruction.
+- The project could create useful open-source software connecting quantum-circuit sampling to established nuclear-structure codes.
+
+### Central scientific risks
+
+#### 1. SQD does not remove the exponential problem automatically
+
+SQD avoids constructing and diagonalizing the full Hilbert-space Hamiltonian only if a sufficiently small and physically representative subspace can be identified. The method therefore moves the main difficulty to:
+
+- preparing a quantum state with adequate overlap with the relevant eigenstates;
+- obtaining enough samples to discover important configurations;
+- determining how many configurations are needed;
+- and controlling the classical diagonalization cost of the selected subspace.
+
+The proposal should state explicitly that SQD is a subspace-selection
+method, not a general solution to the exponential scaling problem. Its
+success depends on the effective sparsity or compressibility of the
+target wavefunction in the chosen basis.
+
+#### 2. The source of the quantum advantage is not yet clear
+
+The proposal assumes that a quantum circuit will generate better
+samples than classical methods, but this is not established. The
+comparison should include classical alternatives such as:
+
+- Monte Carlo shell model sampling;
+- variational Monte Carlo;
+- RBM or neural-network quantum states;
+- selected-CI and importance-truncated shell-model methods;
+- and adaptive basis-selection schemes.
+
+The key question could be:
+
+> Under what conditions does quantum-generated sampling identify a useful subspace with fewer samples or lower computational cost than the best available classical sampler?
+
+Without this comparison, the project risks becoming an implementation
+of SQD rather than a demonstration of a clear scientific advantage.
+
+#### 3. Symmetry restoration needs more careful formulation
+
+Discarding bit strings that violate particle number is
+straightforward. Angular momentum is more difficult. A
+computational-basis Slater determinant is generally not an eigenstate
+of total angular momentum, and simply filtering configurations will
+not restore good \(J\). Proper angular-momentum restoration generally
+requires projection operators, symmetry-adapted bases, or group
+integration.
+
+This should be separated into levels of difficulty:
+
+1. exact particle-number and parity filtering;
+2. proton/neutron-number and other discrete symmetries;
+3. angular-momentum projection;
+4. approximate restoration under noisy sampling.
+
+The proposal should avoid implying that all these symmetries can be
+handled by the same post-processing step.
+
+#### 4. “Variational” needs precise use
+
+Diagonalizing the Hamiltonian in a selected subspace gives a
+variational upper bound to the exact ground-state energy, provided the
+selected basis states are valid states in the target Hilbert space and
+the projected Hamiltonian is constructed correctly. However, the
+sampled probability distribution itself is not variational, and the
+quality of the result depends on whether the subspace contains the
+important configurations.
+
+For excited states, the situation is more delicate: one must specify
+whether the method uses direct diagonalization, orthogonality
+constraints, deflation, quantum subspace expansion, or state-specific
+sampling.
+
+#### 5. The near-term hardware claims are probably too optimistic
+
+The project can be scientifically valuable using circuit simulation,
+emulators, and small quantum processors. It should not rely on the
+assumption that current hardware will reach medium- or heavy-mass
+shell-model calculations. The main near-term deliverable should be a
+validated algorithmic framework, not a claim of immediate
+nuclear-structure capability at large scale.
+
+Statements such as “the predictive power will enhance as the number of
+qubits increases” should be replaced by measurable quantities:
+subspace overlap, energy error, number of samples, circuit depth,
+number of qubits, and classical post-processing cost.
+
+## Evaluation of the proposed work packages
+
+### WP1: SQD for nuclear shell-model Hamiltonians
+
+This is the strongest work package and should be the scientific core.
+
+It should begin with a formal definition of the algorithm:
+
+1. define the nuclear Hamiltonian and qubit encoding;
+2. prepare or approximate a trial state;
+3. sample configurations from the quantum circuit;
+4. construct a selected basis;
+5. build the Hamiltonian matrix in that basis;
+6. diagonalize it classically;
+7. iterate the sampling and basis-selection procedure if needed.
+
+The benchmarks should include exactly solvable pairing and Lipkin
+models, followed by small realistic shell-model spaces. For every
+benchmark, report:
+
+- ground-state energy error;
+- overlap with the exact state;
+- excitation energies;
+- number of selected configurations;
+- number of quantum samples;
+- number of Hamiltonian matrix elements;
+- circuit depth and two-qubit gate count;
+- and classical memory/time.
+
+The proposed two-month interface milestone is feasible. The no-core
+shell-model application and medium-mass scalability study should be
+treated as later milestones, not early deliverables.
+
+### WP2: Measurement-based and quantum-assisted sampling
+
+This work package is promising but currently too vague. It should be
+reframed around the question of how to improve the proposal
+distribution from which configurations are sampled.
+
+Possible strategies include:
+
+- symmetry-preserving ansätze;
+- adaptive VQE or ADAPT-VQE;
+- RBM or neural-network quantum states;
+- quantum-assisted variational Monte Carlo;
+- importance sampling based on approximate amplitudes;
+- adaptive inclusion of configurations;
+- and hybrid classical–quantum Markov chains.
+
+The proposal should compare these approaches systematically. It should
+not assume that VQE automatically generates useful samples; in many
+cases, VQE may itself suffer from barren plateaus, local minima,
+symmetry breaking, or insufficient expressivity.
+
+A particularly valuable contribution would be an adaptive SQD loop:
+
+1. sample from the current trial state;
+2. construct the selected subspace;
+3. diagonalize the subspace Hamiltonian;
+4. use the resulting eigenvector to update the trial circuit or classical sampler;
+5. repeat until the energy and subspace stabilize.
+
+This would give WP2 a clear algorithmic identity.
+
+### WP3: Extension to the no-core shell model
+
+This is scientifically ambitious but probably too large as a primary
+objective for a postdoctoral fellowship unless it is sharply limited.
+
+A realistic version would begin with:
+
+- very light nuclei;
+- small no-core spaces;
+- exact or Lanczos benchmarks;
+- and interactions for which matrix elements can be generated reliably.
+
+The first objective should be to demonstrate that the SQD-selected
+subspace reproduces known no-core shell-model results. Extending to
+medium-mass ab initio calculations should be presented as a
+longer-term direction or optional final milestone.
+
+WP3 should also address the cost of constructing matrix elements in a
+no-core basis, the number of qubits required, antisymmetry,
+center-of-mass contamination, and the difficulty of obtaining
+physically meaningful excited states.
+
+### WP4: Training and dissemination
+
+This is appropriate as an implementation package, but it should not be
+counted as a scientific work package. It should include concrete
+training goals:
+
+- quantum-circuit design and fermion-to-qubit mappings;
+- noise modelling and error mitigation;
+- HPC workflow integration;
+- software engineering and open-source development;
+- and training in project management, supervision, and grant writing.
+
+## Suggested scientific projects
+
+### Project 1: Symmetry-aware SQD benchmark suite
+
+Develop a benchmark suite containing pairing, Lipkin, Hubbard, and
+small shell-model Hamiltonians. Compare SQD with exact
+diagonalization, MCSM, RBM-VMC, selected-CI, and VQE.
+
+Key outputs:
+
+- energy and overlap errors;
+- sample complexity;
+- subspace-size scaling;
+- robustness to noise;
+- and a public benchmark repository.
+
+This would provide the methodological foundation for the whole programme.
+
+### Project 2: Adaptive quantum-selected configuration interaction
+
+Develop an iterative method in which quantum samples select
+configurations and classical diagonalization returns improved
+amplitudes. The improved state is then used to update the sampling
+circuit.
+
+This would combine ideas from SQD, selected-CI, importance truncation,
+and adaptive VQE. The central question would be whether the iterative
+loop reaches a high-quality subspace with substantially fewer samples
+than one-shot sampling.
+
+### Project 3: Symmetry-preserving quantum sampling for nuclei
+
+Construct quantum circuits that preserve particle number, parity,
+proton/neutron number, and, where possible, angular momentum. Compare
+symmetry-preserving circuits with symmetry-breaking circuits followed
+by classical filtering or projection.
+
+Important questions include:
+
+- Does symmetry preservation reduce sample complexity?
+- How much accuracy is lost when symmetry is restored only after measurement?
+- Can symmetry information be used as an error-mitigation tool?
+- What is the cost of angular-momentum projection?
+
+This could become one of the proposal’s most distinctive nuclear-physics contributions.
+
+### Project 4: Quantum-assisted MCSM and RBM sampling
+
+Use quantum circuits not to replace the MCSM or RBM, but to improve
+their proposal distributions. For example, quantum-generated samples
+could identify important Slater determinants, while classical MCSM
+provides the variational optimization.
+
+This hybrid approach is likely more realistic than claiming that
+quantum hardware will directly diagonalize large shell-model
+Hamiltonians. It also builds naturally on your existing
+experience.
+
+### Project 5: Noise-aware SQD and error mitigation
+
+Study how readout errors, depolarizing noise, coherent gate errors,
+and symmetry-breaking errors affect the selected subspace. Develop:
+
+- measurement-error mitigation;
+- symmetry verification;
+- zero-noise extrapolation;
+- Bayesian reconstruction of configuration probabilities;
+- and uncertainty estimates for the final eigenvalues.
+
+A strong result would be a quantitative relation between sampling
+noise and the probability that important configurations are missed.
+
+### Project 6: Excited-state SQD
+
+Develop a state-specific SQD method for low-lying excited
+states. Possible approaches include:
+
+- simultaneous diagonalization in a common selected subspace;
+- orthogonality-constrained sampling;
+- deflation;
+- symmetry-sector separation;
+- or targeted sampling using approximate transition operators.
+
+This is important for nuclear spectroscopy and would significantly
+broaden the scientific impact beyond ground-state energies.
+
+### Project 7: No-core SQD for light nuclei
+
+Implement the method first for \(^{4}\mathrm{He}\),
+\(^{6}\mathrm{Li}\), \(^{8}\mathrm{Be}\), or similarly small
+nuclei. Use exact no-core shell-model or Lanczos results as
+benchmarks.
+
+The focus could be on:
+
+- basis selection;
+- qubit encoding;
+- center-of-mass treatment;
+- realistic interaction matrix elements;
+- and scaling with oscillator shells.
+
+This is a credible bridge from the shell model to ab initio nuclear calculations.
+
+### Project 8: Resource theory of SQD
+
+Develop a formal resource analysis separating:
+
+- number of qubits;
+- circuit depth;
+- number of shots;
+- acceptance probability;
+- number of selected configurations;
+- classical diagonalization cost;
+- and total wall-clock time.
+
+This would allow meaningful comparisons with classical and variational methods and prevent the project from relying only on qubit count as a measure of efficiency.
+
+## Recommended restructuring
+
+I would recommend the following three scientific objectives:
+
+### Objective 1: Establish the foundations of SQD for nuclear many-body Hamiltonians
+
+Develop the encoding, sampling, subspace construction, and exact
+benchmarking for solvable and light nuclear systems.
+
+### Objective 2: Develop adaptive, symmetry-aware and noise-resilient sampling
+
+Improve the selected subspace through symmetry preservation, adaptive
+iteration, quantum-assisted Monte Carlo, and error mitigation.
+
+### Objective 3: Demonstrate scalability toward realistic nuclear calculations
+
+Apply the validated method to realistic shell-model Hamiltonians and
+selected no-core systems, with explicit resource estimates and
+comparisons against MCSM, RBM-VMC, selected-CI, and VQE.
+
+This structure is more coherent than the current WP1–WP3 formulation
+because it makes each stage scientifically dependent on the preceding
+one.
+
+
+What one may suggest is a narrower and more testable scope. The project coould then promise:
+
+1. a validated SQD implementation for nuclear shell-model Hamiltonians;
+2. quantitative comparisons with strong classical and quantum baselines;
+3. adaptive and symmetry-aware sampling methods;
+4. a noise and resource analysis;
+5. and a carefully bounded first extension to no-core calculations.
+
+That would give the fellowship a credible core contribution, a
+realistic implementation plan, and a clear pathway toward larger
+nuclear systems.
