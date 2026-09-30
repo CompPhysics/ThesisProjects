@@ -1,0 +1,359 @@
+% Self-contained Beamer presentation. Compile with pdfLaTeX twice.
+% Source page references are the printed thesis pages, which match PDF pages.
+% Speaker notes are hidden by default. Change hide notes to show notes if desired.
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,amsmath,amssymb,booktabs,array}
+\definecolor{OsloBlue}{RGB}{22,49,78}
+\definecolor{Accent}{RGB}{18,104,119}
+\setbeamercolor{structure}{fg=OsloBlue}
+\setbeamercolor{title}{fg=OsloBlue}
+\setbeamercolor{frametitle}{fg=OsloBlue}
+\setbeamercolor{alerted text}{fg=Accent}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{footline}{\leavevmode\hbox{%
+\begin{beamercolorbox}[wd=.84\paperwidth,ht=2.5ex,dp=1ex,leftskip=1.1em]{author in head/foot}\scriptsize Morten Hjorth-Jensen\hspace{1em}Samuel Aychet-Claisse -- PhD defense\end{beamercolorbox}%
+\begin{beamercolorbox}[wd=.16\paperwidth,ht=2.5ex,dp=1ex,rightskip=1em plus1fil]{date in head/foot}\hfill\insertframenumber/\inserttotalframenumber\end{beamercolorbox}}}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamersize{text margin left=8mm,text margin right=8mm}
+\setbeameroption{hide notes}
+\newcommand{\ket}[1]{\lvert #1\rangle}
+\newcommand{\bra}[1]{\langle #1\rvert}
+\newcommand{\src}[1]{\par\vfill{\fontsize{7}{8}\selectfont\color{gray}#1\par}}
+\newcommand{\question}[3]{\par\medskip\textbf{#1. #2}\par\smallskip #3\par}
+\title[Quantum algorithms for nuclei]{Digital and analog quantum algorithms\\for the nuclear many-body problem}
+\subtitle{Thesis of Samuel Aychet-Claisse\\Summary and discussion}
+\author{Morten Hjorth-Jensen}
+\institute{University of Oslo\\Defense at Universit\'e Paris-Saclay}
+\date{1 October 2026}
+\begin{document}
+
+% 1
+\begin{frame}
+\titlepage
+\note{Based on the supplied thesis and my report of 25 August 2026. Supervisors: Denis Lacroix and Vittorio Som\`a. The presentation separates demonstrated numerical results from proposed hardware applications.}
+\end{frame}
+
+% 2
+\begin{frame}{The nuclear many-body problem and quantum computing}
+\begin{itemize}\setlength\itemsep{.7em}
+\item Correlations and symmetry constraints make nuclear ground states and spectra difficult to compute accurately.
+\item Configuration interaction, coupled-cluster, Green's-function and Monte Carlo methods each control different approximations.
+\item Quantum algorithms offer alternative representations and measurements of correlated states.
+\item Their scientific value depends on the \alert{total cost at a specified accuracy}: preparation, optimization, measurement and error control.
+\end{itemize}
+\medskip
+This thesis tests that proposition on controlled nuclear models, using both digital algorithms and analog controls.
+\src{Thesis, Chs. 1--2 and pp. 115--117. Context: \href{https://doi.org/10.1140/epja/s10050-023-01141-1}{Ayral et al., Eur. Phys. J. A 59 (2023)}.}
+\note{The appropriate comparison is with a well-matched classical method. Exponentially large Hilbert spaces alone do not establish quantum advantage. Avoid implying that all classical nuclear calculations require full diagonalization.}
+\end{frame}
+
+% 3
+\begin{frame}{Two benchmarks with different purposes}
+\textbf{Pairing: correlations and particle-number conservation}
+\[
+ H_P=\sum_{k=1}^{D}\epsilon_k(n_k+n_{\bar k})
+ -g\sum_{k\ne l}P_k^\dagger P_l,
+ \qquad P_k^\dagger=a_k^\dagger a_{\bar k}^\dagger .
+\]
+\begin{itemize}
+\item Main digital benchmark: $A=8$ particles in $D=8$ doubly degenerate levels.
+\item Seniority-zero space: $\binom{8}{4}=70$ states, compared with $\binom{16}{8}=12870$ in the full fixed-$A$ space.
+\end{itemize}
+\medskip
+\textbf{Deuteron: encoding and hardware constraints}
+\begin{itemize}
+\item Leading-order pionless-EFT model in a truncated oscillator basis.
+\item Three basis states provide a small, exactly checkable analog target.
+\end{itemize}
+\src{Thesis, pp. 22--26, Eqs. (1.24)--(1.31). Earlier digital deuteron calculation: \href{https://doi.org/10.1103/PhysRevLett.120.210501}{Dumitrescu et al., PRL 120, 210501 (2018)}.}
+\note{D counts doubly degenerate levels, not nucleons. The digital state preparation uses a pair encoding. The Green's-function construction also accesses unpaired sectors. The truncated deuteron energy is not the experimental binding energy.}
+\end{frame}
+
+% 4
+\begin{frame}{The thesis connects algorithms to measurable observables}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{@{}p{.20\textwidth}p{.43\textwidth}p{.29\textwidth}@{}}
+\toprule
+\textbf{Contribution}&\textbf{Main result}&\textbf{Evidence}\\
+\midrule
+Adaptive states&Four ADAPT variants for pairing&Ideal digital emulation\\
+Green's functions&Subspace reconstruction and measurement budget&Ideal emulation and finite-shot sampling\\
+Analog protocols&Controls and encoding tailored to neutral atoms&Constrained pulse simulations\\
+\bottomrule
+\end{tabular}\par
+\medskip
+\alert{The analog work delivers a protocol ready for a hardware test.}\par
+The thesis does not report a completed Ruby experiment or demonstrated quantum advantage.
+\src{Thesis, Chs. 3--6, especially pp. 114--117.}
+\note{This distinction is central to a fair assessment. The main contribution is the development and analysis of methods, including concrete negative results and hardware limitations.}
+\end{frame}
+
+% 5
+\begin{frame}{Adaptive state preparation: pool and selection both matter}
+\[
+\ket{\Psi_n}=R_{i_n}(\theta_n)\cdots R_{i_1}(\theta_1)\ket{\Psi_{\rm HF}} .
+\]
+\renewcommand{\arraystretch}{1.23}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Variant}&\textbf{Operator pool}&\textbf{Selection}\\\midrule
+ADAPT-St&Pair-exchange rotations&Largest gradient\\
+ADAPT-Min&Pair-exchange rotations&Lowest attainable energy\\
+ADAPT-Min2&Neighboring reflection blocks&Lowest attainable energy\\
+ADAPT-Fix&Neighboring reflection blocks&Predetermined order\\\bottomrule
+\end{tabular}\par
+\medskip
+For the pools studied, the one-parameter energy has a closed form:
+\[
+E(\theta)=C_0+C_1\cos(\theta+\gamma_1)+C_2\cos(2\theta+\gamma_2).
+\]
+Five ideal energy evaluations determine the curve used by ADAPT-Min.
+\src{Thesis, pp. 53--59. ADAPT context: \href{https://doi.org/10.1038/s41467-019-10988-2}{Grimsley et al., Nature Communications 10, 3007 (2019)}.}
+\note{These are five energy expectation evaluations, not five individual shots. The reflection blocks are unitary, with determinant minus one, but no parameter value gives the identity. All variants re-optimize previously added parameters unless explicitly stated otherwise.}
+\end{frame}
+
+% 6
+\begin{frame}{Pairing benchmarks support compact, accurate ans\"atze}
+\[
+\delta E=\frac{E-E_{\rm exact}}{E_{\rm HF}-E_{\rm exact}}
+\qquad\text{(error relative to the correlation energy).}
+\]
+\begin{itemize}\setlength\itemsep{.6em}
+\item For $A=D=8$, successful variants reach $\delta E<1\%$ with about 20 operators in the reported convergence tests.
+\item ADAPT-Min improves the early iterations. ADAPT-St catches up around 15 iterations in the examples.
+\item At 20 iterations, the successful variants generally improve on projected BCS across the crossover region.
+\item Projected BCS remains competitive at strong coupling and uses only $D$ variational parameters.
+\end{itemize}
+\src{Thesis, pp. 59--63, Figs. 3.5--3.7. The BCS critical coupling is $g_c/\Delta E\simeq0.298$ for this benchmark.}
+\note{Refer to a finite-system crossover and to the BCS critical point, rather than a true thermodynamic phase transition of eight particles. The thesis explicitly notes exceptions to ADAPT's advantage at high coupling. PAV means projection after variation. VAP means variation after projection.}
+\end{frame}
+
+% 7
+\begin{frame}{Compact circuits come with an optimization cost}
+\begin{itemize}\setlength\itemsep{.7em}
+\item \textbf{Re-optimization is decisive.} In the $A=D=6$, $g/\Delta E=0.6$ test, it improves the energy error by orders of magnitude without adding operators.
+\item \textbf{Greedy selection can stall.} ADAPT-Min2 exhibits a two-step reflection loop in the $g/\Delta E=0.6$ example.
+\item \textbf{Fewer iterations need not mean fewer measurements.} The reported selection cost is $\tfrac52D(D-1)$ basis evaluations per step for ADAPT-St and $\tfrac{15}{2}D(D-1)$ for ADAPT-Min.
+\item The dependence of the required iteration count on $D$ at fixed accuracy remains unresolved.
+\end{itemize}
+\src{Thesis, Table 3.1, pp. 58--63. A basis evaluation itself requires repeated shots.}
+\note{For the reflection block B, B squared equals the identity. The two-step-loop explanation is consistent with the g=0.6 trace; the thesis gives a more qualified interpretation for g=0.2 and 0.4. Parameter count, circuit depth and overall runtime are different resources.}
+\end{frame}
+
+% 8
+\begin{frame}{Green's functions connect ground states to spectroscopy}
+The one-body propagator describes particle addition and removal. Its trace has the spectral representation
+\[
+F(\omega)=\sum_\nu\frac{S_\nu^+}{\omega-\epsilon_\nu^++i\eta}
++\sum_\mu\frac{S_\mu^-}{\omega-\epsilon_\mu^--i\eta},
+\]
+\[
+\epsilon_\nu^+=E_\nu^{A+1}-E_0^A,
+\qquad \epsilon_\mu^-=E_0^A-E_\mu^{A-1}.
+\]
+\begin{itemize}\setlength\itemsep{.55em}
+\item Pole positions give separation energies. Residues give addition and removal strengths.
+\item Spectral moments test more than the ground-state energy alone.
+\item This connects quantum algorithms with configuration mixing and Green's-function methods in nuclear structure.
+\end{itemize}
+\src{Thesis, pp. 20--22, 65--68, 75. $\eta$ is a spectral regulator, not a calculated decay width.}
+\note{The signs of i eta follow the thesis's time-ordered convention. This is not a full self-consistent Green's-function calculation of a realistic nucleus.}
+\end{frame}
+
+% 9
+\begin{frame}{Quantum subspace expansion divides the work}
+\textbf{Quantum measurements on one approximate even-$A$ state}
+\[
+\ket{\phi_\alpha^\pm}=\Lambda_\alpha^\pm\ket{\widetilde\Psi_0^A},
+\quad O_{\alpha\beta}^\pm=\langle\phi_\alpha^\pm|\phi_\beta^\pm\rangle,
+\quad H_{\alpha\beta}^\pm=\langle\phi_\alpha^\pm|H|\phi_\beta^\pm\rangle .
+\]
+\textbf{Classical diagonalization and spectral reconstruction}
+\[
+H^\pm c_\nu^\pm=\widetilde E_\nu^{A\pm1}O^\pm c_\nu^\pm .
+\]
+\begin{itemize}\setlength\itemsep{.5em}
+\item The thesis uses $\Lambda_\alpha^+=a_\alpha^\dagger$ and $\Lambda_\alpha^-=a_\alpha$.
+\item Overlap measurements also supply the spectroscopic amplitudes.
+\item The expansion approximates the odd-system subspaces. Its operator choice controls the spectral information retained.
+\end{itemize}
+\src{Thesis, pp. 67--69, Eqs. (4.4)--(4.10). \href{https://doi.org/10.1103/bw5d-d4d6}{Aychet-Claisse et al., PRC 113, 044324 (2026)}.}
+\note{Even an exact input ground state does not generally make this restricted subspace complete. Higher particle-hole excitations may be needed to describe fragmented strength. The thesis makes this limitation explicit in its conclusion.}
+\end{frame}
+
+% 10
+\begin{frame}{Pairing symmetries substantially reduce measurement cost}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}p{.62\textwidth}r@{}}
+\toprule
+\textbf{Quantity}&\textbf{Pairing result}\\\midrule
+Generic overlap and Hamiltonian entries ($\Omega=2D$)&$4\Omega^2=16D^2$\\
+After blocked-level and time-reversal simplifications&$4D$\\
+Measurement bases with entangling basis rotations&$2D+1$\\
+Shots per basis for about 1\% moment uncertainty&$\sim10^4$\\\bottomrule
+\end{tabular}\par
+\medskip
+For $D=8$: $17\times10^4\simeq1.7\times10^5$ shots per reconstruction,\par
+\emph{excluding the ground-state optimization budget.}\par
+\medskip
+The shot estimate is empirical for small, noiseless systems. Quadratic total scaling with $D$ is a tentative extrapolation.
+\src{Thesis, pp. 69--72 and 77--78, Fig. 4.5. Shot benchmark: $A=D=8$, $g/\Delta E=0.6$.}
+\note{The one-percent figure is statistical uncertainty on spectral moments, not uniform one-percent pointwise accuracy of the Green's function. Avoiding entangling measurement rotations raises the basis count to order D squared. Failed samples with non-positive overlap matrices were excluded from the uncertainty analysis.}
+\end{frame}
+
+% 11
+\begin{frame}{The propagator also gives access to neighboring odd systems}
+\begin{itemize}\setlength\itemsep{.7em}
+\item The spectral-moment benchmarks favor ADAPT-Min over VAP-BCS and PAV-BCS at the tested couplings.
+\item VAP-BCS and ADAPT-Min reproduce the first four moments to within a few percent in the reported comparisons.
+\item Odd-system energies follow from the even-state calculation and reproduce odd--even staggering well.
+\item Remaining errors include the input state, the restricted subspace and finite sampling. Accurate energy differences can partly benefit from error cancellation.
+\end{itemize}
+\medskip
+\alert{Broader relevance:} this construction also suggests a classical configuration-mixing route to odd nuclei.
+\src{Thesis, pp. 73--79, Figs. 4.2--4.5. Published study: \href{https://arxiv.org/abs/2509.02272}{Aychet-Claisse et al., arXiv:2509.02272 / PRC 113, 044324}.}
+\note{Do not claim a complete odd-system spectrum. The method returns the states accessible within its chosen subspace. Figure 4.4 compares estimates from the even neighbor above and below.}
+\end{frame}
+
+% 12
+\begin{frame}{Neutral-atom controls change the algorithmic problem}
+An Ising-mode resource Hamiltonian has the form
+\[
+H_R(t)=\frac{\hbar\Omega(t)}2\sum_i[\cos\varphi\,X_i-\sin\varphi\,Y_i]
+-\hbar\delta(t)\sum_i n_i+\sum_{i<j}\frac{C_6}{r_{ij}^6}n_i n_j .
+\]
+\begin{itemize}\setlength\itemsep{.6em}
+\item The atom interaction continues during state preparation and measurement rotations.
+\item Global controls constrain accessible states and measurable observables.
+\item Geometry links the couplings. Distances cannot be optimized independently.
+\item The thesis distinguishes a prospective XY device with local detunings from the Ruby configuration considered for the deuteron protocol.
+\end{itemize}
+\src{Thesis, Ch. 5 and pp. 93--95, 103--114. Hardware capabilities here refer to the thesis's stated configuration.}
+\note{The resource Hamiltonian need not equal the nuclear target Hamiltonian. Its controls generate trial states whose target energy is evaluated. The analog problem therefore couples encoding, reachability, optimization and measurement.}
+\end{frame}
+
+% 13
+\begin{frame}{The XY study exposes a reachability problem}
+\begin{columns}[T]
+\begin{column}{.51\textwidth}
+\begin{itemize}\setlength\itemsep{.55em}
+\item Fixed Hamming weight $K$ preserves particle or pair number.
+\item $K=1$ succeeds in the tested deuteron cases, but explores only an $N$-dimensional space.
+\item For $2\le K\le N-2$, local minima remain. Exact reachability is unresolved.
+\end{itemize}
+\end{column}
+\begin{column}{.46\textwidth}
+\small
+\textbf{Pairing error $\delta E$ in percent}\par\smallskip
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}rrr@{}}\toprule
+$(D,N_p)$&Chain&Free plane\\\midrule
+$(4,2)$&2.4&0.13\\
+$(5,2)$&4.5&0.20\\
+$(6,2)$&5.6&0.75\\
+$(6,3)$&9.2&0.67\\\bottomrule
+\end{tabular}\par
+\smallskip\par
+Best of the two initialization columns for each geometry in Table 6.1.
+\end{column}
+\end{columns}
+\medskip
+The one-pulse ansatz has $3N-4$ adjustable parameters, compared with $\binom{N}{K}-1$ for a general normalized real state.
+\src{Thesis, pp. 96--102, Table 6.1. $N_p$ counts pairs, $g/\Delta E=0.6$, evolution time 200 ns. Percentages converted from the table.}
+\note{The table is a best-observed comparison, not a statistical success rate. Parameter counting does not prove that a particular ground state is unreachable. Failures also occur when the nominal parameter count is sufficient. The curvature condition for initial detunings helps but does not resolve the problem.}
+\end{frame}
+
+% 14
+\begin{frame}{An encoding tailored to accessible states and measurements}
+The three deuteron basis states fit in the symmetric two-qubit space:
+\[
+\begin{aligned}
+\Lambda\ket{100}&=(\ket{01}+\ket{10})/\sqrt2,\\
+\Lambda\ket{010}&=(\ket{00}+\ket{11})/\sqrt2,\\
+\Lambda\ket{001}&=(\ket{00}-\ket{11})/\sqrt2.
+\end{aligned}
+\]
+\begin{itemize}\setlength\itemsep{.6em}
+\item The encoded Hamiltonian contains only $II$, $ZI+IZ$, $XI+IX$, $ZZ$, $XX$ and $YY$ terms.
+\item Three global measurement settings suffice in the ideal-rotation limit.
+\item The encoding addresses both state accessibility and observability. Reducing qubit count alone would not settle either issue.
+\end{itemize}
+\src{Thesis, pp. 103--106, Eqs. (6.19)--(6.25).}
+\note{Lambda is an isometry from the physical three-dimensional space. The full two-qubit space also contains an antisymmetric state. Global rotations without interactions cannot independently reconstruct antisymmetric two-qubit cross terms such as XZ minus ZX. Actual interacting rotations require a separate error analysis.}
+\end{frame}
+
+% 15
+\begin{frame}{Accurate preparation still leaves a measurement bias}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}p{.58\textwidth}rr@{}}\toprule
+\textbf{Three-level deuteron calculation}&\textbf{Energy (MeV)}&\textbf{Error}\\\midrule
+Exact diagonalization of the target&$-2.046$&---\\
+Reconstructed energy, ideal pulse response&$-1.876$&8.3\%\\
+Reconstructed energy, modulated response&$-1.866$&9.1\%\\\bottomrule
+\end{tabular}\par
+\medskip
+\begin{itemize}\setlength\itemsep{.5em}
+\item Ideal simulated preparation reaches about $10^{-12}$ relative energy error before measurement rotations.
+\item Always-on interactions during the rotations produce the dominant reconstruction bias in this test.
+\item Statistical uncertainty follows $\sigma_E/|E_{\rm exact}|=2.77/\sqrt{N_{\rm shots}}$ per-setting shot count. More shots do not remove this bias.
+\end{itemize}
+\src{Thesis, pp. 110--114, Table 6.2 and Eq. (6.43). Full hardware noise and a completed device experiment remain outside these results.}
+\note{The optimized example uses 4 microseconds for preparation, 1 microsecond of subsequent free evolution and 300 ns rotations. Ideal versus modulated refers to hardware pulse response, not to absence of atom interactions. One percent statistical uncertainty would require about 7.7 times 10^4 shots per setting from the reported formula.}
+\end{frame}
+
+% 16
+\begin{frame}{Scientific assessment and the next benchmark}
+\textbf{The main contribution}\par
+A coherent treatment of state construction, spectral observables and hardware-constrained measurement, with explicit resource estimates and limitations.\par
+\medskip
+\textbf{What would strengthen the case for larger nuclear applications?}
+\begin{itemize}\setlength\itemsep{.55em}
+\item Fixed-accuracy scaling against strong classical baselines.
+\item Separate uncertainty budgets for the nuclear model, ansatz, subspace, sampling and device controls.
+\item Richer interactions and particle-addition/removal spaces beyond pure pairing.
+\item A reproducible hardware demonstration that includes its measurement and optimization costs.
+\end{itemize}
+\src{Assessment informed by the supplied opponent report, pp. 1--2, and thesis conclusions, pp. 115--117.}
+\note{The report gives a very favorable assessment of the thesis's originality, pedagogical quality and engagement with the hardware. These next steps are discussion topics, not conditions for accepting the doctoral work.}
+\end{frame}
+
+% 17
+\begin{frame}{Discussion: scientific contribution and benchmarks}
+\question{1}{Your principal contribution}{Which result do you regard as your most original contribution, and which part of it do you expect to remain useful as quantum hardware improves?}
+\question{2}{The role of the pairing model}{Which favorable properties of pairing are essential to your results? What changes first when a term breaks seniority conservation?}
+\question{3}{A fair classical comparison}{How would you test the scaling of ADAPT against VAP-BCS and an exact pairing solver at fixed accuracy, including optimization and measurement costs?}
+\src{Discussion anchors: thesis, pp. 23--25, 59--63, 69--72, 115--116.}
+\note{Q1 invites the candidate to distinguish their contributions from established VQE and QSE ingredients. Q2 probes the block structure, pair encoding and measurement savings. Q3 should distinguish performance against one ansatz from quantum advantage; exact solvability of the reduced pairing model is an especially relevant baseline.}
+\end{frame}
+
+% 18
+\begin{frame}{Discussion: adaptive algorithms and error measures}
+\question{4}{Greedy selection and long-term convergence}{Why can ADAPT-St catch up with ADAPT-Min despite making smaller early energy gains? How would you compare them at equal shot budgets?}
+\question{5}{The reflection-loop failure}{The $B(\theta)$ blocks are unitary but cannot become the identity. How does that permit the observed two-step loop, and what modification would prevent it?}
+\question{6}{Convergence with finite measurements}{How would you combine correlation-energy error, energy variance and gradient uncertainty in a stopping rule when the exact solution is unavailable?}
+\src{Discussion anchors: thesis, pp. 55--63, especially Figs. 3.5 and 3.7.}
+\note{Q4 concerns optimization paths and re-optimization, not simply local slopes. Q5 can lead to identity-inclusive blocks, paired blocks or an explicit reject/stop rule; a formal convergence guarantee is a separate issue. Q6 invites discussion of small gaps, energy versus fidelity and noisy operator selection.}
+\end{frame}
+
+% 19
+\begin{frame}{Discussion: Green's functions and uncertainty}
+\question{7}{The limits of the one-body subspace}{If the input ground state were exact, which spectral features could still be missing with only $a^\dagger$ and $a$ operators? What would adding $2p$--$1h$ and $2h$--$1p$ operators recover?}
+\question{8}{Checks beyond low-order moments}{Which sum rules and positivity checks would you impose on the reconstructed spectrum? Can accurate low-order moments conceal incorrect individual poles or strengths?}
+\question{9}{Noisy overlap matrices}{The shot study discards samples with non-positive overlap matrices. How frequent are these failures, and how would regularization change the bias, confidence intervals and shot budget?}
+\src{Discussion anchors: thesis, pp. 67--78, including footnote 5 on p. 77.}
+\note{Q7 separates reference-state error from subspace truncation. Q8 can include total addition/removal strength and particle number; spectral weights should be nonnegative, while the imaginary part uses the time-ordered sign convention. Q9 probes conditioning and selection bias in the statistical study rather than presuming its numerical magnitude.}
+\end{frame}
+
+% 20
+\begin{frame}{Discussion: analog control and a decisive next experiment}
+\question{10}{Reachability versus optimization failure}{In the XY pairing calculation, how would you determine whether the target lies outside the accessible family or whether the optimizer misses it? Would additional pulse segments resolve the distinction?}
+\question{11}{Measurement rotations as part of the experiment}{How would you reduce or calibrate the 8--9\% energy bias? Compare shorter rotations, extrapolation and treating the interacting pulse as a calibrated measurement.}
+\question{12}{The next nuclear demonstration}{What system and observable would you choose next, and what accuracy, total runtime and classical baseline would make the result scientifically convincing?}
+\src{Discussion anchors: thesis, pp. 99--114 and 116--117.}
+\note{Q10 can lead to control-algebra analysis, Jacobian rank, multiple starts and systematic pulse-depth tests. Q11 should distinguish coherent bias from statistical noise and decoherence; calibration cost must be counted. Q12 invites a concrete research plan and a clear distinction between proof of principle and computational advantage.}
+\end{frame}
+\end{document}
