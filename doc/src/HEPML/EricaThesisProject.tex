@@ -1,0 +1,226 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=20mm,headheight=14pt]{geometry}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,enumitem,xcolor,titlesec,fancyhdr}
+\definecolor{navy}{RGB}{25,51,77}
+\titleformat{\section}{\large\bfseries\color{navy}}{}{0pt}{}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlist[enumerate]{leftmargin=17pt,itemsep=3pt,topsep=3pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Master's thesis project}
+\fancyhead[R]{\small Deep learning and anomaly detection}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\newcommand{\arxiv}[1]{arXiv:#1}
+\newcommand{\lead}[1]{\textbf{#1}\ }
+\begin{document}
+\fontsize{10.5}{12.6}\selectfont
+{\Large\bfseries\color{navy} Deep learning for anomaly detection\\in graviton-inspired collider searches\par}
+
+\section{1.\ Physics motivation and project objective}
+
+Quantising weak gravitational fields gives a massless spin-2 graviton
+whose ordinary gravitational coupling is too weak for realistic direct
+production at the LHC \cite{gravity}. Randall--Sundrum (RS) models
+instead predict additional massive spin-2 excitations that can decay
+into two photons \cite{rs,atlas}. This project will quantify
+sensitivity to a small set of such $G_{\mathrm{KK}}\to\gamma\gamma$
+benchmarks. Standard Model diphoton production, jets misidentified as
+photons, detector effects and simulation mismodelling must all be
+considered. An unusual event population alone does not establish a
+gravitational origin.
+
+The research question is: \emph{How do reconstruction, generative
+modelling and limited supervision affect sensitivity to rare signals
+and generalisation to unseen signal parameters?}  The core will
+compare a deep autoencoder, a variational autoencoder and Deep SAD,
+with simple kinematic selections as a reference. At most one further
+architecture or generative method will be developed, depending on data
+access and progress. Hjorth-Jensen's textbook provides the theoretical
+and computational preparation \cite{book}.
+
+\section{2.\ First phase: CERN educational open data}
+ATLAS educational resources at the CERN Open Data Portal provide reconstructed collision events, simulated samples and guided notebooks \cite{data}. The student will use a notebook and dataset from the same release, beginning with small samples before scaling up. The 2025 release offers updated educational tools; the legacy 2020 diphoton collection provides a documented $10\,\mathrm{fb}^{-1}$ example at $13$ TeV.
+\begin{enumerate}
+\item \textbf{Understand the data.} Read ROOT files with Python/Uproot or the supplied framework. Inspect photons, leptons and jets; check units, transverse momenta, angles, triggers, event weights and preselection.
+\item \textbf{Reconstruct known physics.} Reproduce the $Z$ mass using a dilepton sample, then work through the Higgs-to-diphoton notebook. Calculate invariant masses, compare normalised distributions and study how selections change signal and background.
+\item \textbf{Prepare a learning benchmark.} Use simulated Higgs and background events to test reconstruction scores, then reveal a small subset of training labels for semi-supervised learning. Examine the ATLAS data-quality example to understand instrumental anomalies.
+\end{enumerate}
+
+This phase produces a reproducible notebook with selection counts,
+distributions, uncertainties and an initial benchmark. The legacy
+release is educational and not suitable for scientific publications but should give a good introduction to the data to come for your thesis. The
+main study requires suitable research data and compatible
+signal/background simulations, or an explicit simulation-only setup
+with a common detector model.
+
+\section{3.\ Deep-learning methods}
+\lead{Autoencoders: reconstruction as the baseline (textbook Ch.~12 and covered by FYS5429).}
+For standardised event features $x$, an encoder compresses the event to $z=f_\theta(x)$ and a decoder reconstructs $\hat{x}=g_\psi(z)$. Training minimises the average reconstruction loss on background-dominated events; a simple anomaly score is
+\[
+ a_{\mathrm{AE}}(x)=\|x-g_\psi(f_\theta(x))\|^2 .
+\]
+A bottleneck or denoising objective discourages copying the input. Start with fully connected networks for high-level photon/event variables \cite{ae}. Large errors can flag unfamiliar structure, but neither anomalous signals nor detector artefacts are guaranteed to be poorly reconstructed. This is the label-free baseline.
+
+\lead{Variational autoencoders: a generative extension (Ch.~15 of the textbook and covered by FYS5429).}
+A VAE learns an approximate latent posterior $q_\phi(z|x)$ and a probabilistic decoder $p_\theta(x|z)$ with prior $p(z)$, commonly Gaussian \cite{vae,collidervae}. Its per-event negative evidence lower bound is
+\[
+ \mathcal{L}_{\mathrm{VAE}}(x)=
+ -\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)]
+ +D_{\mathrm{KL}}\!\left(q_\phi(z|x)\,\|\,p(z)\right).
+\]
+The terms balance reconstruction and latent regularity. Sampling the prior and decoding generates events. Reconstruction and negative-bound scores require validation; the bound is not an exact likelihood or anomaly probability. Standard VAEs use no labels; an added labelled classification loss enables semi-supervision.
+
+\newpage
+\lead{Deep SAD: using a few labels to shape the representation.}
+Deep Semi-supervised Anomaly Detection (Deep SAD) \cite{sad} fine-tunes an encoder, typically pretrained with an autoencoder. Its score is the squared distance to a fixed latent centre,
+$a_{\mathrm{SAD}}(x)=\|f_\theta(x)-c\|^2$.
+Predominantly normal unlabelled events and labelled background are pulled towards $c$; labelled simulated signals are pushed away. Writing $a=a_{\mathrm{SAD}}$, a representative regularised objective is
+\[
+ \mathcal{L}_{\mathrm{SAD}}
+ =\langle a(x)\rangle_U+\lambda_B\langle a(x)\rangle_B
+ +\lambda_A\left\langle\frac{1}{a(x)+\delta}\right\rangle_A
+ +\lambda_R\|\theta\|^2 .
+\]
+Here $U,B,A$ denote unlabelled, labelled background and labelled anomalous samples; brackets denote sample averages, $\lambda$ values control their weights, and $\delta>0$ stabilises the inverse. The implementation will follow the published safeguards against collapse, including a fixed nonzero centre, bias-free layers and suitable unbounded activations. Varying label budgets and contamination tests whether supervision helps; withheld signal parameters test generalisation. This changes the encoder's training objective rather than introducing a separate architecture.
+
+\lead{Connections and optional extensions.}
+A transformer specifies how features interact; a generative objective specifies what a model learns. They can therefore be combined. The options below will be assessed before selecting at most one extension.
+
+{\small
+\renewcommand{\arraystretch}{1.13}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash\bfseries}p{30mm}X@{}}
+\toprule
+Method & \textbf{Role in this project and conditions for use}\\
+\midrule
+Transformers (Ch.~13 and FYS5429) &
+Self-attention learns relations between particle/object tokens \cite{transformer}. A set encoder with permutation-invariant readout could replace a dense encoder or learn masked-object prediction. This is most motivated by richer object/constituent data; an advantage is not assumed for a few diphoton variables.\\
+Normalising flows (Ch.~16 and FYS5429) &
+Invertible neural transformations provide tractable densities and sampling. A conditional background model $p_B(x|m_{\gamma\gamma})$, learned in mass sidebands, could generate templates for a data-versus-background classifier, following the CATHODE strategy \cite{flow}. Interpolation and background closure require validation.\\
+Diffusion models (Ch.~16 and FYS5429) &
+A network learns to reverse progressive noising \cite{diffusion}. Possible extensions are denoising-based scores or conditional background generation, including in a VAE latent space. Noise levels, sampling cost and rare-tail fidelity require study; generation alone does not define a calibrated anomaly score.\\
+Reinforcement learning &
+A possible later project concerns sequential trigger or data-acquisition decisions under a resource budget. This requires a simulator, actions and a meaningful reward. The present fixed-dataset anomaly search has no natural sequential control task, so RL is outside the core scope.\\
+\bottomrule
+\end{tabularx}
+}
+
+\section{4.\ Comparison and statistical validation}
+
+All core methods will use the same event partitions and comparable
+tuning budgets. Preprocessing is fitted on training data; validation
+selects hyperparameters and thresholds; the test set remains
+untouched. Labels hidden from AE/VAE training are revealed selectively
+for Deep SAD. The study varies signal contamination, labelled sample
+size and withheld masses/couplings. Independent physically simulated
+signal injections begin during model development. Generated
+backgrounds complement these tests; they do not independently
+establish sensitivity to new signals.
+
+Report signal efficiency at fixed background efficiency, ROC and
+precision--recall curves, uncertainty and computational
+cost. Precision depends on the assumed signal fraction; confusion
+matrices require truth-labelled samples. Reserve diphoton mass for
+inference and test score--mass correlations: excluding mass from
+inputs alone does not prevent artificial peaks. Check detector/model
+variations, simulation-to-data differences and background predictions
+in control regions.
+
+After fixing the selection, use a mass-spectrum likelihood with
+nuisance parameters for background and detector uncertainties
+\cite{stats}. Calibrate with background-only pseudoexperiments,
+repeating any data-dependent fitting, and account for scans when
+quoting global significance. Anomaly scores select events; statistical
+evidence concerns an ensemble excess. Deliver expected sensitivity or
+justified limits, including a careful account of failures and
+generalisation.
+
+\newpage
+\section{5.\ Milestones}
+
+Educational exercises begin during M1--M3 and are consolidated in
+M4. Signal injections start at M5 and continue throughout; the
+optional extension follows successful core comparisons.
+
+{\small
+\renewcommand{\arraystretch}{1.13}
+\begin{tabularx}{\linewidth}{@{}>{\bfseries}p{8mm}X@{}}
+\toprule
+& \textbf{Milestone and completion criterion}\\
+\midrule
+M1 & Study collider observables, backgrounds, statistics and neural networks (textbook Ch.~8); run an introductory ATLAS notebook.\\
+M2 & Select the spin-2 final state, benchmark masses and couplings; compile physics and deep-learning references.\\
+M3 & Study and implement small AE/VAE examples (Chs.~12, 15); derive their losses and understand the Deep SAD objective.\\
+M4 & Complete the $Z$, diphoton and data-quality exercises; document variables, weights and selections; choose the main data/simulation route.\\
+M5 & Fix event partitions; establish kinematic and deep-AE baselines with background-only and injected-signal tests.\\
+M6 & Train VAE and Deep SAD models; compare scores, label budgets and contamination using common validation criteria.\\
+M7 & Check stability, mass sculpting and background closure; assess one optional transformer, flow or diffusion extension if feasible.\\
+M8 & Quantify efficiencies, uncertainties, computational costs and expected statistical sensitivity, including scan effects.\\
+M9 & Test withheld signal parameters and detector/modelling variations; assess generalisation and interpret the RS benchmark sensitivity.\\
+M10 & Complete injection/recovery studies; deliver reproducible code, notebooks, configurations, figures and thesis conclusions.\\
+\bottomrule
+\end{tabularx}
+}
+
+\lead{Preparation and expected outcome.}
+
+The textbook reading progresses from neural networks and autoencoders
+to variational inference, followed by attention or diffusion/flows for
+the chosen extension \cite{book}. The thesis will determine which
+representation and objective improve sensitivity under realistic
+limitations. No improvement, limited transfer to unseen signals, or a
+quantified sensitivity limit are meaningful outcomes.
+
+\begingroup
+\fontsize{8.8}{10.2}\selectfont
+\setlength{\parskip}{0pt}
+\renewcommand{\refname}{6.\ Literature and data resources}
+\begin{thebibliography}{13}
+\setlength{\itemsep}{2.5pt}
+\bibitem{gravity}
+J.~F.~Donoghue, \emph{General relativity as an effective field theory: The leading quantum corrections},
+Phys.\ Rev.\ D \textbf{50}, 3874 (1994), \arxiv{gr-qc/9405057}.
+\bibitem{rs}
+L.~Randall and R.~Sundrum, \emph{A Large Mass Hierarchy from a Small Extra Dimension},
+Phys.\ Rev.\ Lett.\ \textbf{83}, 3370 (1999), \arxiv{hep-ph/9905221}.
+\bibitem{atlas}
+ATLAS Collaboration, \emph{Search for resonances decaying into photon pairs in 139 fb$^{-1}$ of $pp$ collisions at $\sqrt{s}=13$ TeV with the ATLAS detector},
+Phys.\ Lett.\ B \textbf{822}, 136651 (2021), \arxiv{2102.13405}.
+\bibitem{book}
+M.~Hjorth-Jensen, \emph{Machine Learning and the Physical Sciences}, University of Oslo,
+MachineLearningUiO online textbook, Chs.~8, 12, 13, 15 and 16.
+\bibitem{data}
+ATLAS Collaboration, \emph{ATLAS Open Data}, educational and research resources; 2025 educational release; CERN Open Data records 15006 (legacy diphotons) and atlas-160012 (data quality).
+\bibitem{ae}
+M.~Farina, Y.~Nakai and D.~Shih, \emph{Searching for New Physics with Deep Autoencoders},
+Phys.\ Rev.\ D \textbf{101}, 075021 (2020), \arxiv{1808.08992}.
+\bibitem{vae}
+D.~P.~Kingma and M.~Welling, \emph{Auto-Encoding Variational Bayes},
+ICLR (2014), \arxiv{1312.6114}.
+\bibitem{collidervae}
+O.~Cerri et al., \emph{Variational Autoencoders for New Physics Mining at the Large Hadron Collider},
+JHEP \textbf{05}, 036 (2019), \arxiv{1811.10276}.
+\bibitem{sad}
+L.~Ruff et al., \emph{Deep Semi-Supervised Anomaly Detection}, ICLR (2020),
+\arxiv{1906.02694}.
+\bibitem{transformer}
+H.~Qu, C.~Li and S.~Qian, \emph{Particle Transformer for Jet Tagging},
+PMLR \textbf{162}, 18281 (2022), \arxiv{2202.03772}.
+\bibitem{flow}
+A.~Hallin et al., \emph{Classifying Anomalies THrough Outer Density Estimation (CATHODE)},
+Phys.\ Rev.\ D \textbf{106}, 055006 (2022), \arxiv{2109.00546}.
+\bibitem{diffusion}
+J.~Ho, A.~Jain and P.~Abbeel, \emph{Denoising Diffusion Probabilistic Models},
+NeurIPS \textbf{33} (2020), \arxiv{2006.11239}.
+\bibitem{stats}
+G.~Cowan et al., \emph{Asymptotic formulae for likelihood-based tests of new physics},
+Eur.\ Phys.\ J.\ C \textbf{71}, 1554 (2011), \arxiv{1007.1727}.
+\end{thebibliography}
+\endgroup
+\end{document}
+
