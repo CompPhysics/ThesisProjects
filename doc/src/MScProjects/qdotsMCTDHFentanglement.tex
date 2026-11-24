@@ -1,0 +1,384 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Many-Body Entanglement and Quantum Fisher Information of up to Four Trapped Electrons: Multi-Configuration Time-Dependent Hartree--Fock and Reinforcement Learning}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+Electrons trapped above the surface of superfluid helium are a
+candidate platform for quantum computing and quantum sensing~[1--3].
+Each electron sits in its own electrostatic well, the two lowest
+states of its motion define a qubit, and the unscreened Coulomb
+interaction between electrons in different wells couples them.  The
+interaction entangles the electrons, and this entanglement is the
+resource behind two-qubit gates and behind sensors that reach a
+precision beyond that of independent particles.
+
+With two electrons, entanglement is fully described by one number,
+for example the von Neumann entropy of one electron, and this is the
+quantity studied in our earlier work~[2].  With three and four
+electrons this is no longer the case.  There are several inequivalent
+kinds of entanglement, such as those of the GHZ, W and cluster states,
+which cannot be transformed into each other by local operations~[4,5],
+and no single measure distinguishes them.  At the same time the
+quantum Fisher information (QFI), which sets the ultimate precision of
+a sensor, is itself a witness of how many particles are entangled with
+each other~[6--8].  Understanding which kind of many-body entanglement
+a device can produce, and which kind is useful for a given task,
+requires several measures side by side.
+
+In the PhD work of Oskar Leinonen~[3,12], the multi-configuration
+time-dependent Hartree and Hartree--Fock method~[9--11], MCTDH(F), has
+been developed for registers of up to four wells.  It propagates
+the full correlated wave function of all electrons, including the
+states outside the qubit subspace, while the well parameters and
+external fields change in time.  This thesis project uses that
+framework as its solver and adds two elements: a systematic analysis
+of many-body entanglement with measures beyond the von Neumann
+entropy, and reinforcement learning (RL)~[13--16] to find static
+configurations and time-dependent control fields that maximize the
+QFI and selected entanglement measures.  The coupling to an
+environment and decoherence are not part of this project: the system
+is closed and the focus is on the entanglement itself.
+
+\section*{2. Physical System and Scientific Motivation}
+
+The system is the register of anharmonic wells of Refs.~[3,12] with
+up to four electrons, one per well.  With $\hbar=m_e=1$,
+\[
+  \hat H(t)=\sum_{\sigma=1}^{N}\Bigl[-\frac12\frac{\partial^2}{\partial x_\sigma^2}
+  +V^{\sigma}(x_\sigma;t)+\mathcal E_\sigma(t)\,x_\sigma\Bigr]
+  +\sum_{\sigma<\tau}\frac{\kappa}{|x_\sigma-x_\tau|},
+\]
+\[
+  V^{\sigma}(x)=\tfrac12(\omega^{\sigma})^2(x-x_c^{\sigma})^2
+  +\tfrac13\beta^{\sigma}(\omega^{\sigma})^2(x-x_c^{\sigma})^4 ,
+\]
+where the frequencies $\omega^\sigma$ and anharmonicities
+$\beta^\sigma$ are set by the gate electrodes and $\mathcal E_\sigma$
+is an electric field acting on well $\sigma$.  The controls are of two
+kinds.
+\begin{itemize}
+  \item \textbf{Time-independent fields.}  Static values of
+  $\omega^\sigma$, $\beta^\sigma$ and of a static electric field.
+  They define the operating points of the device and the entanglement
+  of its eigenstates, which is largest near avoided crossings.
+  \item \textbf{Time-dependent fields.}  Ramps of the well parameters
+  between operating points, which realize two-qubit gates such as
+  $\sqrt{i\mathrm{SWAP}}$~[3,12], and resonant microwave fields
+  $\mathcal E_\sigma(t)$ on single wells, which realize single-qubit
+  rotations.  Sequences of these generate entanglement between
+  several electrons.
+\end{itemize}
+
+In MCTDH(F) the wave function is expanded in products of
+time-dependent orbitals of the individual wells,
+\[
+  |\Psi(t)\rangle=\sum_{i_1\dots i_N}C_{i_1\dots i_N}(t)\,
+  |\varphi^{1}_{i_1}(t)\rangle\otimes\cdots\otimes|\varphi^{N}_{i_N}(t)\rangle .
+\]
+With one electron per well the wells are distinguishable subsystems,
+and the reduced density matrix $\rho^\sigma$ of well $\sigma$ is the
+one-body density matrix that the method computes at every time step.
+Reduced density matrices of groups of wells follow from the
+coefficients $C$.  The entanglement measures below are therefore
+available at little extra cost, for the full wave function and not
+only for its projection on the qubit states.
+\begin{itemize}
+  \item \textbf{Bipartite measures.}  For every division of the wells
+  into two groups $A|B$: the von Neumann entropy, the R\'enyi
+  entropies $S_\alpha=(1-\alpha)^{-1}\ln\mathrm{Tr}\,\rho_A^\alpha$
+  and the entanglement spectrum~[4,17].
+  \item \textbf{Entanglement of two wells inside a larger system.}
+  The state of two wells is then mixed, and the entropy is no longer
+  a measure of entanglement.  The negativity
+  $\mathcal N=(\|\rho_{\sigma\tau}^{T_\sigma}\|_1-1)/2$~[18] and, for
+  qubits, the concurrence~[19] are, and they obey monogamy
+  relations that define the three-tangle~[20].
+  \item \textbf{Multipartite measures.}  The global entanglement of
+  Meyer and Wallach,
+  $Q=2\bigl[1-\tfrac1N\sum_\sigma\mathrm{Tr}(\rho^\sigma)^2\bigr]$~[21],
+  the genuine multipartite concurrence
+  $C_{\rm GME}=\min_{A|B}\sqrt{2\,[1-\mathrm{Tr}\,\rho_A^2]}$~[22],
+  which vanishes unless all electrons are entangled, the geometric
+  measure of entanglement~[23], and the classification of four-qubit
+  states~[5].
+  \item \textbf{Quantum Fisher information.}  For a pure state and a
+  parameter $\lambda$ of the Hamiltonian,
+  $F_Q=4\bigl[\langle\partial_\lambda\Psi|\partial_\lambda\Psi\rangle
+  -|\langle\Psi|\partial_\lambda\Psi\rangle|^2\bigr]$, which reduces
+  to four times the variance of the generator $\hat G$ when the
+  parameter is imprinted as $e^{-i\lambda\hat G}$~[6].  For $N$ qubits
+  and $\hat G=\tfrac12\sum_\sigma\hat Z_\sigma$, separable states give
+  $F_Q\le N$, a value $F_Q>kN$ proves that at least $k+1$ particles
+  are entangled, and the maximum $N^2$, here 16, is reached by the GHZ
+  state~[7,8,24].
+\end{itemize}
+
+The project is organized around three questions:
+\begin{enumerate}
+  \item Which kinds of many-body entanglement do the eigenstates and
+  the gate dynamics of two, three and four interacting electrons
+  produce, and what do the measures beyond the von Neumann entropy
+  reveal that the entropy alone does not?  How much do the answers
+  change when the states outside the qubit subspace are kept?
+  \item Can an RL agent find static operating points and
+  time-dependent control fields that maximize the QFI, and how does
+  it compare with conventional optimization and with sequences of
+  calibrated gates?
+  \item How are the QFI and the entanglement measures related for
+  the states that the device can reach: do controls that maximize
+  the QFI also maximize the genuine multipartite entanglement, and
+  which fields can be sensed with an advantage over independent
+  electrons?
+\end{enumerate}
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: Theory and reproduction}
+\begin{itemize}
+  \item Study the MCTDH(F) method, entanglement theory for bipartite
+  and multipartite systems, quantum parameter estimation and
+  reinforcement learning.
+  \item Learn the MCTDH(F) codes of O.~Leinonen and reproduce, for two
+  wells, the operating points and the $\sqrt{i\mathrm{SWAP}}$ gate of
+  Refs.~[3,12], with a check against an exact grid calculation.
+\end{itemize}
+
+\subsection*{Objective 2: Entanglement toolbox}
+\begin{itemize}
+  \item Implement the measures of Sec.~2 for MCTDH(F) wave functions:
+  reduced density matrices of one and two wells, entropies and
+  entanglement spectra for all bipartitions, negativity, concurrence
+  and tangles, global and genuine multipartite entanglement, the
+  geometric measure, and the QFI for static and time-dependent
+  parameters.
+  \item Evaluate each measure both for the full wave function and
+  for its projection on the qubit states, together with the weight
+  outside the qubit subspace (leakage).
+  \item Validate on states with known values (Bell, GHZ, W, Dicke
+  and cluster states).
+\end{itemize}
+
+\subsection*{Objective 3: Entanglement of two, three and four electrons}
+\begin{itemize}
+  \item Time-independent fields: map the entanglement of the
+  low-lying eigenstates as a function of the well parameters and of
+  a static electric field, in particular near the avoided crossings
+  used as target operating points.
+  \item Time-dependent fields: follow all measures during single
+  gates and during gate sequences that produce GHZ- and W-type states
+  of three and four electrons; identify how entanglement spreads
+  through the register and where it is lost to leakage.
+  \item Compare the measures with each other and establish which of
+  them separate the different classes of states.
+\end{itemize}
+
+\subsection*{Objective 4: Reinforcement learning with time-independent fields}
+\begin{itemize}
+  \item Formulate the choice of operating point as an RL environment:
+  the action is the vector of well parameters and static fields, the
+  reward is the QFI (or a chosen entanglement measure) of the target
+  eigenstate, with a penalty for loss of the qubit structure.
+  \item Train an actor--critic agent with Proximal Policy
+  Optimization~[14] and compare with the derivative-free
+  optimization used in Ref.~[12].
+\end{itemize}
+
+\subsection*{Objective 5: Reinforcement learning with time-dependent fields}
+\begin{itemize}
+  \item Extend the environment to a sequential problem: at each step
+  the agent chooses the ramp and hold times, the pair of wells to
+  couple and the drive amplitudes; the state is propagated with
+  MCTDH(F); the reward at the final time is
+  \[
+     R=\frac{F_Q}{N^2}-w\,(1-s),
+  \]
+  with $s$ the population that remains in the qubit subspace.
+  \item Optimize the QFI for static and for oscillating
+  fields~[16,25], for
+  two, three and four electrons, and compare the learned protocols
+  with gate sequences built from separately calibrated gates and with
+  gradient-based optimal control~[16,26].
+  \item To keep the cost manageable, train on a hierarchy of models:
+  an effective few-level model extracted from the MCTDH(F)
+  eigenstates, MCTDH(F) with mean-field spectator wells, and the full
+  correlated propagation for validation and final optimization.
+  Quantify what is lost when a protocol learned on a reduced model is
+  run on the full one.
+\end{itemize}
+
+\subsection*{Objective 6: QFI and many-body entanglement}
+\begin{itemize}
+  \item Characterize the states found by the agent with the full set
+  of measures and determine their entanglement depth from the QFI.
+  \item Use different measures as reward and compare the resulting
+  states: QFI, genuine multipartite concurrence and global
+  entanglement do not have the same maximizers.
+  \item Study the sensitivity of the optimized protocols to errors
+  in the control parameters (closed system).
+\end{itemize}
+
+\subsection*{Objective 7: Possible extensions}
+\begin{itemize}
+  \item Four electrons in fewer wells (two per well), where the
+  electrons in a well are indistinguishable, antisymmetry is required
+  and mode and particle entanglement must be distinguished~[27].
+  \item Three electrons per well as in Ref.~[12].
+  \item Measurement protocols that reach the QFI bound (classical
+  Fisher information of realistic readouts).
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{Many-body dynamics:} the multi-species MCTDH(F) codes
+  developed by O.~Leinonen (GPU-based), extended in this project with
+  the entanglement and QFI analysis.
+  \item \textbf{Reinforcement learning:} PyTorch or JAX with a
+  Gymnasium-type environment that wraps the solvers; the PPO
+  implementation of Ref.~[28] serves as a reference.
+  \item \textbf{Useful background:} quantum mechanics, many-body
+  physics (FYS4480), quantum computing (FYS5419) and machine learning
+  (FYS-STK4155).
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and reproduction}
+\begin{itemize}
+    \item Literature study; MCTDH(F) codes; reproduction of the
+    two-well operating points and gate.
+\end{itemize}
+\textbf{Deliverable:} Short report with the reproduced two-electron
+results.
+
+\bigskip
+
+\textbf{Months 3--4: Entanglement toolbox}
+\begin{itemize}
+    \item Implementation and validation of the measures; first
+    application to two and three electrons.
+\end{itemize}
+\textbf{Deliverable:} Tested analysis module for MCTDH(F) wave
+functions.
+
+\bigskip
+
+\textbf{Months 5--6: Entanglement of up to four electrons}
+\begin{itemize}
+    \item Static maps and gate dynamics for three and four electrons;
+    comparison of the measures.
+\end{itemize}
+\textbf{Deliverable:} Survey of the many-body entanglement produced
+by the device.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--8: RL with time-independent fields}
+\begin{itemize}
+    \item RL environment and PPO agent for the operating points;
+    comparison with derivative-free optimization; effective models
+    for fast training.
+\end{itemize}
+\textbf{Deliverable:} Operating points that maximize the QFI.
+
+\bigskip
+
+\textbf{Months 9--10: RL with time-dependent fields}
+\begin{itemize}
+    \item Sequential control of ramps and drives; QFI optimization
+    for two, three and four electrons; validation with the full
+    propagation.
+\end{itemize}
+\textbf{Deliverable:} Learned control protocols and their comparison
+with calibrated gate sequences.
+
+\bigskip
+
+\textbf{Month 11: Analysis and consolidation}
+\begin{itemize}
+    \item Relation between QFI and the entanglement measures for the
+    optimized states; robustness; one extension depending on
+    progress.
+\end{itemize}
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item An entanglement and QFI analysis module for MCTDH(F) wave
+    functions, covering bipartite and multipartite measures.
+    \item A survey of the many-body entanglement of two, three and
+    four interacting electrons under static and time-dependent
+    fields, including the role of states outside the qubit subspace.
+    \item An RL framework with MCTDH(F) as environment, and control
+    protocols that maximize the QFI.
+    \item A quantitative account of how the QFI and the different
+    entanglement measures are related in a realistic device model.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item P.~M.~Platzman and M.~I.~Dykman, \textit{Quantum Computing with Electrons Floating on Liquid Helium}, Science \textbf{284}, 1967 (1999).
+    \item N.~R.~Beysengulov \textit{et al.}, \textit{Coulomb Interaction-Driven Entanglement of Electrons on Helium}, PRX Quantum \textbf{5}, 030324 (2024).
+    \item O.~Leinonen \textit{et al.}, \textit{Design and dynamics of two-qubit gates with motional states of electrons on helium}, Phys.\ Rev.\ A \textbf{113}, 032624 (2026).
+    \item R.~Horodecki, P.~Horodecki, M.~Horodecki and K.~Horodecki, \textit{Quantum entanglement}, Rev.\ Mod.\ Phys.\ \textbf{81}, 865 (2009).
+    \item F.~Verstraete, J.~Dehaene, B.~De~Moor and H.~Verschelde, \textit{Four qubits can be entangled in nine different ways}, Phys.\ Rev.\ A \textbf{65}, 052112 (2002).
+    \item S.~L.~Braunstein and C.~M.~Caves, \textit{Statistical distance and the geometry of quantum states}, Phys.\ Rev.\ Lett.\ \textbf{72}, 3439 (1994); V.~Giovannetti, S.~Lloyd and L.~Maccone, \textit{Quantum metrology}, Phys.\ Rev.\ Lett.\ \textbf{96}, 010401 (2006).
+    \item L.~Pezz\'e and A.~Smerzi, \textit{Entanglement, Nonlinear Dynamics, and the Heisenberg Limit}, Phys.\ Rev.\ Lett.\ \textbf{102}, 100401 (2009).
+    \item G.~T\'oth, \textit{Multipartite entanglement and high-precision metrology}, Phys.\ Rev.\ A \textbf{85}, 022322 (2012); P.~Hyllus \textit{et al.}, \textit{Fisher information and multiparticle entanglement}, Phys.\ Rev.\ A \textbf{85}, 022321 (2012).
+    \item H.-D.~Meyer, U.~Manthe and L.~S.~Cederbaum, \textit{The multi-configurational time-dependent Hartree approach}, Chem.\ Phys.\ Lett.\ \textbf{165}, 73 (1990); M.~H.~Beck, A.~J\"ackle, G.~A.~Worth and H.-D.~Meyer, \textit{The multiconfiguration time-dependent Hartree (MCTDH) method: a highly efficient algorithm for propagating wavepackets}, Phys.\ Rep.\ \textbf{324}, 1 (2000).
+    \item J.~Zanghellini, M.~Kitzler, T.~Brabec and A.~Scrinzi, \textit{Testing the multi-configuration time-dependent Hartree--Fock method}, J.\ Phys.\ B \textbf{37}, 763 (2004); J.~Caillat \textit{et al.}, \textit{Correlated multielectron systems in strong laser fields: A multiconfiguration time-dependent Hartree--Fock approach}, Phys.\ Rev.\ A \textbf{71}, 012712 (2005).
+    \item A.~U.~J.~Lode, C.~L\'ev\^eque, L.~B.~Madsen, A.~I.~Streltsov and O.~E.~Alon, \textit{Colloquium: Multiconfigurational time-dependent Hartree approaches for indistinguishable particles}, Rev.\ Mod.\ Phys.\ \textbf{92}, 011001 (2020).
+    \item O.~Leinonen, \textit{MCTDHF for simulations of multi-qubit systems}, in preparation; O.~Leinonen, PhD thesis, University of Oslo.
+    \item R.~S.~Sutton and A.~G.~Barto, \textit{Reinforcement Learning: An Introduction}, 2nd ed., MIT Press (2018).
+    \item J.~Schulman, F.~Wolski, P.~Dhariwal, A.~Radford and O.~Klimov, \textit{Proximal Policy Optimization Algorithms}, arXiv:1707.06347 (2017).
+    \item M.~Bukov and F.~Marquardt, \textit{Reinforcement Learning for Quantum Technology}, arXiv:2601.18953 (2026).
+    \item H.~Xu, J.~Li, L.~Liu, Y.~Wang, H.~Yuan and X.~Wang, \textit{Generalizable control for quantum parameter estimation through reinforcement learning}, npj Quantum Inf.\ \textbf{5}, 82 (2019).
+    \item L.~Amico, R.~Fazio, A.~Osterloh and V.~Vedral, \textit{Entanglement in many-body systems}, Rev.\ Mod.\ Phys.\ \textbf{80}, 517 (2008).
+    \item G.~Vidal and R.~F.~Werner, \textit{Computable measure of entanglement}, Phys.\ Rev.\ A \textbf{65}, 032314 (2002).
+    \item W.~K.~Wootters, \textit{Entanglement of Formation of an Arbitrary State of Two Qubits}, Phys.\ Rev.\ Lett.\ \textbf{80}, 2245 (1998).
+    \item V.~Coffman, J.~Kundu and W.~K.~Wootters, \textit{Distributed entanglement}, Phys.\ Rev.\ A \textbf{61}, 052306 (2000).
+    \item D.~A.~Meyer and N.~R.~Wallach, \textit{Global entanglement in multiparticle systems}, J.\ Math.\ Phys.\ \textbf{43}, 4273 (2002).
+    \item Z.-H.~Ma, Z.-H.~Chen, J.-L.~Chen, C.~Spengler, A.~Gabriel and M.~Huber, \textit{Measure of genuine multipartite entanglement with computable lower bounds}, Phys.\ Rev.\ A \textbf{83}, 062325 (2011).
+    \item T.-C.~Wei and P.~M.~Goldbart, \textit{Geometric measure of entanglement and applications to bipartite and multipartite quantum states}, Phys.\ Rev.\ A \textbf{68}, 042307 (2003).
+    \item L.~Pezz\`e, A.~Smerzi, M.~K.~Oberthaler, R.~Schmied and P.~Treutlein, \textit{Quantum metrology with nonclassical states of atomic ensembles}, Rev.\ Mod.\ Phys.\ \textbf{90}, 035005 (2018).
+    \item F.~Belliardo, F.~Zoratti, F.~Marquardt and V.~Giovannetti, \textit{Model-aware reinforcement learning for high-performance Bayesian experimental design in quantum metrology}, Quantum \textbf{8}, 1555 (2024).
+    \item M.~Bukov \textit{et al.}, \textit{Reinforcement Learning in Different Phases of Quantum Control}, Phys.\ Rev.\ X \textbf{8}, 031086 (2018); M.~Y.~Niu, S.~Boixo, V.~N.~Smelyanskiy and H.~Neven, \textit{Universal quantum control through deep reinforcement learning}, npj Quantum Inf.\ \textbf{5}, 33 (2019).
+    \item F.~Benatti, R.~Floreanini, F.~Franchini and U.~Marzolino, \textit{Entanglement in indistinguishable particle systems}, Phys.\ Rep.\ \textbf{878}, 1 (2020); J.~Schliemann, J.~I.~Cirac, M.~Ku\'s, M.~Lewenstein and D.~Loss, \textit{Quantum correlations in two-fermion systems}, Phys.\ Rev.\ A \textbf{64}, 022303 (2001).
+    \item M.~E.~Perruzza \textit{et al.}, \textit{Electrons on Helium and Entangled Quantum Sensors for Particle Physics}, in preparation (2026).
+\end{enumerate}
+
+\end{document}

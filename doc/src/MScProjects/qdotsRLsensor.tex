@@ -1,0 +1,395 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Reinforcement Learning of Entanglement in Two-Electron Quantum Dots: Decoherence and its Effect on an Entangled Quantum Sensor}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+Electrons trapped above the surface of superfluid helium form a clean
+and highly controllable platform for quantum information processing
+and quantum sensing: there is no host lattice, very little charge
+noise and no nuclear spins, and single-electron confinement, control
+and readout in microfabricated traps have been demonstrated
+experimentally~[1--5].  Two electrons in an electrostatic double-well
+potential are the helium analogue of a semiconductor double quantum
+dot~[6,7].  Their low-energy states are a spin singlet and a spin
+triplet with one electron in each well, separated by a tunable
+exchange (singlet--triplet) splitting $\Delta_{ST}$.  The singlet is
+insensitive to a uniform magnetic field but is rotated into the
+triplet by a field \emph{difference} between the wells.  An entangled
+electron pair is therefore a natural differential sensor, a concept we
+have recently proposed for particle-physics applications within
+CERN's DRD5 initiative on quantum sensors~[8].
+
+Two questions decide whether such a sensor is useful.  The first is
+how to shape the trap and the control pulses so that the pair is
+prepared in a highly entangled state.  The trap is defined by several
+electrode voltages, the dependence of the two-electron states on them
+is strongly nonlinear, and the optimization target can only be
+evaluated through a many-body calculation.  This is a setting where
+reinforcement learning (RL) has become a standard tool in quantum
+technology~[9--13], and a first RL optimization of the trap has been
+carried out for the sensor proposal~[8].  The second question is how
+long the entanglement survives.  Magnetic and electric noise couple
+the electron pair to its environment, and in a recent
+study~[14] we have shown how the correlated two-electron structure
+determines the relaxation rates, the loss of spin entanglement and the
+accuracy of reduced sensor models.
+
+So far these two lines of work are separate: the RL optimization
+assumed a closed system, and the open-system study used a fixed trap.
+This thesis project combines them.  The aim is to use reinforcement
+learning to find trap configurations and control protocols that
+maximize the entanglement of a two-electron quantum dot, to study the
+decoherence of the resulting entangled states, and to quantify what
+this decoherence means for the performance of the two-electron sensor.
+
+\section*{2. Physical System and Scientific Motivation}
+
+The two electrons are described by the Hamiltonian (units
+$\hbar^2/2m_e=1$)
+\[
+  \hat H_S=\sum_{i=1}^{2}\Bigl(-\nabla_i^2+v(\boldsymbol r_i)\Bigr)
+  +\frac{\kappa}{\sqrt{|\boldsymbol r_1-\boldsymbol r_2|^2+\epsilon^2}},
+  \qquad
+  v(x,y)=k\Bigl[\bigl(\tfrac{x}{d}\bigr)^2-a^2\Bigr]^2+\delta\,x+\tfrac12k_yy^2,
+\]
+where the barrier height $k$, the well separation $a$ and the tilt
+$\delta$ are the control parameters of a model trap; in a device they
+are replaced by the electrode voltages~[5,8].  The problem is solved
+on a discrete-variable grid and by configuration interaction (CI) in a
+basis of left- and right-localized orbitals.  The six lowest states
+are the singlet $|S\rangle$, the triplet $|T_{0,\pm}\rangle$ and two
+charge-transfer singlets $|S'\rangle,|S''\rangle$ in which both
+electrons occupy the same well.  A magnetic-field gradient
+$\delta B$ enters as $H_B=h_\delta\,(S^z_L-S^z_R)$ with
+$h_\delta=\tfrac12 g\mu_B\,\delta B$ and couples $|S\rangle$ to
+$|T_0\rangle$ with the matrix element
+$\mathcal M_{ge}=\langle T_0|S^z_L-S^z_R|S\rangle$.
+
+The environment is included through a Lindblad master equation,
+\[
+  \frac{d\rho}{dt}=-i\bigl[H_S+H_B,\rho\bigr]
+  +\sum_{\alpha,\omega}\gamma_\alpha(\omega)
+  \Bigl(A_\alpha(\omega)\,\rho\,A_\alpha^\dagger(\omega)
+  -\tfrac12\bigl\{A_\alpha^\dagger(\omega)A_\alpha(\omega),\rho\bigr\}\Bigr),
+\]
+where the coupling operators are the differential spin operator
+$S^z_L-S^z_R$ (magnetic noise that differs between the wells) and the
+charge imbalance $n_L-n_R$ (electric-field noise), and the rates
+$\gamma_\alpha(\omega)$ follow from the spectral density of the bath
+at the transition frequencies of the pair~[14,15].
+
+Three quantities, all available from existing codes, connect the two
+parts of the project.
+\begin{itemize}
+  \item \textbf{Accessible entanglement.}  A spin readout sees only
+  the part of the state with one electron in each well.  Projecting
+  the two-electron density matrix on this charge sector gives a
+  two-spin state $\varrho$ with weight $p_{11}=\mathrm{Tr}\,\varrho$,
+  and the entanglement figure of merit is
+  $\mathcal E(\rho)=p_{11}\,C(\varrho/p_{11})$, with $C$ the
+  Wootters concurrence~[16,17].
+  \item \textbf{Decoherence times.}  The relaxation time
+  $T_1=1/\Gamma$ with
+  $\Gamma=\gamma(\Delta_{ST})\,\mathcal M_{ge}^2$, the dephasing time
+  $T_2^*$ caused by slow fluctuations of the trap parameters, and the
+  first disentanglement time $t_\times$ at which the concurrence of an
+  initially entangled pair vanishes (entanglement sudden
+  death~[18]).  In the reference trap of Ref.~[14]
+  ($\Delta_{ST}=h\times 11.4$~MHz, $p_{11}^S=0.79$,
+  $\mathcal M_{ge}=0.88$) the charge admixture of the singlet delays
+  $t_\times$ by $16\%$ relative to ideal spins.
+  \item \textbf{Sensitivity.}  The quantum Fisher information (QFI)
+  $F_Q(t)$ of the state with respect to $h_\delta$ bounds the
+  precision of any measurement through the quantum Cram\'er--Rao
+  bound~[19--21].  In the noiseless limit and for vanishing exchange
+  the entangled pair reaches $F_Q=4\mathcal M_{ge}^2t^2$, twice the
+  value $2t^2$ of two independent spins.  A finite $\Delta_{ST}$ and
+  decoherence both limit $F_Q$, which then has a maximum at a finite
+  interrogation time.
+\end{itemize}
+
+These quantities pull in different directions.  A low barrier gives a
+large exchange splitting, which makes the singlet easy to prepare and
+the entangling exchange gate fast, but it also increases the charge
+admixture (smaller $p_{11}$ and $\mathcal M_{ge}$), the sensitivity to
+electric noise and to fluctuations of the barrier, and it suppresses
+the sensing signal.  A high barrier gives nearly ideal spins and an
+optimal signal, but an exponentially small exchange splitting, so that
+the singlet can no longer be prepared by cooling.  It is well known
+from quantum metrology that the most entangled state is not
+necessarily the best probe once noise is included~[22--24].  The
+project is organized around three questions:
+\begin{enumerate}
+  \item Which trap configurations and time-dependent control protocols
+  maximize the accessible entanglement $\mathcal E$, and how
+  efficiently does an RL agent find them compared with standard
+  optimization and optimal-control methods?
+  \item Through which channels, and how fast, do these optimized
+  entangled states decohere?
+  \item Does the configuration that maximizes the entanglement also
+  maximize the sensitivity of the sensor when decoherence,
+  preparation and readout are taken into account, and when does the
+  entangled pair outperform two independent spins subject to the same
+  noise?
+\end{enumerate}
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: Two-electron structure and open-system dynamics}
+\begin{itemize}
+  \item Study the theory of electrons on helium, double quantum dots,
+  CI methods, the Lindblad equation, entanglement measures and quantum
+  parameter estimation.
+  \item Work through the existing Python codes and Jupyter notebooks
+  (sine-DVR, localized orbitals, spin-adapted CI, finite-bath exact
+  dynamics, Lindblad solver) and reproduce the reference results of
+  Ref.~[14]: the low-energy spectrum, $\Delta_{ST}$, $p_{11}$,
+  $\mathcal M_{ge}$, the relaxation of $|T_0\rangle$ and the
+  disentanglement time $t_\times$.
+\end{itemize}
+
+\subsection*{Objective 2: Reinforcement learning of the trap (static design)}
+\begin{itemize}
+  \item Formulate the trap design as an RL environment: the action is
+  the vector of trap parameters (or electrode voltages), the reward is
+  the accessible entanglement of the prepared state,
+  \[
+     R(\boldsymbol a)=\mathcal E\bigl[\rho_{\rm prep}(\boldsymbol a)\bigr]
+     -w_b\,p_b(\boldsymbol a)-w_\mu\,p_\mu(\boldsymbol a),
+  \]
+  with penalties $p_b$, $p_\mu$ for the loss of the double-well shape
+  and for delocalized orbitals as in Ref.~[8].  For
+  $\rho_{\rm prep}$ use the thermal state at the electron temperature
+  $T$, for which the competition between $\Delta_{ST}/k_BT$ and
+  $p_{11}$ gives a well-defined optimum.
+  \item Implement an actor--critic agent with Proximal Policy
+  Optimization (PPO)~[10] and compare with gradient-free and
+  Bayesian optimization, and with the analytical optimum of the
+  two-site Hubbard model.
+  \item Repeat the optimization of Ref.~[8] for the device potential
+  with the corrected two-electron code.
+\end{itemize}
+
+\subsection*{Objective 3: Reinforcement learning of control pulses (dynamic preparation)}
+\begin{itemize}
+  \item Extend the environment to a sequential decision problem: at
+  each time step the agent chooses piecewise-constant values of the
+  barrier and the tilt, the state is propagated with the Lindblad
+  equation, and the reward is the accessible entanglement at the final
+  time, with a penalty for population left in the charge-transfer
+  states.
+  \item Train agents to prepare the singlet and other entangled states
+  from product states (exchange pulses, adiabatic passage from the
+  doubly occupied well) in the presence of dissipation, and study how
+  the learned pulses change with the noise strength.
+  \item Benchmark against analytical exchange-gate pulses and
+  gradient-based optimal control (GRAPE), and compare policy-gradient
+  (PPO) and off-policy actor--critic agents~[25].
+\end{itemize}
+
+\subsection*{Objective 4: Decoherence of the entangled states}
+\begin{itemize}
+  \item Compute $T_1$, $T_2^*$, $t_\times$ and the time dependence of
+  $\mathcal E$ for the optimized configurations, for magnetic and
+  electric noise acting separately and together, and at finite
+  temperature.
+  \item Include slow fluctuations of the barrier and the tilt through
+  the Hellmann--Feynman sensitivities
+  $\partial\Delta_{ST}/\partial k$ and
+  $\partial\Delta_{ST}/\partial\delta$, and identify sweet spots.
+  \item Check the Lindblad description against numerically exact
+  finite-bath dynamics in the parameter and time windows where the
+  latter is converged.
+  \item Map the trade-off between entanglement, charge admixture and
+  coherence time over the trap parameters.
+\end{itemize}
+
+\subsection*{Objective 5: Effect on the two-electron quantum sensor}
+\begin{itemize}
+  \item Compute the QFI and the classical Fisher information of a
+  singlet--triplet readout for the estimation of a field gradient
+  under decoherence, and determine the optimal interrogation time.
+  \item Use the information per cycle,
+  $\max_t F_Q(t)/(t+t_0)$ with $t_0$ the preparation and readout time,
+  as the figure of merit, including the success probability $p_{11}$
+  of the charge projection.
+  \item Compare the entangled probe with two independent spins
+  (Ramsey protocol) subject to the same noise and the same resources.
+  \item Train a noise-aware agent with this figure of merit as reward
+  for a complete prepare--sense--read sequence (large exchange for
+  preparation and readout, small exchange during the interrogation),
+  and compare its optimum with the configurations of Objectives~2
+  and~3 that maximize the entanglement.
+\end{itemize}
+
+\subsection*{Objective 6: Possible extensions}
+\begin{itemize}
+  \item Noise operators and noise spectra derived from the electrode
+  geometry of a device; low-frequency ($1/f$) exchange noise.
+  \item Non-Markovian environments beyond the Lindblad equation
+  (chain mapping or TEMPO~[26]).
+  \item Surrogate models (parametric matrix models~[27]) of the reward to
+  speed up the RL training.
+  \item More than two electrons and arrays of wells, in connection
+  with ongoing multi-configuration time-dependent Hartree--Fock
+  studies of four-well devices~[4].
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{Electronic structure and dynamics:} Python (NumPy,
+  SciPy) codes and Jupyter notebooks developed for Refs.~[8,14],
+  including a step-by-step tutorial notebook; performance-critical
+  parts can be rewritten in C++ if needed.  For the time-dependent
+  controls the Hamiltonian and the coupling operators are tabulated in
+  a fixed low-energy basis as functions of the trap parameters.
+  \item \textbf{Reinforcement learning:} PyTorch or JAX with a
+  Gymnasium-type environment; the existing PPO implementation of
+  Ref.~[8] (Julia) serves as a reference.
+  \item \textbf{Useful background:} quantum mechanics, many-body
+  physics (FYS4480), machine learning (FYS-STK4155) and quantum
+  computing (FYS5419).
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and reproduction}
+\begin{itemize}
+    \item Literature study; tutorial notebook; reproduction of the
+    reference spectrum and of the open-system dynamics of Ref.~[14].
+\end{itemize}
+\textbf{Deliverable:} Short report with the reproduced reference numbers.
+
+\bigskip
+
+\textbf{Months 3--4: Static RL design}
+\begin{itemize}
+    \item RL environment and PPO agent for the trap parameters;
+    thermal-state entanglement landscape; comparison with standard
+    optimizers and with the Hubbard model.
+\end{itemize}
+\textbf{Deliverable:} Working RL optimization of the model trap and
+of the device potential.
+
+\bigskip
+
+\textbf{Months 5--6: Dynamic RL control}
+\begin{itemize}
+    \item Time-dependent environment with dissipation; preparation of
+    entangled states; GRAPE benchmark.
+\end{itemize}
+\textbf{Deliverable:} Learned preparation pulses with and without
+noise.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--8: Decoherence study}
+\begin{itemize}
+    \item Decoherence times and entanglement dynamics of the optimized
+    states; combined noise channels, finite temperature, slow
+    parameter noise; validation against finite-bath calculations.
+\end{itemize}
+\textbf{Deliverable:} Trade-off maps of entanglement against coherence.
+
+\bigskip
+
+\textbf{Months 9--10: Sensor performance}
+\begin{itemize}
+    \item QFI and classical Fisher information under decoherence;
+    information per cycle; comparison with independent spins;
+    noise-aware RL optimization of the full sensing sequence.
+\end{itemize}
+\textbf{Deliverable:} Answer to the question of when the entangled
+sensor has an advantage.
+
+\bigskip
+
+\textbf{Month 11: Extensions and consolidation}
+\begin{itemize}
+    \item One of the extensions of Objective~6, depending on progress;
+    final production runs and figures.
+\end{itemize}
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item An open and documented RL framework for the design and
+    control of two-electron quantum dots, with the many-body and
+    open-system solvers as environment.
+    \item Trap configurations and control pulses that maximize the
+    accessible entanglement, with a quantitative comparison of RL and
+    conventional optimization.
+    \item A map of how entanglement, charge admixture and decoherence
+    compete in a double-well trap.
+    \item A noise-aware assessment of the two-electron sensor,
+    including the conditions under which it outperforms independent
+    spins.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item P.~M.~Platzman and M.~I.~Dykman, \textit{Quantum Computing with Electrons Floating on Liquid Helium}, Science \textbf{284}, 1967 (1999); S.~A.~Lyon, \textit{Spin-based quantum computing using electrons on liquid helium}, Phys.\ Rev.\ A \textbf{74}, 052338 (2006).
+    \item M.~I.~Dykman and J.~Pollanen, \textit{Electrons in Quantum Dots on Helium: From Charge Qubits to Synthetic Color Centers}, Entropy \textbf{27} (2025).
+    \item N.~R.~Beysengulov \textit{et al.}, \textit{Coulomb Interaction-Driven Entanglement of Electrons on Helium}, PRX Quantum \textbf{5}, 030324 (2024).
+    \item O.~Leinonen \textit{et al.}, \textit{Design and dynamics of two-qubit gates with motional states of electrons on helium}, Phys.\ Rev.\ A \textbf{113}, 032624 (2026); O.~Leinonen \textit{et al.}, \textit{MCTDHF for simulations of multi-qubit systems}, in preparation.
+    \item K.~E.~Castoria \textit{et al.}, \textit{Sensing and Control of Single Trapped Electrons above 1 K}, Phys.\ Rev.\ X \textbf{15}, 041002 (2025); G.~Koolstra \textit{et al.}, \textit{Strong coupling of a microwave photon to an electron on helium}, Nat.\ Phys.\ (2026).
+    \item J.~R.~Petta \textit{et al.}, \textit{Coherent Manipulation of Coupled Electron Spins in Semiconductor Quantum Dots}, Science \textbf{309}, 2180 (2005).
+    \item G.~Burkard, T.~D.~Ladd, A.~Pan, J.~M.~Nichol and J.~R.~Petta, \textit{Semiconductor spin qubits}, Rev.\ Mod.\ Phys.\ \textbf{95}, 025003 (2023).
+    \item M.~E.~Perruzza \textit{et al.}, \textit{Electrons on Helium and Entangled Quantum Sensors for Particle Physics}, in preparation (2026).
+    \item R.~S.~Sutton and A.~G.~Barto, \textit{Reinforcement Learning: An Introduction}, 2nd ed., MIT Press (2018).
+    \item J.~Schulman, F.~Wolski, P.~Dhariwal, A.~Radford and O.~Klimov, \textit{Proximal Policy Optimization Algorithms}, arXiv:1707.06347 (2017).
+    \item M.~Bukov and F.~Marquardt, \textit{Reinforcement Learning for Quantum Technology}, arXiv:2601.18953 (2026).
+    \item M.~Bukov \textit{et al.}, \textit{Reinforcement Learning in Different Phases of Quantum Control}, Phys.\ Rev.\ X \textbf{8}, 031086 (2018); M.~Y.~Niu, S.~Boixo, V.~N.~Smelyanskiy and H.~Neven, \textit{Universal quantum control through deep reinforcement learning}, npj Quantum Inf.\ \textbf{5}, 33 (2019).
+    \item F.~Belliardo, F.~Zoratti, F.~Marquardt and V.~Giovannetti, \textit{Model-aware reinforcement learning for high-performance Bayesian experimental design in quantum metrology}, Quantum \textbf{8}, 1555 (2024).
+    \item J.~D.~\'Alvarez-Cuartas, N.~R.~Beysengulov, M.~Hjorth-Jensen, G.~F.~Lange, F.~P.~Massel, J.~Pollanen and J.~H.~Reina, \textit{Controlled open-system descriptions of two interacting electrons in a double-well trap}, in preparation (2026).
+    \item H.-P.~Breuer and F.~Petruccione, \textit{The Theory of Open Quantum Systems}, Oxford University Press (2002).
+    \item W.~K.~Wootters, \textit{Entanglement of Formation of an Arbitrary State of Two Qubits}, Phys.\ Rev.\ Lett.\ \textbf{80}, 2245 (1998).
+    \item F.~Troiani, A.~Secchi and S.~Pittalis, \textit{Spins extracted from fermionic states and their entanglement properties}, Phys.\ Rev.\ A \textbf{112}, 012808 (2025).
+    \item T.~Yu and J.~H.~Eberly, \textit{Sudden Death of Entanglement}, Science \textbf{323}, 598 (2009).
+    \item S.~L.~Braunstein and C.~M.~Caves, \textit{Statistical distance and the geometry of quantum states}, Phys.\ Rev.\ Lett.\ \textbf{72}, 3439 (1994).
+    \item M.~G.~A.~Paris, \textit{Quantum estimation for quantum technology}, Int.\ J.\ Quantum Inf.\ \textbf{7}, 125 (2009).
+    \item C.~L.~Degen, F.~Reinhard and P.~Cappellaro, \textit{Quantum sensing}, Rev.\ Mod.\ Phys.\ \textbf{89}, 035002 (2017).
+    \item S.~F.~Huelga \textit{et al.}, \textit{Improvement of Frequency Standards with Quantum Entanglement}, Phys.\ Rev.\ Lett.\ \textbf{79}, 3865 (1997).
+    \item B.~M.~Escher, R.~L.~de Matos Filho and L.~Davidovich, \textit{General framework for estimating the ultimate precision limit in noisy quantum-enhanced metrology}, Nat.\ Phys.\ \textbf{7}, 406 (2011).
+    \item R.~Demkowicz-Dobrza\'nski, J.~Ko{\l}ody\'nski and M.~Gu\c{t}\u{a}, \textit{The elusive Heisenberg limit in quantum-enhanced metrology}, Nat.\ Commun.\ \textbf{3}, 1063 (2012).
+    \item T.~Haarnoja, A.~Zhou, P.~Abbeel and S.~Levine, \textit{Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor}, Proc.\ ICML (2018).
+    \item A.~Strathearn, P.~Kirton, D.~Kilda, J.~Keeling and B.~W.~Lovett, \textit{Efficient non-Markovian quantum dynamics using time-evolving matrix product operators}, Nat.\ Commun.\ \textbf{9}, 3322 (2018).
+    \item P.~Cook, D.~Jammooa, M.~Hjorth-Jensen and D.~D.~Lee, \textit{Parametric Matrix Models}, Nature Communications \textbf{16}, 5929 (2025).
+\end{enumerate}
+
+\end{document}

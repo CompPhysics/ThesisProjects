@@ -1,0 +1,532 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Quantum Machine Learning and Quantum Optimization for Finance: From Quantum Kernels and Neural Networks to Learned Initialization of the Quantum Approximate Optimization Algorithm}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}\\[0.2cm]
+    {Student: \textit{NN}. Supervisor(s): \textit{Morten Hjorth-Jensen}, Department of Physics, University of Oslo}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+Quantum machine learning (QML) combines parameterized quantum circuits
+with classical learning algorithms~[1,2].  A circuit whose gates
+depend on the data and on adjustable angles is run on a quantum
+computer, a classical computer processes the measured expectation
+values and updates the angles, and the two are trained together.  The
+same hybrid structure is found in quantum kernel methods and quantum
+neural networks~[3] and in the variational algorithms for
+optimization, of which the quantum approximate optimization algorithm
+(QAOA)~[4,5] is the most studied.
+
+Finance is a natural test ground for these methods~[6], because it
+offers both types of problems they are meant for.  The first is
+learning from data: forecasting, classification and anomaly detection
+for time series of asset prices, interest rates, volatilities and risk
+factors.  The second is discrete optimization: the selection of a
+portfolio with a fixed number of assets is a quadratic problem in
+binary variables, of the same form as the graph problems on which QAOA
+is normally tested.  For both types the open questions are what it
+costs to train the quantum model and whether it does better than a
+well-tuned classical method that is given the same data and the same
+computing budget.
+
+For QAOA the cost of training is the main obstacle.  Finding the
+optimal angles of a variational circuit is NP-hard in general~[7],
+gradients can vanish exponentially with the number of qubits~[8], and
+every evaluation of the objective function requires many repetitions
+of the circuit.  Two strategies reduce this cost.  A \emph{warm
+start}~[9,10] replaces the uniform superposition by an initial state
+that is biased toward a candidate solution from a classical algorithm.
+\emph{Parameter initialization} supplies good angles before the
+optimization starts, either by transfer from similar problem
+instances~[11,12] or from a neural network trained on many
+instances~[13].  The two strategies are normally treated separately.
+A warm start, however, changes both the initial state and the mixer
+Hamiltonian of the algorithm, and therefore the objective function in
+which the angles are optimized.  A recent study~[14] proposes to learn
+the two together: a graph neural network (GNN) with two output heads
+predicts the warm-start state and the QAOA angles of a graph, and is
+trained end to end through the expectation value of the quantum
+circuit.  For small MaxCut instances the learned initializations gave
+better cuts than a standard QAOA optimization and than a GNN that
+solves MaxCut directly.  The joint model had only a slight advantage
+over a network that predicts the angles alone, and the learned warm
+starts stayed close to the uniform superposition.  Why this happens,
+and whether it changes for larger graphs, deeper circuits, better
+graph encoders and problems from finance, is not known.
+
+European quantum computing infrastructure is at the same time becoming
+available to academic projects.  The EuroHPC quantum computer VLQ of
+the LUMI-Q consortium, a superconducting device with a star-shaped
+qubit topology hosted by IT4Innovations in Ostrava, was inaugurated in
+2025, and Norway takes part in the consortium through Sigma2.
+Together with IBM Quantum and other cloud services, this makes it
+realistic to run the hybrid algorithms of the thesis on quantum
+hardware and not only on simulators.
+
+This thesis project investigates classical and quantum methods for
+machine learning and optimization problems that are relevant for
+finance.  It has a common first part, in which the classical baselines
+and a QAOA simulator are built, and three possible paths:
+\begin{itemize}
+  \item[\textbf{A.}] supervised learning for financial time series
+  with quantum kernels and quantum neural networks;
+  \item[\textbf{B.}] QAOA for MaxCut and for portfolio selection,
+  including warm starts;
+  \item[\textbf{C.}] neural networks that learn warm starts and QAOA
+  angles jointly.
+\end{itemize}
+Selected algorithms are run on quantum hardware.  A thesis is expected
+to carry out the common part and one or two of the paths in depth.
+Paths~B and~C belong together, with B providing the tools and the
+reference results for C.  The choice is made together with the
+supervisors after the first months.
+
+\section*{2. Problems, Methods and Scientific Motivation}
+
+\textbf{Supervised learning with quantum circuits.}  A data point
+$\boldsymbol x\in\mathbb R^d$ is encoded in the state
+$|\phi(\boldsymbol x)\rangle=U(\boldsymbol x)|0\rangle^{\otimes n}$ of
+$n$ qubits.  In a quantum support vector machine (QSVM) the quantum
+computer estimates the kernel
+\[
+  k(\boldsymbol x,\boldsymbol x')
+  =\bigl|\langle\phi(\boldsymbol x)|\phi(\boldsymbol x')\rangle\bigr|^2 ,
+\]
+which then enters a classical support vector machine~[3].  A quantum
+neural network (QNN) adds a trainable circuit $W(\boldsymbol\theta)$
+and uses an expectation value as model output,
+\[
+  f_{\boldsymbol\theta}(\boldsymbol x)
+  =\langle\phi(\boldsymbol x)|\,W^\dagger(\boldsymbol\theta)\,O\,
+  W(\boldsymbol\theta)\,|\phi(\boldsymbol x)\rangle ,
+\]
+with gradients obtained from the parameter-shift rule~[15].  Two
+results set the frame for a comparison with classical models.  For
+expressive feature maps the kernel values concentrate exponentially
+around a constant as the number of qubits grows, and the number of
+measurements needed to resolve them becomes prohibitive~[16].  For
+classical data a quantum kernel can help only if its geometry differs
+from that of the classical kernels in a way that matches the
+labels~[17].
+
+\textbf{The quantum approximate optimization algorithm.}  The
+reference problem is weighted MaxCut on a graph $G=(V,E)$ with $n$
+nodes,
+\[
+  \max_{\boldsymbol x\in\{0,1\}^n} C(\boldsymbol x),\qquad
+  C(\boldsymbol x)=\sum_{(i,j)\in E}w_{ij}\,(x_i+x_j-2x_ix_j) ,
+\]
+which with $x_i=(1-Z_i)/2$ becomes the cost Hamiltonian
+$H_C=\tfrac12\sum_{(i,j)\in E}w_{ij}(1-Z_iZ_j)$.  QAOA of depth $p$
+prepares the state
+\[
+  |\boldsymbol\gamma,\boldsymbol\beta\rangle
+  =\prod_{k=1}^{p}e^{-i\beta_kH_M}\,e^{-i\gamma_kH_C}\,|\psi_0\rangle ,
+  \qquad H_M=-\sum_{i}X_i,\qquad |\psi_0\rangle=|+\rangle^{\otimes n},
+\]
+and a classical optimizer maximizes
+$F_p(\boldsymbol\gamma,\boldsymbol\beta)=\langle\boldsymbol\gamma,\boldsymbol\beta|H_C|\boldsymbol\gamma,\boldsymbol\beta\rangle$
+over the $2p$ angles.  The quality of the result is measured by the
+approximation ratio $r=F_p/C_{\max}$.  The circuit can be read as a
+Trotterized adiabatic evolution that starts in the ground state of
+$H_M$ and has variationally chosen step lengths.  At $p=1$ it
+guarantees $r\ge 0.6924$ on 3-regular graphs~[4], below the $0.878$ of
+the classical Goemans--Williamson algorithm~[18], so the depth, the
+initial state and the angles all matter.
+
+\textbf{Portfolio selection.}  Choosing $B$ out of $n$ assets with
+expected returns $\boldsymbol\mu$, covariance matrix $\Sigma$ and risk
+aversion $q$ leads to the mean--variance problem~[19]
+\[
+  \min_{\boldsymbol x\in\{0,1\}^n}\;
+  q\,\boldsymbol x^{T}\Sigma\,\boldsymbol x-\boldsymbol\mu^{T}\boldsymbol x ,
+  \qquad \sum_{i=1}^{n}x_i=B .
+\]
+In qubit form this is an Ising Hamiltonian on a complete graph, with
+couplings given by $\Sigma$ and local fields given by
+$\boldsymbol\mu$~[20].  The budget constraint is included either as a
+penalty $\lambda(\sum_ix_i-B)^2$ or exactly, with a mixer
+$\sum_{i<j}(X_iX_j+Y_iY_j)$ that conserves the number of selected
+assets and a Dicke state as initial state~[21].  Low-depth QAOA for
+this problem has been benchmarked in Ref.~[22].
+
+\textbf{Warm starts.}  Let $x_i\in[\varepsilon,1-\varepsilon]$ be a
+candidate solution, for example from a continuous relaxation of the
+problem.  Warm-start QAOA~[9] uses
+\[
+  |\psi_0\rangle=\bigotimes_{i=1}^{n}R_Y(\theta_i)|0\rangle,\qquad
+  \theta_i=2\arcsin\sqrt{x_i},\qquad
+  H_M^{\rm ws}=-\sum_{i}\bigl(\sin\theta_i\,X_i+\cos\theta_i\,Z_i\bigr),
+\]
+so that $|\psi_0\rangle$ is again the ground state of the mixer.  For
+$x_i=1/2$ the standard algorithm is recovered.  For $x_i\to0$ or $1$
+the initial state becomes a bit string and the mixer commutes with
+$H_C$, and the circuit then only multiplies the candidate by a phase;
+this is the reason for the regularization $\varepsilon$.  QAOA that
+starts from a single good bit string makes little progress also with
+the standard mixer~[23].  Useful warm starts lie between these limits.
+
+\textbf{Learned initialization.}  A GNN~[24] computes an embedding
+$\boldsymbol h_i$ for every node by several rounds of message passing
+on the problem graph.  In the cascading model of Ref.~[14] a first
+head maps each embedding to a warm-start value, and a second head maps
+the pooled embeddings together with these values to the angles,
+\[
+  x_i=\sigma\bigl(f_{\rm ws}(\boldsymbol h_i)\bigr),\qquad
+  (\boldsymbol\gamma,\boldsymbol\beta)
+  =f_{\rm par}\bigl(\mathrm{Pool}_i\,[\boldsymbol h_i\oplus x_i]\bigr).
+\]
+The network parameters $\Theta$ are trained on a distribution of
+graphs with the loss
+\[
+  \mathcal L(\Theta)=-\,\mathbb E_{G}\Bigl[
+  F_p\bigl(\boldsymbol\gamma_\Theta(G),\boldsymbol\beta_\Theta(G);
+  \boldsymbol x_\Theta(G)\bigr)\Bigr],
+\]
+whose gradient is propagated through the simulated circuit by
+automatic differentiation.  No optimal solutions are needed as labels.
+After training, one forward pass gives an initialization for a new
+graph, which is used as it is or refined with a few optimizer steps.
+A GNN trained in the same unsupervised way on a relaxed cost function
+is also a purely classical heuristic for these problems~[25], and it
+is one of the baselines.
+
+Three types of quantities are used to compare the methods.
+\begin{itemize}
+  \item \textbf{Solution quality.}  For the optimization problems the
+  approximation ratio of the expectation value and of the best sampled
+  bit string, and the probability of sampling the optimum.  For the
+  learning problems accuracy, F1 score or mean squared error on test
+  data that lie later in time than the training data, the calibration
+  of the predictions, and Sharpe-like measures where a trading rule
+  is defined.
+  \item \textbf{Quantum optimization budget.}  The number of circuit
+  evaluations, multiplied by the number of repetitions of each, that
+  is needed to reach a given quality.  This is the quantity which warm
+  starts and learned initializations are meant to reduce.  The cost of
+  training the neural network is reported separately, since it is paid
+  once for a whole class of instances.
+  \item \textbf{Resources and noise.}  The number of qubits, the
+  number of two-qubit gates and the depth after compilation to a given
+  device, and the loss of quality under noise.
+\end{itemize}
+
+The project is organized around four questions:
+\begin{enumerate}
+  \item For financial time series, do quantum kernels and quantum
+  neural networks improve on well-tuned classical models in accuracy,
+  in the amount of training data needed or in robustness, and which
+  properties of the feature map decide this?
+  \item How does low-depth QAOA perform for MaxCut and for portfolio
+  selection compared with classical algorithms, and how do warm starts
+  and constraint-preserving mixers change the result?
+  \item Can a neural network that predicts the warm start and the
+  angles together reduce the quantum optimization budget and improve
+  the solutions?  Does it transfer to larger graphs, other graph
+  families, larger depth and portfolio problems, and what does the
+  warm-start head learn?
+  \item Which of the differences found in simulation survive noise and
+  execution on quantum hardware?
+\end{enumerate}
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: Foundations, baselines and reproduction (common part)}
+\begin{itemize}
+  \item Study variational quantum algorithms, quantum kernels, QAOA
+  and its variants, graph neural networks, and the two financial
+  problems (prediction for time series and mean--variance portfolio
+  selection).
+  \item Implement QAOA for MaxCut as a state-vector simulation, check
+  it against PennyLane or Qiskit, and reproduce the $p=1$ result for
+  3-regular graphs and the dependence of the approximation ratio on
+  $p$ for small random graphs.
+  \item Build the classical baselines: support vector machines with
+  linear, polynomial and RBF kernels and neural networks (fully
+  connected, optionally recurrent) for the time-series tasks; exact
+  solutions, the Goemans--Williamson algorithm and simulated annealing
+  for the optimization problems.
+  \item Select and preprocess the financial data sets, and fix the
+  metrics and the protocols for training, validation and testing, with
+  splits ordered in time.
+\end{itemize}
+
+\subsection*{Objective 2 (Path A): Quantum kernels and quantum neural networks for financial time series}
+\begin{itemize}
+  \item Implement quantum feature maps and QSVM classifiers on
+  simulators, with different data encodings (angle encoding, amplitude
+  encoding, data re-uploading).
+  \item Characterize the kernels: concentration of the kernel values
+  with the number of qubits, alignment with the labels, geometric
+  difference from the classical kernels~[16,17], and the number of
+  measurements needed.
+  \item Implement variational classifiers and regressors and study
+  their trainability (variance of the gradients) as a function of the
+  number of qubits and the circuit depth.
+  \item Compare with the classical baselines as functions of the size
+  of the training set, and test the robustness to noise in the data
+  and to limited data.
+\end{itemize}
+
+\subsection*{Objective 3 (Path B): QAOA for MaxCut and portfolio selection}
+\begin{itemize}
+  \item Study the dependence on the depth $p$ and on the classical
+  optimizer (COBYLA, SPSA, gradient-based optimization with the
+  parameter-shift rule), with a consistent count of the quantum
+  optimization budget.  Test the concentration and transfer of optimal
+  angles between instances~[11] and the interpolation strategy of
+  Ref.~[12].
+  \item Implement warm starts from the Goemans--Williamson relaxation
+  for MaxCut and from the continuous relaxation of the portfolio
+  problem~[9,10], and study the dependence on the regularization
+  $\varepsilon$.  Map the objective function over the angles of the
+  last layer for cold and warm starts on the same instance, as in
+  Ref.~[14].
+  \item Build portfolio instances from historical returns for up to
+  about twenty assets.  Compare the penalty formulation with the
+  constraint-preserving mixer, and the expectation value with the
+  conditional value at risk~[26] as objective.  Compare with exact
+  solutions and classical heuristics as functions of the risk
+  aversion, the budget and the correlation structure of the assets.
+\end{itemize}
+
+\subsection*{Objective 4 (Path C): Jointly learned warm starts and QAOA angles}
+\begin{itemize}
+  \item Reproduce the GNN prediction of QAOA angles~[13] and the
+  cascading two-head model of Ref.~[14] for unweighted
+  Erd\H{o}s--R\'enyi graphs with 6 to 12 nodes at $p=2$, together with
+  the baselines used there: QAOA optimized with COBYLA, a GNN that
+  solves MaxCut directly, and a GNN that predicts the angles only.
+  \item Carry out the ablations that separate the two effects:
+  independent against cascading heads, a warm-start head alone, and
+  fixed warm starts from a classical relaxation combined with learned
+  angles.  Report the quality without any optimizer step and the
+  number of circuit evaluations needed to reach a fixed approximation
+  ratio.
+  \item Test the hypothesis of Ref.~[14] that the extraction of graph
+  information limits the model, and that this is why the learned warm
+  starts stay close to $|+\rangle^{\otimes n}$.  Compare graph
+  encoders (convolutional, isomorphism and attention networks),
+  node features, pre-training of the warm-start head on relaxed
+  classical solutions, and regularization terms in the loss.
+  \item Analyze what the warm-start head learns: whether it fixes the
+  nodes whose assignment is easy and keeps a superposition on the
+  difficult ones, and how its output correlates with the
+  Goemans--Williamson solution and with local properties of the graph.
+  \item Test the transfer to graphs larger than those in the training
+  set (up to the 20 to 24 qubits that can be simulated), to regular
+  and weighted graphs, and to larger depth, where the angles are
+  predicted either layer by layer or as a smooth schedule.
+  \item Extend the model to portfolio selection: weighted complete
+  graphs defined by the covariance matrix, with the expected returns
+  as node features, trained on synthetic and historical instances.
+\end{itemize}
+
+\subsection*{Objective 5: Noise and quantum hardware}
+\begin{itemize}
+  \item Repeat selected calculations with noise models (depolarizing
+  noise and device noise models) and determine how noise changes the
+  kernel values, the QAOA expectation values and the ranking of the
+  methods.
+  \item Adapt the circuits to the connectivity and the native gates of
+  the devices (star topology of VLQ, heavy-hex lattice of IBM
+  Quantum), and compare the two-qubit gate counts of sparse MaxCut
+  graphs and dense portfolio graphs.
+  \item Run small instances on VLQ and/or IBM Quantum, depending on
+  the allocations obtained: a quantum kernel or classifier for Path~A,
+  and QAOA at $p=1$ and $p=2$ with cold, warm and learned
+  initializations for Paths~B and~C.
+  \item Apply error mitigation (readout calibration, zero-noise
+  extrapolation) and compare with the simulations.
+\end{itemize}
+
+\subsection*{Objective 6: Possible extensions}
+\begin{itemize}
+  \item Boltzmann machines and quantum Boltzmann machines~[27] as
+  generative models for financial data.
+  \item Reinforcement-learning agents that choose the QAOA angles or
+  the steps of the optimizer~[28], in connection with the
+  reinforcement-learning projects of the group.
+  \item Variants of QAOA (recursive and multi-angle QAOA), and angle
+  schedules derived from a Trotterized annealing ramp as a
+  physics-motivated initialization.
+  \item Neural networks and quantum circuits that respect the
+  symmetries of the graph.
+  \item Other optimization problems from finance in binary quadratic
+  form, for example index tracking.
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{Classical machine learning and optimization:} Python
+  with NumPy, SciPy, Scikit-Learn and PyTorch or JAX; a GNN library
+  (PyTorch Geometric or Jraph); NetworkX, a semidefinite-programming
+  solver for the Goemans--Williamson algorithm and an exact solver for
+  reference optima.
+  \item \textbf{Quantum algorithms:} PennyLane and Qiskit for
+  circuits, kernels and gradients, with state-vector and noisy
+  simulators and access to hardware backends.  The model of Ref.~[14]
+  was trained with a PennyLane--Catalyst and JAX pipeline on a single
+  GPU in a few hours, so that Path~C can be carried out with the GPU
+  resources available to the group.
+  \item \textbf{Hardware:} VLQ through EuroHPC or national
+  allocations, and IBM Quantum through its cloud service.
+  \item \textbf{Data:} publicly available financial time series
+  (equities, indices, interest rates) and, subject to access
+  constraints, data provided through NBIM or project partners;
+  synthetic graph and portfolio instances.
+  \item \textbf{Useful background:} quantum mechanics, machine
+  learning (FYS-STK4155) and quantum computing and quantum machine
+  learning (FYS5419), with the lecture notes and codes of Ref.~[29].
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and reproduction}
+\begin{itemize}
+    \item Literature study; QAOA simulator for MaxCut and reproduction
+    of the reference results; choice and preprocessing of the data.
+\end{itemize}
+\textbf{Deliverable:} Short report with the reproduced QAOA results
+and a description of the data sets.
+
+\bigskip
+
+\textbf{Months 3--4: Classical baselines and choice of path}
+\begin{itemize}
+    \item Classical machine-learning and optimization baselines;
+    metrics and protocols; first calculations along the paths and
+    choice of the main path.
+\end{itemize}
+\textbf{Deliverable:} Validated classical pipeline and a plan for the
+chosen path or paths.
+
+\bigskip
+
+\textbf{Months 5--6: Main path, first part}
+\begin{itemize}
+    \item Path~A: quantum kernels and QSVM on simulators, kernel
+    diagnostics.
+    \item Path~B: depth and optimizer study; warm starts for MaxCut.
+    \item Path~C: reproduction of the GNN angle prediction and of the
+    cascading model.
+\end{itemize}
+\textbf{Deliverable:} Working quantum models on simulators, with a
+first comparison with the classical baselines.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--8: Main path, second part}
+\begin{itemize}
+    \item Path~A: quantum neural networks; systematic comparison with
+    the classical models.
+    \item Path~B: portfolio selection with penalty and
+    constraint-preserving formulations.
+    \item Path~C: ablations, graph encoders, transfer to larger
+    graphs and to portfolio instances.
+\end{itemize}
+\textbf{Deliverable:} Complete simulation results for the chosen path.
+
+\bigskip
+
+\textbf{Months 9--10: Noise and hardware}
+\begin{itemize}
+    \item Noisy simulations; compilation to the devices; runs on VLQ
+    and/or IBM Quantum; error mitigation.
+\end{itemize}
+\textbf{Deliverable:} At least one of the algorithms executed on
+quantum hardware and compared with the simulations.
+
+\bigskip
+
+\textbf{Month 11: Extensions and consolidation}
+\begin{itemize}
+    \item One of the extensions of Objective~6, depending on progress;
+    final production runs and figures.
+\end{itemize}
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item A documented classical pipeline for the selected financial
+    data sets and optimization problems, which serves as the reference
+    for all quantum results.
+    \item Implementations of the quantum methods of the chosen path:
+    quantum kernels and quantum neural networks, QAOA with warm starts
+    and constraint-preserving mixers, or the neural network for joint
+    prediction of warm starts and angles.
+    \item A quantitative comparison of classical and quantum methods
+    in solution quality, quantum optimization budget, resources and
+    sensitivity to noise.
+    \item For Paths~B and~C, an assessment of when warm starts and
+    learned initializations reduce the cost of QAOA, and of what the
+    learned warm starts represent.
+    \item At least one algorithm executed on quantum hardware.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item M.~Schuld and F.~Petruccione, \textit{Supervised Learning with Quantum Computers}, Springer (2018); C.~Conti, \textit{Quantum Machine Learning}, Springer (2024); M.~Zhao \textit{et al.}, \textit{A Tutorial on Quantum Machine Learning and Quantum Neural Networks}, arXiv:2504.16131 (2025).
+    \item M.~Cerezo \textit{et al.}, \textit{Variational quantum algorithms}, Nat.\ Rev.\ Phys.\ \textbf{3}, 625 (2021).
+    \item V.~Havl\'i\v{c}ek \textit{et al.}, \textit{Supervised learning with quantum-enhanced feature spaces}, Nature \textbf{567}, 209 (2019); M.~Schuld and N.~Killoran, \textit{Quantum Machine Learning in Feature Hilbert Spaces}, Phys.\ Rev.\ Lett.\ \textbf{122}, 040504 (2019).
+    \item E.~Farhi, J.~Goldstone and S.~Gutmann, \textit{A Quantum Approximate Optimization Algorithm}, arXiv:1411.4028 (2014).
+    \item K.~Blekos \textit{et al.}, \textit{A review on Quantum Approximate Optimization Algorithm and its variants}, Phys.\ Rep.\ \textbf{1068}, 1 (2024).
+    \item D.~Herman \textit{et al.}, \textit{Quantum computing for finance}, Nat.\ Rev.\ Phys.\ \textbf{5}, 450 (2023); R.~Or\'us, S.~Mugel and E.~Lizaso, \textit{Quantum computing for finance: Overview and prospects}, Rev.\ Phys.\ \textbf{4}, 100028 (2019).
+    \item L.~Bittel and M.~Kliesch, \textit{Training Variational Quantum Algorithms Is NP-Hard}, Phys.\ Rev.\ Lett.\ \textbf{127}, 120502 (2021).
+    \item J.~R.~McClean, S.~Boixo, V.~N.~Smelyanskiy, R.~Babbush and H.~Neven, \textit{Barren plateaus in quantum neural network training landscapes}, Nat.\ Commun.\ \textbf{9}, 4812 (2018).
+    \item D.~J.~Egger, J.~Mare\v{c}ek and S.~Woerner, \textit{Warm-starting quantum optimization}, Quantum \textbf{5}, 479 (2021).
+    \item R.~Tate, M.~Farhadi, C.~Herold, G.~Mohler and S.~Gupta, \textit{Bridging Classical and Quantum with SDP initialized warm-starts for QAOA}, ACM Trans.\ Quantum Comput.\ \textbf{4}, 9 (2023).
+    \item F.~G.~S.~L.~Brand\~ao, M.~Broughton, E.~Farhi, S.~Gutmann and H.~Neven, \textit{For Fixed Control Parameters the Quantum Approximate Optimization Algorithm's Objective Function Value Concentrates for Typical Instances}, arXiv:1812.04170 (2018); A.~Galda, X.~Liu, D.~Lykov, Y.~Alexeev and I.~Safro, \textit{Transferability of optimal QAOA parameters between random graphs}, Proc.\ IEEE Int.\ Conf.\ Quantum Computing and Engineering (QCE), 171 (2021).
+    \item L.~Zhou, S.-T.~Wang, S.~Choi, H.~Pichler and M.~D.~Lukin, \textit{Quantum Approximate Optimization Algorithm: Performance, Mechanism, and Implementation on Near-Term Devices}, Phys.\ Rev.\ X \textbf{10}, 021067 (2020).
+    \item N.~Jain, B.~Coyle, E.~Kashefi and N.~Kumar, \textit{Graph neural network initialisation of quantum approximate optimisation}, Quantum \textbf{6}, 861 (2022).
+    \item T.~Smedshaug, M.~Barani and P.~Crespo del Granado, \textit{Jointly Learning Warm Starts and Parameters for QAOA: A differentiable graph neural network framework for coupled QAOA initialization in MaxCut}, poster, IEEE Quantum Week (2026).
+    \item K.~Mitarai, M.~Negoro, M.~Kitagawa and K.~Fujii, \textit{Quantum circuit learning}, Phys.\ Rev.\ A \textbf{98}, 032309 (2018); M.~Schuld, V.~Bergholm, C.~Gogolin, J.~Izaac and N.~Killoran, \textit{Evaluating analytic gradients on quantum hardware}, Phys.\ Rev.\ A \textbf{99}, 032331 (2019).
+    \item S.~Thanasilp, S.~Wang, M.~Cerezo and Z.~Holmes, \textit{Exponential concentration in quantum kernel methods}, Nat.\ Commun.\ \textbf{15}, 5200 (2024).
+    \item H.-Y.~Huang \textit{et al.}, \textit{Power of data in quantum machine learning}, Nat.\ Commun.\ \textbf{12}, 2631 (2021).
+    \item M.~X.~Goemans and D.~P.~Williamson, \textit{Improved approximation algorithms for maximum cut and satisfiability problems using semidefinite programming}, J.\ ACM \textbf{42}, 1115 (1995).
+    \item H.~Markowitz, \textit{Portfolio Selection}, J.\ Finance \textbf{7}, 77 (1952).
+    \item A.~Lucas, \textit{Ising formulations of many NP problems}, Front.\ Phys.\ \textbf{2}, 5 (2014).
+    \item S.~Hadfield \textit{et al.}, \textit{From the Quantum Approximate Optimization Algorithm to a Quantum Alternating Operator Ansatz}, Algorithms \textbf{12}, 34 (2019); Z.~Wang, N.~C.~Rubin, J.~M.~Dominy and E.~G.~Rieffel, \textit{XY mixers: Analytical and numerical results for the quantum alternating operator ansatz}, Phys.\ Rev.\ A \textbf{101}, 012320 (2020).
+    \item S.~Brandhofer \textit{et al.}, \textit{Benchmarking the performance of portfolio optimization with QAOA}, Quantum Inf.\ Process.\ \textbf{22}, 25 (2023).
+    \item M.~Cain, E.~Farhi, S.~Gutmann, D.~Ranard and E.~Tang, \textit{The QAOA gets stuck starting from a good classical string}, arXiv:2207.05089 (2022).
+    \item T.~N.~Kipf and M.~Welling, \textit{Semi-Supervised Classification with Graph Convolutional Networks}, Proc.\ ICLR (2017); K.~Xu, W.~Hu, J.~Leskovec and S.~Jegelka, \textit{How Powerful are Graph Neural Networks?}, Proc.\ ICLR (2019).
+    \item M.~J.~A.~Schuetz, J.~K.~Brubaker and H.~G.~Katzgraber, \textit{Combinatorial optimization with physics-inspired graph neural networks}, Nat.\ Mach.\ Intell.\ \textbf{4}, 367 (2022).
+    \item P.~Kl.~Barkoutsos, G.~Nannicini, A.~Robert, I.~Tavernelli and S.~Woerner, \textit{Improving Variational Quantum Optimization using CVaR}, Quantum \textbf{4}, 256 (2020).
+    \item M.~H.~Amin, E.~Andriyash, J.~Rolfe, B.~Kulchytskyy and R.~Melko, \textit{Quantum Boltzmann Machine}, Phys.\ Rev.\ X \textbf{8}, 021050 (2018).
+    \item S.~Khairy, R.~Shaydulin, L.~Cincio, Y.~Alexeev and P.~Balaprakash, \textit{Learning to Optimize Variational Quantum Circuits to Solve Combinatorial Problems}, Proc.\ AAAI Conf.\ Artif.\ Intell.\ \textbf{34}, 2367 (2020); M.~M.~Wauters, E.~Panizon, G.~B.~Mbeng and G.~E.~Santoro, \textit{Reinforcement-learning-assisted quantum optimization}, Phys.\ Rev.\ Research \textbf{2}, 033446 (2020).
+    \item M.~Hjorth-Jensen, \textit{Quantum Computing and Quantum Machine Learning}, lecture notes and codes,\\ \url{https://github.com/CompPhysics/QuantumComputingMachineLearning}.
+\end{enumerate}
+
+\end{document}

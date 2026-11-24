@@ -1,0 +1,412 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Computational Physics}}\\[0.3cm]
+    {\large \textbf{Parametric Matrix Models for the Black--Scholes Equation: Surrogate Models, Reduced-Order Operators and Options without Closed-Form Solutions}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+The Black--Scholes partial differential equation (PDE)~[1,2] is one of
+the central equations of quantitative finance.  It gives the fair
+price of a European option as a function of time, of the price of the
+underlying asset and of the volatility and the interest rate.  For
+the simplest contracts the solution is known in closed form.  For
+other contracts and for modified market assumptions the equation is
+solved numerically, with finite differences or finite elements~[3].
+In practice the price is needed again and again for different
+parameters, for example when a model is calibrated to market data or
+when the risk of a portfolio is computed, and this makes fast and
+accurate surrogate models valuable.
+
+Machine-learning surrogates for option prices have a long
+history~[4].  Most of them are neural networks, which are not built to
+respect the analytic properties of the PDE.  They need many
+parameters and much data, their derivatives with respect to the
+inputs (the sensitivities that are used for hedging) can be poor, and
+they are unreliable outside the training region.
+
+\emph{Parametric matrix models} (PMMs)~[5] are built from matrix
+equations instead of neurons.  The trainable parameters are the
+elements of matrices that depend on the input features, and the
+outputs are eigenvalues of these matrices or expectation values in
+their eigenvectors.  PMMs are universal function approximators, they
+often need far fewer parameters than neural networks, their outputs
+are analytic functions of the features, and they have extrapolated
+well in the applications studied so far.  They are related to
+eigenvector continuation and to reduced-basis methods~[6], in which a
+large operator is projected on a small subspace, with the difference
+that the small matrices are learned from data.
+
+The Black--Scholes equation is well suited as a test of PMMs for
+PDEs.  In suitable variables it is a Schr\"odinger equation in
+imaginary time whose Hamiltonian depends linearly on the squared
+volatility and on the interest rate~[7].  This is the structure a PMM
+is designed to represent.  The closed-form solution gives exact
+reference data, and the extensions of the model lead step by step to
+problems where no closed form exists and a surrogate is of practical
+use.
+
+This thesis project develops and tests PMMs for the Black--Scholes
+equation.  It has a common first part, with the PMM theory, a PMM
+code and a finite-difference reference solver, and three possible
+paths:
+\begin{itemize}
+  \item[\textbf{A.}] PMMs as surrogate models for the price and its
+  sensitivities, benchmarked against neural networks and other
+  regression methods;
+  \item[\textbf{B.}] PMMs that follow the operator structure of the
+  equation, as learned reduced-order models, compared with
+  projection-based reduced-basis methods;
+  \item[\textbf{C.}] PMMs for options without closed-form solutions:
+  American options, several underlying assets, and local or stochastic
+  volatility.
+\end{itemize}
+A thesis is expected to carry out the common part and Path~A or
+Path~B in depth, and to apply the resulting model to at least one of
+the problems of Path~C.  The choice is made together with the
+supervisors after the first months.
+
+\section*{2. The Black--Scholes Equation, Parametric Matrix Models and Scientific Motivation}
+
+\textbf{The equation.}  The price $V(S,t)$ of a European option on an
+asset with price $S$, volatility $\sigma$ and risk-free interest rate
+$r$ obeys
+\[
+\frac{\partial V}{\partial t}
++ \frac{1}{2}\sigma^2 S^2 \frac{\partial^2 V}{\partial S^2}
++ r S \frac{\partial V}{\partial S}
+- rV = 0,
+\]
+with the payoff as terminal condition, $V(S,T)=\max(S-K,0)$ for a
+call option with strike price $K$ and maturity $T$.  The solution is
+\[
+  V=S\,N(d_1)-K e^{-r\tau}N(d_2),\qquad
+  d_{1,2}=\frac{\ln(S/K)+(r\pm\tfrac12\sigma^2)\tau}{\sigma\sqrt{\tau}},
+\]
+where $\tau=T-t$ and $N$ is the cumulative normal distribution.  The
+ratio $V/K$ depends on three dimensionless variables only,
+$\ln(S/K)$, $\sigma^2\tau$ and $r\tau$.  The derivatives of the price
+with respect to $S$, $\sigma$, $t$ and $r$, the so-called Greeks,
+determine how an option is hedged and are as important as the price
+itself.
+
+\textbf{Operator form.}  With $x=\ln(S/K)$ and the time to maturity
+$\tau$ the equation becomes
+\[
+  \frac{\partial V}{\partial\tau}=-H_{\rm BS}V,\qquad
+  H_{\rm BS}=-\frac{\sigma^2}{2}\frac{\partial^2}{\partial x^2}
+  +\Bigl(\frac{\sigma^2}{2}-r\Bigr)\frac{\partial}{\partial x}+r ,
+\]
+so that $V(\tau)=e^{-\tau H_{\rm BS}}V(0)$, with the payoff as initial
+condition~[7].  Two properties of $H_{\rm BS}$ matter for what
+follows.  It is affine in the parameters,
+\[
+  H_{\rm BS}=\sigma^2A+rB,\qquad
+  A=-\frac12\frac{\partial^2}{\partial x^2}+\frac12\frac{\partial}{\partial x},
+  \quad B=1-\frac{\partial}{\partial x},
+\]
+and it is not Hermitian, but similar to a Hermitian operator,
+\[
+  H_{\rm BS}=e^{\alpha x}\Bigl(-\frac{\sigma^2}{2}\frac{\partial^2}{\partial x^2}
+  +\gamma\Bigr)e^{-\alpha x},\qquad
+  \alpha=\frac12-\frac{r}{\sigma^2},\quad
+  \gamma=r+\frac{(\sigma^2/2-r)^2}{2\sigma^2},
+\]
+which is the transformation to the heat equation.  Barrier options
+add boundary conditions and give a discrete spectrum, as for a
+particle in a box, and a volatility that depends on the asset price
+adds a potential.
+
+\textbf{Parametric matrix models.}  A PMM consists of primary
+matrices, whose elements are analytic functions of the input features
+$\boldsymbol c$, and of secondary matrices.  Its outputs are
+eigenvalues of the primary matrices and bilinear forms of their
+eigenvectors with the secondary matrices.  Two types of model are
+studied.
+\begin{itemize}
+  \item \textbf{Regression PMM (Path~A).}  The features are
+  $\boldsymbol c=(\ln(S/K),\sigma^2\tau,r\tau)$, the primary matrix is
+  $M(\boldsymbol c)=M_0+\sum_lc_lM_l$ with trainable Hermitian
+  $n\times n$ matrices, and the output $V/K$ is a bilinear form
+  $\boldsymbol v^\dagger\Delta\,\boldsymbol v$ of its eigenvectors
+  with a trainable secondary matrix $\Delta$.  The model knows nothing about the PDE
+  and is trained on prices only.
+  \item \textbf{Operator PMM (Path~B).}  The model has the form of the
+  solution,
+  \[
+    V(x_i,\tau;\sigma,r)\simeq\boldsymbol s_i^{T}
+    \exp\bigl[-\tau\,(\sigma^2M_1+rM_2)\bigr]\boldsymbol\phi_0 ,
+  \]
+  with trainable $n\times n$ matrices $M_1$ and $M_2$ in the place of
+  $A$ and $B$, a trainable vector $\boldsymbol\phi_0$ for the payoff
+  and trainable vectors $\boldsymbol s_i$ for the points $x_i$ at
+  which the price is wanted.  This is a reduced-order model of the
+  PDE.  A projection-based reduced-basis method~[6,8] has the same
+  form, with all quantities computed from the discretized operator and
+  from snapshots of the solution, while the PMM learns them from
+  prices.  The similarity transformation above suggests a variant with
+  Hermitian matrices.
+\end{itemize}
+Since the outputs of both models are analytic in the features, the
+Greeks follow from analytic derivatives of the model.
+
+The methods are compared through the accuracy of the price and of the
+Greeks, the number of training points, the number of trainable
+parameters, the cost of an evaluation, and the behavior outside the
+training region.  The project is organized around four questions:
+\begin{enumerate}
+  \item How small can a PMM be, and how little data does it need, to
+  reproduce the price and the Greeks to a given accuracy over the
+  parameter domain, compared with neural networks, physics-informed
+  neural networks, Gaussian processes and kernel methods?
+  \item How well does it extrapolate to large and small volatility,
+  to options deep in or out of the money and to long maturities, and
+  does it respect the constraints that exclude arbitrage (bounds on
+  the price, monotonicity in $S$, convexity in $K$)?
+  \item Does a model that follows the operator structure need less
+  data and extrapolate better than the regression PMM, and how does
+  it compare with a reduced basis obtained by projection?
+  \item Do the results carry over to problems without a closed-form
+  solution, where a surrogate is needed in practice?
+\end{enumerate}
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: PMMs, reduced-order methods and the reference solver (common part)}
+\begin{itemize}
+    \item Study and summarize the PMM framework of Ref.~[5], and its
+    connections to eigenvector continuation, reduced-basis methods and
+    implicit-function models~[6].
+    \item Derive the Black--Scholes equation, its analytical solution
+    and the Greeks, the transformation to the heat equation and the
+    operator form of Section~2.
+    \item Implement a stable finite-difference solver
+    (Crank--Nicolson) as reference, test its convergence against the
+    analytical solution, and generate data sets over volatilities,
+    interest rates, strikes and maturities.
+    \item Implement a PMM code with the analytic gradients of
+    Ref.~[5] or with automatic differentiation, and test small models
+    ($5\times5$, $7\times7$) on simplified payoff functions and on
+    models with one parameter.
+\end{itemize}
+
+\subsection*{Objective 2 (Path A): PMM surrogates for prices and Greeks}
+\begin{itemize}
+    \item Construct PMMs with the input features $(S,t,\sigma,r,K)$
+    and with the lower-dimensional encoding
+    $(\ln(S/K),\sigma^2\tau,r\tau)$, and explore Hermitian and unitary
+    formulations.
+    \item Train the models on option prices and study the accuracy as
+    a function of the matrix dimension and of the number and placement
+    of the training points.
+    \item Compute the Greeks from the trained models and compare with
+    the analytical expressions.
+    \item Compare with feed-forward neural networks, physics-informed
+    neural networks~[9], Gaussian processes and kernel ridge
+    regression~[10] in accuracy, computational efficiency, number of
+    trainable parameters and quality of the extrapolation.
+    \item Study the extrapolation to large and small volatility, deep
+    in-the-money and out-of-the-money regimes and long maturities,
+    and test the no-arbitrage constraints.
+\end{itemize}
+
+\subsection*{Objective 3 (Path B): PMMs with the operator structure of the equation}
+\begin{itemize}
+    \item Implement the operator PMM of Section~2, with the matrix
+    exponential and its derivatives, in the non-Hermitian form and in
+    the Hermitian form after the similarity transformation.
+    \item Investigate how the payoff and the boundary conditions can
+    be embedded in the vectors and secondary matrices of the model,
+    for call and put options and for barrier options.
+    \item Build a projection-based reduced-order model from the
+    finite-difference operator and snapshots of the solution~[8], and
+    compare the matrices it gives with the matrices the PMM has
+    learned, and their spectra with the spectrum of the discretized
+    operator.
+    \item Compare the operator PMM with the regression PMM of Path~A
+    and with the projection-based model in data requirements and in
+    the extrapolation in maturity, volatility and interest rate.
+    \item Study the region close to maturity and at the money, where
+    the kink of the payoff limits any smooth model.
+\end{itemize}
+
+\subsection*{Objective 4 (Path C): Options without closed-form solutions}
+\begin{itemize}
+    \item American options: add the early-exercise condition to the
+    finite-difference solver with a penalty method~[11], and extend
+    the PMMs to the resulting nonlinear problem.
+    \item Options on two assets: a two-dimensional PDE with the
+    correlation as an additional parameter.
+    \item Local and stochastic volatility~[12]: a volatility that
+    depends on the asset price, and the Heston model with its
+    two-dimensional PDE and five parameters.
+    \item Use a trained PMM as a fast pricing function in the
+    calibration of model parameters to option prices, and compare
+    with neural-network surrogates~[4].
+\end{itemize}
+
+\subsection*{Objective 5: Performance analysis and interpretation (all paths)}
+\begin{itemize}
+    \item Quantify accuracy, data requirements, number of parameters
+    and evaluation cost of the PMMs against the reference solver and
+    the baselines.
+    \item Analyze the learned matrices: their spectra, the analytic
+    structure of the outputs in the complex plane of the features,
+    and how these limit the extrapolation.
+    \item Establish where the models fail and how the failures can be
+    detected without reference data.
+\end{itemize}
+
+\subsection*{Objective 6: Possible extensions}
+\begin{itemize}
+    \item The inverse problem: PMMs for the implied volatility as a
+    function of the price.
+    \item Other PDEs of the same type in physics and engineering
+    (diffusion and Fokker--Planck equations), with the methods of this
+    thesis.
+    \item Tests on market data for index options.
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{PDE solvers:} Python with NumPy and SciPy for the
+  finite-difference solvers, with C++ for the two-dimensional
+  problems if needed.
+  \item \textbf{PMMs and baselines:} PyTorch or JAX for the PMMs, with
+  automatic differentiation through eigenvalue problems and matrix
+  exponentials; Scikit-Learn and PyTorch for the baselines.
+  \item \textbf{Useful background:} computational physics (FYS3150 or
+  FYS4411), machine learning (FYS-STK4155), and basic knowledge of
+  quantum mechanics and linear algebra.  No previous knowledge of
+  finance is required.  The lecture notes of Ref.~[13] cover the
+  numerical solution of PDEs and the machine-learning methods.
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Literature study}
+\begin{itemize}
+    \item Read the PMM paper and supporting literature on
+    reduced-basis methods.
+    \item Study the derivation and the numerical properties of the
+    Black--Scholes equation.
+    \item Begin preliminary numerical experiments.
+\end{itemize}
+\textbf{Deliverable:} A short report summarizing PMMs and the
+Black--Scholes equation.
+
+\bigskip
+
+\textbf{Months 3--4: Numerical solvers and data generation}
+\begin{itemize}
+    \item Implement the finite-difference solver and test grid
+    convergence and accuracy.
+    \item Generate data sets for a range of volatilities, interest
+    rates and maturities.
+    \item Implement the PMM code and test small models.
+\end{itemize}
+\textbf{Deliverable:} Verified PDE solver, data sets and a first
+working PMM for models with one parameter.
+
+\bigskip
+
+\textbf{Months 5--6: PMM construction}
+\begin{itemize}
+    \item Path~A: regression PMMs over the full parameter domain;
+    first comparison with a neural network.
+    \item Path~B: operator PMM in non-Hermitian and Hermitian form;
+    projection-based reduced-order model.
+\end{itemize}
+\textbf{Deliverable:} Working PMM for European options along the
+chosen path.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--9: Full training and analysis}
+\begin{itemize}
+    \item Assess accuracy, convergence and extrapolation; optimize
+    matrix sizes and training.
+    \item Path~A: Greeks and no-arbitrage constraints.  Path~B:
+    barrier options and comparison of the learned and the projected
+    matrices.
+    \item Start of one problem of Path~C.
+\end{itemize}
+\textbf{Deliverable:} Fully trained PMMs for Black--Scholes pricing.
+
+\bigskip
+
+\textbf{Months 10--11: Benchmarking and applications}
+\begin{itemize}
+    \item Comparison with neural networks and other regression
+    models; computational speed and parameter efficiency.
+    \item Results for the chosen problem of Path~C; one of the
+    extensions of Objective~6, depending on progress.
+\end{itemize}
+\textbf{Deliverable:} Benchmarking report with figures and tables.
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item A documented implementation of PMMs for the Black--Scholes
+    equation, with the reference solvers and data sets.
+    \item A demonstration of what PMMs can do as surrogate PDE
+    solvers, for prices and for sensitivities.
+    \item Quantitative comparisons with neural networks, other
+    regression methods, reduced-basis methods and numerical PDE
+    solvers.
+    \item An assessment of whether building the operator structure of
+    a PDE into the model improves accuracy and extrapolation.
+    \item First results for an option-pricing problem without a
+    closed-form solution.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item F.~Black and M.~Scholes, \textit{The Pricing of Options and Corporate Liabilities}, J.\ Polit.\ Econ.\ \textbf{81}, 637 (1973); R.~C.~Merton, \textit{Theory of Rational Option Pricing}, Bell J.\ Econ.\ Manag.\ Sci.\ \textbf{4}, 141 (1973).
+    \item J.~C.~Hull, \textit{Options, Futures, and Other Derivatives}, Pearson; P.~Wilmott, S.~Howison and J.~Dewynne, \textit{The Mathematics of Financial Derivatives}, Cambridge University Press (1995).
+    \item D.~Tavella and C.~Randall, \textit{Pricing Financial Instruments: The Finite Difference Method}, Wiley (2000).
+    \item J.~M.~Hutchinson, A.~W.~Lo and T.~Poggio, \textit{A Nonparametric Approach to Pricing and Hedging Derivative Securities Via Learning Networks}, J.\ Finance \textbf{49}, 851 (1994); J.~Ruf and W.~Wang, \textit{Neural networks for option pricing and hedging: a literature review}, J.\ Comput.\ Finance \textbf{24}, 1 (2020); B.~Horvath, A.~Muguruza and M.~Tomas, \textit{Deep learning volatility: a deep neural network perspective on pricing and calibration in (rough) volatility models}, Quant.\ Finance \textbf{21}, 11 (2021).
+    \item P.~Cook, D.~Jammooa, M.~Hjorth-Jensen, D.~D.~Lee and D.~Lee, \textit{Parametric matrix models}, Nat.\ Commun.\ \textbf{16}, 5929 (2025).
+    \item D.~Frame, R.~He, I.~Ipsen, D.~Lee, D.~Lee and E.~Rrapaj, \textit{Eigenvector continuation with subspace learning}, Phys.\ Rev.\ Lett.\ \textbf{121}, 032501 (2018); T.~Duguet, A.~Ekstr\"om, R.~J.~Furnstahl, S.~K\"onig and D.~Lee, \textit{Colloquium: Eigenvector continuation and projection-based emulators}, Rev.\ Mod.\ Phys.\ \textbf{96}, 031002 (2024); A.~Quarteroni, A.~Manzoni and F.~Negri, \textit{Reduced Basis Methods for Partial Differential Equations}, Springer (2016).
+    \item B.~E.~Baaquie, \textit{Quantum Finance: Path Integrals and Hamiltonians for Options and Interest Rates}, Cambridge University Press (2004).
+    \item R.~Cont, N.~Lantos and O.~Pironneau, \textit{A Reduced Basis for Option Pricing}, SIAM J.\ Financial Math.\ \textbf{2}, 287 (2011).
+    \item M.~Raissi, P.~Perdikaris and G.~E.~Karniadakis, \textit{Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations}, J.\ Comput.\ Phys.\ \textbf{378}, 686 (2019).
+    \item C.~E.~Rasmussen and C.~K.~I.~Williams, \textit{Gaussian Processes for Machine Learning}, MIT Press (2006).
+    \item P.~A.~Forsyth and K.~R.~Vetzal, \textit{Quadratic Convergence for Valuing American Options Using a Penalty Method}, SIAM J.\ Sci.\ Comput.\ \textbf{23}, 2095 (2002).
+    \item B.~Dupire, \textit{Pricing with a smile}, Risk \textbf{7}, 18 (1994); S.~L.~Heston, \textit{A Closed-Form Solution for Options with Stochastic Volatility with Applications to Bond and Currency Options}, Rev.\ Financ.\ Stud.\ \textbf{6}, 327 (1993).
+    \item M.~Hjorth-Jensen, \textit{Computational Physics} and \textit{Applied Data Analysis and Machine Learning}, lecture notes and codes,\\ \url{https://github.com/CompPhysics/ComputationalPhysics} and\\ \url{https://github.com/CompPhysics/MachineLearning}.
+\end{enumerate}
+
+\end{document}

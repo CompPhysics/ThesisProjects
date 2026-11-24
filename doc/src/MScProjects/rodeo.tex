@@ -1,0 +1,268 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Exploring and Extending the Rodeo Algorithm for Quantum Eigenvalue Problems on Real Quantum Hardware: Multi-Qubit Hamiltonians and Physics-Based Input States}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+
+\subsection*{Introduction}
+
+Estimating eigenvalues and preparing eigenstates of quantum
+Hamiltonians are central tasks in quantum many-body physics, quantum
+chemistry, and nuclear structure theory.  The \emph{rodeo algorithm}
+(RA)~[1] is a stochastic, interference-based method that suppresses
+unwanted spectral components and isolates the eigenstate at a chosen
+target energy.  The suppression is exponential in the number of cycles
+of the algorithm.  For the preparation of eigenstates this is
+exponentially faster than quantum phase estimation and adiabatic
+evolution~[1,2], provided that the initial state has a sufficient
+overlap with the eigenstate one wants.
+
+The first implementation of the RA on real quantum hardware~[3]
+demonstrated high-precision energy estimation for one-qubit
+Hamiltonians on an IBM Q device.  The method was validated through
+calculations based on the Hellmann--Feynman theorem and through a
+comparison with direct preparation of the eigenvector.  A second
+demonstration~[4] treated a two-qubit Hamiltonian on the Quantinuum
+H1-2 and IBM Perth devices, with controlled reversal gates that
+reduced the number of two-qubit gates by a factor of five.  The choice
+of the evolution times, which were random in the original formulation,
+has since been optimized~[5].
+
+Two things limit the step from these demonstrations to interacting
+many-body systems.  The first is the circuit.  Every cycle needs a
+controlled time evolution, which for several qubits has to be
+Trotterized and executed, together with mid-circuit measurements, on
+noisy devices.  The second is the input state.  Like quantum phase
+estimation, the RA is a filter: its success probability is
+proportional to the overlap of the input state with the wanted
+eigenstate.  For simple input states, such as a product state, this
+overlap decreases exponentially with the size of the system.  The
+rodeo algorithm is therefore only as good as the state it is given.
+
+\emph{Physics-based algorithms} address the second problem by
+building the input state from physical principles instead of a generic
+circuit.  Two such methods have been proposed recently.
+\begin{itemize}
+  \item \textbf{Resolution refinement}~[6].  An eigenstate of a
+  low-resolution Hamiltonian, defined in a small model space or on a
+  coarse lattice, is prepared with any method.  It is then lifted to a
+  higher resolution and evolved adiabatically into the corresponding
+  eigenstate of the more accurate Hamiltonian.
+  \item \textbf{Nucleation}~[7].  The exact ground state of a small
+  lattice Hamiltonian is prepared in a circuit, and the lattice is
+  then grown to its final size in a series of stages, each carried out
+  by Trotterized adiabatic evolution.
+\end{itemize}
+Their use as input to the rodeo algorithm has not been explored in
+these works.
+
+This master's thesis aims to (i) reproduce and critically evaluate the
+published one-qubit results, (ii) extend the RA to multi-qubit
+Hamiltonians of interacting fermions, (iii) determine how the input
+state, including physics-based input states, controls the success
+probability and the total cost of the algorithm, (iv) compare the RA
+with alternative quantum algorithms, and (v) investigate its practical
+performance on modern quantum hardware with noise-mitigation
+techniques.  Parts (i) and (ii) are common to all versions of the
+project.  After these, the emphasis can be put on hardware execution
+and error mitigation, on the input states, or on the comparison of
+algorithms, depending on the interests of the student and on the
+access to quantum devices.  The thesis involves substantial
+computational work, both in classical simulations and in executions on
+quantum computers.
+
+\subsection*{Models and Methods}
+
+\textbf{The rodeo algorithm.}  In cycle $n$ an auxiliary qubit
+controls the time evolution of the system under $H-E$ for a time
+$t_n$ and is then measured.  A new auxiliary qubit is used in each
+cycle, or a single one is measured and reset.  For an input state
+$\sum_jc_j|E_j\rangle$ the probability that all $N$ cycles succeed is
+\[
+  P_N(E)=\sum_j|c_j|^2\prod_{n=1}^{N}\cos^2\!\Bigl[\tfrac12(E_j-E)\,t_n\Bigr].
+\]
+With times drawn from a Gaussian distribution of width $\sigma$, the
+average over the times is
+\[
+  \overline{P_N}(E)=\sum_j|c_j|^2
+  \left[\frac{1+e^{-(E_j-E)^2\sigma^2/2}}{2}\right]^{N}.
+\]
+A scan over the target energy $E$ therefore shows a peak at every
+eigenvalue, with a height given by the weight $|c_j|^2$ and a width of
+order $1/(\sigma\sqrt N)$.  Components away from the target energy are
+suppressed exponentially in $N$, while the weight $|c_0|^2$ of the
+wanted state sets the overall success probability.  Random times give
+large fluctuations in the suppression, and fixed sequences of times
+perform better~[5].
+
+\textbf{Expectation values.}  The expectation value of an operator $O$
+in an eigenstate follows from the Hellmann--Feynman theorem,
+$\langle E_j|O|E_j\rangle=dE_j(\phi)/d\phi$ at $\phi=0$, where
+$E_j(\phi)$ is the eigenvalue of $H+\phi\,O$ determined with the
+RA~[3].
+
+\textbf{Model Hamiltonians.}  The project starts from the one-qubit
+and two-qubit Hamiltonians of Refs.~[3,4] and then turns to two models
+of interacting fermions.  \emph{The pairing Hamiltonian} is a minimal
+model of nuclear pairing and superconductivity,
+\[
+  H=\sum_{p}\varepsilon_p N_p-G\sum_{p,q}P_p^\dagger P_q ,
+\]
+with single-particle energies $\varepsilon_p$, number operators $N_p$,
+pair creation operators $P_p^\dagger$ and pairing strength $G$.
+Without broken pairs one qubit per level suffices, and the interaction
+becomes $-\tfrac{G}{2}\sum_{p<q}(X_pX_q+Y_pY_q)$ plus one-qubit terms.
+The model is exactly solvable~[8,9].  \emph{The Hubbard model in one
+dimension},
+\[
+  H=-t\sum_{i,\sigma}\bigl(c^\dagger_{i\sigma}c_{i+1\sigma}+\mathrm{h.c.}\bigr)
+  +U\sum_i n_{i\uparrow}n_{i\downarrow},
+\]
+needs two qubits per site after a Jordan--Wigner transformation and
+is solvable by the Bethe ansatz~[10].  Two to four pairing levels and
+a two-site Hubbard model use two to four system qubits and are within
+reach of present hardware.  Larger systems are studied in simulation.
+
+\textbf{Input states and cost.}  The input states to be compared are
+product and Hartree--Fock states, variational states, states from a
+direct adiabatic evolution, and the states from resolution refinement
+and nucleation.  The figure of merit is the total cost of obtaining an
+eigenstate with a given fidelity: the gates used for the input state
+and for the rodeo cycles, divided by the success probability.
+
+\subsection*{Project Outline}
+
+\begin{enumerate}
+
+\item \textbf{Theoretical Foundations}
+  \begin{itemize}
+    \item Study the rodeo algorithm, its stochastic structure, controlled time evolution, and peak-finding strategy.
+    \item Review competing algorithms: quantum phase estimation (QPE) and iterative QPE~[2,11], the variational quantum eigensolver (VQE)~[12], and quantum Krylov methods~[13].
+    \item Analyze the Hellmann--Feynman theorem in the context of quantum computing.
+    \item Study adiabatic state preparation and the adiabatic theorem~[14], Trotter errors~[15], and the two physics-based methods of Refs.~[6,7].
+    \item Review the pairing Hamiltonian and the Hubbard model, their exact solutions and their mapping to qubits; background material is found in the lecture notes of Ref.~[17].
+  \end{itemize}
+
+\item \textbf{Reproducing the One-Qubit Demonstration}
+  \begin{itemize}
+    \item Implement the RA for general one-qubit Hamiltonians.
+    \item Classically simulate the success-probability distribution $P_N(E)$ using randomized time evolutions.
+    \item Run the circuits on IBM Quantum backends and compare the raw data with the published results~[3].
+    \item Integrate measurement error mitigation and study its effects.
+    \item Compute expectation values with the Hellmann--Feynman approach and compare with direct preparation of the eigenvector.
+  \end{itemize}
+
+\item \textbf{Extension to Multi-Qubit Hamiltonians}
+  \begin{itemize}
+    \item Reproduce the two-qubit calculation of Ref.~[4] and implement controlled reversal gates.
+    \item Construct the pairing Hamiltonian with two to four levels and the two-site Hubbard model, with their exact solutions as reference.
+    \item Implement Trotterized time evolution and analyze the Trotter errors.
+    \item Evaluate the ability of the RA to resolve multi-level spectra, including nearly degenerate levels, as a function of the pairing strength $G$ and of $U/t$.
+    \item Explore the scaling of the RA performance with system size in state-vector simulations.
+  \end{itemize}
+
+\item \textbf{Input States for the Rodeo Algorithm}
+  \begin{itemize}
+    \item Determine the overlap with the exact ground state and the preparation cost for product and Hartree--Fock states, variational states, and direct adiabatic evolution from a simple Hamiltonian.
+    \item Implement resolution refinement and nucleation for small cases, following Refs.~[6,7]: add levels around the Fermi level for the pairing Hamiltonian, and grow or refine the chain for the Hubbard model.
+    \item Feed the prepared states into the RA and determine success probabilities, the number of cycles needed and the total cost.
+    \item Determine how good the input state needs to be: balance the adiabatic evolution time and the number of Trotter steps of the preparation against the number of rodeo cycles.
+    \item Extend to excited states, where the input state supplies the overlap and the RA selects the energy.
+  \end{itemize}
+
+\item \textbf{Comparison with Other Quantum Algorithms}
+  \begin{itemize}
+    \item Implement VQE and Krylov-subspace eigensolvers.
+    \item Benchmark accuracy, resource cost, and robustness to noise on identical Hamiltonians and with identical input states.
+    \item Investigate the operational advantage of the RA under realistic noise.
+  \end{itemize}
+
+\item \textbf{Applications on Real Quantum Computers}
+  \begin{itemize}
+    \item Deploy the algorithms on IBM Quantum and, if possible, on Quantinuum, Amazon Braket or EuroHPC backends.
+    \item Systematically compare results: noise, gate depth, mid-circuit measurement quality.
+    \item Study the effect of advanced error-mitigation techniques~[16]:
+      \begin{itemize}
+        \item measurement calibration,
+        \item readout symmetrization,
+        \item zero-noise extrapolation (ZNE),
+        \item probabilistic error cancellation (PEC).
+      \end{itemize}
+    \item Extract eigenvalues and use the Hellmann--Feynman approach to compute expectation values.
+    \item Run small instances (a few levels or sites) of the complete procedure, input-state preparation followed by the RA, and compare the hardware cost of the different input states.
+  \end{itemize}
+
+\item \textbf{Exploratory Directions (Optional)}
+  \begin{itemize}
+    \item Optimization of the RA time-distribution parameters (non-Gaussian choices, fixed and geometric sequences of times~[5]).
+    \item Machine-learning tuning of initial states to maximize overlap.
+    \item Application to effective Hamiltonians arising from nuclear many-body physics, for example pairing with single-particle energies from the nuclear shell model.
+    \item Optimized nucleation~[7], or a combination of nucleation and refinement, as input to the RA.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsection*{Milestones and Timeline (12 Months)}
+
+\begin{itemize}
+  \item \textbf{Month 1--2:} Literature review; basic RA implementation in classical simulation; reproduction of theoretical formulas.
+  \item \textbf{Month 3--4:} Reproduction of the one-qubit energy-scan experiment using simulators; first runs on IBM Quantum; Hellmann--Feynman calculations; error-mitigation benchmarking; detailed comparison with the article data.
+  \item \textbf{Month 5--6:} Two-qubit Hamiltonian with controlled reversal gates; pairing and Hubbard Hamiltonians with two to four qubits; Trotterization; classical and quantum benchmarks.
+  \item \textbf{Month 7--8:} Input states: standard states, resolution refinement and nucleation for small systems; overlaps, total cost and scaling with system size.
+  \item \textbf{Month 9:} Comparison with VQE, Krylov, and QPE approaches on identical Hamiltonians.
+  \item \textbf{Month 10--11:} Hardware-based performance study of the multi-qubit cases; statistical scaling; noise analysis; one exploratory direction depending on progress.
+  \item \textbf{Month 12:} Final analysis; writing and preparation of the thesis.
+\end{itemize}
+The weight given to months 7--11 depends on the emphasis chosen after
+the common part.
+
+\subsection*{Expected Outcomes}
+
+\begin{itemize}
+  \item A full computational implementation of the rodeo algorithm.
+  \item Validation and extension of published one-qubit results.
+  \item An exploration of the RA applied to multi-qubit Hamiltonians of interacting fermions, in simulation and on real hardware.
+  \item A quantitative assessment of how the input state, including states from resolution refinement and nucleation, determines the success probability and the total cost.
+  \item Comparative study with VQE, Krylov, and QPE methods under noise.
+  \item Assessment of error-mitigation strategies for eigenvalue problems.
+  \item A master thesis and, depending on the results, a contribution to a scientific article.
+\end{itemize}
+
+\subsection*{References}
+
+\begin{enumerate}
+    \item K.~Choi, D.~Lee, J.~Bonitati, Z.~Qian and J.~Watkins, \textit{Rodeo Algorithm for Quantum Computing}, Phys.\ Rev.\ Lett.\ \textbf{127}, 040505 (2021).
+    \item D.~Lee, \textit{Quantum techniques for eigenvalue problems}, Eur.\ Phys.\ J.\ A \textbf{59}, 275 (2023), arXiv:2307.03889.
+    \item Z.~Qian, J.~Watkins, G.~Given, J.~Bonitati, K.~Choi and D.~Lee, \textit{Demonstration of the rodeo algorithm on a quantum computer}, Eur.\ Phys.\ J.\ A \textbf{60}, 151 (2024).
+    \item M.~Bee-Lindgren, Z.~Qian, M.~DeCross, N.~C.~Brown, C.~N.~Gilbreth, J.~Watkins, X.~Zhang and D.~Lee, \textit{Controlled gate networks: theory and application to eigenvalue estimation}, Eur.\ Phys.\ J.\ A \textbf{61} (2025), arXiv:2208.13557.
+    \item T.~D.~Cohen and H.~Oh, \textit{Optimizing the rodeo projection algorithm}, Phys.\ Rev.\ A \textbf{108}, 032422 (2023); M.~Patkowski, O.~Ayyildiz, K.~Hunt, N.~Jansen and D.~Lee, \textit{Improved Rodeo Algorithm Performance for Spectral Functions and State Preparation}, arXiv:2602.05978 (2026).
+    \item S.~Bogner, H.~Hergert, M.~Hjorth-Jensen, R.~LaRose, D.~Lee and M.~Patkowski, \textit{Quantum State Preparation with Resolution Refinement}, arXiv:2511.14732; Phys.\ Lett.\ B (2026), doi:10.1016/j.physletb.2026.140363.
+    \item J.~P.~Sadia, M.~Hjorth-Jensen, D.~Lee and R.~LaRose, \textit{Digital quantum state preparation by nucleation}, arXiv:2609.37527 (2026).
+    \item R.~W.~Richardson, \textit{A restricted class of exact eigenstates of the pairing-force Hamiltonian}, Phys.\ Lett.\ \textbf{3}, 277 (1963); J.~Dukelsky, S.~Pittel and G.~Sierra, \textit{Colloquium: Exactly solvable Richardson--Gaudin models for many-body quantum systems}, Rev.\ Mod.\ Phys.\ \textbf{76}, 643 (2004).
+    \item D.~J.~Dean and M.~Hjorth-Jensen, \textit{Pairing in nuclear systems: from neutron stars to finite nuclei}, Rev.\ Mod.\ Phys.\ \textbf{75}, 607 (2003).
+    \item E.~H.~Lieb and F.~Y.~Wu, \textit{Absence of Mott Transition in an Exact Solution of the Short-Range, One-Band Model in One Dimension}, Phys.\ Rev.\ Lett.\ \textbf{20}, 1445 (1968); F.~H.~L.~Essler \textit{et al.}, \textit{The One-Dimensional Hubbard Model}, Cambridge University Press (2005).
+    \item A.~Yu.~Kitaev, \textit{Quantum measurements and the Abelian Stabilizer Problem}, arXiv:quant-ph/9511026 (1995); D.~S.~Abrams and S.~Lloyd, \textit{Quantum Algorithm Providing Exponential Speed Increase for Finding Eigenvalues and Eigenvectors}, Phys.\ Rev.\ Lett.\ \textbf{83}, 5162 (1999).
+    \item A.~Peruzzo \textit{et al.}, \textit{A variational eigenvalue solver on a photonic quantum processor}, Nat.\ Commun.\ \textbf{5}, 4213 (2014).
+    \item N.~H.~Stair, R.~Huang and F.~A.~Evangelista, \textit{A Multireference Quantum Krylov Algorithm for Strongly Correlated Electrons}, J.\ Chem.\ Theory Comput.\ \textbf{16}, 2236 (2020).
+    \item T.~Albash and D.~A.~Lidar, \textit{Adiabatic quantum computation}, Rev.\ Mod.\ Phys.\ \textbf{90}, 015002 (2018).
+    \item A.~M.~Childs, Y.~Su, M.~C.~Tran, N.~Wiebe and S.~Zhu, \textit{Theory of Trotter Error with Commutator Scaling}, Phys.\ Rev.\ X \textbf{11}, 011020 (2021).
+    \item K.~Temme, S.~Bravyi and J.~M.~Gambetta, \textit{Error Mitigation for Short-Depth Quantum Circuits}, Phys.\ Rev.\ Lett.\ \textbf{119}, 180509 (2017); Z.~Cai \textit{et al.}, \textit{Quantum error mitigation}, Rev.\ Mod.\ Phys.\ \textbf{95}, 045005 (2023).
+    \item M.~Hjorth-Jensen, \textit{Quantum Computing and Quantum Machine Learning}, lecture notes and codes,\\ \url{https://github.com/CompPhysics/QuantumComputingMachineLearning}.
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,474 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Parametric Matrix Models for Quantum Dynamics: Trotterized Time Evolution, Unitary Coupled Cluster Circuits and Time-Dependent Hartree--Fock}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+\emph{Parametric matrix models} (PMMs)~[1] are a class of
+machine-learning models built from matrix equations instead of
+neurons.  The trainable parameters are the elements of Hermitian or
+unitary matrices that depend on the input features, and the outputs
+are eigenvalues of these matrices or expectation values in their
+eigenvectors.  A PMM therefore has the same mathematical form as the
+problems of quantum mechanics.  It can be seen as eigenvector
+continuation~[2], a reduced-basis method in which a large Hamiltonian
+is projected on a few of its eigenvectors, with the difference that
+the elements of the small matrices are learned directly from data.
+PMMs are universal function approximators, they need few parameters,
+their outputs have the analytic structure of eigenvalue problems, and
+in the applications of Ref.~[1] they extrapolated well outside the
+training data.  One of these applications was the extrapolation of the
+energies of a Trotterized spin chain to zero time step.
+
+Many problems in quantum many-body physics and quantum computing
+consist of a unitary evolution that is expensive to compute or to run,
+and that has to be repeated for many values of a parameter.  This
+thesis project studies PMMs as models of such evolutions.  Three
+settings are considered, and they define three possible paths.
+\begin{itemize}
+  \item[\textbf{A.}] \textbf{Trotterized time evolution.}  On a
+  quantum computer the evolution operator $e^{-iHt}$ is replaced by a
+  product of simpler exponentials with a finite time step~[3,4].  A
+  smaller step gives a smaller error but a deeper circuit and more
+  noise.  A PMM with the same product structure is trained on data
+  taken at moderate time steps, from simulations and from quantum
+  hardware, and is used to extrapolate to zero time step.
+  \item[\textbf{B.}] \textbf{Trotterized unitary coupled cluster.}
+  The unitary coupled cluster (UCC) ansatz~[5] for the pairing
+  Hamiltonian~[6,7] is implemented as a product of exponentials of
+  pair excitations.  A PMM is trained to reproduce the energies and
+  observables of these circuits as functions of the number of Trotter
+  steps, the pairing strength and the amplitudes, and to extrapolate
+  them.
+  \item[\textbf{C.}] \textbf{Time-dependent Hartree--Fock.}  The
+  time-dependent Hartree--Fock (TDHF) equations~[8] describe the
+  mean-field dynamics of nuclei, atoms and electrons, and are costly
+  when they have to be solved for many interaction parameters and
+  initial conditions.  A PMM is constructed as a reduced model of
+  these nonlinear matrix equations.
+\end{itemize}
+The three paths share the PMM theory and one PMM code, which are
+developed in a common first part together with a reproduction of
+results from Ref.~[1].  A thesis is expected to carry out the common
+part and one path in depth, possibly with elements of a second.
+Paths~A and~B use the same Trotter formalism and combine naturally.
+Path~A includes experiments on real quantum computers, Path~B is
+closest to nuclear many-body theory, and Path~C is a project in
+classical computational physics.  The choice is made together with the
+supervisors after the first months.
+
+\section*{2. Parametric Matrix Models and Scientific Motivation}
+
+\textbf{Parametric matrix models.}  A PMM consists of primary
+matrices, which are Hermitian or unitary and whose elements are
+analytic functions of the input features
+$\boldsymbol c=(c_1,c_2,\dots)$, and of secondary matrices $S_k$.  The
+outputs are eigenvalues of the primary matrices and bilinear forms
+$\boldsymbol v^\dagger S_k\boldsymbol v$ of their eigenvectors
+$\boldsymbol v$.  The simplest case is the affine eigenvalue PMM,
+\[
+  M(\boldsymbol c)=M_0+\sum_l c_l\,M_l ,
+\]
+with trainable Hermitian $n\times n$ matrices $M_l$ and the
+eigenvalues $E_k(\boldsymbol c)$ as outputs.  This is the form of a
+Hamiltonian that depends linearly on its coupling constants, reduced
+to dimension $n$.  Its eigenvalues have branch points in the complex
+plane of the features and avoided crossings on the real axis, which a
+network of standard activation functions has to build from many
+neurons.  For unitary evolution the primary matrix is a product of
+exponentials,
+\[
+  U(dt)=\prod_{l=1}^{L}\exp\bigl(-iM_l\,dt\bigr),
+\]
+with eigenvalues $e^{-iE_k(dt)\,dt}$.  For $dt\to0$ the energies
+$E_k$ become the eigenvalues of $\sum_lM_l$, so that a model trained
+at finite time steps gives the result at zero time step directly.  In
+Ref.~[1] five factors of dimension $9\times9$ reproduced the lowest
+energies of a chain of ten spins with Heisenberg and
+Dzyaloshinskii--Moriya interactions, and the extrapolation to zero
+step was more accurate than polynomial extrapolation and than a neural
+network.  For time-dependent observables a natural form is
+\[
+  \langle O\rangle(t;\boldsymbol c)\simeq
+  \boldsymbol\phi_0^\dagger\,U^\dagger(t;\boldsymbol c)\,S\,
+  U(t;\boldsymbol c)\,\boldsymbol\phi_0 ,
+\]
+with a trainable initial vector $\boldsymbol\phi_0$, a secondary
+matrix $S$ for each observable and a propagator $U$ built from
+primary matrices as above.  Unitarity, and with it the conservation
+of the norm, is exact by construction.
+
+\textbf{Path A: Trotter errors and effective Hamiltonians.}  For
+$H=\sum_jH_j$ the first-order product formula defines an effective
+Hamiltonian,
+\[
+  \prod_j e^{-iH_j\,dt}=e^{-iH_{\rm eff}(dt)\,dt},\qquad
+  H_{\rm eff}(dt)=H-\frac{i\,dt}{2}\sum_{j<k}[H_j,H_k]+O(dt^2),
+\]
+and higher-order formulas remove the leading terms at the cost of more
+gates.  Energies measured with phase estimation or the rodeo
+algorithm, and observables after $n=t/dt$ steps, are those of
+$H_{\rm eff}(dt)$.  Standard remedies are extrapolations in $dt$ with
+polynomials~[9].  A PMM with the product structure of the circuit
+learns small matrices that play the role of the terms $H_j$, and
+thereby a model of $H_{\rm eff}(dt)$ for all $dt$.  On hardware the
+gain is that the data are taken where the circuits are shallow.  The
+open issues are how the required matrix dimension and number of data
+points grow with the size and the entanglement of the system, and
+whether the extrapolation survives the noise of a real device.
+
+\textbf{Path B: Unitary coupled cluster for the pairing Hamiltonian.}
+The pairing Hamiltonian,
+\[
+  H=\sum_{p}\varepsilon_p N_p-G\sum_{p,q}P_p^\dagger P_q ,
+\]
+with single-particle energies $\varepsilon_p$, number operators $N_p$,
+pair creation operators $P_p^\dagger$ and pairing strength $G$, is a
+minimal model of nuclear pairing and superconductivity.  Without
+broken pairs it maps to one qubit per level, and it is exactly
+solvable~[6].  With a reference state $|\Phi_0\rangle$ in which the
+lowest levels are occupied by pairs, the UCC ansatz with pair
+excitations is
+\[
+  |\Psi(\boldsymbol\theta)\rangle
+  =\exp\Bigl(\sum_j\theta_j\tau_j\Bigr)|\Phi_0\rangle,\qquad
+  \tau_j=P_a^\dagger P_i-P_i^\dagger P_a ,
+\]
+where $j=(i,a)$ runs over occupied levels $i$ and empty levels $a$.
+Since the $\tau_j$ do not commute, the circuit implements
+\[
+  U_n(\boldsymbol\theta)
+  =\Bigl[\prod_j\exp\bigl(\theta_j\tau_j/n\bigr)\Bigr]^{n},
+\]
+and the energy
+$E_n(\boldsymbol\theta;G)=\langle\Phi_0|U_n^\dagger HU_n|\Phi_0\rangle$
+depends on the number of Trotter steps $n$.  The limit $n\to\infty$ is
+the UCC ansatz, while each finite $n$ is a variational ansatz of its
+own when the amplitudes are optimized again~[5].  The PMM is to learn
+the dependence on $1/n$, $G$ and $\boldsymbol\theta$ from circuits
+with few steps and to extrapolate in $1/n$ and in $G$, including the
+region where the system changes from a normal to a paired state.
+
+\textbf{Path C: Time-dependent Hartree--Fock.}  The TDHF equation for
+the one-body density matrix,
+\[
+  i\hbar\,\frac{d\rho}{dt}=\bigl[h[\rho(t)],\rho(t)\bigr],\qquad
+  \rho(t+dt)=U(dt)\,\rho(t)\,U^\dagger(dt),\quad
+  U(dt)=\exp\Bigl(-\frac{i}{\hbar}\,h[\rho(t)]\,dt\Bigr),
+\]
+is a unitary evolution with a single-particle Hamiltonian that depends
+on the density itself.  It is the basis for the description of
+collective motion, giant resonances, fusion and fission in nuclei, and
+of mean-field dynamics in quantum chemistry and cold atoms~[8].  Each
+time step requires the construction of $h[\rho]$ and a matrix
+exponential, and studies over interaction strengths, trap parameters
+and initial conditions require many complete simulations.  The first
+test system is the Lipkin--Meshkov--Glick model~[10],
+\[
+  H=\varepsilon J_z+\tfrac12V\bigl(J_+^2+J_-^2\bigr),
+\]
+for which TDHF reduces to the motion of a classical spin, the
+Hartree--Fock state changes character at $\chi=(N-1)|V|/\varepsilon=1$,
+and exact solutions are available for comparison.  The point of
+principle is that TDHF is nonlinear, while a PMM with fixed primary
+matrices gives a linear evolution in its latent space.  Two
+constructions will be compared: a linear unitary PMM in a latent space
+larger than the single-particle space, and a self-consistent PMM whose
+primary matrix depends on the latent density $\tilde\rho$,
+\[
+  M[\tilde\rho]=M_0+\sum_l\mathrm{Tr}\bigl(\tilde\rho\,S_l\bigr)\,M_l ,
+\]
+which has the structure of the Hartree--Fock Hamiltonian.
+
+\textbf{Common questions.}  The methods are compared through the
+accuracy of the extrapolation (in the time step, in the parameters and
+in time), the amount of training data, the size of the model (matrix
+dimension and number of parameters), and the conservation of energy
+and particle number.  The project is organized around four questions:
+\begin{enumerate}
+  \item How small can a PMM be, and how little data does it need, for
+  a reliable extrapolation to zero Trotter step, compared with
+  polynomial extrapolation and with neural networks?  How does this
+  change with system size, entanglement and the order of the product
+  formula?
+  \item Does the extrapolation work with data from noisy quantum
+  hardware, and can it be combined with error mitigation?
+  \item Can a PMM reproduce Trotterized UCC energies and observables
+  of the pairing Hamiltonian over the pairing strength and the
+  amplitudes, and what does this save in circuit depth?
+  \item Can a small PMM reproduce nonlinear mean-field trajectories
+  over a range of parameters and initial conditions, and how do its
+  errors grow in time?
+\end{enumerate}
+In all cases the learned matrices are to be examined as well: whether
+their spectra resemble the low-lying spectra of the physical
+Hamiltonians, and what their analytic structure is.
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: PMM theory, code and reproduction (common part)}
+\begin{itemize}
+  \item Study the PMM framework of Ref.~[1]: Hermitian and unitary
+  primary matrices, eigenvalue-based and observable-based models,
+  universal approximation, and the relation to eigenvector
+  continuation and reduced-basis methods~[2].
+  \item Implement a PMM code with affine eigenvalue models, observable
+  models and unitary product models, trained with the analytic
+  gradients of Ref.~[1] or with automatic differentiation for complex
+  matrices.
+  \item Reproduce results of Ref.~[1]: the emulation of energies and
+  observables of a model Hamiltonian as functions of a coupling, and
+  the extrapolation to zero Trotter step for the spin chain, with
+  polynomial extrapolation and a multilayer perceptron as baselines.
+  \item Study Trotter and Suzuki--Trotter formulas and their
+  errors~[3,4].
+\end{itemize}
+
+\subsection*{Objective 2 (Path A): PMMs for Trotterized quantum dynamics}
+\begin{itemize}
+  \item Generate Trotterized data (energies of the product formula and
+  time-dependent observables) by classical simulation for the
+  transverse-field Ising model, Heisenberg and XXZ chains, the
+  Fermi--Hubbard model with two to four qubits, and the
+  Lipkin--Meshkov--Glick model.
+  \item Construct PMMs with the product structure of first- and
+  second-order formulas, train them at moderate $dt$, extrapolate to
+  $dt\to0$ and extract the effective Hamiltonian $H_{\rm eff}(dt)$.
+  \item Compare with exact results, with polynomial extrapolations of
+  the Trotter error~[9] and with neural networks, as functions of
+  system size, entanglement, step size and Hamiltonian.
+  \item Execute Trotterized circuits for selected Hamiltonians on real
+  quantum hardware for a range of $dt$, train PMMs on the measured
+  data, and determine whether they extrapolate to $dt\to0$, learn
+  $H_{\rm eff}(dt)$ and compensate for hardware noise.
+  \item Combine the extrapolation in $dt$ with error mitigation~[11],
+  for example with a second input feature for the noise level.
+\end{itemize}
+
+\subsection*{Objective 3 (Path B): PMMs for Trotterized unitary coupled cluster}
+\begin{itemize}
+  \item Implement the pairing Hamiltonian in its qubit form and its
+  exact solution for a few levels and pairs, and review UCC and
+  pair-specific variants of it.
+  \item Build and simulate the Trotterized UCC circuits, and generate
+  energies and observables (pair occupations, pairing gap) as
+  functions of the number of Trotter steps, the pairing strength $G$,
+  the level spacing and the amplitudes.
+  \item Design PMMs for these data: primary matrices that are affine
+  in $1/n$, $G$ and the amplitudes, or that have the product structure
+  of the circuit, with secondary matrices for the observables.
+  \item Train on circuits with few Trotter steps and extrapolate to
+  $n\to\infty$; train on a range of $G$ and extrapolate from weak to
+  strong pairing.  Compare with polynomial extrapolation, splines and
+  multilayer perceptrons.
+  \item Determine the cost: number of parameters, number of circuit
+  evaluations needed for training, and the circuit depth saved.
+\end{itemize}
+
+\subsection*{Objective 4 (Path C): PMMs for time-dependent Hartree--Fock}
+\begin{itemize}
+  \item Implement a TDHF solver (Runge--Kutta, Crank--Nicolson, Magnus
+  expansion or a split-operator method), test its convergence in the
+  time step and the basis size, and generate trajectories of density
+  matrices and observables.
+  \item Start with the Lipkin--Meshkov--Glick model and continue with
+  two-level pairing models, a harmonic-oscillator trap with mean-field
+  interactions, and small Hubbard or spin-chain systems.
+  \item Construct the linear and the self-consistent PMM of Section~2,
+  with primary matrices for the effective Hamiltonian or the
+  propagator and secondary matrices for the observables, and study
+  how commutation relations of the many-body Hamiltonian can be
+  imposed as constraints.
+  \item Train the models to reproduce trajectories as functions of
+  interaction strengths, model parameters and initial conditions, and
+  study overfitting, stability and extrapolation in the parameters and
+  in time.
+  \item Compare with the full solver, with recurrent neural networks,
+  with dynamic mode decomposition, with reduced-basis methods and, in
+  collaboration with other students, with physics-informed neural
+  networks~[12].  Evaluate the growth of the error in time and the
+  conservation of norm, energy and particle number.
+\end{itemize}
+
+\subsection*{Objective 5: Performance analysis and interpretation (all paths)}
+\begin{itemize}
+  \item Quantify the efficiency of the PMMs: number of trainable
+  parameters, data requirements, and cost of training and evaluation,
+  against the baselines of each path.
+  \item Analyze what the models have learned: spectra of the primary
+  matrices compared with the physical spectra, avoided crossings as
+  functions of $dt$, $G$ or the interaction strength, and the
+  analytic continuation to complex values of the features.
+  \item Establish where the models fail: time steps beyond the radius
+  of convergence, long times, strong entanglement, and parameters far
+  from the training region.
+\end{itemize}
+
+\subsection*{Objective 6: Possible extensions}
+\begin{itemize}
+  \item PMMs for error mitigation, with noise-adapted effective
+  Hamiltonians, and PMMs as surrogates in hybrid classical--quantum
+  workflows.
+  \item Exceptional points and analytic continuation of the learned
+  models.
+  \item Trotterized time evolution inside phase estimation or the
+  rodeo algorithm, with a PMM extrapolation of the measured energies
+  to zero time step.
+  \item Open quantum systems, in connection with the tensor PMM for
+  dissipative dynamics developed in the group~[13].
+  \item PMM emulation of TDHF linear-response spectra and of TDHF in
+  higher dimensions; PMMs trained on exact dynamics beyond the mean
+  field.
+  \item PMM surrogates for the time-dependent simulations of electrons
+  in multi-well traps~[14], as fast environments for optimal control
+  and reinforcement learning.
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{PMM code:} Python with NumPy and SciPy, and PyTorch or
+  JAX for automatic differentiation; the examples of Ref.~[1] serve
+  as reference.
+  \item \textbf{Quantum circuits (Paths~A and~B):} Qiskit or
+  PennyLane with state-vector and noisy simulators; IBM Quantum, AWS
+  Braket or Azure Quantum for the hardware runs of Path~A.
+  \item \textbf{TDHF (Path~C):} Python for the model systems, with
+  C++ or Fortran for the time-critical parts of larger systems.
+  \item \textbf{Useful background:} quantum mechanics, many-body
+  physics (FYS4480), machine learning (FYS-STK4155) and quantum
+  computing (FYS5419), with the lecture notes and codes of
+  Ref.~[15].
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and background}
+\begin{itemize}
+    \item PMM theory, Trotter formulas, and the theory of the chosen
+    path (product formulas and hardware, pairing and UCC, or TDHF).
+\end{itemize}
+\textbf{Deliverable:} Written summary of the theoretical background.
+
+\bigskip
+
+\textbf{Months 3--4: PMM code and reproduction}
+\begin{itemize}
+    \item PMM code with Hermitian and unitary models; reproduction of
+    the examples of Ref.~[1]; tests on Hamiltonians with one and two
+    qubits; choice of path.
+\end{itemize}
+\textbf{Deliverable:} Verified PMM code and reproduced reference
+results.
+
+\bigskip
+
+\textbf{Months 5--6: Data generation and first models}
+\begin{itemize}
+    \item Path~A: Trotterized simulations of the Ising, XXZ and
+    Lipkin--Meshkov--Glick models; first extrapolations.
+    \item Path~B: pairing Hamiltonian and Trotterized UCC circuits;
+    data for energies and observables against the number of steps.
+    \item Path~C: TDHF solver and trajectories for the
+    Lipkin--Meshkov--Glick model; first PMMs with small matrices on
+    short trajectories.
+\end{itemize}
+\textbf{Deliverable:} Data sets and a first working PMM for the chosen
+path.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--9: Full training and extrapolation studies}
+\begin{itemize}
+    \item Path~A: experiments on quantum hardware; PMMs trained on
+    device data; extrapolation to zero step.
+    \item Path~B: data over pairing strengths and amplitudes;
+    extrapolation in the number of steps and in $G$.
+    \item Path~C: training over parameter domains; long-time stability
+    and conservation laws; further model systems.
+\end{itemize}
+\textbf{Deliverable:} Trained models and a numerical analysis of the
+extrapolation quality.
+
+\bigskip
+
+\textbf{Months 10--11: Benchmarking and interpretation}
+\begin{itemize}
+    \item Comparison with the baselines; efficiency and robustness;
+    spectra and analytic structure of the learned matrices; one of the
+    extensions of Objective~6, depending on progress.
+\end{itemize}
+\textbf{Deliverable:} Benchmark results and drafts of the results
+chapters.
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item A documented PMM code with Hermitian, unitary and
+    time-evolution models.
+    \item For the chosen path: PMMs for the extrapolation of
+    Trotterized dynamics to zero time step, including a demonstration
+    with data from quantum hardware; PMMs for Trotterized UCC
+    simulations of the pairing Hamiltonian; or a PMM surrogate for
+    nonlinear mean-field dynamics, together with a TDHF code and data
+    set.
+    \item Quantitative benchmarks of PMMs against polynomial
+    extrapolation, neural networks and reduced-basis methods, in
+    accuracy, data requirements and number of parameters.
+    \item Insight into what the learned matrices represent, and into
+    how physical structure can be built into machine-learning models.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item P.~Cook, D.~Jammooa, M.~Hjorth-Jensen, D.~D.~Lee and D.~Lee, \textit{Parametric matrix models}, Nat.\ Commun.\ \textbf{16}, 5929 (2025).
+    \item D.~Frame, R.~He, I.~Ipsen, D.~Lee, D.~Lee and E.~Rrapaj, \textit{Eigenvector continuation with subspace learning}, Phys.\ Rev.\ Lett.\ \textbf{121}, 032501 (2018); S.~K\"onig, A.~Ekstr\"om, K.~Hebeler, D.~Lee and A.~Schwenk, \textit{Eigenvector continuation as an efficient and accurate emulator for uncertainty quantification}, Phys.\ Lett.\ B \textbf{810}, 135814 (2020); T.~Duguet, A.~Ekstr\"om, R.~J.~Furnstahl, S.~K\"onig and D.~Lee, \textit{Colloquium: Eigenvector continuation and projection-based emulators}, Rev.\ Mod.\ Phys.\ \textbf{96}, 031002 (2024).
+    \item H.~F.~Trotter, \textit{On the product of semi-groups of operators}, Proc.\ Amer.\ Math.\ Soc.\ \textbf{10}, 545 (1959); M.~Suzuki, \textit{Generalized Trotter's formula and systematic approximants of exponential operators and inner derivations with applications to many-body problems}, Commun.\ Math.\ Phys.\ \textbf{51}, 183 (1976).
+    \item A.~M.~Childs, Y.~Su, M.~C.~Tran, N.~Wiebe and S.~Zhu, \textit{Theory of Trotter Error with Commutator Scaling}, Phys.\ Rev.\ X \textbf{11}, 011020 (2021).
+    \item A.~Anand \textit{et al.}, \textit{A quantum computing view on unitary coupled cluster theory}, Chem.\ Soc.\ Rev.\ \textbf{51}, 1659 (2022); H.~R.~Grimsley, D.~Claudino, S.~E.~Economou, E.~Barnes and N.~J.~Mayhall, \textit{Is the Trotterized UCCSD Ansatz Chemically Well-Defined?}, J.\ Chem.\ Theory Comput.\ \textbf{16}, 1 (2020).
+    \item R.~W.~Richardson, \textit{A restricted class of exact eigenstates of the pairing-force Hamiltonian}, Phys.\ Lett.\ \textbf{3}, 277 (1963); J.~Dukelsky, S.~Pittel and G.~Sierra, \textit{Colloquium: Exactly solvable Richardson--Gaudin models for many-body quantum systems}, Rev.\ Mod.\ Phys.\ \textbf{76}, 643 (2004).
+    \item D.~J.~Dean and M.~Hjorth-Jensen, \textit{Pairing in nuclear systems: from neutron stars to finite nuclei}, Rev.\ Mod.\ Phys.\ \textbf{75}, 607 (2003).
+    \item P.~Ring and P.~Schuck, \textit{The Nuclear Many-Body Problem}, Springer (1980); C.~Simenel, \textit{Nuclear quantum many-body dynamics: From collective vibrations to heavy-ion collisions}, Eur.\ Phys.\ J.\ A \textbf{48}, 152 (2012); T.~Nakatsukasa, K.~Matsuyanagi, M.~Matsuo and K.~Yabana, \textit{Time-dependent density-functional description of nuclear dynamics}, Rev.\ Mod.\ Phys.\ \textbf{88}, 045004 (2016).
+    \item S.~Endo, Q.~Zhao, Y.~Li, S.~Benjamin and X.~Yuan, \textit{Mitigating algorithmic errors in a Hamiltonian simulation}, Phys.\ Rev.\ A \textbf{99}, 012334 (2019); G.~Rendon, J.~Watkins and N.~Wiebe, \textit{Improved Accuracy for Trotter Simulations Using Chebyshev Interpolation}, Quantum \textbf{8}, 1266 (2024); Yang \textit{et al.}, Phys.\ Rev.\ A \textbf{106}, 042401 (2022).
+    \item H.~J.~Lipkin, N.~Meshkov and A.~J.~Glick, \textit{Validity of many-body approximation methods for a solvable model (I)}, Nucl.\ Phys.\ \textbf{62}, 188 (1965).
+    \item K.~Temme, S.~Bravyi and J.~M.~Gambetta, \textit{Error Mitigation for Short-Depth Quantum Circuits}, Phys.\ Rev.\ Lett.\ \textbf{119}, 180509 (2017); Z.~Cai \textit{et al.}, \textit{Quantum error mitigation}, Rev.\ Mod.\ Phys.\ \textbf{95}, 045005 (2023).
+    \item S.~Hochreiter and J.~Schmidhuber, \textit{Long Short-Term Memory}, Neural Comput.\ \textbf{9}, 1735 (1997); P.~J.~Schmid, \textit{Dynamic mode decomposition of numerical and experimental data}, J.\ Fluid Mech.\ \textbf{656}, 5 (2010); M.~Raissi, P.~Perdikaris and G.~E.~Karniadakis, \textit{Physics-informed neural networks}, J.\ Comput.\ Phys.\ \textbf{378}, 686 (2019).
+    \item J.~D.~\'Alvarez-Cuartas, J.~H.~Reina, D.~Jammooa, M.~Hjorth-Jensen and D.~Lee, \textit{Tensor Parametric Matrix Model and the Dissipative Many-Body Problem}, in preparation (2026).
+    \item O.~Leinonen \textit{et al.}, \textit{Design and dynamics of two-qubit gates with motional states of electrons on helium}, Phys.\ Rev.\ A \textbf{113}, 032624 (2026).
+    \item M.~Hjorth-Jensen, \textit{Quantum Computing and Quantum Machine Learning}, lecture notes and codes,\\ \url{https://github.com/CompPhysics/QuantumComputingMachineLearning}.
+\end{enumerate}
+
+\end{document}

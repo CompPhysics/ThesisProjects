@@ -1,0 +1,363 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Computational Physics}}\\[0.3cm]
+    {\large \textbf{Physics-Informed Neural Networks for the Time Evolution of Interacting Electrons in Two-Dimensional Multi-Well Quantum Dots}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+\section*{1. Introduction}
+
+Electrons confined in electrostatically defined quantum dots, and in
+particular electrons trapped above the surface of superfluid helium,
+are candidates for quantum computing hardware~[1--3].  In the designs
+studied in our group each electron sits in its own potential well, the
+two lowest states of its in-plane motion define a qubit, and the
+unscreened Coulomb interaction between electrons in neighboring wells
+provides the coupling.  Gates are carried out by changing the shape of
+the wells in time.  Predicting how such a device behaves requires the
+solution of the time-dependent Schr\"odinger equation for several
+interacting electrons in a potential that changes in time.
+
+Two lines of work in the group address this problem from different
+sides.  The first is the multi-configuration time-dependent Hartree
+and Hartree--Fock method, MCTDH(F)~[4--6], developed for multi-well
+devices in the PhD work of Oskar Leinonen~[3,7].  It treats a register
+of four wells, with one or three electrons per well, including the
+full time dependence of the gates.  The electrons move in one
+dimension, with the transverse motion integrated out into an effective
+interaction, and the cost grows quickly with the number of electrons
+per well and with the dimension of the grid.  The second line is the
+neural-network approach of Ref.~[8], which combines a
+Slater--Jastrow--backflow wave function with a physics-informed
+training stage and has produced accurate ground states for up to
+twenty electrons in a single two-dimensional dot.  It works directly
+in two dimensions with the bare Coulomb interaction and has no grid,
+but it has so far been used only for time-independent problems in one
+well.
+
+This thesis project brings the two together.  The aim is to extend the
+physics-informed neural-network (PINN) calculations of Ref.~[8] to
+electrons in two dimensions with one electron in each well, as in
+Ref.~[7], to use them for the time evolution of two and then more
+electrons under time-independent and time-dependent external probes,
+and to compare the results with those of the MCTDH(F) codes.
+
+\section*{2. Physical System and Scientific Motivation}
+
+With $\hbar=m_e=1$, and with electron $\sigma$ confined to well
+$\sigma$ centered at $\boldsymbol r_c^{\sigma}$, the Hamiltonian for $N$
+electrons in $N$ wells is
+\[
+  \hat H(t)=\sum_{\sigma=1}^{N}\Bigl[-\tfrac12\nabla_\sigma^2
+  +v^{\sigma}\bigl(\boldsymbol r_\sigma-\boldsymbol r_c^{\sigma};t\bigr)\Bigr]
+  +\sum_{\sigma<\tau}\frac{\kappa}{|\boldsymbol r_\sigma-\boldsymbol r_\tau|}
+  +\lambda(t)\,\hat O ,
+\]
+where each well is anharmonic along the register axis and harmonic in
+the transverse direction,
+\[
+  v^{\sigma}(x,y)=\tfrac12(\omega^{\sigma})^2x^2
+  +\tfrac13\beta^{\sigma}(\omega^{\sigma})^2x^4
+  +\tfrac12(\omega_y^{\sigma})^2y^2 ,
+\]
+with frequencies of 5--15~GHz and well separations of a few
+micrometers as in Refs.~[3,7].  This form applies when the barriers
+suppress tunneling, so that the electrons are distinguishable; with a
+smooth multi-well potential common to all electrons the wave function
+is antisymmetric and the spin enters.  The last term is the external
+probe.
+We distinguish two cases.
+\begin{itemize}
+  \item \textbf{Time-independent probes.}  A static electric field, a
+  static detuning of the well frequencies, or a perpendicular magnetic
+  field.  They shift and mix the levels and define the operating
+  points of the device: idle points, where the qubits are decoupled,
+  and target points, where two wells exchange an excitation.  A
+  time-independent probe that is switched on suddenly also defines
+  the simplest dynamical problem, the evolution after a quench.
+  \item \textbf{Time-dependent probes.}  Smooth ramps of the well
+  parameters between operating points, which realize two-qubit gates
+  such as $\sqrt{i\mathrm{SWAP}}$~[3,7], and resonant microwave fields
+  acting on a single well, which realize single-qubit rotations and
+  expose the leakage out of the qubit states.
+\end{itemize}
+
+In a PINN the wave function is a neural network that depends on the
+coordinates $\boldsymbol R=(\boldsymbol r_1,\dots,\boldsymbol r_N)$ and
+on time, with the initial state built into the ansatz, and the
+network is trained by minimizing the residual of the Schr\"odinger
+equation~[9,10],
+\[
+  \mathcal L(\theta)=\int_0^T\!dt\int\! d\boldsymbol R\;
+  \bigl|\,i\,\partial_t\Psi_\theta(\boldsymbol R,t)
+  -\hat H(t)\Psi_\theta(\boldsymbol R,t)\bigr|^2 ,
+\]
+sampled at collocation points in space and time.  For the
+time-independent problem Ref.~[8] showed that a residual objective is
+not variational: it gives no bound on the energy and has to be
+followed by an energy minimization.  The time-dependent problem is
+different.  For an ansatz with the exact initial state, the distance
+to the exact solution is bounded by the accumulated residual,
+\[
+  \bigl\|\Psi_\theta(t)-\Psi(t)\bigr\|\le\int_0^t
+  \bigl\|\bigl(i\,\partial_{t'}-\hat H(t')\bigr)\Psi_\theta(t')\bigr\|\,dt' ,
+\]
+so the training loss is at the same time an error
+estimate~[11,12].  The same residual, minimized at each instant over
+the time derivative of the parameters, is McLachlan's variational
+principle~[13], which leads to time-dependent variational Monte
+Carlo~[14--16]; its equations of motion contain the same matrix as the
+stochastic-reconfiguration step of Ref.~[8].  A PINN that is trained
+over a whole time interval at once and a neural-network state that is
+stepped forward in time are thus two ways of minimizing one quantity,
+with different strengths: the first has no accumulation of time-step
+errors but must respect causality during training~[17] and resolve
+rapidly oscillating phases, while the second is local in time but is
+sensitive to noise and to the nodes of the wave function~[15].
+
+The project addresses three questions:
+\begin{enumerate}
+  \item Can the PINN approach of Ref.~[8] be extended to multi-well
+  potentials in two dimensions and to excited states, so that the
+  qubit levels and their dependence on static probes are obtained
+  with controlled accuracy?
+  \item How accurately, and over how long times, can a PINN follow the
+  dynamics of two interacting electrons under static and
+  time-dependent probes, as measured against numerically exact grid
+  calculations?
+  \item How does the approach scale when more electrons and wells are
+  added, and how does it compare with MCTDH(F) in accuracy, in cost
+  and in what it can describe (two dimensions, bare Coulomb
+  interaction, several electrons per well)?
+\end{enumerate}
+
+\section*{3. Objectives of the Thesis}
+
+\subsection*{Objective 1: Theory and reproduction}
+\begin{itemize}
+  \item Study variational Monte Carlo and neural-network quantum
+  states~[18--20], PINNs~[9,10,21], the time-dependent variational
+  principle, and the MCTDH(F) method.
+  \item Reproduce the two-electron results of Ref.~[8] for a single
+  parabolic dot with the existing code.
+  \item Set up grid-based reference solvers (discrete-variable
+  representation, split-operator or Krylov propagation) for one
+  electron in two dimensions and for two electrons in one and two
+  dimensions.
+\end{itemize}
+
+\subsection*{Objective 2: Multi-well states and time-independent probes}
+\begin{itemize}
+  \item Adapt the ansatz to several wells: orbitals localized in the
+  wells, the analytic electron--electron cusp, a neural correlator
+  and backflow.  When tunneling between the wells is negligible the
+  electrons can be treated as distinguishable, as in Ref.~[7]; the
+  antisymmetric form is kept as the general case.
+  \item Compute the ground state and the lowest excited states of two
+  electrons in two wells, which define the two-qubit states, using
+  residual pretraining followed by energy minimization and a method
+  for excited states~[22].
+  \item Study the response to static probes: level shifts in an
+  electric field, detuning scans, avoided crossings, and the idle and
+  target operating points.  Compare with exact diagonalization.
+\end{itemize}
+
+\subsection*{Objective 3: Time evolution of one and two electrons}
+\begin{itemize}
+  \item Develop a complex-valued, time-dependent ansatz
+  $\Psi_\theta(\boldsymbol R,t)$ with time-dependent Jastrow and
+  backflow terms~[14] and the initial state built in, and train it
+  with the space--time residual, using causality-respecting weights
+  and successive time windows.
+  \item Test on one driven electron in an anharmonic well (Rabi
+  oscillations and leakage).
+  \item Two electrons, one per well: evolution after a quench under a
+  time-independent Hamiltonian, exchange of an excitation between the
+  wells at a target point, a ramped $\sqrt{i\mathrm{SWAP}}$ gate and
+  a resonant drive.
+  \item Monitor norm and energy conservation, the residual error
+  bound, and the fidelity with the grid reference; determine the
+  time window over which the PINN is reliable.
+\end{itemize}
+
+\subsection*{Objective 4: Global training against time stepping}
+\begin{itemize}
+  \item Implement time-dependent variational Monte Carlo for the same
+  ansatz and compare with the space--time PINN in accuracy, stability
+  and cost.
+  \item Train networks that take the probe parameters (field
+  strength, ramp and hold times) as additional inputs, so that one
+  network describes a family of protocols.
+\end{itemize}
+
+\subsection*{Objective 5: More electrons and comparison with MCTDH(F)}
+\begin{itemize}
+  \item Extend the calculations to three and four wells with one
+  electron per well in two dimensions, where exact grid calculations
+  are no longer possible.
+  \item Compare with the MCTDH(F) codes of O.~Leinonen, which are used
+  as they are, at three levels: (i) the same one-dimensional
+  Hamiltonian as in Ref.~[7], for a direct comparison of energies,
+  populations and gate fidelities; (ii) the two-dimensional
+  calculation with strong transverse confinement, which tests the
+  effective one-dimensional interaction used in Ref.~[7]; (iii)
+  genuinely two-dimensional situations (weak transverse confinement,
+  wells that are not on a line), where the PINN results are
+  predictions.
+\end{itemize}
+
+\subsection*{Objective 6: Possible extensions}
+\begin{itemize}
+  \item Several electrons per well (three spin-polarized electrons per
+  well as in Ref.~[7]), where antisymmetry within each well is
+  required.
+  \item Lower barriers, where tunneling and the electron spin matter.
+  \item A perpendicular magnetic field.
+\end{itemize}
+
+\section*{4. Methods and Tools}
+
+\begin{itemize}
+  \item \textbf{Neural networks:} the PyTorch code developed for
+  Ref.~[8] (ansatz, residual training on stratified collocation
+  points, stochastic reconfiguration) is the starting point; JAX is
+  an alternative.  Production runs use GPUs.
+  \item \textbf{Reference calculations:} grid solvers written in the
+  project for small systems, and the MCTDH(F) codes of O.~Leinonen for
+  larger ones.
+  \item \textbf{Useful background:} quantum mechanics, computational
+  physics with variational Monte Carlo (FYS4411), machine learning
+  (FYS-STK4155) and many-body physics (FYS4480).
+\end{itemize}
+All codes and results will be documented in Jupyter notebooks so that
+the thesis can be reproduced.
+
+\section*{5. Work Plan and Milestones (One-Year Timeline)}
+
+\subsection*{Semester 1 (Months 1--6)}
+
+\textbf{Months 1--2: Theory and reproduction}
+\begin{itemize}
+    \item Literature study; reproduction of the two-electron results
+    of Ref.~[8]; grid reference solvers.
+\end{itemize}
+\textbf{Deliverable:} Short report with reproduced results and
+validated reference codes.
+
+\bigskip
+
+\textbf{Months 3--4: Multi-well states and static probes}
+\begin{itemize}
+    \item Multi-well ansatz; ground and excited states of two
+    electrons in two wells; response to static probes; operating
+    points.
+\end{itemize}
+\textbf{Deliverable:} Two-qubit level structure compared with exact
+diagonalization.
+
+\bigskip
+
+\textbf{Months 5--6: Time-dependent PINN}
+\begin{itemize}
+    \item Time-dependent ansatz and space--time training; one driven
+    electron; quench dynamics of two electrons.
+\end{itemize}
+\textbf{Deliverable:} Working time-dependent PINN validated against
+grid calculations.
+
+\subsection*{Semester 2 (Months 7--12)}
+
+\textbf{Months 7--8: Time-dependent probes}
+\begin{itemize}
+    \item Ramped gates and resonant drives for two electrons;
+    comparison of global training and time stepping; networks with
+    the probe parameters as inputs.
+\end{itemize}
+\textbf{Deliverable:} Accuracy and cost study of the two training
+strategies.
+
+\bigskip
+
+\textbf{Months 9--10: More electrons and MCTDH(F) comparison}
+\begin{itemize}
+    \item Three and four wells; comparison with MCTDH(F) in one
+    dimension and in the quasi-one-dimensional limit; two-dimensional
+    predictions.
+\end{itemize}
+\textbf{Deliverable:} Benchmark of PINN against MCTDH(F).
+
+\bigskip
+
+\textbf{Month 11: Extensions and consolidation}
+\begin{itemize}
+    \item One of the extensions of Objective~6, depending on progress;
+    final production runs and figures.
+\end{itemize}
+
+\bigskip
+
+\textbf{Month 12: Writing and final submission}
+\begin{itemize}
+    \item Completion of the thesis manuscript (methods and theory
+    chapters are written continuously during the year) and
+    preparation of the final presentation.
+\end{itemize}
+\textbf{Deliverable:} Completed thesis and defense presentation.
+
+\section*{6. Expected Outcomes}
+
+\begin{itemize}
+    \item A documented PINN code for stationary states and time
+    evolution of interacting electrons in two-dimensional multi-well
+    potentials.
+    \item Validated results for two electrons under static and
+    time-dependent probes, with error estimates from the residual.
+    \item A comparison of global space--time training and time
+    stepping for neural-network wave functions.
+    \item A benchmark against MCTDH(F) for several wells and a test of
+    the one-dimensional effective interaction.
+    \item A master thesis and, depending on the results, a
+    contribution to a scientific article.
+\end{itemize}
+
+\section*{7. References}
+
+\begin{enumerate}
+    \item P.~M.~Platzman and M.~I.~Dykman, \textit{Quantum Computing with Electrons Floating on Liquid Helium}, Science \textbf{284}, 1967 (1999).
+    \item N.~R.~Beysengulov \textit{et al.}, \textit{Coulomb Interaction-Driven Entanglement of Electrons on Helium}, PRX Quantum \textbf{5}, 030324 (2024).
+    \item O.~Leinonen \textit{et al.}, \textit{Design and dynamics of two-qubit gates with motional states of electrons on helium}, Phys.\ Rev.\ A \textbf{113}, 032624 (2026).
+    \item H.-D.~Meyer, U.~Manthe and L.~S.~Cederbaum, \textit{The multi-configurational time-dependent Hartree approach}, Chem.\ Phys.\ Lett.\ \textbf{165}, 73 (1990); M.~H.~Beck, A.~J\"ackle, G.~A.~Worth and H.-D.~Meyer, \textit{The multiconfiguration time-dependent Hartree (MCTDH) method: a highly efficient algorithm for propagating wavepackets}, Phys.\ Rep.\ \textbf{324}, 1 (2000).
+    \item J.~Zanghellini, M.~Kitzler, T.~Brabec and A.~Scrinzi, \textit{Testing the multi-configuration time-dependent Hartree--Fock method}, J.\ Phys.\ B \textbf{37}, 763 (2004); J.~Caillat \textit{et al.}, \textit{Correlated multielectron systems in strong laser fields: A multiconfiguration time-dependent Hartree--Fock approach}, Phys.\ Rev.\ A \textbf{71}, 012712 (2005).
+    \item A.~U.~J.~Lode, C.~L\'ev\^eque, L.~B.~Madsen, A.~I.~Streltsov and O.~E.~Alon, \textit{Colloquium: Multiconfigurational time-dependent Hartree approaches for indistinguishable particles}, Rev.\ Mod.\ Phys.\ \textbf{92}, 011001 (2020).
+    \item O.~Leinonen, \textit{MCTDHF for simulations of multi-qubit systems}, in preparation; O.~Leinonen, PhD thesis, University of Oslo.
+    \item A.~N.~Sekkelsten, B.~Fore, D.~H.~B.~Lima, M.~Hjorth-Jensen, J.~M.~Kim and A.~Lovato, \textit{Neural-network quantum states for two-dimensional quantum dots: benchmark energies and real-space structure from strong to weak confinement}, in preparation (2026); A.~N.~Sekkelsten, \textit{Physics-Informed Neural Quantum States for Quantum Dots}, MSc thesis, University of Oslo (2026).
+    \item I.~E.~Lagaris, A.~Likas and D.~I.~Fotiadis, \textit{Artificial Neural Networks for Solving Ordinary and Partial Differential Equations}, IEEE Trans.\ Neural Networks \textbf{9}, 987 (1998).
+    \item M.~Raissi, P.~Perdikaris and G.~E.~Karniadakis, \textit{Physics-informed neural networks: A deep learning framework for solving forward and inverse problems involving nonlinear partial differential equations}, J.\ Comput.\ Phys.\ \textbf{378}, 686 (2019).
+    \item C.~Lubich, \textit{From Quantum to Classical Molecular Dynamics: Reduced Models and Numerical Analysis}, European Mathematical Society (2008).
+    \item A.~Sinibaldi, D.~Hendry, F.~Vicentini and G.~Carleo, \textit{Time-dependent Neural Galerkin Method for Quantum Dynamics}, arXiv:2412.11778 (2024).
+    \item A.~D.~McLachlan, \textit{A variational solution of the time-dependent Schr\"odinger equation}, Mol.\ Phys.\ \textbf{8}, 39 (1964).
+    \item J.~Nys, G.~Pescia, A.~Sinibaldi and G.~Carleo, \textit{Ab-initio variational wave functions for the time-dependent many-electron Schr\"odinger equation}, Nat.\ Commun.\ \textbf{15}, 9404 (2024).
+    \item A.~Sinibaldi, C.~Giuliani, G.~Carleo and F.~Vicentini, \textit{Unbiasing time-dependent Variational Monte Carlo by projected quantum evolution}, Quantum \textbf{7}, 1131 (2023).
+    \item G.~Carleo, F.~Becca, M.~Schir\'o and M.~Fabrizio, \textit{Localization and Glassy Dynamics Of Many-Body Quantum Systems}, Sci.\ Rep.\ \textbf{2}, 243 (2012).
+    \item S.~Wang, S.~Sankaran and P.~Perdikaris, \textit{Respecting causality for training physics-informed neural networks}, Comput.\ Methods Appl.\ Mech.\ Eng.\ \textbf{421}, 116813 (2024).
+    \item G.~Carleo and M.~Troyer, \textit{Solving the quantum many-body problem with artificial neural networks}, Science \textbf{355}, 602 (2017).
+    \item D.~Pfau, J.~S.~Spencer, A.~G.~D.~G.~Matthews and W.~M.~C.~Foulkes, \textit{Ab initio solution of the many-electron Schr\"odinger equation with deep neural networks}, Phys.\ Rev.\ Research \textbf{2}, 033429 (2020).
+    \item D.~Luo and B.~K.~Clark, \textit{Backflow Transformations via Neural Networks for Quantum Many-Body Wave Functions}, Phys.\ Rev.\ Lett.\ \textbf{122}, 226401 (2019); E.~M.~Nordhagen, J.~M.~Kim, B.~Fore, A.~Lovato and M.~Hjorth-Jensen, \textit{Efficient solutions of fermionic systems using artificial neural networks}, Front.\ Phys.\ \textbf{11}, 1061580 (2023).
+    \item T.~De~Ryck and S.~Mishra, \textit{Numerical analysis of physics-informed neural networks and related models in physics-informed machine learning}, Acta Numerica \textbf{33}, 633 (2024).
+    \item D.~Pfau, S.~Axelrod, H.~Sutterud, I.~von~Glehn and J.~S.~Spencer, \textit{Accurate computation of quantum excited states with neural networks}, Science \textbf{385}, eadn0137 (2024).
+\end{enumerate}
+
+\end{document}

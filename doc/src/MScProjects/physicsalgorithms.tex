@@ -1,0 +1,207 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\emergencystretch=2em
+
+\begin{document}
+
+\begin{center}
+    {\Large \textbf{Master Thesis Project in Quantum Information Science and Technology}}\\[0.3cm]
+    {\large \textbf{Physics-Based Algorithms for Quantum Computing: Resolution Refinement and Nucleation as Input to the Rodeo Algorithm}}\\[0.2cm]
+    \vspace{0.3cm}
+    {Duration: One Year (60 ECTS)}
+\end{center}
+
+\vspace{1cm}
+
+
+\subsection*{Introduction}
+
+Estimating eigenvalues and preparing eigenstates of quantum
+Hamiltonians are central tasks in quantum many-body physics, quantum
+chemistry, and nuclear structure theory.  The \emph{rodeo algorithm}
+(RA)~[1,2] is a stochastic, interference-based method that suppresses
+unwanted spectral components and isolates the eigenstate at a chosen
+target energy.  Like quantum phase estimation, it is a filter: its
+success probability is proportional to the overlap of the input state
+with the eigenstate one wants.  For simple input states, such as a
+product state, this overlap decreases exponentially with the size of
+the system.  The rodeo algorithm is therefore only as good as the
+state it is given.
+
+\emph{Physics-based algorithms} address this problem by building the
+input state from physical principles instead of a generic circuit.
+Two such methods have been proposed recently.
+\begin{itemize}
+  \item \textbf{Resolution refinement}~[3].  An eigenstate of a
+  low-resolution Hamiltonian, defined in a small model space or on a
+  coarse lattice, is prepared with any method.  It is then lifted to
+  a higher resolution and evolved adiabatically into the
+  corresponding eigenstate of the more accurate Hamiltonian.  The
+  method acts like an inverse renormalization-group transformation.
+  Because refinement changes the low-energy states only slightly, the
+  evolution time grows as the inverse energy gap times the square
+  root of the system size.
+  \item \textbf{Nucleation}~[4].  The exact ground state of a small
+  lattice Hamiltonian is prepared in a circuit, and the lattice is
+  then grown to its final size in a series of stages, each carried
+  out by Trotterized adiabatic evolution.  Sufficient conditions on
+  the evolution time and on the number of Trotter steps have been
+  derived, and a variationally optimized version improves on the
+  basic scheme.
+\end{itemize}
+So far resolution refinement has been demonstrated for particles in a
+harmonic trap, for nuclear Hartree--Fock states and for a
+multi-species Hubbard model in one dimension, and nucleation for a
+two-dimensional Ising model.  Their use as input to the rodeo
+algorithm has not been explored in these works.
+
+This master's thesis aims to (i) implement resolution refinement and
+nucleation for two models of interacting fermions, the pairing
+Hamiltonian and the Hubbard model in one dimension, (ii) use the
+states they produce as input to the rodeo algorithm, (iii) compare
+the complete procedure with standard input states and with other
+eigenstate algorithms in terms of success probability and circuit
+cost, and (iv) run small cases on real quantum hardware.  The thesis
+involves substantial computational work, both in classical
+simulations and in executions on quantum computers.
+
+\subsection*{Models and Methods}
+
+\textbf{The pairing Hamiltonian} is a minimal model of nuclear
+pairing and superconductivity,
+\[
+  H=\sum_{p}\varepsilon_p N_p-G\sum_{p,q}P_p^\dagger P_q ,
+\]
+with single-particle energies $\varepsilon_p$, number operators $N_p$,
+pair creation operators $P_p^\dagger$ and pairing strength $G$.
+Without broken pairs each level is either empty or doubly occupied,
+so one qubit per level suffices and the interaction becomes
+$-\tfrac{G}{2}\sum_{p<q}(X_pX_q+Y_pY_q)$ plus one-qubit terms.  The
+model is exactly solvable~[5,6], which gives reference energies for
+any size.
+
+\textbf{The Hubbard model in one dimension},
+\[
+  H=-t\sum_{i,\sigma}\bigl(c^\dagger_{i\sigma}c_{i+1\sigma}+\mathrm{h.c.}\bigr)
+  +U\sum_i n_{i\uparrow}n_{i\downarrow},
+\]
+needs two qubits per site after a Jordan--Wigner transformation and
+has only nearest-neighbor couplings.  It is solvable by the Bethe
+ansatz~[7], and its gap structure depends on the filling and on the
+sign of $U$; for $U<0$ it describes pairing on a lattice, which links
+it to the first model.
+
+\textbf{The rodeo algorithm} couples the system to one auxiliary qubit
+per cycle, which controls the evolution under $H-E$ for a random time
+$t_n$.  For an input state $\sum_j c_j|E_j\rangle$ the probability
+that all $N$ cycles succeed is
+\[
+  P_N(E)=\sum_j|c_j|^2\prod_{n=1}^{N}\cos^2\!\Bigl[\tfrac12(E_j-E)\,t_n\Bigr],
+\]
+so components away from the target energy $E$ are suppressed
+exponentially in $N$, while the weight $|c_0|^2$ of the wanted state
+sets the overall success probability.  The figure of merit of the
+thesis is the total cost of obtaining the eigenstate with a given
+fidelity: the gates used for the input state and for the rodeo
+cycles, divided by the success probability.
+
+\subsection*{Project Outline}
+
+\begin{enumerate}
+
+\item \textbf{Theoretical Foundations}
+  \begin{itemize}
+    \item Study the rodeo algorithm, its stochastic structure, controlled time evolution and peak-finding strategy.
+    \item Study adiabatic state preparation and the adiabatic theorem~[8], Trotter errors~[9], and the two physics-based methods of Refs.~[3,4].
+    \item Review the pairing Hamiltonian and the Hubbard model, their exact solutions and their mapping to qubits.
+    \item Review competing algorithms: quantum phase estimation, the variational quantum eigensolver~[10] and quantum Krylov methods.
+  \end{itemize}
+
+\item \textbf{Reproduction of Published Results}
+  \begin{itemize}
+    \item Implement the RA and reproduce the one-qubit demonstration of Ref.~[2] in simulation.
+    \item Reproduce the lattice refinement of the one-dimensional Hubbard model of Ref.~[3] and the nucleation of a small Ising model of Ref.~[4], using the published code where available.
+  \end{itemize}
+
+\item \textbf{Physics-Based State Preparation for the Pairing Hamiltonian}
+  \begin{itemize}
+    \item Resolution refinement in the single-particle space: start from a few levels around the Fermi level and add levels, with the prolongation operator and adiabatic schedule of Ref.~[3].
+    \item Nucleation: start from the exact solution for a small number of levels and pairs and grow the system in stages.  Since nucleation was formulated for lattice models with local couplings and the pairing interaction couples all levels, the form of the growth stages is part of the research.
+    \item Compute the overlap with the exact ground state, the evolution time and the gate count as functions of the pairing strength $G$ and of the number of levels, from weak to strong pairing.
+  \end{itemize}
+
+\item \textbf{Physics-Based State Preparation for the Hubbard Model}
+  \begin{itemize}
+    \item Lattice refinement from a coarse to a fine chain, and nucleation by growing the chain from a few sites.
+    \item Study half filling and doped chains, repulsive and attractive $U$, and the dependence on $U/t$; relate the required evolution time to the energy gap and test the scaling with system size predicted in Refs.~[3,4].
+    \item Use state-vector simulation for small chains and tensor-network simulation for larger ones.
+  \end{itemize}
+
+\item \textbf{Rodeo Algorithm with Physics-Based Input States}
+  \begin{itemize}
+    \item Feed the prepared states into the RA for both models and determine success probabilities, the number of cycles needed and the total cost.
+    \item Compare with other input states (product and Hartree--Fock states, direct adiabatic evolution from a simple Hamiltonian, variational states) and with other eigenstate algorithms (VQE, Krylov, phase estimation) on identical Hamiltonians.
+    \item Determine how good the input state needs to be: balance the adiabatic evolution time and number of Trotter steps of the preparation against the number of rodeo cycles.
+    \item Extend to excited states, where refinement supplies the input state and the RA selects the energy, and compute expectation values with the Hellmann--Feynman approach.
+  \end{itemize}
+
+\item \textbf{Applications on Real Quantum Computers}
+  \begin{itemize}
+    \item Run small instances (a few levels or sites) of the complete procedure on IBM Quantum and, if possible, on other available backends.
+    \item Study noise, gate depth and mid-circuit measurement quality, and the effect of error mitigation (measurement calibration, zero-noise extrapolation).
+    \item Compare the hardware cost of nucleation, refinement and standard input states.
+  \end{itemize}
+
+\item \textbf{Exploratory Directions (Optional)}
+  \begin{itemize}
+    \item Optimized nucleation~[4] for the two fermionic models.
+    \item Combination of the two methods: nucleation to grow the system, refinement to increase its resolution.
+    \item Pairing with realistic single-particle energies from the nuclear shell model, or the Hubbard model on a ladder.
+  \end{itemize}
+
+\end{enumerate}
+
+\subsection*{Milestones and Timeline (12 Months)}
+
+\begin{itemize}
+  \item \textbf{Month 1--2:} Literature review; RA implementation in classical simulation; reproduction of the one-qubit results.
+  \item \textbf{Month 3--4:} Reproduction of the refinement and nucleation examples; qubit mappings and exact reference solutions for the two models.
+  \item \textbf{Month 5--6:} Refinement and nucleation for the pairing Hamiltonian; overlaps and gate counts.
+  \item \textbf{Month 7--8:} Refinement and nucleation for the one-dimensional Hubbard model; scaling with system size.
+  \item \textbf{Month 9:} Rodeo algorithm with physics-based input states for both models; comparison with standard input states and with VQE, Krylov and phase estimation.
+  \item \textbf{Month 10--11:} Hardware runs of small instances; error mitigation; one exploratory direction depending on progress.
+  \item \textbf{Month 12:} Final analysis; writing and preparation of the thesis.
+\end{itemize}
+
+\subsection*{Expected Outcomes}
+
+\begin{itemize}
+  \item Implementations of resolution refinement, nucleation and the rodeo algorithm for the pairing Hamiltonian and the one-dimensional Hubbard model.
+  \item An extension of refinement and nucleation to the pairing Hamiltonian, and of nucleation to the Hubbard model.
+  \item A quantitative assessment of physics-based input states for the rodeo algorithm: success probability, circuit cost and scaling with system size, compared with standard alternatives.
+  \item Demonstrations of the complete procedure for small systems on real hardware.
+  \item A master thesis and, depending on the results, a contribution to a scientific article.
+\end{itemize}
+
+\subsection*{References}
+
+\begin{enumerate}
+    \item K.~Choi, D.~Lee, J.~Bonitati, Z.~Qian and J.~Watkins, \textit{Rodeo Algorithm for Quantum Computing}, Phys.\ Rev.\ Lett.\ \textbf{127}, 040505 (2021).
+    \item Z.~Qian, J.~Watkins, G.~Given, J.~Bonitati, K.~Choi and D.~Lee, \textit{Demonstration of the rodeo algorithm on a quantum computer}, Eur.\ Phys.\ J.\ A \textbf{60}, 151 (2024).
+    \item S.~Bogner, H.~Hergert, M.~Hjorth-Jensen, R.~LaRose, D.~Lee and M.~Patkowski, \textit{Quantum State Preparation with Resolution Refinement}, arXiv:2511.14732; Phys.\ Lett.\ B (2026), doi:10.1016/j.physletb.2026.140363.
+    \item J.~P.~Sadia, M.~Hjorth-Jensen, D.~Lee and R.~LaRose, \textit{Digital quantum state preparation by nucleation}, arXiv:2609.37527 (2026).
+    \item R.~W.~Richardson, \textit{A restricted class of exact eigenstates of the pairing-force Hamiltonian}, Phys.\ Lett.\ \textbf{3}, 277 (1963); J.~Dukelsky, S.~Pittel and G.~Sierra, \textit{Colloquium: Exactly solvable Richardson--Gaudin models for many-body quantum systems}, Rev.\ Mod.\ Phys.\ \textbf{76}, 643 (2004).
+    \item D.~J.~Dean and M.~Hjorth-Jensen, \textit{Pairing in nuclear systems: from neutron stars to finite nuclei}, Rev.\ Mod.\ Phys.\ \textbf{75}, 607 (2003).
+    \item E.~H.~Lieb and F.~Y.~Wu, \textit{Absence of Mott Transition in an Exact Solution of the Short-Range, One-Band Model in One Dimension}, Phys.\ Rev.\ Lett.\ \textbf{20}, 1445 (1968); F.~H.~L.~Essler \textit{et al.}, \textit{The One-Dimensional Hubbard Model}, Cambridge University Press (2005).
+    \item T.~Albash and D.~A.~Lidar, \textit{Adiabatic quantum computation}, Rev.\ Mod.\ Phys.\ \textbf{90}, 015002 (2018).
+    \item A.~M.~Childs, Y.~Su, M.~C.~Tran, N.~Wiebe and S.~Zhu, \textit{Theory of Trotter Error with Commutator Scaling}, Phys.\ Rev.\ X \textbf{11}, 011020 (2021).
+    \item A.~Peruzzo \textit{et al.}, \textit{A variational eigenvalue solver on a photonic quantum processor}, Nat.\ Commun.\ \textbf{5}, 4213 (2014).
+    \item M.~Hjorth-Jensen, \textit{Quantum Computing and Quantum Machine Learning}, lecture notes and codes,\\ \url{https://github.com/CompPhysics/QuantumComputingMachineLearning}.
+\end{enumerate}
+
+\end{document}
